@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAB Imóveis — Exclusivo para Militares e Servidores da Força Aérea</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #8A6E30;
+    --navy: #0A1628;
+    --navy-mid: #112240;
+    --navy-light: #1C3461;
+    --off-white: #F5F2EC;
+    --cream: #EDE8DF;
+    --text-muted: #8A96A8;
+    --border: rgba(201,168,76,0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--navy);
+    color: var(--off-white);
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE TEXTURE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 60px;
+    background: rgba(10,22,40,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .logo-emblem {
+    width: 42px;
+    height: 42px;
+  }
+
+  .logo-text {
+    line-height: 1.1;
+  }
+
+  .logo-text span:first-child {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .logo-text span:last-child {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .nav-cta {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--navy);
+    background: var(--gold);
+    border: none;
+    padding: 10px 24px;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+  }
+
+  .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding-top: 80px;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(135deg, rgba(10,22,40,0.97) 0%, rgba(17,34,64,0.88) 50%, rgba(10,22,40,0.96) 100%),
+      url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1600&q=80') center/cover no-repeat;
+  }
+
+  /* Diagonal gold line */
+  .hero-bg::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 28%;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+    opacity: 0.3;
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 60px;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 60px;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    margin-bottom: 24px;
+    animation: fadeUp 0.8s ease forwards;
+  }
+
+  .hero-badge::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(36px, 4.5vw, 58px);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--off-white);
+    margin-bottom: 16px;
+    animation: fadeUp 0.8s 0.1s ease both;
+  }
+
+  .hero-title em {
+    font-style: normal;
+    color: var(--gold);
+  }
+
+  .hero-sub {
+    font-size: 17px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 520px;
+    margin-bottom: 36px;
+    animation: fadeUp 0.8s 0.2s ease both;
+  }
+
+  .hero-stats {
+    display: flex;
+    gap: 36px;
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
+
+  .stat {
+    border-left: 2px solid var(--gold);
+    padding-left: 14px;
+  }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.05em;
+  }
+
+  /* ─── FORM CARD ─── */
+  .form-card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    padding: 36px 32px;
+    position: relative;
+    animation: fadeUp 0.8s 0.15s ease both;
+  }
+
+  .form-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim));
+  }
+
+  .form-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--off-white);
+    margin-bottom: 6px;
+  }
+
+  .form-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 14px;
+  }
+
+  .form-label {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .form-input, .form-select {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: var(--off-white);
+    padding: 11px 14px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+
+  .form-input::placeholder { color: rgba(255,255,255,0.25); }
+
+  .form-input:focus, .form-select:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.05);
+  }
+
+  .form-select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+  .form-select option { background: #112240; }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--gold);
+    color: var(--navy);
+    border: none;
+    padding: 15px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .btn-submit:hover { background: var(--gold-light); transform: translateY(-1px); }
+  .btn-submit:hover::after { transform: translateX(100%); }
+
+  .form-privacy {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  .form-privacy a { color: var(--gold-dim); text-decoration: none; }
+
+  /* ─── SECTION BASE ─── */
+  section {
+    position: relative;
+    z-index: 1;
+  }
+
+  .section-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 60px;
+  }
+
+  .section-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .section-tag::before {
+    content: '';
+    display: inline-block;
+    width: 30px;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 3vw, 42px);
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--off-white);
+    margin-bottom: 16px;
+  }
+
+  .section-title em { font-style: normal; color: var(--gold); }
+
+  .section-desc {
+    font-size: 16px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 560px;
+  }
+
+  /* ─── DIFERENCIAIS ─── */
+  .benefits {
+    padding: 100px 0;
+    background: var(--navy-mid);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .benefits-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    margin-top: 56px;
+    border: 1px solid var(--border);
+  }
+
+  .benefit-item {
+    background: var(--navy-mid);
+    padding: 36px 32px;
+    position: relative;
+    transition: background 0.3s;
+  }
+
+  .benefit-item:hover { background: rgba(201,168,76,0.05); }
+
+  .benefit-icon {
+    width: 48px;
+    height: 48px;
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  .benefit-icon svg { width: 22px; height: 22px; fill: var(--gold); }
+
+  .benefit-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--off-white);
+    margin-bottom: 10px;
+  }
+
+  .benefit-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* ─── EMPREENDIMENTOS ─── */
+  .properties {
+    padding: 100px 0;
+  }
+
+  .props-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 48px;
+  }
+
+  .props-link {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    text-decoration: none;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2px;
+    transition: border-color 0.2s;
+  }
+
+  .props-link:hover { border-color: var(--gold); }
+
+  .props-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .prop-card {
+    background: var(--navy-mid);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s;
+    position: relative;
+  }
+
+  .prop-card:hover { z-index: 2; transform: scale(1.02); }
+
+  .prop-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    filter: brightness(0.8) saturate(0.7);
+    transition: filter 0.3s;
+  }
+
+  .prop-card:hover .prop-img { filter: brightness(0.9) saturate(0.9); }
+
+  .prop-tag {
+    position: absolute;
+    top: 14px; left: 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    background: var(--gold);
+    color: var(--navy);
+    padding: 4px 10px;
+    font-weight: 700;
+  }
+
+  .prop-body {
+    padding: 22px 24px;
+  }
+
+  .prop-city {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 6px;
+  }
+
+  .prop-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--off-white);
+    margin-bottom: 8px;
+  }
+
+  .prop-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 300;
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+
+  .prop-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+
+  .prop-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  .prop-price-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-family: 'Barlow', sans-serif;
+  }
+
+  .prop-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 7px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .prop-btn:hover { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+
+  /* ─── FGHABEXPLICADO ─── */
+  .FGHAB{
+    padding: 100px 0;
+    background: var(--navy-mid);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .fghab-inner {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .fghab-steps {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .fghab-step {
+    display: flex;
+    gap: 20px;
+    padding: 20px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .fghab-step:last-child { border-bottom: none; }
+
+  .step-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--gold);
+    opacity: 0.3;
+    line-height: 1;
+    width: 36px;
+    flex-shrink: 0;
+  }
+
+  .step-content {}
+  .step-title { font-size: 15px; font-weight: 500; color: var(--off-white); margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: var(--text-muted); font-weight: 300; line-height: 1.6; }
+
+  .fghab-visual {
+    position: relative;
+  }
+
+  .fghab-box {
+    background: var(--navy);
+    border: 1px solid var(--border);
+    padding: 40px;
+    position: relative;
+  }
+
+  .fghab-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  }
+
+  .fghab-highlight {
+    font-family: 'Playfair Display', serif;
+    font-size: 52px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .fghab-highlight-label {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-weight: 300;
+    margin-bottom: 28px;
+  }
+
+  .fghab-items { display: flex; flex-direction: column; gap: 12px; }
+
+  .fghab-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--off-white);
+    font-weight: 300;
+  }
+
+  .fghab-check {
+    width: 20px; height: 20px;
+    border: 1px solid var(--gold);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .fghab-check svg { width: 10px; fill: var(--gold); }
+
+  /* ─── DEPOIMENTOS ─── */
+  .testimonials {
+    padding: 100px 0;
+  }
+
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 56px;
+  }
+
+  .test-card {
+    background: var(--navy-mid);
+    padding: 32px;
+    position: relative;
+  }
+
+  .test-quote {
+    font-size: 40px;
+    color: var(--gold);
+    opacity: 0.3;
+    font-family: 'Playfair Display', serif;
+    line-height: 0.8;
+    margin-bottom: 16px;
+  }
+
+  .test-text {
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--text-muted);
+    line-height: 1.8;
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  .test-author {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+  }
+
+  .test-avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: var(--navy-light);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+  }
+
+  .test-name { font-size: 14px; font-weight: 500; color: var(--off-white); }
+  .test-role { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  /* ─── CTA FINAL ─── */
+  .cta-final {
+    padding: 100px 0;
+    background: var(--navy-mid);
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .cta-final .section-tag {
+    justify-content: center;
+  }
+
+  .cta-final .section-tag::before { display: none; }
+
+  .cta-final .section-title { margin: 0 auto 16px; }
+
+  .cta-final .section-desc { margin: 0 auto 40px; text-align: center; }
+
+  .cta-btn-large {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 18px 48px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s;
+    margin-bottom: 16px;
+  }
+
+  .cta-btn-large:hover { background: var(--gold-light); transform: translateY(-2px); }
+
+  .cta-whatsapp {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 300;
+    margin-left: 20px;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+  }
+
+  .cta-whatsapp:hover { color: var(--gold); border-color: var(--gold-dim); }
+  .cta-whatsapp svg { width: 18px; fill: currentColor; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--navy);
+    border-top: 1px solid var(--border);
+    padding: 40px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+  }
+
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a { font-size: 12px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--gold); }
+
+  /* ─── RIBBON FLUTUANTE WHATSAPP ─── */
+  .wa-float {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    width: 56px; height: 56px;
+    background: #25D366;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+    z-index: 200;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+
+  .wa-float:hover { transform: scale(1.08); }
+  .wa-float svg { width: 28px; fill: white; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* ─── SUCCESS STATE ─── */
+  .form-success {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+
+  .form-success.show { display: block; }
+  .form-fields.hide { display: none; }
+
+  .success-icon {
+    width: 60px; height: 60px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+
+  .success-icon svg { width: 24px; fill: var(--gold); }
+  .success-title { font-family: 'Playfair Display', serif; font-size: 20px; color: var(--gold); margin-bottom: 10px; }
+  .success-text { font-size: 14px; color: var(--text-muted); font-weight: 300; line-height: 1.7; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    nav { padding: 16px 24px; }
+    .hero-content { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
+    .benefits-grid, .props-grid, .test-grid { grid-template-columns: 1fr; }
+    .fghab-inner { grid-template-columns: 1fr; gap: 40px; }
+    .section-inner { padding: 0 24px; }
+    footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
+    .form-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">
+    <svg class="logo-emblem" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="21,3 39,15 39,33 21,39 3,33 3,15" fill="none" stroke="#C9A84C" stroke-width="1.2"/>
+      <polygon points="21,8 34,17 34,31 21,36 8,31 8,17" fill="none" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>
+      <path d="M21 12 L29 18 L29 28 L21 32 L13 28 L13 18 Z" fill="#C9A84C" opacity="0.12"/>
+      <text x="21" y="25" text-anchor="middle" font-family="Georgia" font-size="11" fill="#C9A84C" font-weight="bold">FAB</text>
+    </svg>
+    <div class="logo-text">
+      <span>FAB Imóveis</span>
+      <span>Exclusivo para Força Aérea</span>
+    </div>
+  </a>
+  <a href="#contato" class="nav-cta">Quero meu imóvel</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <div class="hero-left">
+      <div class="hero-badge">Especialistas em imóveis para FAB</div>
+      <h1 class="hero-title">
+        Seu imóvel.<br>
+        Condições que só <em>militares e servidores</em> da FAB têm.
+      </h1>
+      <p class="hero-sub">
+        Acesso exclusivo a empreendimentos selecionados no Rio de Janeiro e São Paulo, com financiamento facilitado, CFIAe e atendimento especializado no universo militar.
+      </p>
+      <div class="hero-stats">
+        <div class="stat">
+          <div class="stat-num">CFIAe</div>
+          <div class="stat-label">Fundo habitacional<br>exclusivo para militares</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">RJ + SP</div>
+          <div class="stat-label">Empreendimentos próximos<br>às principais bases</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">24h</div>
+          <div class="stat-label">Atendimento<br>disponível</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FORM -->
+    <div class="form-card" id="contato">
+      <div class="form-fields">
+        <div class="form-title">Quero conhecer as opções</div>
+        <div class="form-subtitle">Preencha e um consultor especializado entra em contato</div>
+        <form onsubmit="handleSubmit(event)">
+          <div class="form-group">
+            <label class="form-label">Nome completo</label>
+            <input class="form-input" type="text" placeholder="Ex: Ten. João Silva" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">WhatsApp</label>
+              <input class="form-input" type="tel" placeholder="(21) 99726-3950" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Posto / Cargo</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Selecione</option>
+                <optgroup label="Oficiais">
+                  <option>Oficial Superior</option>
+                  <option>Oficial Intermediário</option>
+                  <option>Oficial Subalterno</option>
+                </optgroup>
+                <optgroup label="Praças">
+                  <option>Suboficial / Sargento</option>
+                  <option>Cabo / Soldado</option>
+                </optgroup>
+                <optgroup label="Civil">
+                  <option>Servidor Civil FAB</option>
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Base / Unidade</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Selecione</option>
+                <optgroup label="Rio de Janeiro">
+                  <option>Galeão (BASM)</option>
+                  <option>Santa Cruz (BASC)</option>
+                  <option>Campo dos Afonsos</option>
+                  <option>Outra - RJ</option>
+                </optgroup>
+                <optgroup label="São Paulo">
+                  <option>Cumbica (BASC)</option>
+                  <option>Campo de Marte</option>
+                  <option>AFA - Pirassununga</option>
+                  <option>Outra - SP</option>
+                </optgroup>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Cidade desejada</label>
+              <select class="form-select" required>
+                <option value="" disabled selected>Selecione</option>
+                <option>Rio de Janeiro - RJ</option>
+                <option>Grande Rio - RJ</option>
+                <option>São Paulo - SP</option>
+                <option>Grande SP</option>
+                <option>Indiferente</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Faixa de valor</label>
+            <select class="form-select">
+              <option value="" disabled selected>Selecione</option>
+              <option>Até R$ 300.000</option>
+              <option>R$ 300.000 – R$ 500.000</option>
+              <option>R$ 500.000 – R$ 800.000</option>
+              <option>Acima de R$ 800.000</option>
+              <option>Ainda não sei</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-submit">Quero conhecer as opções →</button>
+          <p class="form-privacy">Seus dados estão seguros. Não compartilhamos suas informações com terceiros. <a href="#">Política de privacidade</a></p>
+        </form>
+      </div>
+      <div class="form-success">
+        <div class="success-icon">
+          <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="#C9A84C" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+        </div>
+        <div class="success-title">Recebido! Missão iniciada.</div>
+        <div class="success-text">Seu consultor especializado entrará em contato pelo WhatsApp em breve. Enquanto isso, conheça os empreendimentos disponíveis abaixo.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DIFERENCIAIS -->
+<section class="benefits">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Por que escolher a FAB Imóveis</div>
+      <h2 class="section-title">Vantagens que só <em>quem é da FAB</em> pode ter</h2>
+      <p class="section-desc">Somos especializados no universo militar e sabemos exatamente como maximizar os benefícios a que você tem direito.</p>
+    </div>
+    <div class="benefits-grid reveal" style="transition-delay:0.1s">
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        </div>
+        <div class="benefit-title">FGHABexplicado pra você</div>
+        <div class="benefit-desc">Entendemos o Fundo de Garantia Habitacional do Militar melhor do que ninguém. Usamos cada centavo disponível para reduzir sua entrada e suas parcelas.</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div class="benefit-title">Empreendimentos próximos às bases</div>
+        <div class="benefit-desc">Selecionamos imóveis estrategicamente próximos ao Galeão, Santa Cruz, Campo de Marte e Cumbica — sem horas de deslocamento no seu dia a dia.</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        </div>
+        <div class="benefit-title">Parceria com construtoras renomadas</div>
+        <div class="benefit-desc">Trabalhamos apenas com construtoras com histórico sólido, garantias legais e prazos de entrega respeitados — proteção total para o seu patrimônio.</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="benefit-title">Atendimento 24 horas</div>
+        <div class="benefit-desc">Sabemos que o militar não tem horário comercial. Nosso chatbot e equipe de consultores garantem resposta rápida a qualquer momento do dia.</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="benefit-title">Segurança jurídica total</div>
+        <div class="benefit-desc">Toda documentação analisada, CRECI ativo e assessoria completa desde a escolha do imóvel até a assinatura do contrato e registro em cartório.</div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        </div>
+        <div class="benefit-title">Melhores condições de financiamento</div>
+        <div class="benefit-desc">Acesso a linhas de crédito habitacional diferenciadas para servidores e militares, com taxas reduzidas e prazo de até 35 anos pelo sistema SBPE e Caixa.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EMPREENDIMENTOS -->
+<section class="properties">
+  <div class="section-inner">
+    <div class="props-header reveal">
+      <div>
+        <div class="section-tag">Portfólio exclusivo</div>
+        <h2 class="section-title">Empreendimentos <em>selecionados</em></h2>
+      </div>
+      <a href="#contato" class="props-link">Ver todos →</a>
+    </div>
+    <div class="props-grid reveal" style="transition-delay:0.1s">
+      <div class="prop-card">
+        <div class="prop-tag">FGHABdisponível</div>
+        <img class="prop-img" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80" alt="Reserva Atlântica" loading="lazy">
+        <div class="prop-body">
+          <div class="prop-city">Rio de Janeiro — Próx. Galeão</div>
+          <div class="prop-name">Reserva Atlântica</div>
+          <div class="prop-desc">2 e 3 quartos, lazer completo, área verde, segurança 24h. Financiamento facilitado para militares.</div>
+          <div class="prop-footer">
+            <div>
+              <div class="prop-price-label">A partir de</div>
+              <div class="prop-price">R$ 380.000</div>
+            </div>
+            <button class="prop-btn" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Saiba mais</button>
+          </div>
+        </div>
+      </div>
+      <div class="prop-card">
+        <div class="prop-tag">Lançamento</div>
+        <img class="prop-img" src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80" alt="Gran Vitória" loading="lazy">
+        <div class="prop-body">
+          <div class="prop-city">São Paulo — Próx. Cumbica</div>
+          <div class="prop-name">Gran Vitória Residencial</div>
+          <div class="prop-desc">Studios e 2 quartos, infraestrutura moderna, transporte fácil. Condições especiais para servidores FAB.</div>
+          <div class="prop-footer">
+            <div>
+              <div class="prop-price-label">A partir de</div>
+              <div class="prop-price">R$ 290.000</div>
+            </div>
+            <button class="prop-btn" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Saiba mais</button>
+          </div>
+        </div>
+      </div>
+      <div class="prop-card">
+        <div class="prop-tag">Pronto para morar</div>
+        <img class="prop-img" src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" alt="Portal das Águias" loading="lazy">
+        <div class="prop-body">
+          <div class="prop-city">Rio de Janeiro — Santa Cruz</div>
+          <div class="prop-name">Portal das Águias</div>
+          <div class="prop-desc">3 quartos suite, condomínio fechado, varanda gourmet. Financiamento SBPE com taxa reduzida para militares.</div>
+          <div class="prop-footer">
+            <div>
+              <div class="prop-price-label">A partir de</div>
+              <div class="prop-price">R$ 520.000</div>
+            </div>
+            <button class="prop-btn" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Saiba mais</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FGHABEXPLICADO -->
+<section class="fghab">
+  <div class="section-inner">
+    <div class="fghab-inner">
+      <div class="reveal">
+        <div class="section-tag">Benefício exclusivo</div>
+        <h2 class="section-title">O que é o <em>CFIAe</em> e como funciona</h2>
+        <p class="section-desc" style="margin-bottom:0">O Fundo de Garantia Habitacional para Militares das Forças Armadas é um benefício que a maioria dos militares não utiliza por desconhecimento. Nós cuidamos de tudo.</p>
+        <div class="fghab-steps">
+          <div class="fghab-step">
+            <div class="step-num">01</div>
+            <div class="step-content">
+              <div class="step-title">Você tem saldo acumulado</div>
+              <div class="step-desc">Militares e servidores acumulam saldo no CFIAe longo do tempo de serviço, disponível para uso em aquisição de imóvel.</div>
+            </div>
+          </div>
+          <div class="fghab-step">
+            <div class="step-num">02</div>
+            <div class="step-content">
+              <div class="step-title">Usamos como entrada ou amortização</div>
+              <div class="step-desc">O saldo pode ser usado para reduzir o valor da entrada ou amortizar o saldo devedor do financiamento — menos parcelas, menor prazo.</div>
+            </div>
+          </div>
+          <div class="fghab-step">
+            <div class="step-num">03</div>
+            <div class="step-content">
+              <div class="step-title">Combinamos com outros benefícios</div>
+              <div class="step-desc">CFIAe + taxas diferenciadas para servidor público = condição que o mercado comum simplesmente não consegue oferecer.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal" style="transition-delay:0.15s">
+        <div class="fghab-box">
+          <div class="fghab-highlight">+ R$ 40 mil</div>
+          <div class="fghab-highlight-label">de benefícios que a maioria dos militares não usa</div>
+          <div class="fghab-items">
+            <div class="fghab-item">
+              <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+              Fundo CFIAe— exclusivo para militares e Funcionários da FAB
+            </div>
+            <div class="fghab-item">
+              <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+              FGTS — tempo de serviço civil anterior
+            </div>
+            <div class="fghab-item">
+              <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+              Taxa habitacional para servidor público
+            </div>
+            <div class="fghab-item">
+              <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+              Financiamento SBPE com juros reduzidos
+            </div>
+            <div class="fghab-item">
+              <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+              Subsídio habitacional — renda compatível
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEPOIMENTOS -->
+<section class="testimonials">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Quem já realizou o sonho</div>
+      <h2 class="section-title">Militares e servidores que <em>confiaram em nós</em></h2>
+    </div>
+    <div class="test-grid reveal" style="transition-delay:0.1s">
+      <div class="test-card">
+        <div class="test-quote">"</div>
+        <div class="test-text">Nunca pensei que conseguiria meu primeiro apartamento tão próximo da base de Galeão. A equipe da FAB Imóveis cuidou de toda a documentação do CFIAe em 90 dias estava com as chaves na mão.</div>
+        <div class="test-author">
+          <div class="test-avatar">RS</div>
+          <div>
+            <div class="test-name">2º Ten. Rodrigo Santos</div>
+            <div class="test-role">Piloto — Base Aérea do Galeão, RJ</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card">
+        <div class="test-quote">"</div>
+        <div class="test-text">Minha maior dúvida era se conseguiria conciliar o serviço com as visitas e a burocracia do financiamento. Com o atendimento pelo WhatsApp e o agendamento online, não precisei faltar nenhum dia ao serviço.</div>
+        <div class="test-author">
+          <div class="test-avatar">CF</div>
+          <div>
+            <div class="test-name">Sgt. Carlos Ferreira</div>
+            <div class="test-role">Mecânico de Aeronaves — Base Santa Cruz, RJ</div>
+          </div>
+        </div>
+      </div>
+      <div class="test-card">
+        <div class="test-quote">"</div>
+        <div class="test-text">Como servidora civil, não sabia que tinha direito a condições diferenciadas. O consultor me explicou tudo sobre o FGTS mais o benefício de servidor público federal. O apartamento ficou R$ 60 mil mais barato do que eu esperava.</div>
+        <div class="test-author">
+          <div class="test-avatar">AM</div>
+          <div>
+            <div class="test-name">Ana Mendes</div>
+            <div class="test-role">Analista Administrativa — CINDACTA II, SP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section class="cta-final">
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Próximo passo</div>
+      <h2 class="section-title" style="text-align:center">Pronto para conquistar<br>seu <em>imóvel próprio</em>?</h2>
+      <p class="section-desc">Sem compromisso, sem pressão. Um consultor especializado no universo militar analisa sua situação e apresenta as melhores opções disponíveis para você.</p>
+      <div>
+        <a href="#contato" class="cta-btn-large">Quero meu atendimento gratuito</a>
+        <a href="https://wa.me/5521999999999?text=Olá,%20sou%20da%20FAB%20e%20quero%20conhecer%20os%20imóveis" class="cta-whatsapp" target="_blank">
+          <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Prefiro falar pelo WhatsApp
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">© 2026 FAB Imóveis — CRECI 000000-F. Todos os direitos reservados.</div>
+  <div class="footer-links">
+    <a href="#">Sobre nós</a>
+    <a href="#">Política de privacidade</a>
+    <a href="#">Empreendimentos</a>
+    <a href="https://wa.me/5521999999999" target="_blank">WhatsApp</a>
+  </div>
+</footer>
+
+<!-- WHATSAPP FLOAT -->
+<a class="wa-float" href="https://wa.me/5521997263950?text=Olá,%20sou%20da%20FAB%20e%20quero%20conhecer%20os%20imóveis" target="_blank" title="Fale pelo WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+  // ─── SCROLL REVEAL ───
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.12 });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ─── GOOGLE SHEETS INTEGRATION ───
+  // PASSO 1: Substitua a URL abaixo pela URL do seu Google Apps Script (veja instruções no README)
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHwFKqk3p8BVcu0JJJtcvBKpt93WFpHQQYVzK0R_r5tAVHhLTjJyVt0dekm-a-PUgA/exec';
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const btn = e.target.querySelector('.btn-submit');
+    btn.textContent = 'Enviando...';
+    btn.disabled = true;
+
+    // Coleta os dados do formulário
+    const inputs = e.target.querySelectorAll('input, select');
+    const data = {
+      timestamp:    new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      nome:         inputs[0].value,
+      whatsapp:     inputs[1].value,
+      posto:        inputs[2].value,
+      base:         inputs[3].value,
+      cidade:       inputs[4].value,
+      faixa_valor:  inputs[5].value,
+      origem:       document.referrer || 'Direto'
+    };
+
+    try {
+      // Envia para o Google Apps Script (que salva no Google Sheets)
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors', // necessário para Google Apps Script
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      showSuccess();
+    } catch (err) {
+      // Fallback: mesmo com erro de rede, mostra sucesso ao usuário
+      // (no-cors não retorna erro real; o envio normalmente funciona)
+      showSuccess();
+    }
+  }
+
+  function showSuccess() {
+    document.querySelector('.form-fields').classList.add('hide');
+    document.querySelector('.form-success').classList.add('show');
+  }
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════
+  INSTRUÇÕES — COMO CONECTAR AO GOOGLE SHEETS (leia antes de publicar)
+  ═══════════════════════════════════════════════════════════
+
+  PASSO 1 — Criar a planilha
+    1. Acesse sheets.google.com e crie uma planilha nova
+    2. Nomeie a aba como "Leads"
+    3. Na linha 1, coloque os cabeçalhos exatamente assim (uma coluna cada):
+       A: Timestamp | B: Nome | C: WhatsApp | D: Posto/Cargo
+       E: Base/Unidade | F: Cidade Desejada | G: Faixa de Valor | H: Origem
+
+  PASSO 2 — Criar o Google Apps Script
+    1. Na planilha, clique em Extensões > Apps Script
+    2. Apague o código existente e cole o código abaixo:
+
+    ────────────────────────────────────────────────────────────
+    const SHEET_NAME = 'Leads';
+
+    function doPost(e) {
+      try {
+        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_NAME);
+        const data = JSON.parse(e.postData.contents);
+        sheet.appendRow([
+          data.timestamp,
+          data.nome,
+          data.whatsapp,
+          data.posto,
+          data.base,
+          data.cidade,
+          data.faixa_valor,
+          data.origem
+        ]);
+        return ContentService
+          .createTextOutput(JSON.stringify({ status: 'ok' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      } catch(err) {
+        return ContentService
+          .createTextOutput(JSON.stringify({ status: 'erro', msg: err.toString() }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+
+    function doGet(e) {
+      return ContentService.createTextOutput('FAB Imóveis — API ativa');
+    }
+    ────────────────────────────────────────────────────────────
+
+  PASSO 3 — Publicar como Web App
+    1. Clique em "Implantar" > "Nova implantação"
+    2. Tipo: "App da Web"
+    3. Executar como: "Eu (seu e-mail)"
+    4. Quem tem acesso: "Qualquer pessoa" (importante!)
+    5. Clique em "Implantar" e copie a URL gerada
+
+  PASSO 4 — Colar a URL neste arquivo
+    1. Abra este arquivo HTML
+    2. Localize: const GOOGLE_SCRIPT_URL = 'https://script.google.com/...'
+    3. Substitua pelo link copiado no passo anterior
+    4. Salve e publique o site
+
+  DICA — Notificação por e-mail a cada novo lead:
+    No Apps Script, adicione esta função para receber alerta
+    cada vez que alguém preencher o formulário:
+
+    function onNewLead(nome, whatsapp, posto) {
+      MailApp.sendEmail({
+        to: 'seuemail@gmail.com',
+        subject: '🏠 Novo lead — FAB Imóveis: ' + nome,
+        body: 'Nome: ' + nome + '\nWhatsApp: ' + whatsapp + '\nPosto: ' + posto
+      });
+    }
+    // Chame onNewLead(data.nome, data.whatsapp, data.posto) dentro do doPost()
+
+  ═══════════════════════════════════════════════════════════ -->
+</body>
+</html>
