@@ -841,6 +841,24 @@
     transform: translateY(0);
   }
 
+  /* ─── BOTÃO RESERVA ─── */
+  .btn-reserva {
+    display: inline-block;
+    background: #DC2626;
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    animation: fadeUp 0.8s 0.35s ease both;
+    box-shadow: 0 4px 18px rgba(220,38,38,0.35);
+  }
+  .btn-reserva:hover { background: #B91C1C; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(220,38,38,0.45); }
+
   /* ─── SUCCESS STATE ─── */
   .form-success {
     display: none;
@@ -921,6 +939,7 @@
           <div class="stat-label">Atendimento<br>disponível</div>
         </div>
       </div>
+      <a href="reserva.html" class="btn-reserva">Quero Reservar o meu Imóvel Agora.</a>
     </div>
 
     <!-- FORM -->

@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reservar Imóvel — FAB Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #8A6E30;
+    --navy: #0A1628;
+    --navy-mid: #112240;
+    --navy-light: #1C3461;
+    --off-white: #F5F2EC;
+    --text-muted: #8A96A8;
+    --border: rgba(201,168,76,0.2);
+    --red: #DC2626;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--navy);
+    color: var(--off-white);
+    overflow-x: hidden;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 60px;
+    background: rgba(10,22,40,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+  }
+
+  .logo-emblem { width: 38px; height: 38px; }
+
+  .logo-text span:first-child {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+  }
+
+  .logo-text span:last-child {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .nav-back {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s;
+  }
+
+  .nav-back:hover { color: var(--gold); }
+
+  /* ─── PAGE HEADER ─── */
+  .page-header {
+    padding: 120px 60px 60px;
+    text-align: center;
+    background: linear-gradient(160deg, var(--navy) 0%, var(--navy-mid) 100%);
+    border-bottom: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .page-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 1px; height: 100%;
+    background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+    opacity: 0.2;
+  }
+
+  .page-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 6px 16px;
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 46px);
+    font-weight: 900;
+    color: var(--off-white);
+    line-height: 1.15;
+    margin-bottom: 14px;
+  }
+
+  .page-title em { font-style: normal; color: var(--gold); }
+
+  .page-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--text-muted);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.75;
+  }
+
+  /* ─── CONTAINER ─── */
+  .reserva-wrap {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 56px 24px 80px;
+  }
+
+  /* ─── FORM SECTION ─── */
+  .form-section {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    padding: 36px 32px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  .form-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim));
+  }
+
+  .section-step {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-dim);
+    margin-bottom: 4px;
+  }
+
+  .section-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--off-white);
+    margin-bottom: 28px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ─── FIELDS ─── */
+  .fg { margin-bottom: 14px; }
+  .fg:last-child { margin-bottom: 0; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+  .form-label {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .form-label .req { color: var(--gold); margin-left: 2px; }
+
+  .form-input, .form-select, .form-textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(201,168,76,0.15);
+    color: var(--off-white);
+    padding: 11px 14px;
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.2); }
+
+  .form-input:focus, .form-select:focus, .form-textarea:focus {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.05);
+  }
+
+  .form-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-color: rgba(255,255,255,0.04);
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  .form-select option { background: #112240; }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 90px;
+    line-height: 1.6;
+  }
+
+  /* ─── FILE UPLOADS ─── */
+  .file-list { display: flex; flex-direction: column; gap: 10px; }
+
+  .file-row {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid rgba(201,168,76,0.15);
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .file-row:focus-within { border-color: var(--gold); }
+
+  .file-row-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: rgba(255,255,255,0.02);
+    padding: 10px 14px;
+    border-right: 1px solid rgba(201,168,76,0.15);
+    min-width: 230px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    line-height: 1.4;
+  }
+
+  .file-row-label .req { color: var(--gold); margin-left: 4px; font-size: 10px; }
+
+  .file-row-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+  }
+
+  input[type="file"] { display: none; }
+
+  .file-btn {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: rgba(201,168,76,0.12);
+    color: var(--gold);
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+    flex-shrink: 0;
+  }
+
+  .file-btn:hover { background: rgba(201,168,76,0.25); }
+
+  .file-name-display {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 300;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-name-display.ok { color: var(--off-white); }
+
+  .file-check {
+    width: 18px; height: 18px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .file-check.show { display: flex; }
+  .file-check svg { width: 8px; }
+
+  .file-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 300;
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  .file-note em { color: var(--gold); font-style: normal; }
+
+  /* ─── SUBMIT ─── */
+  .btn-submit-reserva {
+    width: 100%;
+    background: var(--red);
+    color: #fff;
+    border: none;
+    padding: 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+    margin-top: 8px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-submit-reserva:hover:not(:disabled) { background: #B91C1C; transform: translateY(-1px); }
+  .btn-submit-reserva:disabled { opacity: 0.65; cursor: not-allowed; transform: none; }
+
+  .btn-submit-reserva::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.4s;
+  }
+
+  .btn-submit-reserva:hover:not(:disabled)::after { transform: translateX(100%); }
+
+  .form-privacy {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 12px;
+    line-height: 1.6;
+  }
+
+  /* ─── SUCCESS OVERLAY ─── */
+  .success-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10,22,40,0.97);
+    z-index: 500;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .success-overlay.show { display: flex; }
+
+  .success-box {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    padding: 52px 44px;
+    max-width: 540px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+  }
+
+  .success-box::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim));
+  }
+
+  .success-icon {
+    width: 72px; height: 72px;
+    border: 2px solid var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+  }
+
+  .success-icon svg { width: 30px; fill: none; stroke: var(--gold); stroke-width: 2; stroke-linecap: round; }
+
+  .success-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+
+  .success-text {
+    font-size: 15px;
+    color: var(--text-muted);
+    font-weight: 300;
+    line-height: 1.85;
+    margin-bottom: 30px;
+  }
+
+  .success-text strong { color: var(--gold); font-weight: 600; }
+
+  .wa-btns { display: flex; flex-direction: column; gap: 10px; }
+
+  .wa-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #25D366;
+    color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 14px 20px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .wa-btn:hover { background: #128C7E; }
+  .wa-btn svg { width: 18px; fill: white; flex-shrink: 0; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--navy);
+    border-top: 1px solid var(--border);
+    padding: 28px 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-copy { font-size: 12px; color: var(--text-muted); font-weight: 300; }
+  .footer-back { font-size: 12px; color: var(--text-muted); text-decoration: none; transition: color 0.2s; }
+  .footer-back:hover { color: var(--gold); }
+
+  /* ─── WA FLOAT ─── */
+  .wa-float {
+    position: fixed;
+    bottom: 28px; right: 28px;
+    width: 56px; height: 56px;
+    background: #25D366;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+    z-index: 200;
+    text-decoration: none;
+    transition: transform 0.2s;
+  }
+
+  .wa-float:hover { transform: scale(1.08); }
+  .wa-float svg { width: 28px; fill: white; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 720px) {
+    nav { padding: 16px 20px; }
+    .page-header { padding: 100px 24px 48px; }
+    .form-section { padding: 24px 18px; }
+    .row-2, .row-3 { grid-template-columns: 1fr; }
+    .file-row { flex-direction: column; }
+    .file-row-label { min-width: unset; border-right: none; border-bottom: 1px solid rgba(201,168,76,0.15); }
+    footer { flex-direction: column; gap: 10px; text-align: center; padding: 24px 20px; }
+    .success-box { padding: 36px 22px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="index.html" class="nav-logo">
+    <svg class="logo-emblem" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="21,3 39,15 39,33 21,39 3,33 3,15" fill="none" stroke="#C9A84C" stroke-width="1.2"/>
+      <polygon points="21,8 34,17 34,31 21,36 8,31 8,17" fill="none" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>
+      <path d="M21 12 L29 18 L29 28 L21 32 L13 28 L13 18 Z" fill="#C9A84C" opacity="0.12"/>
+      <text x="21" y="25" text-anchor="middle" font-family="Georgia" font-size="11" fill="#C9A84C" font-weight="bold">FAB</text>
+    </svg>
+    <div class="logo-text">
+      <span>FAB Imóveis</span>
+      <span>Exclusivo para Força Aérea</span>
+    </div>
+  </a>
+  <a href="index.html" class="nav-back">
+    ← Voltar ao site
+  </a>
+</nav>
+
+<!-- PAGE HEADER -->
+<div class="page-header">
+  <div class="page-badge">Processo de Reserva</div>
+  <h1 class="page-title">Formulário de <em>Reserva de Imóvel</em></h1>
+  <p class="page-sub">Preencha os dados abaixo e anexe seus documentos. Em até <strong style="color:var(--gold);font-weight:500">24 horas</strong> nossa equipe entrará em contato para finalizar o contrato.</p>
+</div>
+
+<!-- FORM -->
+<div class="reserva-wrap">
+  <form id="reservaForm" onsubmit="handleReserva(event)" novalidate>
+
+    <!-- SEÇÃO 1 — DADOS PESSOAIS -->
+    <div class="form-section">
+      <div class="section-step">Etapa 1 de 3</div>
+      <div class="section-heading">Dados Pessoais</div>
+
+      <div class="row-2 fg">
+        <div class="fg">
+          <label class="form-label">Nome Completo <span class="req">*</span></label>
+          <input class="form-input" type="text" id="nome" placeholder="Seu nome completo" required>
+        </div>
+        <div class="fg">
+          <label class="form-label">Data de Nascimento <span class="req">*</span></label>
+          <input class="form-input" type="date" id="nascimento" required>
+        </div>
+      </div>
+
+      <div class="row-2 fg">
+        <div class="fg">
+          <label class="form-label">Telefone / WhatsApp <span class="req">*</span></label>
+          <input class="form-input" type="tel" id="telefone" placeholder="(00) 00000-0000" required>
+        </div>
+        <div class="fg">
+          <label class="form-label">E-mail <span class="req">*</span></label>
+          <input class="form-input" type="email" id="email" placeholder="seuemail@email.com" required>
+        </div>
+      </div>
+
+      <div class="row-2 fg">
+        <div class="fg">
+          <label class="form-label">CPF <span class="req">*</span></label>
+          <input class="form-input" type="text" id="cpf" placeholder="000.000.000-00" maxlength="14" required>
+        </div>
+        <div class="fg">
+          <label class="form-label">Estado Civil <span class="req">*</span></label>
+          <select class="form-select" id="estado_civil" required>
+            <option value="" disabled selected>Selecione</option>
+            <option>Solteiro(a)</option>
+            <option>Casado(a)</option>
+            <option>Divorciado(a)</option>
+            <option>Viúvo(a)</option>
+            <option>União Estável</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 2 — DADOS DO IMÓVEL -->
+    <div class="form-section">
+      <div class="section-step">Etapa 2 de 3</div>
+      <div class="section-heading">Dados do Imóvel</div>
+
+      <div class="fg">
+        <label class="form-label">Nome do Empreendimento / Imóvel Pretendido <span class="req">*</span></label>
+        <input class="form-input" type="text" id="empreendimento" placeholder="Ex: Reserva Atlântica, Gran Vitória Residencial..." required>
+      </div>
+
+      <div class="row-3 fg">
+        <div class="fg">
+          <label class="form-label">Faixa de Valor <span class="req">*</span></label>
+          <select class="form-select" id="faixa_valor" required>
+            <option value="" disabled selected>Selecione</option>
+            <option>Até R$ 300.000</option>
+            <option>R$ 300.000 – R$ 500.000</option>
+            <option>R$ 500.000 – R$ 800.000</option>
+            <option>Acima de R$ 800.000</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="form-label">Valor de Entrada <span class="req">*</span></label>
+          <input class="form-input" type="text" id="valor_entrada" placeholder="Ex: R$ 50.000" required>
+        </div>
+        <div class="fg">
+          <label class="form-label">Forma de Pagamento <span class="req">*</span></label>
+          <select class="form-select" id="forma_pagamento" required>
+            <option value="" disabled selected>Selecione</option>
+            <option>Financiamento Bancário</option>
+            <option>À Vista</option>
+            <option>FGTS + Financiamento</option>
+            <option>CFIAe + Financiamento</option>
+            <option>CFIAe + FGTS + Financiamento</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="fg">
+        <label class="form-label">Detalhes do Empreendimento / Imóvel Pretendido</label>
+        <textarea class="form-textarea" id="detalhes" placeholder="Descreva o imóvel desejado: número de quartos, andar, bloco, metragem, itens específicos..."></textarea>
+      </div>
+    </div>
+
+    <!-- SEÇÃO 3 — DOCUMENTOS -->
+    <div class="form-section">
+      <div class="section-step">Etapa 3 de 3</div>
+      <div class="section-heading">Documentos</div>
+
+      <div class="file-list">
+
+        <!-- Identidade -->
+        <div class="file-row" onclick="document.getElementById('f-identidade').click()">
+          <div class="file-row-label">Identidade (RG / CNH) <span class="req">*</span></div>
+          <div class="file-row-right">
+            <input type="file" id="f-identidade" accept=".pdf,.jpg,.jpeg,.png" data-desc="Identidade (RG/CNH)" onchange="onFile(this)">
+            <button type="button" class="file-btn">Escolher arquivo</button>
+            <span class="file-name-display" id="fn-identidade">Nenhum arquivo</span>
+            <div class="file-check" id="fc-identidade"><svg viewBox="0 0 10 8"><path d="M1 4l2.5 3L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+
+        <!-- CPF -->
+        <div class="file-row" onclick="document.getElementById('f-cpf-doc').click()">
+          <div class="file-row-label">CPF <span class="req">*</span></div>
+          <div class="file-row-right">
+            <input type="file" id="f-cpf-doc" accept=".pdf,.jpg,.jpeg,.png" data-desc="CPF" onchange="onFile(this)">
+            <button type="button" class="file-btn">Escolher arquivo</button>
+            <span class="file-name-display" id="fn-cpf-doc">Nenhum arquivo</span>
+            <div class="file-check" id="fc-cpf-doc"><svg viewBox="0 0 10 8"><path d="M1 4l2.5 3L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+
+        <!-- Comprovante de Renda -->
+        <div class="file-row" onclick="document.getElementById('f-renda').click()">
+          <div class="file-row-label">Comprovante de Renda (3 últimos) <span class="req">*</span></div>
+          <div class="file-row-right">
+            <input type="file" id="f-renda" accept=".pdf,.jpg,.jpeg,.png" data-desc="Comprovante de Renda" multiple onchange="onFile(this)">
+            <button type="button" class="file-btn">Escolher arquivos</button>
+            <span class="file-name-display" id="fn-renda">Nenhum arquivo</span>
+            <div class="file-check" id="fc-renda"><svg viewBox="0 0 10 8"><path d="M1 4l2.5 3L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+
+        <!-- Comprovante de Residência -->
+        <div class="file-row" onclick="document.getElementById('f-residencia').click()">
+          <div class="file-row-label">Comprovante de Residência <span class="req">*</span></div>
+          <div class="file-row-right">
+            <input type="file" id="f-residencia" accept=".pdf,.jpg,.jpeg,.png" data-desc="Comprovante de Residência" onchange="onFile(this)">
+            <button type="button" class="file-btn">Escolher arquivo</button>
+            <span class="file-name-display" id="fn-residencia">Nenhum arquivo</span>
+            <div class="file-check" id="fc-residencia"><svg viewBox="0 0 10 8"><path d="M1 4l2.5 3L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+
+        <!-- Declaração IR -->
+        <div class="file-row" onclick="document.getElementById('f-decl-ir').click()">
+          <div class="file-row-label">Declaração do Imposto de Renda</div>
+          <div class="file-row-right">
+            <input type="file" id="f-decl-ir" accept=".pdf,.jpg,.jpeg,.png" data-desc="Declaração do Imposto de Renda" onchange="onFile(this)">
+            <button type="button" class="file-btn">Escolher arquivo</button>
+            <span class="file-name-display" id="fn-decl-ir">Nenhum arquivo</span>
+            <div class="file-check" id="fc-decl-ir"><svg viewBox="0 0 10 8"><path d="M1 4l2.5 3L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+
+        <!-- Recibo IR -->
+        <div class="file-row" onclick="document.getElementById('f-recibo-ir').click()">
+          <div class="file-row-label">Recibo do Imposto de Renda</div>
+          <div class="file-row-right">
+            <input type="file" id="f-recibo-ir" accept=".pdf,.jpg,.jpeg,.png" data-desc="Recibo do Imposto de Renda" onchange="onFile(this)">
+            <button type="button" class="file-btn">Escolher arquivo</button>
+            <span class="file-name-display" id="fn-recibo-ir">Nenhum arquivo</span>
+            <div class="file-check" id="fc-recibo-ir"><svg viewBox="0 0 10 8"><path d="M1 4l2.5 3L9 1" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+          </div>
+        </div>
+
+      </div>
+      <p class="file-note">Formatos aceitos: PDF, JPG, PNG — máx. <em>5 MB por arquivo</em>. Campos com <em>*</em> são obrigatórios.</p>
+    </div>
+
+    <!-- SUBMIT -->
+    <button type="submit" class="btn-submit-reserva" id="btnReserva">
+      Confirmar Reserva e Enviar Documentos →
+    </button>
+    <p class="form-privacy">Seus dados e documentos estão protegidos e utilizados exclusivamente para o processo de reserva.</p>
+
+  </form>
+</div>
+
+<!-- SUCCESS OVERLAY -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="success-icon">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round"/></svg>
+    </div>
+    <div class="success-title">Reserva em Processamento!</div>
+    <div class="success-text">
+      Seus dados e documentos foram enviados com sucesso.<br>
+      Em até <strong>24 horas</strong> nossa equipe de atendimento entrará em contato para gerar o <strong>contrato de venda</strong> do imóvel.
+    </div>
+    <div class="wa-btns">
+      <a class="wa-btn" id="waBtn1" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Falar com Consultor 1 pelo WhatsApp
+      </a>
+      <a class="wa-btn" id="waBtn2" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Falar com Consultor 2 pelo WhatsApp
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-copy">© 2026 FAB Imóveis — CRECI 000000-F. Todos os direitos reservados.</div>
+  <a href="index.html" class="footer-back">← Voltar ao site</a>
+</footer>
+
+<!-- WA FLOAT -->
+<a class="wa-float" href="https://wa.me/5521972443592?text=Olá,%20preciso%20de%20ajuda%20com%20a%20reserva%20de%20um%20imóvel" target="_blank" title="Fale pelo WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<script>
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHwFKqk3p8BVcu0JJJtcvBKpt93WFpHQQYVzK0R_r5tAVHhLTjJyVt0dekm-a-PUgA/exec';
+
+  // ─── MÁSCARAS ───
+  document.getElementById('cpf').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 9)      v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+    else if (v.length > 6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+    else if (v.length > 3) v = v.slice(0,3)+'.'+v.slice(3);
+    this.value = v;
+  });
+
+  document.getElementById('telefone').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10)     v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+    else if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+    else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+    this.value = v;
+  });
+
+  // ─── FILE HANDLER ───
+  function onFile(input) {
+    const key  = input.id;
+    const nameEl = document.getElementById('fn-' + key);
+    const checkEl = document.getElementById('fc-' + key);
+    const MAX  = 5 * 1024 * 1024; // 5 MB
+
+    if (!input.files.length) return;
+
+    let tooBig = false;
+    Array.from(input.files).forEach(f => { if (f.size > MAX) tooBig = true; });
+
+    if (tooBig) {
+      alert('Arquivo muito grande! Limite: 5 MB por arquivo.\nUse PDF comprimido ou imagem menor.');
+      input.value = '';
+      nameEl.textContent = 'Nenhum arquivo';
+      nameEl.classList.remove('ok');
+      checkEl.classList.remove('show');
+      return;
+    }
+
+    nameEl.textContent = input.files.length === 1
+      ? input.files[0].name
+      : input.files.length + ' arquivos selecionados';
+    nameEl.classList.add('ok');
+    checkEl.classList.add('show');
+  }
+
+  // ─── FILE → BASE64 ───
+  function toBase64(file) {
+    return new Promise((res, rej) => {
+      const r = new FileReader();
+      r.readAsDataURL(file);
+      r.onload  = () => res(r.result.split(',')[1]);
+      r.onerror = rej;
+    });
+  }
+
+  // ─── SUBMIT ───
+  async function handleReserva(e) {
+    e.preventDefault();
+
+    // Validação básica
+    const obrigatorios = ['nome','nascimento','telefone','email','cpf','estado_civil','empreendimento','faixa_valor','valor_entrada','forma_pagamento'];
+    for (const id of obrigatorios) {
+      if (!document.getElementById(id).value.trim()) {
+        alert('Por favor, preencha todos os campos obrigatórios (marcados com *).');
+        document.getElementById(id).focus();
+        return;
+      }
+    }
+
+    const btn = document.getElementById('btnReserva');
+    btn.textContent = 'Processando... aguarde';
+    btn.disabled = true;
+
+    const data = {
+      tipo:            'reserva',
+      timestamp:       new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      nome:            document.getElementById('nome').value.trim(),
+      nascimento:      document.getElementById('nascimento').value,
+      telefone:        document.getElementById('telefone').value.trim(),
+      email:           document.getElementById('email').value.trim(),
+      cpf:             document.getElementById('cpf').value.trim(),
+      estado_civil:    document.getElementById('estado_civil').value,
+      empreendimento:  document.getElementById('empreendimento').value.trim(),
+      faixa_valor:     document.getElementById('faixa_valor').value,
+      valor_entrada:   document.getElementById('valor_entrada').value.trim(),
+      forma_pagamento: document.getElementById('forma_pagamento').value,
+      detalhes:        document.getElementById('detalhes').value.trim(),
+      documentos:      []
+    };
+
+    // Processar arquivos
+    const inputs = [
+      { id: 'f-identidade', desc: 'Identidade (RG/CNH)' },
+      { id: 'f-cpf-doc',    desc: 'CPF' },
+      { id: 'f-renda',      desc: 'Comprovante de Renda' },
+      { id: 'f-residencia', desc: 'Comprovante de Residência' },
+      { id: 'f-decl-ir',    desc: 'Declaração do Imposto de Renda' },
+      { id: 'f-recibo-ir',  desc: 'Recibo do Imposto de Renda' }
+    ];
+
+    for (const fi of inputs) {
+      const el = document.getElementById(fi.id);
+      if (el.files.length > 0) {
+        for (const file of Array.from(el.files)) {
+          try {
+            const b64 = await toBase64(file);
+            data.documentos.push({
+              descricao: fi.desc,
+              nome:      file.name,
+              tipo:      file.type || 'application/octet-stream',
+              base64:    b64
+            });
+          } catch(err) { console.warn('Erro ao processar ' + file.name); }
+        }
+      }
+    }
+
+    // Enviar para Apps Script
+    try {
+      await fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+    } catch(err) { /* no-cors não retorna erro real */ }
+
+    mostrarSucesso(data.nome, data.empreendimento);
+  }
+
+  function mostrarSucesso(nome, empreendimento) {
+    const msg = encodeURIComponent(
+      'Cliente de nome ' + nome + ' está reservando agora no seguinte empreendimento: ' + empreendimento
+    );
+    document.getElementById('waBtn1').href = 'https://wa.me/5522998136409?text=' + msg;
+    document.getElementById('waBtn2').href = 'https://wa.me/5521972443592?text=' + msg;
+    document.getElementById('successOverlay').classList.add('show');
+    window.scrollTo({ top: 0 });
+  }
+</script>
+</body>
+</html>
