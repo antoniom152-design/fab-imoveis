@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empreendimentos Disponíveis — WAL Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #8A6E30;
+    --navy: #0A1628;
+    --navy-mid: #112240;
+    --navy-light: #1C3461;
+    --off-white: #F5F2EC;
+    --text-muted: #8A96A8;
+    --border: rgba(201,168,76,0.2);
+    --red: #DC2626;
+    --red-hover: #B91C1C;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Barlow', sans-serif; background: var(--navy); color: var(--off-white); min-height: 100vh; }
+
+  /* ─── NAV ─── */
+  .nav-fab {
+    position: sticky; top: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 48px;
+    background: rgba(10,22,40,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo svg { width: 36px; height: 36px; flex-shrink: 0; }
+  .nav-logo-text span:first-child {
+    display: block; font-family: 'Playfair Display', serif;
+    font-size: 17px; font-weight: 700; color: var(--gold); letter-spacing: .04em;
+  }
+  .nav-logo-text span:last-child {
+    display: block; font-size: 10px; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .nav-back {
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--text-muted); text-decoration: none; transition: color .2s;
+  }
+  .nav-back:hover { color: var(--gold); }
+  .nav-back svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* ─── HERO ─── */
+  .page-hero {
+    background: linear-gradient(135deg, var(--navy-mid), var(--navy));
+    border-bottom: 1px solid var(--border);
+    padding: 52px 48px 44px;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .page-hero::before {
+    content: ''; position: absolute;
+    top: 0; left: 50%; transform: translateX(-50%);
+    width: 1px; height: 100%;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    opacity: .2;
+  }
+  .page-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(26px, 4vw, 44px); font-weight: 900;
+    color: var(--off-white); margin-bottom: 10px;
+  }
+  .page-title em { font-style: normal; color: var(--gold); }
+  .page-sub {
+    font-size: 15px; font-weight: 300; color: var(--text-muted);
+    max-width: 520px; margin: 0 auto; line-height: 1.6;
+  }
+
+  /* ─── FILTROS ─── */
+  .filter-bar {
+    position: sticky; top: 65px; z-index: 100;
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 48px;
+  }
+  .filter-inner {
+    max-width: 1280px; margin: 0 auto;
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+  }
+  .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 180px; }
+  .filter-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .filter-select {
+    width: 100%; background: rgba(255,255,255,.05);
+    border: 1px solid var(--border); color: var(--off-white);
+    padding: 9px 32px 9px 12px; font-family: 'Barlow', sans-serif;
+    font-size: 13px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    transition: border-color .2s;
+  }
+  .filter-select:focus { border-color: var(--gold); }
+  .filter-select option { background: #112240; }
+
+  .btn-filtrar {
+    height: 38px; padding: 0 28px;
+    background: var(--gold); color: var(--navy);
+    border: none; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    transition: background .2s, transform .15s; white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-filtrar:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  .btn-limpar {
+    height: 38px; padding: 0 16px;
+    background: transparent; color: var(--text-muted);
+    border: 1px solid rgba(138,150,168,.3); cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+    transition: color .2s, border-color .2s; white-space: nowrap; flex-shrink: 0;
+  }
+  .btn-limpar:hover { color: var(--off-white); border-color: var(--text-muted); }
+
+  /* ─── RESULTADOS ─── */
+  .results-wrap {
+    max-width: 1280px; margin: 0 auto;
+    padding: 32px 48px 64px;
+  }
+  .results-info {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 24px; flex-wrap: wrap; gap: 8px;
+  }
+  .results-count {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; letter-spacing: .1em; color: var(--text-muted);
+  }
+  .results-count strong { color: var(--gold); font-size: 16px; }
+
+  .empty-state {
+    text-align: center; padding: 80px 20px; color: var(--text-muted);
+  }
+  .empty-state svg { opacity: .3; margin-bottom: 16px; }
+  .empty-state p { font-size: 15px; line-height: 1.6; }
+  .empty-state strong { display: block; font-family: 'Playfair Display', serif; font-size: 22px; color: var(--off-white); margin-bottom: 8px; font-weight: 600; }
+
+  /* ─── GRID DE IMÓVEIS ─── */
+  .imoveis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 24px;
+  }
+
+  /* ─── CARD ─── */
+  .card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+    transition: transform .25s, border-color .25s, box-shadow .25s;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(201,168,76,.45);
+    box-shadow: 0 12px 40px rgba(0,0,0,.4);
+  }
+
+  /* Faixa tipo */
+  .card-tipo-badge {
+    position: absolute; top: 12px; left: 12px; z-index: 3;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 2px;
+  }
+  .tipo-novo      { background: #1A5C3A; color: #8EFFC6; }
+  .tipo-usado     { background: #1A3A5C; color: #8EC6FF; }
+  .tipo-lancamento{ background: #5C1A1A; color: #FFAAAA; }
+  .tipo-construcao{ background: #4A3A10; color: var(--gold-light); }
+
+  /* Imagem */
+  .card-img-wrap { position: relative; aspect-ratio: 16/10; overflow: hidden; }
+  .card-img-wrap img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .4s;
+    display: block;
+  }
+  .card:hover .card-img-wrap img { transform: scale(1.04); }
+
+  /* Overlay gradiente na imagem */
+  .card-img-wrap::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(10,22,40,.1) 0%, rgba(10,22,40,.7) 100%);
+    pointer-events: none;
+  }
+
+  /* Header sobre a imagem (nome + cidade) */
+  .card-header {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+    padding: 36px 14px 10px;
+    background: linear-gradient(to bottom, rgba(10,22,40,.85), transparent);
+  }
+  .card-nome {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700; color: var(--off-white);
+    line-height: 1.2; margin-bottom: 3px;
+  }
+  .card-cidade {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--gold-light);
+    display: flex; align-items: center; gap: 5px;
+  }
+  .card-cidade svg { width: 10px; height: 10px; fill: var(--gold-light); }
+
+  /* Body */
+  .card-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+  .card-faixa-row {
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .card-faixa-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .card-faixa-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px; font-weight: 700; color: var(--gold);
+  }
+
+  .card-desc {
+    font-size: 12px; color: var(--text-muted); line-height: 1.55;
+    flex: 1;
+  }
+
+  /* Botões do card */
+  .card-actions { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
+
+  .card-btn-info {
+    display: block; text-align: center;
+    padding: 9px 12px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    text-decoration: none; transition: background .2s, color .2s;
+    background: transparent; color: var(--gold);
+    border: 1px solid var(--border);
+  }
+  .card-btn-info:hover { background: rgba(201,168,76,.1); border-color: var(--gold); }
+
+  .card-btns-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+  .card-btn-sim {
+    display: block; text-align: center; padding: 9px 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    text-decoration: none; transition: background .2s, transform .15s;
+    background: transparent; color: var(--off-white);
+    border: 1px solid rgba(255,255,255,.15);
+  }
+  .card-btn-sim:hover { border-color: var(--gold); color: var(--gold); }
+
+  .card-btn-reserva {
+    display: block; text-align: center; padding: 9px 6px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    text-decoration: none; transition: background .2s, transform .15s;
+    background: var(--red); color: #fff; border: 1px solid var(--red);
+  }
+  .card-btn-reserva:hover { background: var(--red-hover); }
+
+  .card-btn-wpp {
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    padding: 9px 12px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    text-decoration: none; transition: background .2s;
+    background: rgba(37,211,102,.12); color: #25D366;
+    border: 1px solid rgba(37,211,102,.25);
+  }
+  .card-btn-wpp:hover { background: rgba(37,211,102,.22); }
+  .card-btn-wpp svg { width: 13px; height: 13px; flex-shrink: 0; }
+
+  /* ─── RESPONSIVO ─── */
+  @media (max-width: 900px) {
+    .nav-fab, .filter-bar, .results-wrap { padding-left: 20px; padding-right: 20px; }
+    .page-hero { padding: 40px 20px 36px; }
+    .filter-inner { gap: 10px; }
+    .filter-group { min-width: 140px; }
+  }
+  @media (max-width: 600px) {
+    .imoveis-grid { grid-template-columns: 1fr; }
+    .filter-group { min-width: 100%; }
+  }
+
+  /* ─── LOADING / FONTE ─── */
+  .loading-overlay {
+    text-align: center; padding: 80px 20px; color: var(--text-muted);
+  }
+  .loading-overlay svg { animation: spin 1s linear infinite; display: block; margin: 0 auto 16px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .fonte-badge {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 2px;
+  }
+  .fonte-sheet {
+    background: rgba(34,197,94,.12); color: #86efac;
+    border: 1px solid rgba(34,197,94,.2);
+  }
+  .fonte-local {
+    background: rgba(201,168,76,.1); color: var(--gold);
+    border: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav-fab">
+  <a href="index.html" class="nav-logo">
+    <img src="logo-wal.png" alt="WAL Imóveis"
+         style="height:62px;width:auto;object-fit:contain;filter:drop-shadow(0 0 6px rgba(201,168,76,0.2))">
+    <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+                 color:var(--gold);letter-spacing:0.04em;white-space:nowrap">WAL Imóveis</span>
+  </a>
+  <a href="index.html" class="nav-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Voltar ao site
+  </a>
+</nav>
+
+<!-- HERO -->
+<div class="page-hero">
+  <div class="page-tag">Portfólio exclusivo FAB</div>
+  <h1 class="page-title">Empreendimentos <em>Disponíveis</em></h1>
+  <p class="page-sub">Filtre por tipo, cidade e faixa de valor para encontrar o imóvel ideal para você e sua família.</p>
+</div>
+
+<!-- FILTROS -->
+<div class="filter-bar">
+  <div class="filter-inner">
+    <div class="filter-group">
+      <span class="filter-label">Tipo de Imóvel</span>
+      <select class="filter-select" id="f-tipo">
+        <option value="">Todos os tipos</option>
+        <option value="Novo">Novo</option>
+        <option value="Usado">Usado</option>
+        <option value="Lançamento">Lançamento</option>
+        <option value="Em Construção">Em Construção</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Cidade</span>
+      <select class="filter-select" id="f-cidade">
+        <option value="">Todas as cidades</option>
+        <option value="Rio de Janeiro">Rio de Janeiro</option>
+        <option value="Niterói">Niterói</option>
+        <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
+        <option value="São Paulo">São Paulo</option>
+        <option value="São José dos Campos">São José dos Campos</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Faixa de Valor</span>
+      <select class="filter-select" id="f-faixa">
+        <option value="">Qualquer valor</option>
+        <option value="300">Até R$ 300 mil</option>
+        <option value="500">Até R$ 500 mil</option>
+        <option value="700">Até R$ 700 mil</option>
+        <option value="850">Até R$ 850 mil</option>
+        <option value="990">Até R$ 990 mil</option>
+        <option value="1500">Até R$ 1.500 mil</option>
+        <option value="2500">Até R$ 2.500 mil</option>
+        <option value="9999">Acima de R$ 2.500 mil</option>
+      </select>
+    </div>
+    <button class="btn-filtrar" onclick="filtrar()">&#9654;&ensp;Filtrar</button>
+    <button class="btn-limpar" onclick="limpar()">✕ Limpar</button>
+  </div>
+</div>
+
+<!-- RESULTADOS -->
+<div class="results-wrap">
+  <div class="results-info">
+    <span class="results-count" id="results-count">
+      Mostrando <strong id="count-num">0</strong> imóveis
+    </span>
+    <span id="fonte-badge"></span>
+  </div>
+  <div class="imoveis-grid" id="imoveis-grid"></div>
+  <div class="empty-state" id="empty-state" style="display:none">
+    <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+      <rect x="6" y="10" width="36" height="36" rx="3" stroke="#F5F2EC" stroke-width="2"/>
+      <path d="M14 22h20M14 30h20M14 38h12" stroke="#F5F2EC" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="44" cy="44" r="10" fill="#C9A84C" opacity=".7"/>
+      <path d="M40 44h8M44 40v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <p><strong>Nenhum imóvel encontrado</strong>Tente ajustar os filtros para ver mais resultados.</p>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   INTEGRAÇÃO GOOGLE SHEETS
+   Quando o admin configurar a URL da planilha no painel admin.html,
+   ela é salva em localStorage('fab_sheet_url') e lida aqui.
+================================================================ */
+
+const FAIXA_VALOR_MAP = {
+  'Até 300 mil':300,'Até 500 mil':500,'Até 700 mil':700,
+  'Até 850 mil':850,'Até 990 mil':990,'Até 1.500 mil':1500,
+  'Até 2.500 mil':2500,'Acima de 2.500 mil':9999
+};
+const FAIXA_LABEL_MAP = {
+  'Até 300 mil':'Até R$ 300 mil','Até 500 mil':'Até R$ 500 mil',
+  'Até 700 mil':'Até R$ 700 mil','Até 850 mil':'Até R$ 850 mil',
+  'Até 990 mil':'Até R$ 990 mil','Até 1.500 mil':'Até R$ 1.500 mil',
+  'Até 2.500 mil':'Até R$ 2.500 mil','Acima de 2.500 mil':'Acima de R$ 2.500 mil'
+};
+
+function extractSheetId(url) {
+  const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+async function fetchFromSheet(sheetId) {
+  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=IMOVEISDISPONIVEIS`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const text = await res.text();
+  const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
+  if (!match) throw new Error('Formato inesperado');
+  const json = JSON.parse(match[1]);
+  const table = json.table;
+  if (!table || !table.rows) return [];
+  return table.rows
+    .filter(row => row.c && row.c[1] && row.c[1].v === true) // Somente ativos
+    .map(row => {
+      const g = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
+      const nome   = String(g(5) || '');
+      const cidade = String(g(4) || '');
+      const faixaKey = String(g(8) || '');
+      return {
+        nome,
+        cidade,
+        tipo:       String(g(2) || 'Novo'),
+        valor:      parseFloat(g(9)) || FAIXA_VALOR_MAP[faixaKey] || 0,
+        faixaTexto: FAIXA_LABEL_MAP[faixaKey] || faixaKey,
+        descricao:  String(g(6) || ''),
+        imagem:     String(g(7) || ''),
+        blogUrl:    String(g(11) || '#'),
+        wppMsg:     `Olá! Tenho interesse no ${nome} (${cidade}).`
+      };
+    })
+    .filter(im => im.nome);
+}
+
+async function initImóveis() {
+  const grid = document.getElementById('imoveis-grid');
+  const badge = document.getElementById('fonte-badge');
+
+  // Mostra loading
+  grid.innerHTML = `<div class="loading-overlay" style="grid-column:1/-1">
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+    Carregando empreendimentos…
+  </div>`;
+
+  const savedUrl = localStorage.getItem('fab_sheet_url');
+  if (savedUrl) {
+    const id = extractSheetId(savedUrl);
+    if (id) {
+      try {
+        const dados = await fetchFromSheet(id);
+        if (dados.length > 0) {
+          _baseCompleta = dados;
+          imoveis = [...dados];
+          badge.innerHTML = '<span class="fonte-badge fonte-sheet">● Dados ao vivo — Google Sheets</span>';
+          render();
+          return;
+        }
+      } catch(e) {
+        console.warn('Falha ao carregar planilha:', e.message);
+      }
+    }
+  }
+
+  // Fallback: dados locais
+  _baseCompleta = [...IMOVEISDISPONIVEIS];
+  imoveis = [...IMOVEISDISPONIVEIS];
+  badge.innerHTML = '<span class="fonte-badge fonte-local">Dados locais (sem planilha configurada)</span>';
+  render();
+}
+
+/* ================================================================
+   IMOVEISDISPONIVEIS — base de dados dos imóveis
+   Adicione ou edite os registros abaixo para atualizar o portfólio.
+   Campos:
+     nome       → Nome do empreendimento
+     cidade     → Uma das 5 cidades cadastradas
+     tipo       → Novo | Usado | Lançamento | Em Construção
+     valor      → Valor em milhares (ex: 480 = R$ 480.000)
+     faixaTexto → Texto de exibição do preço
+     descricao  → Resumo curto do imóvel
+     imagem     → URL da foto principal
+     blogUrl    → Link da página no Blogger com detalhes completos
+     wppMsg     → Mensagem pré-preenchida para o WhatsApp
+================================================================ */
+const IMOVEISDISPONIVEIS = [
+  {
+    nome: "Residencial Asa Norte",
+    cidade: "Rio de Janeiro",
+    tipo: "Novo",
+    valor: 480,
+    faixaTexto: "R$ 480.000",
+    descricao: "Apartamentos de 2 e 3 quartos, 78 m², próximo à Base Aérea do Galeão. Financiamento CFIAe disponível.",
+    imagem: "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Residencial Asa Norte (Rio de Janeiro)."
+  },
+  {
+    nome: "Terraço Icaraí",
+    cidade: "Niterói",
+    tipo: "Lançamento",
+    valor: 850,
+    faixaTexto: "R$ 850.000",
+    descricao: "Lançamento exclusivo em Icaraí. Coberturas e apartamentos de alto padrão com vista para a Baía de Guanabara.",
+    imagem: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Terraço Icaraí (Niterói)."
+  },
+  {
+    nome: "Residencial Praia Azul",
+    cidade: "São Pedro da Aldeia",
+    tipo: "Em Construção",
+    valor: 320,
+    faixaTexto: "R$ 320.000",
+    descricao: "Casas geminadas 2 quartos com quintal, piscina coletiva e playground. Entrega prevista para 2026.",
+    imagem: "https://images.unsplash.com/photo-1580587771525-78b9dba3b914?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Residencial Praia Azul (São Pedro da Aldeia)."
+  },
+  {
+    nome: "Alto da Lapa Residence",
+    cidade: "São Paulo",
+    tipo: "Novo",
+    valor: 680,
+    faixaTexto: "R$ 680.000",
+    descricao: "Apartamentos compactos de 60 m² no bairro da Lapa, próximo ao CINDACTA II. Lazer completo.",
+    imagem: "https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Alto da Lapa Residence (São Paulo)."
+  },
+  {
+    nome: "Garden Park SJC",
+    cidade: "São José dos Campos",
+    tipo: "Novo",
+    valor: 420,
+    faixaTexto: "R$ 420.000",
+    descricao: "Condomínio horizontal fechado, casas de 3 quartos (suíte), 120 m². Ideal para famílias de militares do CTA.",
+    imagem: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Garden Park SJC (São José dos Campos)."
+  },
+  {
+    nome: "Barra Club Residences",
+    cidade: "Rio de Janeiro",
+    tipo: "Lançamento",
+    valor: 1200,
+    faixaTexto: "R$ 1.200.000",
+    descricao: "Lançamento de alto padrão na Barra da Tijuca. 3 suítes, 140 m², 2 vagas, clube privativo com beach tennis.",
+    imagem: "https://images.unsplash.com/photo-1600607687939-ce8a6d5f47f0?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Barra Club Residences (Rio de Janeiro)."
+  },
+  {
+    nome: "Niterói Compact Living",
+    cidade: "Niterói",
+    tipo: "Em Construção",
+    valor: 290,
+    faixaTexto: "R$ 290.000",
+    descricao: "Studios e 1 quarto de 38 a 52 m² no Centro de Niterói. Ótimo para início de carreira militar.",
+    imagem: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Niterói Compact Living (Niterói)."
+  },
+  {
+    nome: "Serra Negra Residencial",
+    cidade: "São José dos Campos",
+    tipo: "Usado",
+    valor: 560,
+    faixaTexto: "R$ 560.000",
+    descricao: "Casa de 4 quartos (2 suítes), 200 m² de área construída, piscina e espaço gourmet. Pronto para morar.",
+    imagem: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Serra Negra Residencial (São José dos Campos)."
+  },
+  {
+    nome: "Moema Prime Tower",
+    cidade: "São Paulo",
+    tipo: "Novo",
+    valor: 1450,
+    faixaTexto: "R$ 1.450.000",
+    descricao: "Torre residencial de alto padrão em Moema. Apartamentos de 110 a 180 m², rooftop e concierge 24h.",
+    imagem: "https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Moema Prime Tower (São Paulo)."
+  },
+  {
+    nome: "Costa do Sol Village",
+    cidade: "São Pedro da Aldeia",
+    tipo: "Lançamento",
+    valor: 490,
+    faixaTexto: "R$ 490.000",
+    descricao: "Casas em condomínio fechado a 800m da praia. 3 quartos, 130 m², com piscina e quadra. Pré-lançamento CFIAe.",
+    imagem: "https://images.unsplash.com/photo-1523217582562-09d0def993a6?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Costa do Sol Village (São Pedro da Aldeia)."
+  },
+  {
+    nome: "Vila dos Oficiais",
+    cidade: "Rio de Janeiro",
+    tipo: "Usado",
+    valor: 370,
+    faixaTexto: "R$ 370.000",
+    descricao: "Apartamento 2 quartos, 85 m², em Jacarepaguá. Bem conservado, próximo ao BASP e ao Méier.",
+    imagem: "https://images.unsplash.com/photo-1536376072261-38c75010e6c9?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse na Vila dos Oficiais (Rio de Janeiro)."
+  },
+  {
+    nome: "Aquaville Residence",
+    cidade: "Niterói",
+    tipo: "Novo",
+    valor: 620,
+    faixaTexto: "R$ 620.000",
+    descricao: "Empreendimento com piscina semiolímpica e academia, 3 quartos, 95 m², no Barreto. Aceita FGTS.",
+    imagem: "https://images.unsplash.com/photo-1560185893-a55cbc8c57e8?w=600&q=80",
+    blogUrl: "#",
+    wppMsg: "Olá! Tenho interesse no Aquaville Residence (Niterói)."
+  }
+];
+
+/* ── Faixas de valor para filtro ── */
+const FAIXAS = [
+  { id: "300",  max: 300,  label: "Até R$ 300 mil" },
+  { id: "500",  max: 500,  label: "Até R$ 500 mil" },
+  { id: "700",  max: 700,  label: "Até R$ 700 mil" },
+  { id: "850",  max: 850,  label: "Até R$ 850 mil" },
+  { id: "990",  max: 990,  label: "Até R$ 990 mil" },
+  { id: "1500", max: 1500, label: "Até R$ 1.500 mil" },
+  { id: "2500", max: 2500, label: "Até R$ 2.500 mil" },
+  { id: "9999", max: 99999,label: "Acima de R$ 2.500 mil" }
+];
+
+function tipoBadgeClass(tipo) {
+  return { "Novo":"tipo-novo", "Usado":"tipo-usado", "Lançamento":"tipo-lancamento", "Em Construção":"tipo-construcao" }[tipo] || "tipo-novo";
+}
+
+function renderCard(im) {
+  const wppUrl = `https://wa.me/5521997263950?text=${encodeURIComponent(im.wppMsg)}`;
+  return `
+    <div class="card">
+      <div class="card-img-wrap">
+        <!-- NOME + CIDADE sobre a imagem -->
+        <div class="card-header">
+          <div class="card-tipo-badge ${tipoBadgeClass(im.tipo)}">${im.tipo}</div>
+          <div class="card-nome">${im.nome}</div>
+          <div class="card-cidade">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+            ${im.cidade}
+          </div>
+        </div>
+        <img src="${im.imagem}" alt="${im.nome}" loading="lazy"
+             onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=60'">
+      </div>
+
+      <div class="card-body">
+        <!-- FAIXA DE VALOR -->
+        <div class="card-faixa-row">
+          <span class="card-faixa-label">Valor</span>
+          <span class="card-faixa-val">${im.faixaTexto}</span>
+        </div>
+
+        <p class="card-desc">${im.descricao}</p>
+
+        <div class="card-actions">
+          <!-- Mais informações → Blogger -->
+          <a href="${im.blogUrl}" target="_blank" rel="noopener" class="card-btn-info">
+            &#9432;&ensp;Ver todas as informações do imóvel
+          </a>
+
+          <!-- WhatsApp Central -->
+          <a href="${wppUrl}" target="_blank" rel="noopener" class="card-btn-wpp">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Falar com a Central
+          </a>
+
+          <div class="card-btns-row">
+            <a href="simulador.html" class="card-btn-sim">&#9654; Simular Financiamento</a>
+            <a href="reserva.html" class="card-btn-reserva">Reservar Agora</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function faixaMatch(valor, faixaId) {
+  if (!faixaId) return true;
+  const f = FAIXAS.find(x => x.id === faixaId);
+  if (!f) return true;
+  if (faixaId === "9999") return valor > 2500;
+  return valor <= f.max;
+}
+
+let imoveis = [];
+let _baseCompleta = null; // guardará os dados carregados (sheet ou local)
+
+function filtrar() {
+  const tipo   = document.getElementById('f-tipo').value;
+  const cidade = document.getElementById('f-cidade').value;
+  const faixa  = document.getElementById('f-faixa').value;
+
+  imoveis = IMOVEISDISPONIVEIS.filter(im => {
+    if (tipo   && im.tipo   !== tipo)   return false;
+    if (cidade && im.cidade !== cidade) return false;
+    if (!faixaMatch(im.valor, faixa))   return false;
+    return true;
+  });
+  render();
+}
+
+function limpar() {
+  document.getElementById('f-tipo').value   = '';
+  document.getElementById('f-cidade').value = '';
+  document.getElementById('f-faixa').value  = '';
+  // Reseta para a base completa (local ou da planilha, conforme carregado)
+  imoveis = _baseCompleta ? [..._baseCompleta] : [...IMOVEISDISPONIVEIS];
+  render();
+}
+
+function render() {
+  const grid  = document.getElementById('imoveis-grid');
+  const empty = document.getElementById('empty-state');
+  const num   = document.getElementById('count-num');
+
+  num.textContent = imoveis.length;
+
+  if (imoveis.length === 0) {
+    grid.innerHTML  = '';
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    grid.innerHTML = imoveis.map(renderCard).join('');
+  }
+}
+
+// Inicia carregando da planilha (ou fallback local)
+initImóveis();
+</script>
+</body>
+</html>

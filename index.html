@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FAB Imóveis — Exclusivo para Militares e Servidores da Força Aérea</title>
+<title>WAL Imóveis — Exclusivo para Militares e Servidores da Força Aérea</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -63,30 +63,15 @@
   }
 
   .logo-emblem {
-    width: 42px;
-    height: 42px;
+    height: 48px;
+    width: auto;
+    object-fit: contain;
+    /* Sombra sutil para destacar o logo na nav escura */
+    filter: drop-shadow(0 0 8px rgba(201,168,76,0.25));
+    transition: filter 0.2s;
   }
-
-  .logo-text {
-    line-height: 1.1;
-  }
-
-  .logo-text span:first-child {
-    display: block;
-    font-family: 'Playfair Display', serif;
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--gold);
-    letter-spacing: 0.05em;
-  }
-
-  .logo-text span:last-child {
-    display: block;
-    font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.2em;
-    color: var(--text-muted);
-    text-transform: uppercase;
+  .logo-emblem:hover {
+    filter: drop-shadow(0 0 14px rgba(201,168,76,0.45));
   }
 
   .nav-cta {
@@ -841,6 +826,43 @@
     transform: translateY(0);
   }
 
+  /* ─── BOTÃO RESERVA ─── */
+  .btn-reserva {
+    display: inline-block;
+    background: #DC2626;
+    color: #fff;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    padding: 14px 28px;
+    text-decoration: none;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    animation: fadeUp 0.8s 0.35s ease both;
+    box-shadow: 0 4px 18px rgba(220,38,38,0.35);
+  }
+  .btn-reserva:hover { background: #B91C1C; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(220,38,38,0.45); }
+
+  /* ─── BOTÃO SIMULADOR ─── */
+  .btn-simulador {
+    display: inline-block;
+    background: transparent;
+    color: var(--gold);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    padding: 13px 28px;
+    text-decoration: none;
+    border: 1px solid var(--gold);
+    transition: background 0.2s, color 0.2s, transform 0.15s;
+    animation: fadeUp 0.8s 0.42s ease both;
+    margin-left: 14px;
+  }
+  .btn-simulador:hover { background: var(--gold); color: var(--navy); transform: translateY(-2px); }
+
   /* ─── SUCCESS STATE ─── */
   .form-success {
     display: none;
@@ -868,6 +890,16 @@
     nav { padding: 16px 24px; }
     .hero-content { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
     .benefits-grid, .props-grid, .test-grid { grid-template-columns: 1fr; }
+    .servicos .section-inner > div { grid-template-columns: 1fr !important; gap: 36px !important; }
+
+    /* Etapas mobile — colapsa para grid 2 colunas */
+    section .section-inner [style*="repeat(5,1fr)"] {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 32px 0 !important;
+    }
+    section .section-inner [style*="repeat(5,1fr)"] > div:last-child {
+      grid-column: 1 / -1;
+    }
     .fghab-inner { grid-template-columns: 1fr; gap: 40px; }
     .section-inner { padding: 0 24px; }
     footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
@@ -880,16 +912,10 @@
 <!-- NAV -->
 <nav>
   <a href="#" class="nav-logo">
-    <svg class="logo-emblem" viewBox="0 0 42 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="21,3 39,15 39,33 21,39 3,33 3,15" fill="none" stroke="#C9A84C" stroke-width="1.2"/>
-      <polygon points="21,8 34,17 34,31 21,36 8,31 8,17" fill="none" stroke="#C9A84C" stroke-width="0.5" opacity="0.4"/>
-      <path d="M21 12 L29 18 L29 28 L21 32 L13 28 L13 18 Z" fill="#C9A84C" opacity="0.12"/>
-      <text x="21" y="25" text-anchor="middle" font-family="Georgia" font-size="11" fill="#C9A84C" font-weight="bold">FAB</text>
-    </svg>
-    <div class="logo-text">
-      <span>FAB Imóveis</span>
-      <span>Exclusivo para Força Aérea</span>
-    </div>
+    <img src="logo-wal.png" alt="WAL Imóveis" class="logo-emblem"
+         style="width:auto;height:62px;object-fit:contain">
+    <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+                 color:var(--gold);letter-spacing:0.04em;white-space:nowrap">WAL Imóveis</span>
   </a>
   <a href="#contato" class="nav-cta">Quero meu imóvel</a>
 </nav>
@@ -920,6 +946,10 @@
           <div class="stat-num">24h</div>
           <div class="stat-label">Atendimento<br>disponível</div>
         </div>
+      </div>
+      <div style="animation: fadeUp 0.8s 0.35s ease both;">
+        <a href="reserva.html" class="btn-reserva">Quero Reservar o meu Imóvel Agora.</a>
+        <a href="simulador.html" class="btn-simulador">Simular Financiamento</a>
       </div>
     </div>
 
@@ -1018,7 +1048,7 @@
 <section class="benefits">
   <div class="section-inner">
     <div class="reveal">
-      <div class="section-tag">Por que escolher a FAB Imóveis</div>
+      <div class="section-tag">Por que escolher a WAL Imóveis</div>
       <h2 class="section-title">Vantagens que só <em>quem é da FAB</em> pode ter</h2>
       <p class="section-desc">Somos especializados no universo militar e sabemos exatamente como maximizar os benefícios a que você tem direito.</p>
     </div>
@@ -1077,9 +1107,10 @@
         <div class="section-tag">Portfólio exclusivo</div>
         <h2 class="section-title">Empreendimentos <em>selecionados</em></h2>
       </div>
-      <a href="#contato" class="props-link">Ver todos →</a>
+      <a href="imoveis.html" class="props-link">Ver todos →</a>
     </div>
-    <div class="props-grid reveal" style="transition-delay:0.1s">
+    <div class="props-grid reveal" id="props-grid" style="transition-delay:0.1s">
+      <!-- Cartões padrão (fallback enquanto não há planilha configurada) -->
       <div class="prop-card">
         <div class="prop-tag">FGHABdisponível</div>
         <img class="prop-img" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80" alt="Reserva Atlântica" loading="lazy">
@@ -1206,7 +1237,7 @@
     <div class="test-grid reveal" style="transition-delay:0.1s">
       <div class="test-card">
         <div class="test-quote">"</div>
-        <div class="test-text">Nunca pensei que conseguiria meu primeiro apartamento tão próximo da base de Galeão. A equipe da FAB Imóveis cuidou de toda a documentação do CFIAe em 90 dias estava com as chaves na mão.</div>
+        <div class="test-text">Nunca pensei que conseguiria meu primeiro apartamento tão próximo da base de Galeão. A equipe da WAL Imóveis cuidou de toda a documentação do CFIAe em 90 dias estava com as chaves na mão.</div>
         <div class="test-author">
           <div class="test-avatar">RS</div>
           <div>
@@ -1259,9 +1290,287 @@
   </div>
 </section>
 
+<!-- SERVIÇOS OFERECIDOS -->
+<section class="servicos" style="position:relative;z-index:1;padding:100px 0;background:var(--navy-mid);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="section-inner">
+    <div class="reveal" style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:start">
+
+      <!-- Texto esquerdo -->
+      <div>
+        <div class="section-tag">O que fazemos por você</div>
+        <h2 class="section-title">Serviços <em>oferecidos</em></h2>
+        <p class="section-desc" style="margin-top:8px">
+          Do primeiro contato à chave na mão — suporte completo e especializado para militares e servidores da Força Aérea Brasileira em cada etapa da compra do seu imóvel.
+        </p>
+        <div style="margin-top:36px;display:flex;flex-direction:column;gap:10px">
+          <a href="#contato" style="display:inline-flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--navy);background:var(--gold);padding:13px 28px;text-decoration:none;transition:background .2s;width:fit-content" onmouseover="this.style.background='var(--gold-light)'" onmouseout="this.style.background='var(--gold)'">
+            Fale com um consultor →
+          </a>
+        </div>
+      </div>
+
+      <!-- Lista de serviços -->
+      <div>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:0">
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Busca do imóvel ideal</strong> — novo, usado, em construção e lançamentos</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Parceria</strong> com as melhores construtoras do Brasil</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Atuação no RJ e SP</strong> — principais cidades próximas às bases</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Análise de perfil</strong> e simulação de financiamento personalizada</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Aprovação de crédito</strong> e acompanhamento documental completo</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Suporte completo</strong> durante todo o processo de compra do seu imóvel</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Financiamento</strong> com os principais bancos de crédito imobiliário, <strong style="color:var(--gold-light)">FAB CFIAe</strong> e <strong style="color:var(--gold-light)">POUPEX</strong></span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:1px solid var(--border)">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Análise jurídica</strong> do imóvel, comprador e vendedor</span>
+          </li>
+          <li style="display:flex;align-items:flex-start;gap:14px;padding:14px 0">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0;margin-top:7px"></span>
+            <span style="font-size:14px;color:var(--off-white);line-height:1.5"><strong style="color:var(--gold)">Assinatura de escritura</strong>, geração de ITBI e registro do imóvel</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ETAPAS DO ATENDIMENTO -->
+<section style="position:relative;z-index:1;padding:100px 0 110px;background:var(--navy);border-top:1px solid var(--border)">
+<div class="section-inner">
+
+  <!-- Cabeçalho -->
+  <div class="reveal" style="text-align:center;margin-bottom:64px">
+    <div class="section-tag" style="justify-content:center">Nosso processo</div>
+    <h2 class="section-title" style="margin:0 auto">Etapas do <em>Atendimento</em></h2>
+    <p style="font-size:15px;font-weight:300;color:var(--text-muted);max-width:520px;margin:14px auto 0;line-height:1.7">
+      Do primeiro contato à chave na mão — 10 etapas claras, sem surpresas, com suporte total da WAL Imóveis.
+    </p>
+  </div>
+
+  <!-- TRILHA -->
+  <div class="reveal" style="transition-delay:.1s">
+
+    <!-- FILEIRA 1: etapas 1 → 5 -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;margin-bottom:0">
+
+      <!-- Linha conectora fileira 1 -->
+      <div style="position:absolute;top:28px;left:calc(10% + 8px);right:calc(10% + 8px);height:2px;
+                  background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim));
+                  z-index:0"></div>
+
+      <!-- Etapa 1 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;
+                    color:var(--navy);box-shadow:0 0 0 4px var(--navy),0 0 0 6px var(--gold-dim)">01</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">1ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Primeiro contato com a WAL Imóveis
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 2 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">02</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">2ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Escolha do empreendimento / imóvel
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 3 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">03</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">3ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Simulação de financiamento
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 4 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">04</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">4ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Consultoria — melhor forma de financiamento
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 5 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">05</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">5ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Visita virtual ou presencial ao imóvel
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONECTOR SERPENTINA (direita, entre fileiras) -->
+    <div style="display:flex;justify-content:flex-end;padding:0 calc(10% - 28px)">
+      <div style="width:2px;height:56px;background:linear-gradient(to bottom,var(--gold),var(--gold-dim))"></div>
+    </div>
+
+    <!-- FILEIRA 2: etapas 10 ← 6  (invertida visualmente) -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative">
+
+      <!-- Linha conectora fileira 2 -->
+      <div style="position:absolute;top:28px;left:calc(10% + 8px);right:calc(10% + 8px);height:2px;
+                  background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim));
+                  z-index:0"></div>
+
+      <!-- Etapa 10 (canto esquerdo da fileira 2 = última etapa visualmente) -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:16px;font-weight:700;
+                    color:var(--navy);box-shadow:0 0 0 4px var(--navy),0 0 0 6px var(--gold-dim)">10</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:6px">10ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Pagamento de sinal
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 9 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">09</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">9ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Assinatura de contrato
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 8 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">08</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">8ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Envio de documentos para análise de crédito
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 7 -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">07</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">7ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Definição do fluxo de pagamento
+          </div>
+        </div>
+      </div>
+
+      <!-- Etapa 6 (canto direito da fileira 2 = conecta com etapa 5) -->
+      <div style="display:flex;flex-direction:column;align-items:center;padding:0 8px;position:relative;z-index:1">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--navy-mid);border:2px solid var(--gold);
+                    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+                    font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold);
+                    box-shadow:0 0 0 4px var(--navy)">06</div>
+        <div style="margin-top:18px;text-align:center">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                      letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px">6ª Etapa</div>
+          <div style="font-size:13px;font-weight:500;color:var(--off-white);line-height:1.4">
+            Escolha de unidade / imóvel
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rótulo de direção fileira 2 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;opacity:.45;padding:0 calc(10% - 20px)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2"><polyline points="19 12 5 12"/><polyline points="12 5 5 12 12 19"/></svg>
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">Fluxo continua</span>
+    </div>
+
+  </div><!-- .reveal -->
+
+  <!-- CTA abaixo das etapas -->
+  <div class="reveal" style="text-align:center;margin-top:56px;transition-delay:.2s">
+    <a href="#contato"
+       style="display:inline-flex;align-items:center;gap:10px;
+              font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;
+              letter-spacing:.14em;text-transform:uppercase;
+              color:var(--navy);background:var(--gold);padding:15px 36px;
+              text-decoration:none;transition:background .2s"
+       onmouseover="this.style.background='var(--gold-light)'"
+       onmouseout="this.style.background='var(--gold)'">
+      Iniciar meu atendimento agora →
+    </a>
+  </div>
+
+</div><!-- .section-inner -->
+</section>
+
 <!-- FOOTER -->
 <footer>
-  <div class="footer-copy">© 2026 FAB Imóveis — CRECI 000000-F. Todos os direitos reservados.</div>
+  <div class="footer-copy">© 2026 WAL Imóveis — CRECI 12261-J. Todos os direitos reservados.</div>
   <div class="footer-links">
     <a href="#">Sobre nós</a>
     <a href="#">Política de privacidade</a>
@@ -1371,7 +1680,7 @@
     }
 
     function doGet(e) {
-      return ContentService.createTextOutput('FAB Imóveis — API ativa');
+      return ContentService.createTextOutput('WAL Imóveis — API ativa');
     }
     ────────────────────────────────────────────────────────────
 
@@ -1394,13 +1703,89 @@
 
     function onNewLead(nome, whatsapp, posto) {
       MailApp.sendEmail({
-        to: 'seuemail@gmail.com',
-        subject: '🏠 Novo lead — FAB Imóveis: ' + nome,
+        to: 'wal.imoveiseconsultoria@gmail.com',
+        subject: '🏠 Novo lead — WAL Imóveis: ' + nome,
         body: 'Nome: ' + nome + '\nWhatsApp: ' + whatsapp + '\nPosto: ' + posto
       });
     }
     // Chame onNewLead(data.nome, data.whatsapp, data.posto) dentro do doPost()
 
   ═══════════════════════════════════════════════════════════ -->
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   EMPREENDIMENTOS SELECIONADOS — carrega destaques da planilha
+   Quando o admin marcar "Destaque — Página Principal" (col O = TRUE)
+   em algum imóvel, ele substitui os cartões fixos desta seção.
+══════════════════════════════════════════════════════════ */
+(async function initDestaques() {
+  const url = localStorage.getItem('fab_sheet_url');
+  if (!url) return; // sem planilha → mantém cartões fixos
+
+  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (!match) return;
+  const sheetId = match[1];
+
+  try {
+    const gviz = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=IMOVEISDISPONIVEIS`;
+    const res  = await fetch(gviz);
+    if (!res.ok) return;
+    const text = await res.text();
+    const m    = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
+    if (!m) return;
+    const table = JSON.parse(m[1]).table;
+    if (!table || !table.rows) return;
+
+    // Filtra: Ativo (col B = TRUE) E Destaque (col O = TRUE)
+    const destaques = table.rows.filter(row =>
+      row.c && row.c[1] && row.c[1].v === true &&  // Ativo
+      row.c[14] && row.c[14].v === true             // Destaque p/ página principal
+    );
+
+    if (!destaques.length) return; // nenhum destaque → mantém cartões fixos
+
+    const g = (row, i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
+
+    const html = destaques.map(row => {
+      const nome      = g(row, 5);
+      const cidade    = g(row, 4);
+      const tipo      = g(row, 2);
+      const faixa     = g(row, 8).replace('Até ','').replace(' mil','') || '—';
+      const preco     = g(row, 9) ? `R$ ${parseFloat(g(row,9)).toLocaleString('pt-BR')}.000` : faixa;
+      const descricao = g(row, 6);
+      const imagem    = g(row, 7) || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80';
+      const blogUrl   = g(row, 11) || '#';
+
+      return `
+        <div class="prop-card">
+          <div class="prop-tag">${tipo}</div>
+          <img class="prop-img" src="${imagem}" alt="${nome}" loading="lazy"
+               onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80'">
+          <div class="prop-body">
+            <div class="prop-city">${cidade}</div>
+            <div class="prop-name">${nome}</div>
+            <div class="prop-desc">${descricao}</div>
+            <div class="prop-footer">
+              <div>
+                <div class="prop-price-label">A partir de</div>
+                <div class="prop-price">${preco}</div>
+              </div>
+              <a href="${blogUrl}" target="_blank" rel="noopener" class="prop-btn"
+                 style="text-decoration:none;display:inline-flex;align-items:center">
+                Saiba mais
+              </a>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('props-grid').innerHTML = html;
+
+  } catch(e) {
+    // Silencia erros — mantém cartões fixos como fallback
+    console.warn('Destaques: falha ao carregar planilha', e.message);
+  }
+})();
+</script>
 </body>
 </html>
