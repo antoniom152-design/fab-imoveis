@@ -67,7 +67,7 @@ label{display:block;font-size:11px;font-weight:600;letter-spacing:.1em;text-tran
 .input-wrap{position:relative}
 .input-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:500;color:var(--ink-muted);pointer-events:none}
 .input-suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:500;color:var(--ink-muted);pointer-events:none}
-input[type=text],select{width:100%;height:46px;border:1px solid var(--border);border-radius:var(--radius);background:var(--cream);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--ink);padding:0 14px;transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none}
+input[type=text],input[type=date],select{width:100%;height:46px;border:1px solid var(--border);border-radius:var(--radius);background:var(--cream);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--ink);padding:0 14px;transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none}
 input.has-prefix{padding-left:36px}
 input.has-suffix{padding-right:42px}
 input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,146,42,.12)}
@@ -320,6 +320,12 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
         </div>
 
         <div class="field">
+          <label>Data de Nascimento <span style="color:var(--gold);font-size:10px">— usado em todos os cálculos</span></label>
+          <input type="date" id="dataNasc" onchange="onDataNasc()">
+          <div class="hint" id="idadeHint">Informe para calcular prazo máximo (CEF: idade + prazo ≤ 80 anos e 6 meses) e sugerir taxa MIP por faixa etária</div>
+        </div>
+
+        <div class="field">
           <label>Prazo (meses)</label>
           <div class="slider-row" style="gap:12px">
             <input type="range" id="prazoSlider" min="12" max="420" value="300" step="12" style="flex:1">
@@ -340,8 +346,8 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
         </div>
 
         <div class="section-div"></div>
-        <div class="section-lbl">Parâmetros CFIAe — Aeronáutica</div>
-        <div class="cfiae-pill">&#9733; CFIAe — SFH Consignado</div>
+        <div class="section-lbl">Seguros Habitacionais — SAC · Price · CFIAe</div>
+        <div class="cfiae-pill">&#9733; MIP e DFI aplicados em todos os sistemas</div>
 
         <div class="row2">
           <div class="field">
@@ -394,6 +400,61 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 // ---- Utilidades ----
 const fmt = n => n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const parseBR = s => parseFloat((s||'0').toString().replace(/\./g,'').replace(',','.'))||0;
+
+// ---- Tabela MIP por faixa etária (Caixa Econômica Federal / CFIAe) ----
+const MIP_TABELA=[
+  {ate:25,taxa:0.0230},{ate:30,taxa:0.0297},{ate:35,taxa:0.0374},
+  {ate:40,taxa:0.0512},{ate:45,taxa:0.0660},{ate:50,taxa:0.0908},
+  {ate:55,taxa:0.1260},{ate:60,taxa:0.1736},{ate:65,taxa:0.2664},
+  {ate:70,taxa:0.3464},{ate:99,taxa:0.5568}
+];
+function getMIPRate(anos){
+  for(const f of MIP_TABELA){if(anos<=f.ate)return f.taxa;}
+  return 0.5568;
+}
+
+// ---- Cálculo de Idade ----
+function calcIdade(dataNasc){
+  if(!dataNasc) return null;
+  const hoje=new Date(), nasc=new Date(dataNasc);
+  if(isNaN(nasc)) return null;
+  let anos=hoje.getFullYear()-nasc.getFullYear();
+  let meses=hoje.getMonth()-nasc.getMonth();
+  if(meses<0||(meses===0&&hoje.getDate()<nasc.getDate())){anos--;meses+=12;}
+  if(hoje.getDate()<nasc.getDate()) meses--;
+  if(meses<0) meses+=12;
+  return {anos, meses};
+}
+
+// ---- Prazo máximo (Caixa: idade + prazo ≤ 80 anos e 6 meses) ----
+function maxPrazoByAge(anos){
+  return Math.min(420, Math.max(12, (80*12+6) - anos*12));
+}
+
+// ---- Handler: Data de Nascimento ----
+function onDataNasc(){
+  const val=document.getElementById('dataNasc').value;
+  const hint=document.getElementById('idadeHint');
+  if(!val){hint.className='hint';hint.textContent='Informe para calcular prazo máximo e sugerir taxa MIP por faixa etária';return;}
+  const id=calcIdade(val);
+  if(!id||id.anos<18||id.anos>80){hint.className='hint warn';hint.textContent='Idade fora do intervalo permitido (18–80 anos).';return;}
+  const prazoMax=maxPrazoByAge(id.anos);
+  const mipSug=getMIPRate(id.anos);
+  // Auto-preenche MIP pela faixa etária
+  document.getElementById('mipTaxa').value=mipSug.toFixed(4).replace('.',',');
+  // Ajusta prazo se necessário
+  const prazoAtual=parseInt(document.getElementById('prazoInput').value)||300;
+  let aviso='';
+  if(prazoAtual>prazoMax){
+    document.getElementById('prazoInput').value=prazoMax;
+    document.getElementById('prazoSlider').value=prazoMax;
+    atualizaPrazo(prazoMax);
+    aviso=` ⚠ Prazo ajustado para ${prazoMax} meses.`;
+  }
+  hint.className='hint';
+  hint.textContent=`Idade: ${id.anos} anos e ${id.meses} mês(es) · Prazo máx (CEF): ${prazoMax} meses (${Math.floor(prazoMax/12)} anos) · MIP sugerido: ${mipSug.toFixed(4).replace('.',',')}% a.m.${aviso}`;
+}
+
 function fmtInput(el){
   let v=el.value.replace(/\D/g,'');
   if(!v){el.value='';return;}
@@ -472,40 +533,52 @@ document.getElementById('trInput').addEventListener('input',function(){
 });
 
 // ---- Cálculos ----
-function calcSAC(pv,n,im){
-  const amort=pv/n;
-  let rows=[],totalJ=0,totalP=0;
+
+// SAC — Caixa Econômica Federal: amortização constante + MIP (sobre saldo) + DFI (fixo)
+function calcSAC(pv,n,im,mipTx,dfiTx,vAval){
+  const amort=pv/n, dfiFixo=vAval*dfiTx;
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0;
   for(let i=1;i<=n;i++){
     const saldo=pv-amort*(i-1);
     const juros=saldo*im;
     const parcela=amort+juros;
-    totalJ+=juros; totalP+=parcela;
-    rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo:pv-amort*i});
+    const mip=saldo*mipTx, dfi=dfiFixo;
+    const encargo=parcela+mip+dfi;
+    totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;totalP+=encargo;
+    rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo:pv-amort*i});
   }
-  return{rows,primeiraP:rows[0].parcela,ultimaP:rows[n-1].parcela,totalJ,totalP};
+  return{rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,
+         ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,
+         totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
 }
 
-function calcPrice(pv,n,im){
+// PRICE — Caixa Econômica Federal: parcela fixa + MIP variável (sobre saldo) + DFI fixo
+function calcPrice(pv,n,im,mipTx,dfiTx,vAval){
   const parcela=pv*(im*Math.pow(1+im,n))/(Math.pow(1+im,n)-1);
-  let rows=[],totalJ=0,saldo=pv;
+  const dfiFixo=vAval*dfiTx;
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,saldo=pv;
   for(let i=1;i<=n;i++){
     const juros=saldo*im, amort=parcela-juros;
-    totalJ+=juros;
+    const mip=saldo*mipTx, dfi=dfiFixo;
+    const encargo=parcela+mip+dfi;
+    totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;
     saldo=Math.max(0,saldo-amort);
-    rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo});
+    rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo});
   }
-  return{rows,primeiraP:parcela,ultimaP:parcela,totalJ,totalP:parcela*n};
+  const totalP=rows.reduce((a,r)=>a+r.encargo,0);
+  return{rows,primeiraP:parcela,primeiraEnc:rows[0].encargo,
+         ultimaP:parcela,ultimaEnc:rows[n-1].encargo,
+         totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
 }
 
-function calcCFIAe(pv,n,im,mipTx,dfiTx,trMensal,vAvaliacao){
-  const amortBase=pv/n;
-  const dfiFixo=vAvaliacao*dfiTx;
-  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0;
-  let saldo=pv;
-
+// CFIAe — SAC consignado Aeronáutica: amortização + TR + MIP + DFI + data de nascimento
+function calcCFIAe(pv,n,im,mipTx,dfiTx,trMensal,vAval,dataNasc){
+  const amortBase=pv/n, dfiFixo=vAval*dfiTx;
+  let idadeBase=36;
+  if(dataNasc){const id=calcIdade(dataNasc);if(id)idadeBase=id.anos;}
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0,saldo=pv;
   for(let i=1;i<=n;i++){
-    const mip=saldo*mipTx;
-    const dfi=dfiFixo;
+    const mip=saldo*mipTx, dfi=dfiFixo;
     const trCorr=saldo*trMensal;
     saldo+=trCorr;
     const juros=saldo*im;
@@ -513,13 +586,12 @@ function calcCFIAe(pv,n,im,mipTx,dfiTx,trMensal,vAvaliacao){
     const parcela=amort+juros;
     const encargo=parcela+mip+dfi;
     saldo=Math.max(0,saldo-amort);
-    totalJ+=juros; totalMIP+=mip; totalDFI+=dfi; totalP+=encargo;
+    totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;totalP+=encargo;
     rows.push({mes:i,parcela,amort,juros,tr:trCorr,mip,dfi,encargo,saldo});
   }
   return{rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,
          ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,
-         totalJ,totalMIP,totalDFI,totalP,
-         mip1:rows[0].mip,dfi1:rows[0].dfi};
+         totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
 }
 
 // ---- Render ----
@@ -534,36 +606,60 @@ function calcular(){
   const mipTx=parseFloat(document.getElementById('mipTaxa').value.replace(',','.'))/100||0.000512;
   const dfiTx=parseFloat(document.getElementById('dfiTaxa').value.replace(',','.'))/100||0.0000804;
   const trMensal=parseFloat(document.getElementById('trInput').value.replace(',','.'))/100||0;
+  const dataNasc=document.getElementById('dataNasc').value;
 
   if(vAval<=0){alert('Informe o valor do imóvel.');return;}
   if(vEnt>=vAval){alert('Entrada deve ser menor que o valor do imóvel.');return;}
   if(prazo<12){alert('Prazo mínimo: 12 meses.');return;}
 
+  // Validação da regra CEF: idade + prazo ≤ 80 anos e 6 meses
+  if(dataNasc){
+    const id=calcIdade(dataNasc);
+    if(id){
+      const prazoMax=maxPrazoByAge(id.anos);
+      if(prazo>prazoMax){
+        alert(`⚠ Prazo excede o limite da Caixa Econômica Federal!\n\nIdade atual: ${id.anos} anos\nPrazo máximo: ${prazoMax} meses (${Math.floor(prazoMax/12)} anos)\n\nRegra CEF: idade + prazo ≤ 80 anos e 6 meses.`);
+        return;
+      }
+    }
+  }
+
   const pv=vAval-vEnt;
   const im=taxaAno/100/12;
-
-  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,trMensal};
-  dadosSAC=calcSAC(pv,prazo,im);
-  dadosPrice=calcPrice(pv,prazo,im);
-  dadosCFIAe=calcCFIAe(pv,prazo,im,mipTx,dfiTx,trMensal,vAval);
+  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,trMensal,dataNasc};
+  dadosSAC=calcSAC(pv,prazo,im,mipTx,dfiTx,vAval);
+  dadosPrice=calcPrice(pv,prazo,im,mipTx,dfiTx,vAval);
+  dadosCFIAe=calcCFIAe(pv,prazo,im,mipTx,dfiTx,trMensal,vAval,dataNasc);
   renderResults();
 }
 
 function renderResults(){
-  const {vAval,vEnt,prazo,taxaAno,pv,trMensal}=_params;
+  const {vAval,vEnt,prazo,taxaAno,pv,trMensal,dataNasc}=_params;
   const entPct=(vEnt/vAval*100).toFixed(1);
+
+  let idadeBox='';
+  if(dataNasc){
+    const id=calcIdade(dataNasc);
+    if(id){
+      const prazoMax=maxPrazoByAge(id.anos);
+      const mipPct=((_params.mipTx||0)*100).toFixed(4).replace('.',',');
+      idadeBox=`<div class="cfiae-box">&#9733; <strong>${id.anos} anos e ${id.meses} mês(es)</strong> · Prazo máx CEF: ${prazoMax} meses · MIP: ${mipPct}% a.m. · DFI: ${((_params.dfiTx||0)*100).toFixed(4).replace('.',',')}% a.m.</div>`;
+    }
+  }
+
   const ra=document.getElementById('resultsArea');
   ra.innerHTML=`
+    ${idadeBox}
     <div class="tab-row">
       <div class="tab tab-sac" id="tabSac" onclick="switchTab('sac')">
-        <div class="tab-label">SAC — 1ª Parcela</div>
-        <div class="tab-value">R$ ${fmt(dadosSAC.primeiraP)}</div>
-        <div class="tab-sub">Última: R$ ${fmt(dadosSAC.ultimaP)}</div>
+        <div class="tab-label">SAC — 1º Encargo (CEF)</div>
+        <div class="tab-value">R$ ${fmt(dadosSAC.primeiraEnc)}</div>
+        <div class="tab-sub">Prestação: R$ ${fmt(dadosSAC.primeiraP)} · Último: R$ ${fmt(dadosSAC.ultimaEnc)}</div>
       </div>
       <div class="tab tab-price" id="tabPrice" onclick="switchTab('price')">
-        <div class="tab-label">Price — Parcela Fixa</div>
-        <div class="tab-value">R$ ${fmt(dadosPrice.primeiraP)}</div>
-        <div class="tab-sub">Todas as parcelas iguais</div>
+        <div class="tab-label">Price — 1º Encargo (CEF)</div>
+        <div class="tab-value">R$ ${fmt(dadosPrice.primeiraEnc)}</div>
+        <div class="tab-sub">Prestação fixa: R$ ${fmt(dadosPrice.primeiraP)}</div>
       </div>
       <div class="tab tab-cfiae" id="tabCfiae" onclick="switchTab('cfiae')">
         <div class="tab-label">CFIAe — 1º Encargo</div>
@@ -595,26 +691,26 @@ function renderResults(){
       </div>
     </div>
 
-    <div id="encargoRow" class="encargo-row" style="display:none">
+    <div id="encargoRow" class="encargo-row">
       <div class="enc-card">
         <div class="enc-label">Prestação (1ª)</div>
         <div class="enc-val" id="enc1Prest">—</div>
         <div class="enc-sub">Amortização + Juros</div>
       </div>
       <div class="enc-card">
-        <div class="enc-label">MIP (0,0512% a.m.)</div>
+        <div class="enc-label" id="enc1MIPLabel">MIP (% a.m.)</div>
         <div class="enc-val" id="enc1MIP">—</div>
         <div class="enc-sub">Sobre saldo devedor</div>
       </div>
       <div class="enc-card">
-        <div class="enc-label">DFI (0,0080% a.m.)</div>
+        <div class="enc-label" id="enc1DFILabel">DFI (% a.m.)</div>
         <div class="enc-val" id="enc1DFI">—</div>
         <div class="enc-sub">Fixo — sobre avaliação</div>
       </div>
       <div class="enc-card total-card" style="grid-column:1/-1">
         <div class="enc-label">Encargo Mensal Total (1ª parcela)</div>
         <div class="enc-val" id="enc1Total">—</div>
-        <div class="enc-sub">Débito consignado — Prestação + MIP + DFI</div>
+        <div class="enc-sub" id="enc1Sub">Prestação + MIP + DFI</div>
       </div>
     </div>
 
@@ -628,9 +724,9 @@ function renderResults(){
       </div>
     </div>
     <p class="disclaimer">
-      ⚠ CFIAe: seguros MIP (morte/invalidez) sobre saldo devedor; DFI (danos físicos) fixo sobre valor do imóvel.<br>
-      TR atual zerada — simule cenários com correção para planejamento de longo prazo.<br>
-      Simulação educativa. Valores finais sujeitos à análise de crédito e aprovação da CFIAe.
+      ⚠ MIP (Morte e Invalidez Permanente) incide sobre o saldo devedor — taxa varia por faixa etária. DFI (Danos Físicos ao Imóvel) é fixo sobre o valor de avaliação.<br>
+      SAC e Price seguem metodologia da Caixa Econômica Federal. CFIAe inclui correção pela TR mensal. Regra CEF: idade + prazo ≤ 80 anos e 6 meses.<br>
+      Simulação educativa. Valores finais sujeitos à análise de crédito e aprovação.
     </p>
 
     <!-- AÇÕES: IMPRIMIR / PDF -->
@@ -663,32 +759,36 @@ function updateTab(tab){
     if(el) el.className='tab tab-'+t+(t===tab?' active':'');
   });
 
-  const isCfiae=tab==='cfiae';
   const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:dadosCFIAe;
   const names={sac:'SAC',price:'Price',cfiae:'CFIAe'};
+  const mipPct=((_params.mipTx||0)*100).toFixed(4).replace('.',',');
+  const dfiPct=((_params.dfiTx||0)*100).toFixed(4).replace('.',',');
 
   document.getElementById('scJuros').textContent='R$ '+fmt(dados.totalJ);
   document.getElementById('scJurosSub').textContent='Sistema '+names[tab];
 
-  if(isCfiae){
-    document.getElementById('scSeguros').textContent='R$ '+fmt(dadosCFIAe.totalMIP+dadosCFIAe.totalDFI);
-    document.getElementById('scSegurosSub').textContent='MIP + DFI acumulados';
-    document.getElementById('scTotal').textContent='R$ '+fmt(dadosCFIAe.totalP);
-    document.getElementById('scTotalSub').textContent='Encargos totais (c/ seguros)';
-    const er=document.getElementById('encargoRow');
-    if(er){ er.style.display='grid';
-      document.getElementById('enc1Prest').textContent='R$ '+fmt(dadosCFIAe.primeiraP);
-      document.getElementById('enc1MIP').textContent='R$ '+fmt(dadosCFIAe.mip1);
-      document.getElementById('enc1DFI').textContent='R$ '+fmt(dadosCFIAe.dfi1);
-      document.getElementById('enc1Total').textContent='R$ '+fmt(dadosCFIAe.primeiraEnc);
+  // Seguros exibidos para todos os sistemas
+  document.getElementById('scSeguros').textContent='R$ '+fmt(dados.totalMIP+dados.totalDFI);
+  document.getElementById('scSegurosSub').textContent='MIP + DFI acumulados';
+  document.getElementById('scTotal').textContent='R$ '+fmt(dados.totalP);
+  document.getElementById('scTotalSub').textContent='Encargos totais (c/ seguros)';
+
+  // Encargo row para todos os sistemas
+  const er=document.getElementById('encargoRow');
+  if(er){
+    er.style.display='grid';
+    document.getElementById('enc1Prest').textContent='R$ '+fmt(dados.primeiraP);
+    document.getElementById('enc1MIP').textContent='R$ '+fmt(dados.mip1);
+    document.getElementById('enc1DFI').textContent='R$ '+fmt(dados.dfi1);
+    document.getElementById('enc1Total').textContent='R$ '+fmt(dados.primeiraEnc);
+    document.getElementById('enc1MIPLabel').textContent=`MIP (${mipPct}% a.m.)`;
+    document.getElementById('enc1DFILabel').textContent=`DFI (${dfiPct}% a.m.)`;
+    const sub=document.getElementById('enc1Sub');
+    if(sub){
+      if(tab==='sac') sub.textContent=`Último encargo: R$ ${fmt(dados.ultimaEnc)} · Redução: R$ ${fmt(dados.primeiraEnc-dados.ultimaEnc)}`;
+      else if(tab==='price') sub.textContent=`Prestação fixa · Encargo varia pois MIP incide sobre saldo decrescente`;
+      else sub.textContent=`Débito consignado · Último encargo: R$ ${fmt(dados.ultimaEnc)}`;
     }
-  } else {
-    document.getElementById('scSeguros').textContent='—';
-    document.getElementById('scSegurosSub').textContent='Somente CFIAe';
-    document.getElementById('scTotal').textContent='R$ '+fmt(dados.totalP);
-    document.getElementById('scTotalSub').textContent='em '+_params.prazo+' parcelas';
-    const er=document.getElementById('encargoRow');
-    if(er) er.style.display='none';
   }
 
   document.getElementById('tblTitle').textContent='Tabela '+names[tab];
@@ -701,9 +801,9 @@ function renderTabela(tab){
   const head=document.getElementById('tblHead');
   head.innerHTML=`<tr>
     <th>Nº</th><th>Amortização</th><th>Juros</th>
-    ${isCfiae?'<th>TR</th><th>MIP</th><th>DFI</th>':''}
-    <th>Prestação</th>
-    ${isCfiae?'<th>Encargo Total</th>':''}
+    ${isCfiae?'<th>TR</th>':''}
+    <th>MIP</th><th>DFI</th>
+    <th>Prestação</th><th>Encargo Total</th>
     <th>Saldo Devedor</th>
   </tr>`;
   const tbody=document.getElementById('tblBody');
@@ -712,9 +812,11 @@ function renderTabela(tab){
       <td>${String(r.mes).padStart(3,'0')}</td>
       <td>R$ ${fmt(r.amort)}</td>
       <td>R$ ${fmt(r.juros)}</td>
-      ${isCfiae?`<td>R$ ${fmt(r.tr||0)}</td><td>R$ ${fmt(r.mip||0)}</td><td>R$ ${fmt(r.dfi||0)}</td>`:''}
+      ${isCfiae?`<td>R$ ${fmt(r.tr||0)}</td>`:''}
+      <td>R$ ${fmt(r.mip||0)}</td>
+      <td>R$ ${fmt(r.dfi||0)}</td>
       <td class="td-p">R$ ${fmt(r.parcela)}</td>
-      ${isCfiae?`<td class="td-enc">R$ ${fmt(r.encargo)}</td>`:''}
+      <td class="td-enc">R$ ${fmt(r.encargo)}</td>
       <td>R$ ${fmt(r.saldo)}</td>
     </tr>
   `).join('');
@@ -736,12 +838,17 @@ function prepararHeaderImpressao(){
     new Date().toLocaleString('pt-BR',{dateStyle:'long',timeStyle:'short'});
 
   // Parâmetros
+  const {dataNasc}=_params;
+  let idadeStr='Não informada';
+  if(dataNasc){const id=calcIdade(dataNasc);if(id)idadeStr=`${id.anos} anos e ${id.meses} mês(es)`;}
   const params=[
     {l:'Valor do Imóvel',     v:'R$ '+fmt(vAval)},
     {l:'Entrada ('+((vEnt/vAval)*100).toFixed(1)+'%)',v:'R$ '+fmt(vEnt)},
     {l:'Valor Financiado',   v:'R$ '+fmt(pv)},
     {l:'Prazo',              v:prazo+' meses'},
     {l:'Taxa de Juros',      v:taxaAno.toFixed(2).replace('.',',')+'% a.a.'},
+    {l:'Idade do Mutuário',  v:idadeStr},
+    {l:'MIP',                v:((_params.mipTx||0)*100).toFixed(4).replace('.',',')+'% a.m.'},
     {l:'Sistema ativo',      v:{sac:'SAC',price:'Price',cfiae:'CFIAe'}[currentTab]},
   ];
   document.getElementById('printParams').innerHTML = params.map(p=>`
