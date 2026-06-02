@@ -346,8 +346,48 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
         </div>
 
         <div class="section-div"></div>
-        <div class="section-lbl">Seguros Habitacionais — SAC · Price · CFIAe</div>
-        <div class="cfiae-pill">&#9733; MIP e DFI aplicados em todos os sistemas</div>
+        <div class="section-lbl">Parâmetros Exclusivos CFIAe — Aeronáutica</div>
+        <div class="cfiae-pill">&#9733; CFIAe — SFH Consignado Aeronáutica</div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Sistema CFIAe</label>
+            <select id="cfiaeSistema">
+              <option value="SAC">SAC — Amortização Constante</option>
+              <option value="PRICE">PRICE — Tabela Price</option>
+            </select>
+            <div class="hint">Sistema de amortização usado no CFIAe</div>
+          </div>
+          <div class="field">
+            <label>Forma de Pagamento</label>
+            <select id="cfiaeFormaPgto">
+              <option value="CONSIGNACAO">Consignação em Folha</option>
+              <option value="BOLETO">Boleto Bancário</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Seguradora</label>
+            <select id="cfiaeSeguradora" onchange="onSeguradora()">
+              <option value="ALLSEG">ALLSEG</option>
+              <option value="EXCELSIOR">EXCELSIOR</option>
+            </select>
+            <div class="hint" id="seguradoraHint">MIP calculado por faixa etária automaticamente</div>
+          </div>
+          <div class="field">
+            <label>Renda Bruta Familiar</label>
+            <div class="input-wrap"><span class="input-prefix">R$</span>
+              <input type="text" id="rendaBruta" class="has-prefix" placeholder="0,00">
+            </div>
+            <div class="hint">Limite: 30% comprometido com o financiamento</div>
+          </div>
+        </div>
+
+        <div class="section-div"></div>
+        <div class="section-lbl">Seguros — SAC e Price (MIP/DFI manuais)</div>
+        <div class="hint" style="margin-bottom:.8rem;font-size:11px;color:var(--ink-muted)">Para CFIAe, MIP é calculado automaticamente pela seguradora e faixa etária (tabela Python/CEF).</div>
 
         <div class="row2">
           <div class="field">
@@ -364,7 +404,7 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
               <input type="text" id="dfiTaxa" value="0,0080" class="has-suffix" style="padding-right:26px">
               <span class="input-suffix">%</span>
             </div>
-            <div class="hint">Sobre valor do imóvel</div>
+            <div class="hint">SAC/Price: sobre valor do imóvel · CFIAe: sobre saldo devedor</div>
           </div>
         </div>
 
@@ -401,7 +441,7 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 const fmt = n => n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const parseBR = s => parseFloat((s||'0').toString().replace(/\./g,'').replace(',','.'))||0;
 
-// ---- Tabela MIP por faixa etária (Caixa Econômica Federal / CFIAe) ----
+// ---- Tabela MIP SAC/PRICE (% a.m. — para campos manuais) ----
 const MIP_TABELA=[
   {ate:25,taxa:0.0230},{ate:30,taxa:0.0297},{ate:35,taxa:0.0374},
   {ate:40,taxa:0.0512},{ate:45,taxa:0.0660},{ate:50,taxa:0.0908},
@@ -411,6 +451,46 @@ const MIP_TABELA=[
 function getMIPRate(anos){
   for(const f of MIP_TABELA){if(anos<=f.ate)return f.taxa;}
   return 0.5568;
+}
+
+// ---- Tabelas MIP por seguradora (CFIAe) — alíquota decimal sobre saldo devedor ----
+// Fonte: Python simulador_longo_fev_V_26 / CEF
+const MIP_SEGURADORAS={
+  ALLSEG:[
+    {ate:25,taxa:0.00007600},{ate:30,taxa:0.00008600},{ate:35,taxa:0.00009900},
+    {ate:40,taxa:0.00012500},{ate:45,taxa:0.00019400},{ate:50,taxa:0.00032300},
+    {ate:55,taxa:0.00051200},{ate:60,taxa:0.00077600},{ate:65,taxa:0.00123800},
+    {ate:70,taxa:0.00532500},{ate:75,taxa:0.00703761},{ate:999,taxa:0.00703761}
+  ],
+  EXCELSIOR:[
+    {ate:25,taxa:0.00008200},{ate:30,taxa:0.00009400},{ate:35,taxa:0.00011000},
+    {ate:40,taxa:0.00014200},{ate:45,taxa:0.00021500},{ate:50,taxa:0.00035800},
+    {ate:55,taxa:0.00056400},{ate:60,taxa:0.00086200},{ate:65,taxa:0.00136000},
+    {ate:70,taxa:0.00590000},{ate:75,taxa:0.00760000},{ate:999,taxa:0.00760000}
+  ]
+};
+
+function getMIPRateCFIAe(anos, seguradora){
+  const tabela=MIP_SEGURADORAS[seguradora]||MIP_SEGURADORAS.ALLSEG;
+  for(const f of tabela){if(anos<=f.ate)return f.taxa;}
+  return tabela[tabela.length-1].taxa;
+}
+
+// ---- Idade exata em anos na parcela i do financiamento ----
+function calcIdadeExata(dataNascDate, mesI){
+  const hoje=new Date();
+  const dataParc=new Date(hoje.getFullYear(), hoje.getMonth()+mesI-1, hoje.getDate());
+  let anos=dataParc.getFullYear()-dataNascDate.getFullYear();
+  const m=dataParc.getMonth()-dataNascDate.getMonth();
+  if(m<0||(m===0&&dataParc.getDate()<dataNascDate.getDate())) anos--;
+  return anos;
+}
+
+// ---- Hint da seguradora ----
+function onSeguradora(){
+  const seg=document.getElementById('cfiaeSeguradora').value;
+  const hint=document.getElementById('seguradoraHint');
+  hint.textContent=`MIP ${seg} calculado automaticamente por faixa etária (tabela CEF)`;
 }
 
 // ---- Cálculo de Idade ----
@@ -466,9 +546,10 @@ function fmtPct(el){
 }
 
 // ---- Sincronizações ----
-['valorImovel','entrada'].forEach(id=>{
+['valorImovel','entrada','rendaBruta'].forEach(id=>{
   document.getElementById(id).addEventListener('input',function(){
-    fmtInput(this); sincEntrada();
+    fmtInput(this);
+    if(id!=='rendaBruta') sincEntrada();
   });
 });
 ['mipTaxa','dfiTaxa'].forEach(id=>{
@@ -571,27 +652,71 @@ function calcPrice(pv,n,im,mipTx,dfiTx,vAval){
          totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
 }
 
-// CFIAe — SAC consignado Aeronáutica: amortização + TR + MIP + DFI + data de nascimento
-function calcCFIAe(pv,n,im,mipTx,dfiTx,trMensal,vAval,dataNasc){
-  const amortBase=pv/n, dfiFixo=vAval*dfiTx;
+// CFIAe — Aeronáutica (baseado em simulador_longo_fev_V_26 / Python CEF)
+// MIP: varia por faixa etária a cada parcela (ALLSEG ou EXCELSIOR)
+// DFI: sobre saldo devedor (0,035% a.m. padrão CEF)
+// Sistema: SAC ou PRICE
+// Forma pagamento: CONSIGNAÇÃO ou BOLETO
+// Limite: 30% da renda bruta
+function calcCFIAe(pv,n,im,dfiTx,trMensal,vAval,dataNasc,seguradora,sistema){
+  const amortBaseSAC=pv/n;
+  const parcelaBasePRICE=im===0?pv/n:pv*(im*Math.pow(1+im,n))/(Math.pow(1+im,n)-1);
+
+  // Data de nascimento como objeto Date para cálculo progressivo da idade
+  let dataNascDate=null;
   let idadeBase=36;
-  if(dataNasc){const id=calcIdade(dataNasc);if(id)idadeBase=id.anos;}
+  if(dataNasc){
+    dataNascDate=new Date(dataNasc);
+    const id=calcIdade(dataNasc);
+    if(id) idadeBase=id.anos;
+  }
+
   let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0,saldo=pv;
+
   for(let i=1;i<=n;i++){
-    const mip=saldo*mipTx, dfi=dfiFixo;
+    // Idade do mutuário na data desta parcela (progressiva, como no Python)
+    const idadeAtual=dataNascDate
+      ? calcIdadeExata(dataNascDate, i)
+      : idadeBase+Math.floor((i-1)/12);
+
+    // MIP pela tabela da seguradora e faixa etária atual
+    const mipAliquota=getMIPRateCFIAe(idadeAtual, seguradora);
+    const mip=saldo*mipAliquota;
+
+    // DFI sobre saldo devedor (método Python: 0,035% a.m.)
+    const dfi=saldo*dfiTx;
+
+    // Correção TR
     const trCorr=saldo*trMensal;
     saldo+=trCorr;
+
     const juros=saldo*im;
-    const amort=(i===n)?saldo:Math.min(amortBase,saldo);
-    const parcela=amort+juros;
+    let amort, parcela;
+
+    if(sistema==='SAC'){
+      amort=(i===n)?saldo:Math.min(amortBaseSAC,saldo);
+      parcela=amort+juros;
+    } else { // PRICE
+      if(i===n){amort=saldo;parcela=amort+juros;}
+      else{parcela=parcelaBasePRICE;amort=parcela-juros;}
+    }
+
     const encargo=parcela+mip+dfi;
     saldo=Math.max(0,saldo-amort);
+
     totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;totalP+=encargo;
-    rows.push({mes:i,parcela,amort,juros,tr:trCorr,mip,dfi,encargo,saldo});
+    rows.push({mes:i,parcela,amort,juros,tr:trCorr,mip,dfi,encargo,saldo,idadeAtual});
   }
-  return{rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,
-         ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,
-         totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
+
+  return{rows,
+    primeiraP:rows[0].parcela, primeiraEnc:rows[0].encargo,
+    ultimaP:rows[n-1].parcela, ultimaEnc:rows[n-1].encargo,
+    totalJ,totalMIP,totalDFI,totalP,
+    mip1:rows[0].mip, dfi1:rows[0].dfi,
+    mipAliq1: getMIPRateCFIAe(
+      dataNascDate?calcIdadeExata(dataNascDate,1):idadeBase, seguradora
+    )
+  };
 }
 
 // ---- Render ----
@@ -624,12 +749,31 @@ function calcular(){
     }
   }
 
+  // Campos exclusivos CFIAe
+  const cfiaeSistema=document.getElementById('cfiaeSistema').value;
+  const cfiaeFormaPgto=document.getElementById('cfiaeFormaPgto').value;
+  const cfiaeSeguradora=document.getElementById('cfiaeSeguradora').value;
+  const rendaBruta=parseBR(document.getElementById('rendaBruta').value)||0;
+  const dfiTxCFIAe=0.00035; // DFI sobre saldo devedor (Python CEF: 0,035% a.m.)
+
   const pv=vAval-vEnt;
   const im=taxaAno/100/12;
-  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,trMensal,dataNasc};
+  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,dfiTxCFIAe,
+           trMensal,dataNasc,cfiaeSistema,cfiaeFormaPgto,cfiaeSeguradora,rendaBruta};
+
   dadosSAC=calcSAC(pv,prazo,im,mipTx,dfiTx,vAval);
   dadosPrice=calcPrice(pv,prazo,im,mipTx,dfiTx,vAval);
-  dadosCFIAe=calcCFIAe(pv,prazo,im,mipTx,dfiTx,trMensal,vAval,dataNasc);
+  dadosCFIAe=calcCFIAe(pv,prazo,im,dfiTxCFIAe,trMensal,vAval,dataNasc,cfiaeSeguradora,cfiaeSistema);
+
+  // Verificação 30% renda bruta
+  _params.limite30 = rendaBruta>0 ? {
+    enc1: dadosCFIAe.primeiraEnc,
+    rendaBruta,
+    limite: rendaBruta*0.30,
+    ok: dadosCFIAe.primeiraEnc <= rendaBruta*0.30,
+    pct: ((dadosCFIAe.primeiraEnc/rendaBruta)*100).toFixed(1)
+  } : null;
+
   renderResults();
 }
 
@@ -642,8 +786,21 @@ function renderResults(){
     const id=calcIdade(dataNasc);
     if(id){
       const prazoMax=maxPrazoByAge(id.anos);
-      const mipPct=((_params.mipTx||0)*100).toFixed(4).replace('.',',');
-      idadeBox=`<div class="cfiae-box">&#9733; <strong>${id.anos} anos e ${id.meses} mês(es)</strong> · Prazo máx CEF: ${prazoMax} meses · MIP: ${mipPct}% a.m. · DFI: ${((_params.dfiTx||0)*100).toFixed(4).replace('.',',')}% a.m.</div>`;
+      const mipCFIAePct=(dadosCFIAe.mipAliq1*100).toFixed(6).replace('.',',');
+      const seg=_params.cfiaeSeguradora||'ALLSEG';
+      const sis=_params.cfiaeSistema||'SAC';
+      const pgto=_params.cfiaeFormaPgto==='CONSIGNACAO'?'Consignação':'Boleto';
+      let limiteBox='';
+      if(_params.limite30){
+        const l=_params.limite30;
+        limiteBox=l.ok
+          ? ` · <span style="color:#2D5A3D">✔ Renda OK — comprometimento: ${l.pct}% (limite 30%)</span>`
+          : ` · <span style="color:#8B0000">✘ RENDA INSUFICIENTE — comprometimento: ${l.pct}% (limite 30% = R$ ${fmt(l.limite)})</span>`;
+      }
+      idadeBox=`<div class="cfiae-box">
+        &#9733; <strong>${id.anos} anos e ${id.meses} mês(es)</strong> · Prazo máx CEF: ${prazoMax} meses<br>
+        CFIAe: <strong>${sis}</strong> · <strong>${seg}</strong> · <strong>${pgto}</strong> · MIP 1ª parcela: ${mipCFIAePct}% a.m. · DFI: 0,035% s/ saldo${limiteBox}
+      </div>`;
     }
   }
 
@@ -801,7 +958,7 @@ function renderTabela(tab){
   const head=document.getElementById('tblHead');
   head.innerHTML=`<tr>
     <th>Nº</th><th>Amortização</th><th>Juros</th>
-    ${isCfiae?'<th>TR</th>':''}
+    ${isCfiae?'<th>TR</th><th>Idade</th>':''}
     <th>MIP</th><th>DFI</th>
     <th>Prestação</th><th>Encargo Total</th>
     <th>Saldo Devedor</th>
@@ -812,7 +969,7 @@ function renderTabela(tab){
       <td>${String(r.mes).padStart(3,'0')}</td>
       <td>R$ ${fmt(r.amort)}</td>
       <td>R$ ${fmt(r.juros)}</td>
-      ${isCfiae?`<td>R$ ${fmt(r.tr||0)}</td>`:''}
+      ${isCfiae?`<td>R$ ${fmt(r.tr||0)}</td><td style="color:var(--cfiae);font-weight:600">${r.idadeAtual||'—'}</td>`:''}
       <td>R$ ${fmt(r.mip||0)}</td>
       <td>R$ ${fmt(r.dfi||0)}</td>
       <td class="td-p">R$ ${fmt(r.parcela)}</td>
