@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Financiamento — WAL Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Bibliotecas para geração de PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F5F0E8;--cream-dark:#EAE3D5;--ink:#1A1510;--ink-light:#4A3F30;--ink-muted:#8A7D6A;
+  --gold:#C4922A;--gold-light:#E8C47A;--gold-pale:#F5E8C8;
+  --sac:#2D5A3D;--sac-bg:#E8F2EB;
+  --price:#1A3A5C;--price-bg:#E8EFF7;
+  --cfiae:#6B2D5A;--cfiae-bg:#F2E8EF;
+  --border:rgba(26,21,16,0.12);--radius:4px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+
+/* ─── NAV FAB ─── */
+.nav-fab{
+  background:var(--ink);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 32px;
+  border-bottom:1px solid rgba(196,146,42,0.2);
+  position:sticky;top:0;z-index:200;
+}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-logo svg{width:34px;height:34px;flex-shrink:0;}
+.nav-logo-text span:first-child{
+  display:block;font-family:'DM Serif Display',serif;font-size:17px;
+  color:var(--gold-light);letter-spacing:.03em;line-height:1.1;
+}
+.nav-logo-text span:last-child{
+  display:block;font-size:10px;font-weight:600;letter-spacing:.18em;
+  text-transform:uppercase;color:rgba(245,240,232,.45);
+}
+.nav-back{
+  display:flex;align-items:center;gap:7px;
+  font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(245,240,232,.55);text-decoration:none;
+  transition:color .2s;
+}
+.nav-back:hover{color:var(--gold-light);}
+.nav-back svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;}
+
+/* ─── HEADER SIMULADOR ─── */
+.header{background:var(--ink);color:var(--cream);padding:3rem 2rem 2.5rem;text-align:center;position:relative;overflow:hidden}
+.header::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(196,146,42,0.04) 40px,rgba(196,146,42,0.04) 80px)}
+.header-badge{display:inline-block;border:1px solid var(--gold);color:var(--gold-light);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:5px 16px;border-radius:2px;margin-bottom:1.2rem;position:relative}
+.header h1{font-family:'DM Serif Display',serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:400;line-height:1.1;position:relative;letter-spacing:-.02em}
+.header h1 em{font-style:italic;color:var(--gold-light)}
+.header-sub{margin-top:.75rem;color:rgba(245,240,232,.55);font-size:14px;font-weight:300;position:relative}
+
+.main{max-width:1180px;margin:0 auto;padding:2.5rem 1.5rem 4rem;display:grid;grid-template-columns:400px 1fr;gap:2rem;align-items:start}
+
+.panel{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.panel-header{background:var(--ink);color:var(--cream);padding:1rem 1.5rem;font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between}
+.panel-body{padding:1.5rem}
+
+.field{margin-bottom:1.25rem}
+.field:last-child{margin-bottom:0}
+label{display:block;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px}
+.input-wrap{position:relative}
+.input-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:500;color:var(--ink-muted);pointer-events:none}
+.input-suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:13px;font-weight:500;color:var(--ink-muted);pointer-events:none}
+input[type=text],select{width:100%;height:46px;border:1px solid var(--border);border-radius:var(--radius);background:var(--cream);font-family:'DM Sans',sans-serif;font-size:15px;font-weight:500;color:var(--ink);padding:0 14px;transition:border-color .2s,box-shadow .2s;outline:none;-webkit-appearance:none}
+input.has-prefix{padding-left:36px}
+input.has-suffix{padding-right:42px}
+input:focus,select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(196,146,42,.12)}
+select{cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A7D6A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+
+.slider-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--cream-dark);border-radius:2px;border:none;padding:0;box-shadow:none;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;background:var(--ink);border-radius:50%;cursor:pointer;transition:background .2s}
+input[type=range]:focus{box-shadow:none;border:none}
+input[type=range]:hover::-webkit-slider-thumb{background:var(--gold)}
+.slider-val{font-size:13px;font-weight:600;color:var(--ink);min-width:48px;text-align:right}
+
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.section-div{height:.5px;background:var(--border);margin:1.2rem 0}
+.section-lbl{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--cfiae);margin-bottom:.9rem;display:flex;align-items:center;gap:8px}
+.section-lbl::after{content:'';flex:1;height:.5px;background:rgba(107,45,90,.2)}
+
+.cfiae-pill{display:inline-flex;align-items:center;gap:5px;background:var(--cfiae-bg);color:var(--cfiae);border:1px solid rgba(107,45,90,.2);border-radius:20px;padding:3px 10px;font-size:11px;font-weight:600;margin-bottom:.8rem}
+
+.hint{font-size:11px;color:var(--ink-muted);margin-top:4px;line-height:1.5}
+.hint.warn{color:#8B4513}
+
+.btn{width:100%;height:52px;background:var(--gold);color:#fff;border:none;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-top:1.5rem;transition:background .2s,transform .1s}
+.btn:hover{background:#B07E20}
+.btn:active{transform:scale(.99)}
+
+/* Results */
+.tab-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.2rem}
+.tab{padding:.85rem 1rem;border-radius:var(--radius);border:2px solid transparent;cursor:pointer;transition:all .2s}
+.tab-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.tab-value{font-family:'DM Serif Display',serif;font-size:1.25rem;line-height:1}
+.tab-sub{font-size:11px;margin-top:3px}
+.tab-sac{background:var(--sac-bg)}
+.tab-sac.active{border-color:var(--sac)}
+.tab-sac .tab-label{color:var(--sac)}
+.tab-sac .tab-value{color:var(--sac)}
+.tab-sac .tab-sub{color:rgba(45,90,61,.65)}
+.tab-price{background:var(--price-bg)}
+.tab-price.active{border-color:var(--price)}
+.tab-price .tab-label{color:var(--price)}
+.tab-price .tab-value{color:var(--price)}
+.tab-price .tab-sub{color:rgba(26,58,92,.65)}
+.tab-cfiae{background:var(--cfiae-bg)}
+.tab-cfiae.active{border-color:var(--cfiae)}
+.tab-cfiae .tab-label{color:var(--cfiae)}
+.tab-cfiae .tab-value{color:var(--cfiae)}
+.tab-cfiae .tab-sub{color:rgba(107,45,90,.65)}
+
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.s-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem}
+.s-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:5px}
+.s-val{font-family:'DM Serif Display',serif;font-size:1.05rem;color:var(--ink);line-height:1.1}
+.s-sub{font-size:11px;color:var(--ink-muted);margin-top:2px}
+
+.cfiae-box{background:var(--cfiae-bg);border:1px solid rgba(107,45,90,.18);border-radius:var(--radius);padding:.7rem 1rem;margin-bottom:1rem;font-size:11px;color:var(--cfiae);line-height:1.6}
+.cfiae-box strong{font-weight:600}
+
+.encargo-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem}
+.enc-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:.7rem .9rem}
+.enc-label{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:3px}
+.enc-val{font-size:13px;font-weight:600;color:var(--ink)}
+.enc-sub{font-size:11px;color:var(--ink-muted)}
+.enc-card.total-card{background:var(--ink);border-color:var(--ink)}
+.enc-card.total-card .enc-label{color:rgba(245,240,232,.55)}
+.enc-card.total-card .enc-val{color:var(--gold-light);font-size:15px}
+.enc-card.total-card .enc-sub{color:rgba(245,240,232,.45)}
+
+.table-wrap{background:#fff;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.table-header{background:var(--ink);display:flex;justify-content:space-between;align-items:center;padding:.8rem 1.2rem;color:var(--cream)}
+.table-header span{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.table-header em{font-style:normal;color:var(--gold-light);font-size:11px}
+.tbl-scroll{max-height:320px;overflow-y:auto}
+.tbl-scroll::-webkit-scrollbar{width:5px}
+.tbl-scroll::-webkit-scrollbar-track{background:var(--cream)}
+.tbl-scroll::-webkit-scrollbar-thumb{background:var(--cream-dark);border-radius:2px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:var(--cream);padding:7px 9px;text-align:right;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-muted);position:sticky;top:0;z-index:1}
+thead th:first-child{text-align:center}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--cream)}
+tbody tr.hl{background:var(--gold-pale)}
+tbody td{padding:7px 9px;text-align:right;color:var(--ink-light)}
+tbody td:first-child{text-align:center;font-weight:600;color:var(--ink-muted);font-size:11px}
+td.td-p{font-weight:600;color:var(--ink)}
+td.td-enc{font-weight:700;color:var(--cfiae)}
+
+.placeholder{background:#fff;border:1px dashed var(--border);border-radius:var(--radius);padding:4rem 2rem;text-align:center;color:var(--ink-muted)}
+.placeholder p{font-size:14px;line-height:1.6}
+.placeholder strong{display:block;font-size:1.1rem;font-family:'DM Serif Display',serif;color:var(--ink);margin-bottom:.5rem;font-weight:400}
+.disclaimer{margin-top:1rem;font-size:11px;color:var(--ink-muted);line-height:1.6;text-align:center;padding:0 1rem}
+
+@media(max-width:950px){.main{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.tab-row{grid-template-columns:1fr}.encargo-row{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.nav-fab{padding:12px 16px}.header{padding:2rem 1.2rem}.summary-grid{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr}.encargo-row{grid-template-columns:1fr}}
+
+/* ─── BARRA DE AÇÕES (imprimir / pdf) ─── */
+.sim-actions-bar{
+  display:flex;gap:10px;margin-top:1.2rem;flex-wrap:wrap;
+}
+.sim-action-btn{
+  flex:1;min-width:140px;height:44px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;
+  border:none;cursor:pointer;transition:all .2s;border-radius:var(--radius);
+}
+.sim-action-print{
+  background:var(--cream-dark);color:var(--ink);
+  border:1px solid var(--border);
+}
+.sim-action-print:hover{background:var(--ink);color:var(--cream);}
+.sim-action-pdf{
+  background:var(--ink);color:var(--cream);
+}
+.sim-action-pdf:hover{background:var(--gold);color:#fff;}
+.sim-action-btn svg{width:16px;height:16px;flex-shrink:0}
+.sim-action-btn:disabled{opacity:.5;cursor:not-allowed}
+.btn-spinner{display:inline-block;width:14px;height:14px;border:2px solid currentColor;
+  border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ─── HEADER EXCLUSIVO PARA IMPRESSÃO ─── */
+.print-header{display:none}
+
+/* ─── REGRAS DE IMPRESSÃO ─── */
+@media print{
+  /* Oculta elementos de navegação e controles */
+  .nav-fab,.header,.sim-panel,.sim-actions-bar,
+  .tab-row,.tbl-scroll,.btn{display:none!important}
+
+  /* Mostra header de impressão */
+  .print-header{display:block!important}
+
+  /* Layout de impressão em coluna única */
+  body{background:#fff!important;color:#000!important;font-size:11pt}
+  .main{
+    grid-template-columns:1fr!important;
+    padding:0!important;gap:16px!important;
+    max-width:100%!important;
+  }
+  #resultsArea{break-inside:auto}
+
+  /* Torna cards legíveis em preto e branco */
+  .s-card,.enc-card,.table-wrap,.encargo-row .enc-card{
+    break-inside:avoid;
+    background:#f9f9f9!important;
+    border:1px solid #ccc!important;
+    color:#000!important;
+  }
+  .s-label,.enc-label,.s-sub,.enc-sub{color:#555!important}
+  .s-val{color:#000!important;font-size:1rem!important}
+  .enc-card.total-card{background:#1A1510!important}
+  .enc-card.total-card .enc-val{color:var(--gold-light)!important}
+
+  /* Tabela de amortização */
+  .print-tabela-wrap{display:block!important}
+  .tbl-scroll{max-height:none!important;overflow:visible!important;display:block!important}
+  table{font-size:8pt!important}
+  thead th{background:#eee!important;color:#333!important}
+
+  /* Disclaimer */
+  .disclaimer{color:#555!important;font-size:9pt!important}
+
+  @page{size:A4 portrait;margin:15mm}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ CABEÇALHO EXCLUSIVO PARA IMPRESSÃO / PDF ═══ -->
+<div class="print-header" id="printHeader">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;
+              border-bottom:2px solid #C4922A;padding-bottom:14px;margin-bottom:18px">
+    <div>
+      <div style="font-family:'DM Serif Display',serif;font-size:22pt;color:#1A1510;font-weight:400;line-height:1">
+        WAL Imóveis
+      </div>
+      <div style="font-size:8pt;color:#8A7D6A;letter-spacing:.18em;text-transform:uppercase;margin-top:4px">
+        CRECI 12261-J · Simulação de Financiamento Imobiliário
+      </div>
+    </div>
+    <div style="text-align:right;font-size:9pt;color:#8A7D6A">
+      <div id="printDate">—</div>
+      <div style="margin-top:2px">Documento gerado pelo Simulador Digital</div>
+    </div>
+  </div>
+
+  <!-- Parâmetros usados na simulação -->
+  <div style="margin-bottom:18px">
+    <div style="font-size:9pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+                color:#8A7D6A;margin-bottom:10px">Parâmetros da Simulação</div>
+    <div id="printParams" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
+  </div>
+
+  <!-- Comparativo rápido dos 3 sistemas -->
+  <div style="margin-bottom:18px">
+    <div style="font-size:9pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+                color:#8A7D6A;margin-bottom:10px">Comparativo — 1ª Parcela / Encargo</div>
+    <div id="printComparativo" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
+  </div>
+</div>
+
+<!-- NAV FAB -->
+<nav class="nav-fab">
+  <a href="index.html" class="nav-logo">
+    <img src="logo-wal.png" alt="WAL Imóveis"
+         style="height:62px;width:auto;object-fit:contain;filter:drop-shadow(0 0 6px rgba(196,146,42,0.25))">
+    <span style="font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;
+                 color:var(--gold-light);letter-spacing:0.03em;white-space:nowrap">WAL Imóveis</span>
+  </a>
+  <a href="index.html" class="nav-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Voltar ao site
+  </a>
+</nav>
+
+<!-- HEADER SIMULADOR -->
+<div class="header">
+  <div class="header-badge">Simulador Imobiliário</div>
+  <h1>Financiamento <em>Comparativo</em></h1>
+  <p class="header-sub">SAC · Price · CFIAe — compare os três sistemas lado a lado</p>
+</div>
+
+<div class="main">
+
+  <!-- PAINEL ESQUERDO -->
+  <div>
+    <div class="panel">
+      <div class="panel-header">Dados do Financiamento</div>
+      <div class="panel-body">
+
+        <div class="field">
+          <label>Valor de Avaliação do Imóvel</label>
+          <div class="input-wrap"><span class="input-prefix">R$</span>
+            <input type="text" id="valorImovel" class="has-prefix" value="500.000,00">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Valor de Entrada</label>
+          <div class="input-wrap"><span class="input-prefix">R$</span>
+            <input type="text" id="entrada" class="has-prefix" value="175.000,00">
+          </div>
+          <div class="slider-row">
+            <input type="range" id="entradaPct" min="5" max="80" value="35" step="1">
+            <span class="slider-val" id="entradaPctLabel">35%</span>
+          </div>
+          <div class="hint" id="entradaHint"></div>
+        </div>
+
+        <div class="field">
+          <label>Prazo (meses)</label>
+          <div class="slider-row" style="gap:12px">
+            <input type="range" id="prazoSlider" min="12" max="420" value="300" step="12" style="flex:1">
+            <input type="text" id="prazoInput" value="300" style="width:70px;height:38px;text-align:center;font-size:14px;">
+          </div>
+          <div class="hint" id="prazoLabel">300 meses = 25 anos</div>
+        </div>
+
+        <div class="field">
+          <label>Taxa de Juros ao Ano</label>
+          <div class="slider-row" style="gap:12px">
+            <input type="range" id="taxaSlider" min="3" max="18" value="8.5" step="0.25" style="flex:1">
+            <div class="input-wrap" style="width:82px">
+              <input type="text" id="taxaInput" value="8,50" class="has-suffix" style="width:82px;height:38px;font-size:14px;text-align:center;">
+              <span class="input-suffix">%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="section-div"></div>
+        <div class="section-lbl">Parâmetros CFIAe — Aeronáutica</div>
+        <div class="cfiae-pill">&#9733; CFIAe — SFH Consignado</div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Seguro MIP (% a.m.)</label>
+            <div class="input-wrap">
+              <input type="text" id="mipTaxa" value="0,0512" class="has-suffix" style="padding-right:26px">
+              <span class="input-suffix">%</span>
+            </div>
+            <div class="hint">Sobre saldo devedor</div>
+          </div>
+          <div class="field">
+            <label>Seguro DFI (% a.m.)</label>
+            <div class="input-wrap">
+              <input type="text" id="dfiTaxa" value="0,0080" class="has-suffix" style="padding-right:26px">
+              <span class="input-suffix">%</span>
+            </div>
+            <div class="hint">Sobre valor do imóvel</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>TR Mensal Projetada</label>
+          <div class="slider-row" style="gap:12px">
+            <input type="range" id="trSlider" min="0" max="0.5" value="0" step="0.01" style="flex:1">
+            <div class="input-wrap" style="width:90px">
+              <input type="text" id="trInput" value="0,00" class="has-suffix" style="width:90px;height:38px;font-size:14px;text-align:center;">
+              <span class="input-suffix">% a.m.</span>
+            </div>
+          </div>
+          <div class="hint">TR atual zerada — simule cenários futuros</div>
+        </div>
+
+        <button class="btn" onclick="calcular()">&#9654;&ensp; Calcular Comparativo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESULTADOS -->
+  <div id="resultsArea">
+    <div class="placeholder">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><rect x="4" y="6" width="32" height="36" rx="3" stroke="#1A1510" stroke-width="2"/><path d="M12 18h16M12 24h16M12 30h8" stroke="#1A1510" stroke-width="2" stroke-linecap="round"/><circle cx="38" cy="38" r="8" fill="#C4922A" opacity=".8"/><path d="M35 38h6M38 35v6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+      <strong>Aguardando simulação</strong>
+      <p>Preencha os dados e clique em <em>Calcular</em> para comparar SAC, Price e CFIAe com seguros habitacionais.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ---- Utilidades ----
+const fmt = n => n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const parseBR = s => parseFloat((s||'0').toString().replace(/\./g,'').replace(',','.'))||0;
+function fmtInput(el){
+  let v=el.value.replace(/\D/g,'');
+  if(!v){el.value='';return;}
+  el.value=(parseInt(v)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function fmtPct(el){
+  let raw=el.value.replace(/[^\d,\.]/g,'').replace('.',',');
+  el.value=raw;
+}
+
+// ---- Sincronizações ----
+['valorImovel','entrada'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){
+    fmtInput(this); sincEntrada();
+  });
+});
+['mipTaxa','dfiTaxa'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',function(){ fmtPct(this); });
+});
+
+function sincEntrada(){
+  const val=parseBR(document.getElementById('valorImovel').value)||500000;
+  const ent=parseBR(document.getElementById('entrada').value);
+  const pct=Math.min(80,Math.max(5,Math.round(ent/val*100)));
+  document.getElementById('entradaPct').value=pct;
+  document.getElementById('entradaPctLabel').textContent=pct+'%';
+  const entMin=Math.ceil(val*0.3486/100)*100;
+  const hint=document.getElementById('entradaHint');
+  if(ent>0 && ent<entMin){
+    hint.className='hint warn';
+    hint.textContent=`⚠ CFIAe exige entrada mínima de R$ ${fmt(entMin)} (34,86% do imóvel)`;
+  } else {
+    hint.className='hint';
+    hint.textContent=ent>0?`Financiamento: R$ ${fmt(Math.max(0,val-ent))}`:'';
+  }
+}
+
+document.getElementById('entradaPct').addEventListener('input',function(){
+  const val=parseBR(document.getElementById('valorImovel').value)||500000;
+  document.getElementById('entradaPctLabel').textContent=this.value+'%';
+  document.getElementById('entrada').value=fmt(val*parseInt(this.value)/100);
+  sincEntrada();
+});
+
+document.getElementById('prazoSlider').addEventListener('input',function(){
+  document.getElementById('prazoInput').value=this.value;
+  atualizaPrazo(parseInt(this.value));
+});
+document.getElementById('prazoInput').addEventListener('input',function(){
+  let v=Math.min(420,Math.max(12,parseInt(this.value)||300));
+  document.getElementById('prazoSlider').value=v;
+  atualizaPrazo(v);
+});
+function atualizaPrazo(m){
+  const a=Math.floor(m/12),ms=m%12;
+  let t=m+' meses';
+  if(a>0)t+=' = '+a+' ano'+(a>1?'s':'');
+  if(ms>0)t+=' e '+ms+' mês'+(ms>1?'es':'');
+  document.getElementById('prazoLabel').textContent=t;
+}
+
+document.getElementById('taxaSlider').addEventListener('input',function(){
+  document.getElementById('taxaInput').value=parseFloat(this.value).toFixed(2).replace('.',',');
+});
+document.getElementById('taxaInput').addEventListener('input',function(){
+  let v=parseFloat(this.value.replace(',','.'))||8.5;
+  document.getElementById('taxaSlider').value=Math.min(18,Math.max(3,v));
+});
+
+document.getElementById('trSlider').addEventListener('input',function(){
+  document.getElementById('trInput').value=parseFloat(this.value).toFixed(2).replace('.',',');
+});
+document.getElementById('trInput').addEventListener('input',function(){
+  let v=parseFloat(this.value.replace(',','.'))||0;
+  document.getElementById('trSlider').value=Math.min(0.5,Math.max(0,v));
+});
+
+// ---- Cálculos ----
+function calcSAC(pv,n,im){
+  const amort=pv/n;
+  let rows=[],totalJ=0,totalP=0;
+  for(let i=1;i<=n;i++){
+    const saldo=pv-amort*(i-1);
+    const juros=saldo*im;
+    const parcela=amort+juros;
+    totalJ+=juros; totalP+=parcela;
+    rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo:pv-amort*i});
+  }
+  return{rows,primeiraP:rows[0].parcela,ultimaP:rows[n-1].parcela,totalJ,totalP};
+}
+
+function calcPrice(pv,n,im){
+  const parcela=pv*(im*Math.pow(1+im,n))/(Math.pow(1+im,n)-1);
+  let rows=[],totalJ=0,saldo=pv;
+  for(let i=1;i<=n;i++){
+    const juros=saldo*im, amort=parcela-juros;
+    totalJ+=juros;
+    saldo=Math.max(0,saldo-amort);
+    rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo});
+  }
+  return{rows,primeiraP:parcela,ultimaP:parcela,totalJ,totalP:parcela*n};
+}
+
+function calcCFIAe(pv,n,im,mipTx,dfiTx,trMensal,vAvaliacao){
+  const amortBase=pv/n;
+  const dfiFixo=vAvaliacao*dfiTx;
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0;
+  let saldo=pv;
+
+  for(let i=1;i<=n;i++){
+    const mip=saldo*mipTx;
+    const dfi=dfiFixo;
+    const trCorr=saldo*trMensal;
+    saldo+=trCorr;
+    const juros=saldo*im;
+    const amort=(i===n)?saldo:Math.min(amortBase,saldo);
+    const parcela=amort+juros;
+    const encargo=parcela+mip+dfi;
+    saldo=Math.max(0,saldo-amort);
+    totalJ+=juros; totalMIP+=mip; totalDFI+=dfi; totalP+=encargo;
+    rows.push({mes:i,parcela,amort,juros,tr:trCorr,mip,dfi,encargo,saldo});
+  }
+  return{rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,
+         ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,
+         totalJ,totalMIP,totalDFI,totalP,
+         mip1:rows[0].mip,dfi1:rows[0].dfi};
+}
+
+// ---- Render ----
+let currentTab='cfiae', dadosSAC, dadosPrice, dadosCFIAe;
+let _params={};
+
+function calcular(){
+  const vAval=parseBR(document.getElementById('valorImovel').value);
+  const vEnt=parseBR(document.getElementById('entrada').value);
+  const prazo=parseInt(document.getElementById('prazoInput').value)||300;
+  const taxaAno=parseFloat(document.getElementById('taxaInput').value.replace(',','.'))||8.5;
+  const mipTx=parseFloat(document.getElementById('mipTaxa').value.replace(',','.'))/100||0.000512;
+  const dfiTx=parseFloat(document.getElementById('dfiTaxa').value.replace(',','.'))/100||0.0000804;
+  const trMensal=parseFloat(document.getElementById('trInput').value.replace(',','.'))/100||0;
+
+  if(vAval<=0){alert('Informe o valor do imóvel.');return;}
+  if(vEnt>=vAval){alert('Entrada deve ser menor que o valor do imóvel.');return;}
+  if(prazo<12){alert('Prazo mínimo: 12 meses.');return;}
+
+  const pv=vAval-vEnt;
+  const im=taxaAno/100/12;
+
+  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,trMensal};
+  dadosSAC=calcSAC(pv,prazo,im);
+  dadosPrice=calcPrice(pv,prazo,im);
+  dadosCFIAe=calcCFIAe(pv,prazo,im,mipTx,dfiTx,trMensal,vAval);
+  renderResults();
+}
+
+function renderResults(){
+  const {vAval,vEnt,prazo,taxaAno,pv,trMensal}=_params;
+  const entPct=(vEnt/vAval*100).toFixed(1);
+  const ra=document.getElementById('resultsArea');
+  ra.innerHTML=`
+    <div class="tab-row">
+      <div class="tab tab-sac" id="tabSac" onclick="switchTab('sac')">
+        <div class="tab-label">SAC — 1ª Parcela</div>
+        <div class="tab-value">R$ ${fmt(dadosSAC.primeiraP)}</div>
+        <div class="tab-sub">Última: R$ ${fmt(dadosSAC.ultimaP)}</div>
+      </div>
+      <div class="tab tab-price" id="tabPrice" onclick="switchTab('price')">
+        <div class="tab-label">Price — Parcela Fixa</div>
+        <div class="tab-value">R$ ${fmt(dadosPrice.primeiraP)}</div>
+        <div class="tab-sub">Todas as parcelas iguais</div>
+      </div>
+      <div class="tab tab-cfiae" id="tabCfiae" onclick="switchTab('cfiae')">
+        <div class="tab-label">CFIAe — 1º Encargo</div>
+        <div class="tab-value">R$ ${fmt(dadosCFIAe.primeiraEnc)}</div>
+        <div class="tab-sub">Último: R$ ${fmt(dadosCFIAe.ultimaEnc)}</div>
+      </div>
+    </div>
+
+    <div class="summary-grid">
+      <div class="s-card">
+        <div class="s-label">Valor Financiado</div>
+        <div class="s-val">R$ ${fmt(pv)}</div>
+        <div class="s-sub">Entrada: ${entPct}%</div>
+      </div>
+      <div class="s-card">
+        <div class="s-label">Total Juros</div>
+        <div class="s-val" id="scJuros">—</div>
+        <div class="s-sub" id="scJurosSub">—</div>
+      </div>
+      <div class="s-card">
+        <div class="s-label">Total Seguros</div>
+        <div class="s-val" id="scSeguros">—</div>
+        <div class="s-sub" id="scSegurosSub">—</div>
+      </div>
+      <div class="s-card">
+        <div class="s-label">Total Pago</div>
+        <div class="s-val" id="scTotal">—</div>
+        <div class="s-sub" id="scTotalSub">em ${prazo} parcelas</div>
+      </div>
+    </div>
+
+    <div id="encargoRow" class="encargo-row" style="display:none">
+      <div class="enc-card">
+        <div class="enc-label">Prestação (1ª)</div>
+        <div class="enc-val" id="enc1Prest">—</div>
+        <div class="enc-sub">Amortização + Juros</div>
+      </div>
+      <div class="enc-card">
+        <div class="enc-label">MIP (0,0512% a.m.)</div>
+        <div class="enc-val" id="enc1MIP">—</div>
+        <div class="enc-sub">Sobre saldo devedor</div>
+      </div>
+      <div class="enc-card">
+        <div class="enc-label">DFI (0,0080% a.m.)</div>
+        <div class="enc-val" id="enc1DFI">—</div>
+        <div class="enc-sub">Fixo — sobre avaliação</div>
+      </div>
+      <div class="enc-card total-card" style="grid-column:1/-1">
+        <div class="enc-label">Encargo Mensal Total (1ª parcela)</div>
+        <div class="enc-val" id="enc1Total">—</div>
+        <div class="enc-sub">Débito consignado — Prestação + MIP + DFI</div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-header">
+        <span id="tblTitle">Tabela</span>
+        <em id="tblSub">${prazo} meses · ${taxaAno.toFixed(2).replace('.',',')}% a.a.</em>
+      </div>
+      <div class="tbl-scroll">
+        <table><thead id="tblHead"></thead><tbody id="tblBody"></tbody></table>
+      </div>
+    </div>
+    <p class="disclaimer">
+      ⚠ CFIAe: seguros MIP (morte/invalidez) sobre saldo devedor; DFI (danos físicos) fixo sobre valor do imóvel.<br>
+      TR atual zerada — simule cenários com correção para planejamento de longo prazo.<br>
+      Simulação educativa. Valores finais sujeitos à análise de crédito e aprovação da CFIAe.
+    </p>
+
+    <!-- AÇÕES: IMPRIMIR / PDF -->
+    <div class="sim-actions-bar">
+      <button class="sim-action-btn sim-action-print" onclick="imprimir()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/>
+          <rect x="6" y="14" width="12" height="8"/>
+        </svg>
+        Imprimir simulação
+      </button>
+      <button class="sim-action-btn sim-action-pdf" id="btn-gerar-pdf" onclick="gerarPDF()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/><polyline points="9 15 12 18 15 15"/>
+        </svg>
+        Gerar PDF
+      </button>
+    </div>
+  `;
+  updateTab(currentTab);
+}
+
+function switchTab(tab){currentTab=tab;updateTab(tab);}
+
+function updateTab(tab){
+  ['sac','price','cfiae'].forEach(t=>{
+    const cap=t.charAt(0).toUpperCase()+t.slice(1);
+    const el=document.getElementById('tab'+cap);
+    if(el) el.className='tab tab-'+t+(t===tab?' active':'');
+  });
+
+  const isCfiae=tab==='cfiae';
+  const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:dadosCFIAe;
+  const names={sac:'SAC',price:'Price',cfiae:'CFIAe'};
+
+  document.getElementById('scJuros').textContent='R$ '+fmt(dados.totalJ);
+  document.getElementById('scJurosSub').textContent='Sistema '+names[tab];
+
+  if(isCfiae){
+    document.getElementById('scSeguros').textContent='R$ '+fmt(dadosCFIAe.totalMIP+dadosCFIAe.totalDFI);
+    document.getElementById('scSegurosSub').textContent='MIP + DFI acumulados';
+    document.getElementById('scTotal').textContent='R$ '+fmt(dadosCFIAe.totalP);
+    document.getElementById('scTotalSub').textContent='Encargos totais (c/ seguros)';
+    const er=document.getElementById('encargoRow');
+    if(er){ er.style.display='grid';
+      document.getElementById('enc1Prest').textContent='R$ '+fmt(dadosCFIAe.primeiraP);
+      document.getElementById('enc1MIP').textContent='R$ '+fmt(dadosCFIAe.mip1);
+      document.getElementById('enc1DFI').textContent='R$ '+fmt(dadosCFIAe.dfi1);
+      document.getElementById('enc1Total').textContent='R$ '+fmt(dadosCFIAe.primeiraEnc);
+    }
+  } else {
+    document.getElementById('scSeguros').textContent='—';
+    document.getElementById('scSegurosSub').textContent='Somente CFIAe';
+    document.getElementById('scTotal').textContent='R$ '+fmt(dados.totalP);
+    document.getElementById('scTotalSub').textContent='em '+_params.prazo+' parcelas';
+    const er=document.getElementById('encargoRow');
+    if(er) er.style.display='none';
+  }
+
+  document.getElementById('tblTitle').textContent='Tabela '+names[tab];
+  renderTabela(tab);
+}
+
+function renderTabela(tab){
+  const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:dadosCFIAe;
+  const isCfiae=tab==='cfiae';
+  const head=document.getElementById('tblHead');
+  head.innerHTML=`<tr>
+    <th>Nº</th><th>Amortização</th><th>Juros</th>
+    ${isCfiae?'<th>TR</th><th>MIP</th><th>DFI</th>':''}
+    <th>Prestação</th>
+    ${isCfiae?'<th>Encargo Total</th>':''}
+    <th>Saldo Devedor</th>
+  </tr>`;
+  const tbody=document.getElementById('tblBody');
+  tbody.innerHTML=dados.rows.map((r,i)=>`
+    <tr class="${i%12===11?'hl':''}">
+      <td>${String(r.mes).padStart(3,'0')}</td>
+      <td>R$ ${fmt(r.amort)}</td>
+      <td>R$ ${fmt(r.juros)}</td>
+      ${isCfiae?`<td>R$ ${fmt(r.tr||0)}</td><td>R$ ${fmt(r.mip||0)}</td><td>R$ ${fmt(r.dfi||0)}</td>`:''}
+      <td class="td-p">R$ ${fmt(r.parcela)}</td>
+      ${isCfiae?`<td class="td-enc">R$ ${fmt(r.encargo)}</td>`:''}
+      <td>R$ ${fmt(r.saldo)}</td>
+    </tr>
+  `).join('');
+}
+
+// Init
+atualizaPrazo(300);
+sincEntrada();
+
+/* ════════════════════════════════════════════════
+   IMPRESSÃO
+════════════════════════════════════════════════ */
+function prepararHeaderImpressao(){
+  if(!dadosSAC) return;
+  const {vAval,vEnt,prazo,taxaAno,pv}=_params;
+
+  // Data e hora
+  document.getElementById('printDate').textContent =
+    new Date().toLocaleString('pt-BR',{dateStyle:'long',timeStyle:'short'});
+
+  // Parâmetros
+  const params=[
+    {l:'Valor do Imóvel',     v:'R$ '+fmt(vAval)},
+    {l:'Entrada ('+((vEnt/vAval)*100).toFixed(1)+'%)',v:'R$ '+fmt(vEnt)},
+    {l:'Valor Financiado',   v:'R$ '+fmt(pv)},
+    {l:'Prazo',              v:prazo+' meses'},
+    {l:'Taxa de Juros',      v:taxaAno.toFixed(2).replace('.',',')+'% a.a.'},
+    {l:'Sistema ativo',      v:{sac:'SAC',price:'Price',cfiae:'CFIAe'}[currentTab]},
+  ];
+  document.getElementById('printParams').innerHTML = params.map(p=>`
+    <div style="background:#f5f0e8;border:1px solid #ddd;padding:9px 11px;border-radius:3px">
+      <div style="font-size:8pt;color:#8A7D6A;font-weight:600;letter-spacing:.1em;
+                  text-transform:uppercase;margin-bottom:3px">${p.l}</div>
+      <div style="font-size:12pt;font-weight:700;color:#1A1510">${p.v}</div>
+    </div>`).join('');
+
+  // Comparativo 3 sistemas
+  const comp=[
+    {nome:'SAC',cor:'#2D5A3D',bg:'#E8F2EB',p1:'R$ '+fmt(dadosSAC.primeiraP),pN:'R$ '+fmt(dadosSAC.ultimaP),total:'R$ '+fmt(dadosSAC.totalP),label1:'1ª Parcela',labelN:'Última'},
+    {nome:'Price',cor:'#1A3A5C',bg:'#E8EFF7',p1:'R$ '+fmt(dadosPrice.primeiraP),pN:'Todas iguais',total:'R$ '+fmt(dadosPrice.totalP),label1:'Parcela Fixa',labelN:''},
+    {nome:'CFIAe',cor:'#6B2D5A',bg:'#F2E8EF',p1:'R$ '+fmt(dadosCFIAe.primeiraEnc),pN:'R$ '+fmt(dadosCFIAe.ultimaEnc),total:'R$ '+fmt(dadosCFIAe.totalP),label1:'1º Encargo',labelN:'Último'},
+  ];
+  document.getElementById('printComparativo').innerHTML = comp.map(c=>`
+    <div style="background:${c.bg};border:2px solid ${c.cor};padding:10px 12px;border-radius:3px">
+      <div style="font-size:9pt;font-weight:700;color:${c.cor};letter-spacing:.1em;
+                  text-transform:uppercase;margin-bottom:6px">${c.nome}</div>
+      <div style="font-size:8pt;color:#8A7D6A">${c.label1}</div>
+      <div style="font-size:14pt;font-weight:700;color:${c.cor};line-height:1.1">${c.p1}</div>
+      ${c.labelN?`<div style="font-size:8pt;color:#8A7D6A;margin-top:4px">${c.labelN}</div>
+      <div style="font-size:10pt;font-weight:600;color:${c.cor}">${c.pN}</div>`:''}
+      <div style="border-top:1px solid ${c.cor}30;margin-top:6px;padding-top:6px;
+                  font-size:8pt;color:#8A7D6A">Total pago (estimado)</div>
+      <div style="font-size:10pt;font-weight:700;color:${c.cor}">${c.total}</div>
+    </div>`).join('');
+}
+
+function imprimir(){
+  if(!dadosSAC){ alert('Calcule uma simulação primeiro.'); return; }
+  prepararHeaderImpressao();
+  setTimeout(()=>window.print(), 120);
+}
+
+/* ════════════════════════════════════════════════
+   GERAÇÃO DE PDF (html2canvas + jsPDF)
+════════════════════════════════════════════════ */
+async function gerarPDF(){
+  if(!dadosSAC){ alert('Calcule uma simulação primeiro.'); return; }
+
+  const btn = document.getElementById('btn-gerar-pdf');
+  const originalHTML = btn.innerHTML;
+  btn.innerHTML = '<span class="btn-spinner"></span> Gerando…';
+  btn.disabled = true;
+
+  try {
+    // Aguarda libs carregarem se necessário
+    await esperarLibs();
+
+    prepararHeaderImpressao();
+
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+
+    const A4_W = 210, A4_H = 297, MARGIN = 10;
+    const usableW = A4_W - MARGIN*2;
+    let curY = MARGIN;
+
+    // ── Cabeçalho ──────────────────────────────────────────
+    doc.setFillColor(26,21,16);
+    doc.rect(0, 0, A4_W, 22, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(14); doc.setTextColor(196,146,42);
+    doc.text('WAL Imóveis', MARGIN, 10);
+    doc.setFontSize(7); doc.setTextColor(180,170,150);
+    doc.text('CRECI 12261-J  ·  Simulação de Financiamento Imobiliário', MARGIN, 15);
+    const dataStr = new Date().toLocaleString('pt-BR',{dateStyle:'long',timeStyle:'short'});
+    doc.setFontSize(7);
+    doc.text(dataStr, A4_W - MARGIN, 10, {align:'right'});
+    curY = 30;
+
+    // ── Linha dourada ───────────────────────────────────────
+    doc.setDrawColor(196,146,42); doc.setLineWidth(0.5);
+    doc.line(MARGIN, 24, A4_W-MARGIN, 24);
+
+    // ── Parâmetros ──────────────────────────────────────────
+    const {vAval,vEnt,prazo,taxaAno,pv}=_params;
+    doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.setTextColor(138,125,106);
+    doc.text('PARÂMETROS DA SIMULAÇÃO', MARGIN, curY);
+    curY += 5;
+    const paramCols = [
+      ['Valor do Imóvel','R$ '+fmt(vAval)],
+      ['Entrada','R$ '+fmt(vEnt)+' ('+((vEnt/vAval)*100).toFixed(1)+'%)'],
+      ['Financiado','R$ '+fmt(pv)],
+      ['Prazo',prazo+' meses'],
+      ['Taxa a.a.',taxaAno.toFixed(2).replace('.',',')+' %'],
+      ['TR mensal',(_params.trMensal*100).toFixed(2).replace('.',',')+' %'],
+    ];
+    const colW = usableW/3;
+    paramCols.forEach(([l,v],i)=>{
+      const cx = MARGIN + (i%3)*colW;
+      const cy = curY + Math.floor(i/3)*14;
+      doc.setFillColor(245,240,232); doc.rect(cx, cy-4, colW-2, 13, 'F');
+      doc.setDrawColor(200,190,175); doc.rect(cx, cy-4, colW-2, 13);
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(138,125,106);
+      doc.text(l.toUpperCase(), cx+2, cy+1);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(26,21,16);
+      doc.text(v, cx+2, cy+8);
+    });
+    curY += 32;
+
+    // ── Comparativo 3 sistemas ──────────────────────────────
+    doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.setTextColor(138,125,106);
+    doc.text('COMPARATIVO DOS SISTEMAS', MARGIN, curY);
+    curY += 5;
+    const sistemas=[
+      {nome:'SAC',cor:[45,90,61],bg:[232,242,235],
+       p1:fmt(dadosSAC.primeiraP),pN:fmt(dadosSAC.ultimaP),total:fmt(dadosSAC.totalP),
+       l1:'1ª Parcela',lN:'Última Parcela'},
+      {nome:'Price',cor:[26,58,92],bg:[232,239,247],
+       p1:fmt(dadosPrice.primeiraP),pN:'Iguais',total:fmt(dadosPrice.totalP),
+       l1:'Parcela Fixa',lN:''},
+      {nome:'CFIAe',cor:[107,45,90],bg:[242,232,239],
+       p1:fmt(dadosCFIAe.primeiraEnc),pN:fmt(dadosCFIAe.ultimaEnc),total:fmt(dadosCFIAe.totalP),
+       l1:'1º Encargo',lN:'Último Encargo'},
+    ];
+    const sW = usableW/3;
+    sistemas.forEach((s,i)=>{
+      const cx=MARGIN+i*sW, cy=curY;
+      doc.setFillColor(...s.bg); doc.rect(cx,cy-4,sW-2,40,'F');
+      doc.setDrawColor(...s.cor); doc.setLineWidth(0.8);
+      doc.rect(cx,cy-4,sW-2,40);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.setTextColor(...s.cor); doc.text(s.nome,cx+3,cy+2);
+      doc.setFontSize(7); doc.setTextColor(138,125,106); doc.text(s.l1,cx+3,cy+8);
+      doc.setFontSize(13); doc.setTextColor(...s.cor);
+      doc.text('R$ '+s.p1, cx+3, cy+16);
+      if(s.lN){
+        doc.setFontSize(7); doc.setTextColor(138,125,106); doc.text(s.lN,cx+3,cy+21);
+        doc.setFontSize(10); doc.setTextColor(...s.cor); doc.text('R$ '+s.pN,cx+3,cy+27);
+      }
+      doc.setDrawColor(...s.cor); doc.setLineWidth(0.3);
+      doc.line(cx+2,cy+31,cx+sW-4,cy+31);
+      doc.setFontSize(7); doc.setTextColor(138,125,106); doc.text('Total estimado',cx+3,cy+35);
+      doc.setFontSize(9); doc.setTextColor(...s.cor); doc.text('R$ '+s.total,cx+3,cy+40);
+    });
+    curY += 50;
+
+    // ── Tabela de amortização (primeiras 24 parcelas) ───────
+    const dadosTab = currentTab==='sac'?dadosSAC:currentTab==='price'?dadosPrice:dadosCFIAe;
+    const isCfiae  = currentTab==='cfiae';
+    const nomeTab  = {sac:'SAC',price:'Price',cfiae:'CFIAe'}[currentTab];
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(138,125,106);
+    doc.text(`TABELA DE AMORTIZAÇÃO — ${nomeTab} (primeiras 24 parcelas)`, MARGIN, curY);
+    curY += 4;
+
+    const thCols = isCfiae
+      ? ['Nº','Amortização','Juros','TR','MIP','DFI','Prestação','Encargo','Saldo']
+      : ['Nº','Amortização','Juros','Prestação','Saldo'];
+    const cWidths = isCfiae
+      ? [10,27,27,13,18,15,27,27,26]
+      : [10,35,35,35,75];
+
+    // Cabeçalho da tabela
+    doc.setFillColor(26,21,16);
+    doc.rect(MARGIN, curY, usableW, 7, 'F');
+    let xc=MARGIN;
+    thCols.forEach((th,i)=>{
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(196,146,42);
+      doc.text(th, xc+1, curY+5); xc+=cWidths[i];
+    });
+    curY+=7;
+
+    const rows = dadosTab.rows.slice(0,24);
+    rows.forEach((r,idx)=>{
+      if(idx%2===0){doc.setFillColor(250,248,244);}else{doc.setFillColor(255,255,255);}
+      doc.rect(MARGIN, curY, usableW, 6, 'F');
+      doc.setDrawColor(220,215,205); doc.rect(MARGIN, curY, usableW, 6);
+      const vals = isCfiae
+        ? [String(r.mes).padStart(3,'0'),'R$ '+fmt(r.amort),'R$ '+fmt(r.juros),
+           'R$ '+fmt(r.tr||0),'R$ '+fmt(r.mip||0),'R$ '+fmt(r.dfi||0),
+           'R$ '+fmt(r.parcela),'R$ '+fmt(r.encargo),'R$ '+fmt(r.saldo)]
+        : [String(r.mes).padStart(3,'0'),'R$ '+fmt(r.amort),'R$ '+fmt(r.juros),
+           'R$ '+fmt(r.parcela),'R$ '+fmt(r.saldo)];
+      xc=MARGIN;
+      vals.forEach((v,i)=>{
+        doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(60,50,40);
+        doc.text(v, xc+1, curY+4.5); xc+=cWidths[i];
+      });
+      curY+=6;
+    });
+
+    if(dadosTab.rows.length>24){
+      doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(138,125,106);
+      doc.text(`… + ${dadosTab.rows.length-24} parcelas adicionais. Use a tabela online para ver o extrato completo.`, MARGIN, curY+5);
+      curY+=10;
+    }
+
+    // ── Rodapé / Disclaimer ──────────────────────────────────
+    curY+=8;
+    doc.setDrawColor(200,190,175); doc.line(MARGIN, curY, A4_W-MARGIN, curY);
+    doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(138,125,106);
+    const disc=[
+      'Simulação educativa com fins ilustrativos. Valores finais sujeitos a análise de crédito e aprovação.',
+      'CFIAe: MIP (morte/invalidez) incide sobre saldo devedor; DFI (danos físicos) é fixo sobre o valor de avaliação.',
+      'TR atual zerada — simule cenários futuros ajustando o campo TR no simulador online.',
+      'WAL Imóveis · CRECI 12261-J · Documento gerado em: '+dataStr,
+    ];
+    disc.forEach((d,i)=>{ doc.text(d, MARGIN, curY+4+i*4); });
+
+    // ── Salva o arquivo ──────────────────────────────────────
+    const fname = `Simulacao-WAL-Imoveis-${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`;
+    doc.save(fname);
+
+  } catch(e){
+    console.error(e);
+    alert('Erro ao gerar PDF: '+e.message+'\nTente usar a opção "Imprimir" e salvar como PDF pelo navegador.');
+  } finally{
+    btn.innerHTML = originalHTML;
+    btn.disabled  = false;
+  }
+}
+
+function esperarLibs(tentativas=0){
+  return new Promise((res,rej)=>{
+    if(window.jspdf && window.html2canvas){ res(); return; }
+    if(tentativas>30){ rej(new Error('Bibliotecas PDF não carregaram. Verifique sua conexão.')); return; }
+    setTimeout(()=>esperarLibs(tentativas+1).then(res).catch(rej), 300);
+  });
+}
+</script>
+</body>
+</html>
