@@ -16,6 +16,7 @@
   --sac:#2D5A3D;--sac-bg:#E8F2EB;
   --price:#1A3A5C;--price-bg:#E8EFF7;
   --cfiae:#6B2D5A;--cfiae-bg:#F2E8EF;
+  --poupex:#1A5C4A;--poupex-bg:#E8F2EF;
   --border:rgba(26,21,16,0.12);--radius:4px;
 }
 body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
@@ -96,7 +97,7 @@ input[type=range]:hover::-webkit-slider-thumb{background:var(--gold)}
 .btn:active{transform:scale(.99)}
 
 /* Results */
-.tab-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1.2rem}
+.tab-row{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-bottom:1.2rem}
 .tab{padding:.85rem 1rem;border-radius:var(--radius);border:2px solid transparent;cursor:pointer;transition:all .2s}
 .tab-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
 .tab-value{font-family:'DM Serif Display',serif;font-size:1.25rem;line-height:1}
@@ -116,6 +117,11 @@ input[type=range]:hover::-webkit-slider-thumb{background:var(--gold)}
 .tab-cfiae .tab-label{color:var(--cfiae)}
 .tab-cfiae .tab-value{color:var(--cfiae)}
 .tab-cfiae .tab-sub{color:rgba(107,45,90,.65)}
+.tab-poupex{background:var(--poupex-bg)}
+.tab-poupex.active{border-color:var(--poupex)}
+.tab-poupex .tab-label{color:var(--poupex)}
+.tab-poupex .tab-value{color:var(--poupex)}
+.tab-poupex .tab-sub{color:rgba(26,92,74,.65)}
 
 .summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
 .s-card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);padding:.85rem 1rem}
@@ -161,7 +167,7 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 .placeholder strong{display:block;font-size:1.1rem;font-family:'DM Serif Display',serif;color:var(--ink);margin-bottom:.5rem;font-weight:400}
 .disclaimer{margin-top:1rem;font-size:11px;color:var(--ink-muted);line-height:1.6;text-align:center;padding:0 1rem}
 
-@media(max-width:950px){.main{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.tab-row{grid-template-columns:1fr}.encargo-row{grid-template-columns:1fr 1fr}}
+@media(max-width:950px){.main{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.tab-row{grid-template-columns:1fr 1fr}.encargo-row{grid-template-columns:1fr 1fr}}
 @media(max-width:480px){.nav-fab{padding:12px 16px}.header{padding:2rem 1.2rem}.summary-grid{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr}.encargo-row{grid-template-columns:1fr}}
 
 /* ─── BARRA DE AÇÕES (imprimir / pdf) ─── */
@@ -418,6 +424,43 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
             </div>
           </div>
           <div class="hint">TR atual zerada — simule cenários futuros</div>
+        </div>
+
+        <div class="section-div"></div>
+        <div class="section-lbl" style="color:var(--poupex)">Parâmetros POUPEX</div>
+        <div class="cfiae-pill" style="background:var(--poupex-bg);color:var(--poupex);border-color:rgba(26,92,74,.2)">&#9733; POUPEX — SAC e SAC+</div>
+
+        <div class="row2">
+          <div class="field">
+            <label>Sistema POUPEX</label>
+            <select id="poupexSistema">
+              <option value="SAC">SAC — Amortização Constante</option>
+              <option value="SAC+">SAC+ — Parcela Reduzida Inicial</option>
+            </select>
+            <div class="hint">SAC+: inicia com 70% da parcela, cresce até 100%</div>
+          </div>
+          <div class="field">
+            <label>Indexador</label>
+            <select id="poupexIndexador" onchange="onPoupexIndexador()">
+              <option value="TR">TR — Taxa Referencial</option>
+              <option value="IPCA">IPCA — Índice de Inflação</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Taxa do Indexador (% a.a.)</label>
+          <div class="slider-row" style="gap:12px">
+            <input type="range" id="poupexIdxSlider" min="0" max="10" value="0" step="0.1" style="flex:1"
+                   oninput="document.getElementById('poupexIdxInput').value=parseFloat(this.value).toFixed(2).replace('.',',')">
+            <div class="input-wrap" style="width:90px">
+              <input type="text" id="poupexIdxInput" value="0,00" class="has-suffix"
+                     style="width:90px;height:38px;font-size:14px;text-align:center;"
+                     oninput="document.getElementById('poupexIdxSlider').value=Math.min(10,Math.max(0,parseFloat(this.value.replace(',','.'))||0))">
+              <span class="input-suffix">% a.a.</span>
+            </div>
+          </div>
+          <div class="hint" id="poupexIdxHint">TR próxima de 0% — ajuste para simular inflação (IPCA)</div>
         </div>
 
         <button class="btn" onclick="calcular()">&#9654;&ensp; Calcular Comparativo</button>
@@ -683,8 +726,8 @@ function calcCFIAe(pv,n,im,dfiTx,trMensal,vAval,dataNasc,seguradora,sistema){
     const mipAliquota=getMIPRateCFIAe(idadeAtual, seguradora);
     const mip=saldo*mipAliquota;
 
-    // DFI sobre saldo devedor (método Python: 0,035% a.m.)
-    const dfi=saldo*dfiTx;
+    // DFI fixo sobre valor de avaliação do imóvel (metodologia CEF/CFIAe)
+    const dfi=vAval*dfiTx;
 
     // Correção TR
     const trCorr=saldo*trMensal;
@@ -719,8 +762,57 @@ function calcCFIAe(pv,n,im,dfiTx,trMensal,vAval,dataNasc,seguradora,sistema){
   };
 }
 
+// ---- POUPEX ----
+function onPoupexIndexador(){
+  const idx=document.getElementById('poupexIndexador').value;
+  const hint=document.getElementById('poupexIdxHint');
+  if(idx==='TR'){
+    document.getElementById('poupexIdxInput').value='0,00';
+    document.getElementById('poupexIdxSlider').value=0;
+    hint.textContent='TR próxima de 0% — ajuste para simular correção futura';
+  } else {
+    document.getElementById('poupexIdxInput').value='4,50';
+    document.getElementById('poupexIdxSlider').value=4.5;
+    hint.textContent='IPCA projetado — padrão 4,5% a.a. (ajuste conforme cenário)';
+  }
+}
+
+// POUPEX: SAC (amortização constante) ou SAC+ (parcela reduzida inicial)
+// Taxa total = (1 + juros_mensal) * (1 + indexador_mensal) - 1
+function calcPOUPEX(pv, n, im, idxAnual, sistema){
+  const taxaIdxMensal=Math.pow(1+idxAnual/100, 1/12)-1;
+  const taxaTotal=(1+im)*(1+taxaIdxMensal)-1;
+  const amortConst=pv/n;
+  // SAC+: inicia em 70% da parcela SAC e cresce linearmente até 100% na metade do prazo
+  const fatorInicial=0.7;
+  const incremento=(1-fatorInicial)/(n/2);
+
+  let rows=[],totalJ=0,totalP=0,saldo=pv;
+  for(let i=1;i<=n;i++){
+    const juros=saldo*taxaTotal;
+    let amort,parcela;
+    if(sistema==='SAC'){
+      amort=(i===n)?saldo:Math.min(amortConst,saldo);
+      parcela=amort+juros;
+    } else { // SAC+
+      const parcelaSAC=Math.min(amortConst,saldo)+juros;
+      const fatorAtual=Math.min(1.0, fatorInicial+(i-1)*incremento);
+      parcela=parcelaSAC*fatorAtual;
+      amort=Math.max(0,parcela-juros);
+      if(i===n){amort=saldo;parcela=amort+juros;}
+    }
+    saldo=Math.max(0,saldo-amort);
+    totalJ+=juros;totalP+=parcela;
+    rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo});
+  }
+  return{rows,
+    primeiraP:rows[0].parcela, primeiraEnc:rows[0].parcela,
+    ultimaP:rows[n-1].parcela, ultimaEnc:rows[n-1].parcela,
+    totalJ,totalMIP:0,totalDFI:0,totalP,mip1:0,dfi1:0};
+}
+
 // ---- Render ----
-let currentTab='cfiae', dadosSAC, dadosPrice, dadosCFIAe;
+let currentTab='cfiae', dadosSAC, dadosPrice, dadosCFIAe, dadosPOUPEX;
 let _params={};
 
 function calcular(){
@@ -754,16 +846,22 @@ function calcular(){
   const cfiaeFormaPgto=document.getElementById('cfiaeFormaPgto').value;
   const cfiaeSeguradora=document.getElementById('cfiaeSeguradora').value;
   const rendaBruta=parseBR(document.getElementById('rendaBruta').value)||0;
-  const dfiTxCFIAe=0.00035; // DFI sobre saldo devedor (Python CEF: 0,035% a.m.)
+  // Parâmetros POUPEX
+  const poupexSistema=document.getElementById('poupexSistema').value;
+  const poupexIndexador=document.getElementById('poupexIndexador').value;
+  const poupexIdxAnual=parseFloat(document.getElementById('poupexIdxInput').value.replace(',','.'))||0;
 
   const pv=vAval-vEnt;
   const im=taxaAno/100/12;
-  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,dfiTxCFIAe,
-           trMensal,dataNasc,cfiaeSistema,cfiaeFormaPgto,cfiaeSeguradora,rendaBruta};
+  _params={vAval,vEnt,prazo,taxaAno,pv,im,mipTx,dfiTx,
+           trMensal,dataNasc,cfiaeSistema,cfiaeFormaPgto,cfiaeSeguradora,rendaBruta,
+           poupexSistema,poupexIndexador,poupexIdxAnual};
 
   dadosSAC=calcSAC(pv,prazo,im,mipTx,dfiTx,vAval);
   dadosPrice=calcPrice(pv,prazo,im,mipTx,dfiTx,vAval);
-  dadosCFIAe=calcCFIAe(pv,prazo,im,dfiTxCFIAe,trMensal,vAval,dataNasc,cfiaeSeguradora,cfiaeSistema);
+  // CFIAe: DFI agora sobre valor do imóvel (dfiTx do campo)
+  dadosCFIAe=calcCFIAe(pv,prazo,im,dfiTx,trMensal,vAval,dataNasc,cfiaeSeguradora,cfiaeSistema);
+  dadosPOUPEX=calcPOUPEX(pv,prazo,im,poupexIdxAnual,poupexSistema);
 
   // Verificação 30% renda bruta
   _params.limite30 = rendaBruta>0 ? {
@@ -799,7 +897,7 @@ function renderResults(){
       }
       idadeBox=`<div class="cfiae-box">
         &#9733; <strong>${id.anos} anos e ${id.meses} mês(es)</strong> · Prazo máx CEF: ${prazoMax} meses<br>
-        CFIAe: <strong>${sis}</strong> · <strong>${seg}</strong> · <strong>${pgto}</strong> · MIP 1ª parcela: ${mipCFIAePct}% a.m. · DFI: 0,035% s/ saldo${limiteBox}
+        CFIAe: <strong>${sis}</strong> · <strong>${seg}</strong> · <strong>${pgto}</strong> · MIP 1ª parcela: ${mipCFIAePct}% a.m. · DFI: ${((_params.dfiTx||0)*100).toFixed(4).replace('.',',')}% s/ imóvel${limiteBox}
       </div>`;
     }
   }
@@ -822,6 +920,11 @@ function renderResults(){
         <div class="tab-label">CFIAe — 1º Encargo</div>
         <div class="tab-value">R$ ${fmt(dadosCFIAe.primeiraEnc)}</div>
         <div class="tab-sub">Último: R$ ${fmt(dadosCFIAe.ultimaEnc)}</div>
+      </div>
+      <div class="tab tab-poupex" id="tabPoupex" onclick="switchTab('poupex')">
+        <div class="tab-label">POUPEX — ${_params.poupexSistema||'SAC'} / ${_params.poupexIndexador||'TR'}</div>
+        <div class="tab-value">R$ ${fmt(dadosPOUPEX.primeiraEnc)}</div>
+        <div class="tab-sub">Último: R$ ${fmt(dadosPOUPEX.ultimaEnc)}</div>
       </div>
     </div>
 
@@ -910,57 +1013,67 @@ function renderResults(){
 function switchTab(tab){currentTab=tab;updateTab(tab);}
 
 function updateTab(tab){
-  ['sac','price','cfiae'].forEach(t=>{
+  ['sac','price','cfiae','poupex'].forEach(t=>{
     const cap=t.charAt(0).toUpperCase()+t.slice(1);
     const el=document.getElementById('tab'+cap);
     if(el) el.className='tab tab-'+t+(t===tab?' active':'');
   });
 
-  const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:dadosCFIAe;
-  const names={sac:'SAC',price:'Price',cfiae:'CFIAe'};
+  const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:tab==='poupex'?dadosPOUPEX:dadosCFIAe;
+  const names={sac:'SAC',price:'Price',cfiae:'CFIAe',poupex:'POUPEX'};
+  const isPoupex=tab==='poupex';
   const mipPct=((_params.mipTx||0)*100).toFixed(4).replace('.',',');
   const dfiPct=((_params.dfiTx||0)*100).toFixed(4).replace('.',',');
 
   document.getElementById('scJuros').textContent='R$ '+fmt(dados.totalJ);
   document.getElementById('scJurosSub').textContent='Sistema '+names[tab];
 
-  // Seguros exibidos para todos os sistemas
-  document.getElementById('scSeguros').textContent='R$ '+fmt(dados.totalMIP+dados.totalDFI);
-  document.getElementById('scSegurosSub').textContent='MIP + DFI acumulados';
-  document.getElementById('scTotal').textContent='R$ '+fmt(dados.totalP);
-  document.getElementById('scTotalSub').textContent='Encargos totais (c/ seguros)';
-
-  // Encargo row para todos os sistemas
-  const er=document.getElementById('encargoRow');
-  if(er){
-    er.style.display='grid';
-    document.getElementById('enc1Prest').textContent='R$ '+fmt(dados.primeiraP);
-    document.getElementById('enc1MIP').textContent='R$ '+fmt(dados.mip1);
-    document.getElementById('enc1DFI').textContent='R$ '+fmt(dados.dfi1);
-    document.getElementById('enc1Total').textContent='R$ '+fmt(dados.primeiraEnc);
-    document.getElementById('enc1MIPLabel').textContent=`MIP (${mipPct}% a.m.)`;
-    document.getElementById('enc1DFILabel').textContent=`DFI (${dfiPct}% a.m.)`;
-    const sub=document.getElementById('enc1Sub');
-    if(sub){
-      if(tab==='sac') sub.textContent=`Último encargo: R$ ${fmt(dados.ultimaEnc)} · Redução: R$ ${fmt(dados.primeiraEnc-dados.ultimaEnc)}`;
-      else if(tab==='price') sub.textContent=`Prestação fixa · Encargo varia pois MIP incide sobre saldo decrescente`;
-      else sub.textContent=`Débito consignado · Último encargo: R$ ${fmt(dados.ultimaEnc)}`;
+  if(isPoupex){
+    document.getElementById('scSeguros').textContent='—';
+    document.getElementById('scSegurosSub').textContent='POUPEX sem MIP/DFI';
+    document.getElementById('scTotal').textContent='R$ '+fmt(dados.totalP);
+    document.getElementById('scTotalSub').textContent='Total de parcelas';
+    const er=document.getElementById('encargoRow');
+    if(er) er.style.display='none';
+  } else {
+    document.getElementById('scSeguros').textContent='R$ '+fmt(dados.totalMIP+dados.totalDFI);
+    document.getElementById('scSegurosSub').textContent='MIP + DFI acumulados';
+    document.getElementById('scTotal').textContent='R$ '+fmt(dados.totalP);
+    document.getElementById('scTotalSub').textContent='Encargos totais (c/ seguros)';
+    const er=document.getElementById('encargoRow');
+    if(er){
+      er.style.display='grid';
+      document.getElementById('enc1Prest').textContent='R$ '+fmt(dados.primeiraP);
+      document.getElementById('enc1MIP').textContent='R$ '+fmt(dados.mip1);
+      document.getElementById('enc1DFI').textContent='R$ '+fmt(dados.dfi1);
+      document.getElementById('enc1Total').textContent='R$ '+fmt(dados.primeiraEnc);
+      document.getElementById('enc1MIPLabel').textContent=`MIP (${mipPct}% a.m.)`;
+      document.getElementById('enc1DFILabel').textContent=`DFI (${dfiPct}% a.m. s/ imóvel)`;
+      const sub=document.getElementById('enc1Sub');
+      if(sub){
+        if(tab==='sac') sub.textContent=`Último encargo: R$ ${fmt(dados.ultimaEnc)} · Redução: R$ ${fmt(dados.primeiraEnc-dados.ultimaEnc)}`;
+        else if(tab==='price') sub.textContent=`Prestação fixa · Encargo varia pois MIP incide sobre saldo decrescente`;
+        else sub.textContent=`Débito consignado · Último encargo: R$ ${fmt(dados.ultimaEnc)}`;
+      }
     }
   }
 
-  document.getElementById('tblTitle').textContent='Tabela '+names[tab];
+  document.getElementById('tblTitle').textContent='Tabela '+names[tab]+
+    (isPoupex?' ('+(_params.poupexSistema||'SAC')+' / '+(_params.poupexIndexador||'TR')+')':'');
   renderTabela(tab);
 }
 
 function renderTabela(tab){
-  const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:dadosCFIAe;
+  const dados=tab==='sac'?dadosSAC:tab==='price'?dadosPrice:tab==='poupex'?dadosPOUPEX:dadosCFIAe;
   const isCfiae=tab==='cfiae';
+  const isPoupex=tab==='poupex';
   const head=document.getElementById('tblHead');
   head.innerHTML=`<tr>
     <th>Nº</th><th>Amortização</th><th>Juros</th>
     ${isCfiae?'<th>TR</th><th>Idade</th>':''}
-    <th>MIP</th><th>DFI</th>
-    <th>Prestação</th><th>Encargo Total</th>
+    ${!isPoupex?'<th>MIP</th><th>DFI</th>':''}
+    <th>Prestação</th>
+    ${!isPoupex?'<th>Encargo Total</th>':''}
     <th>Saldo Devedor</th>
   </tr>`;
   const tbody=document.getElementById('tblBody');
@@ -970,10 +1083,9 @@ function renderTabela(tab){
       <td>R$ ${fmt(r.amort)}</td>
       <td>R$ ${fmt(r.juros)}</td>
       ${isCfiae?`<td>R$ ${fmt(r.tr||0)}</td><td style="color:var(--cfiae);font-weight:600">${r.idadeAtual||'—'}</td>`:''}
-      <td>R$ ${fmt(r.mip||0)}</td>
-      <td>R$ ${fmt(r.dfi||0)}</td>
+      ${!isPoupex?`<td>R$ ${fmt(r.mip||0)}</td><td>R$ ${fmt(r.dfi||0)}</td>`:''}
       <td class="td-p">R$ ${fmt(r.parcela)}</td>
-      <td class="td-enc">R$ ${fmt(r.encargo)}</td>
+      ${!isPoupex?`<td class="td-enc">R$ ${fmt(r.encargo)}</td>`:''}
       <td>R$ ${fmt(r.saldo)}</td>
     </tr>
   `).join('');
@@ -1017,9 +1129,10 @@ function prepararHeaderImpressao(){
 
   // Comparativo 3 sistemas
   const comp=[
-    {nome:'SAC',cor:'#2D5A3D',bg:'#E8F2EB',p1:'R$ '+fmt(dadosSAC.primeiraP),pN:'R$ '+fmt(dadosSAC.ultimaP),total:'R$ '+fmt(dadosSAC.totalP),label1:'1ª Parcela',labelN:'Última'},
-    {nome:'Price',cor:'#1A3A5C',bg:'#E8EFF7',p1:'R$ '+fmt(dadosPrice.primeiraP),pN:'Todas iguais',total:'R$ '+fmt(dadosPrice.totalP),label1:'Parcela Fixa',labelN:''},
+    {nome:'SAC (CEF)',cor:'#2D5A3D',bg:'#E8F2EB',p1:'R$ '+fmt(dadosSAC.primeiraEnc),pN:'R$ '+fmt(dadosSAC.ultimaEnc),total:'R$ '+fmt(dadosSAC.totalP),label1:'1º Encargo',labelN:'Último'},
+    {nome:'Price (CEF)',cor:'#1A3A5C',bg:'#E8EFF7',p1:'R$ '+fmt(dadosPrice.primeiraEnc),pN:'Varia (MIP)',total:'R$ '+fmt(dadosPrice.totalP),label1:'1º Encargo',labelN:''},
     {nome:'CFIAe',cor:'#6B2D5A',bg:'#F2E8EF',p1:'R$ '+fmt(dadosCFIAe.primeiraEnc),pN:'R$ '+fmt(dadosCFIAe.ultimaEnc),total:'R$ '+fmt(dadosCFIAe.totalP),label1:'1º Encargo',labelN:'Último'},
+    {nome:'POUPEX '+(_params.poupexSistema||'SAC'),cor:'#1A5C4A',bg:'#E8F2EF',p1:'R$ '+fmt(dadosPOUPEX.primeiraEnc),pN:'R$ '+fmt(dadosPOUPEX.ultimaEnc),total:'R$ '+fmt(dadosPOUPEX.totalP),label1:'1ª Parcela',labelN:'Última'},
   ];
   document.getElementById('printComparativo').innerHTML = comp.map(c=>`
     <div style="background:${c.bg};border:2px solid ${c.cor};padding:10px 12px;border-radius:3px">
