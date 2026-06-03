@@ -931,7 +931,7 @@
         Condições que só <em>militares e servidores</em> da FAB têm.
       </h1>
       <p class="hero-sub">
-        Acesso exclusivo a empreendimentos selecionados no Rio de Janeiro e São Paulo, com financiamento facilitado, CFIAe e atendimento especializado no universo militar.
+        Acesso exclusivo a empreendimentos selecionados no Rio de Janeiro e São Paulo, com financiamento facilitado, CFIAe e atendimento especializado no militar, servidores e pensionistas da FAB.
       </p>
       <div class="hero-stats">
         <div class="stat">
@@ -973,16 +973,19 @@
               <select class="form-select" required>
                 <option value="" disabled selected>Selecione</option>
                 <optgroup label="Oficiais">
+                  <option>Oficial General</option>
                   <option>Oficial Superior</option>
                   <option>Oficial Intermediário</option>
                   <option>Oficial Subalterno</option>
                 </optgroup>
                 <optgroup label="Praças">
-                  <option>Suboficial / Sargento</option>
+                  <option>Sargento / Suboficial</option>
                   <option>Cabo / Soldado</option>
                 </optgroup>
-                <optgroup label="Civil">
-                  <option>Servidor Civil FAB</option>
+                <optgroup label="Civil / Outros">
+                  <option>Servidor Civil</option>
+                  <option>Pensionista</option>
+                  <option>Familiar de Funcionário</option>
                 </optgroup>
               </select>
             </div>
@@ -1023,10 +1026,24 @@
             <select class="form-select">
               <option value="" disabled selected>Selecione</option>
               <option>Até R$ 300.000</option>
-              <option>R$ 300.000 – R$ 500.000</option>
-              <option>R$ 500.000 – R$ 800.000</option>
-              <option>Acima de R$ 800.000</option>
-              <option>Ainda não sei</option>
+              <option>De R$ 300.000 a R$ 500.000</option>
+              <option>De R$ 500.000 a R$ 700.000</option>
+              <option>De R$ 700.000 a R$ 900.000</option>
+              <option>De R$ 900.000 a R$ 1.250.000</option>
+              <option>Acima de R$ 1.250.000</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Forma de Pagamento</label>
+            <select class="form-select">
+              <option value="" disabled selected>Selecione</option>
+              <option>À Vista</option>
+              <option>Financiamento Bancário</option>
+              <option>FGTS + Financiamento</option>
+              <option>CFIAe + Financiamento</option>
+              <option>CFIAe</option>
+              <option>35 / 65</option>
+              <option>Construtora + Banco</option>
             </select>
           </div>
           <button type="submit" class="btn-submit">Quero conhecer as opções →</button>
@@ -1593,7 +1610,7 @@
 
   // ─── GOOGLE SHEETS INTEGRATION ───
   // PASSO 1: Substitua a URL abaixo pela URL do seu Google Apps Script (veja instruções no README)
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyHwFKqk3p8BVcu0JJJtcvBKpt93WFpHQQYVzK0R_r5tAVHhLTjJyVt0dekm-a-PUgA/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -1605,14 +1622,16 @@
     // Coleta os dados do formulário
     const inputs = e.target.querySelectorAll('input, select');
     const data = {
-      timestamp:    new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-      nome:         inputs[0].value,
-      whatsapp:     inputs[1].value,
-      posto:        inputs[2].value,
-      base:         inputs[3].value,
-      cidade:       inputs[4].value,
-      faixa_valor:  inputs[5].value,
-      origem:       document.referrer || 'Direto'
+      tipo:           'lead',
+      timestamp:      new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      nome:           inputs[0].value,
+      whatsapp:       inputs[1].value,
+      posto:          inputs[2].value,
+      base:           inputs[3].value,
+      cidade:         inputs[4].value,
+      faixa_valor:    inputs[5].value,
+      forma_pagamento: inputs[6].value,
+      origem:         document.referrer || 'Direto'
     };
 
     try {
