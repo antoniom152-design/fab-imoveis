@@ -863,6 +863,52 @@
   }
   .btn-simulador:hover { background: var(--gold); color: var(--navy); transform: translateY(-2px); }
 
+  /* ─── MODAL SIMULADOR ─── */
+  .sim-overlay {
+    position: fixed; inset: 0; background: rgba(10,22,40,0.94);
+    z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .sim-overlay.show { display: flex; }
+  .sim-box {
+    background: var(--navy-mid); border: 1px solid var(--border);
+    padding: 40px 36px; max-width: 420px; width: 100%; position: relative;
+  }
+  .sim-box::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold-dim), var(--gold), var(--gold-dim));
+  }
+  .sim-title {
+    font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700;
+    color: var(--gold); margin-bottom: 6px;
+  }
+  .sim-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.6; }
+  .sim-label {
+    display: block; font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+    letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 6px;
+  }
+  .sim-input {
+    width: 100%; background: rgba(255,255,255,.04); border: 1px solid rgba(201,168,76,.15);
+    color: var(--off-white); padding: 11px 14px; font-family: 'Barlow', sans-serif;
+    font-size: 14px; outline: none; transition: border-color .2s; margin-bottom: 14px;
+  }
+  .sim-input:focus { border-color: var(--gold); background: rgba(201,168,76,.05); }
+  .sim-input::placeholder { color: rgba(255,255,255,.2); }
+  .sim-btn {
+    width: 100%; background: var(--gold); color: var(--navy); border: none;
+    padding: 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 14px;
+    font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+    cursor: pointer; transition: background .2s; margin-top: 4px;
+  }
+  .sim-btn:hover { background: var(--gold-light); }
+  .sim-btn:disabled { opacity: .6; cursor: not-allowed; }
+  .sim-erro { font-size: 11px; color: #DC2626; margin-top: -10px; margin-bottom: 10px; display: none; }
+  .sim-close {
+    position: absolute; top: 14px; right: 16px; background: none; border: none;
+    color: var(--text-muted); font-size: 20px; cursor: pointer; line-height: 1;
+  }
+  .sim-close:hover { color: var(--gold); }
+  .sim-loading { text-align: center; color: var(--text-muted); font-size: 13px; padding: 8px 0; display: none; }
+
   /* ─── SUCCESS STATE ─── */
   .form-success {
     display: none;
@@ -931,12 +977,12 @@
         Condições que só <em>militares e servidores</em> da FAB têm.
       </h1>
       <p class="hero-sub">
-        Acesso exclusivo a empreendimentos selecionados no Rio de Janeiro e São Paulo, com financiamento facilitado, CFIAe e atendimento especializado no militar, servidores e pensionistas da FAB.
+        Acesso exclusivo a empreendimentos selecionados no Rio de Janeiro e São Paulo, com financiamento facilitado, e atendimento especializado para militar, temporários, servidores e pensionistas da FAB.
       </p>
       <div class="hero-stats">
         <div class="stat">
           <div class="stat-num">CFIAe</div>
-          <div class="stat-label">Fundo habitacional<br>exclusivo para militares</div>
+          <div class="stat-label">Caixa de Financiamento Imobiliário da Aeronáutica</div>
         </div>
         <div class="stat">
           <div class="stat-num">RJ + SP</div>
@@ -949,7 +995,7 @@
       </div>
       <div style="animation: fadeUp 0.8s 0.35s ease both;">
         <a href="reserva.html" class="btn-reserva">Quero Reservar o meu Imóvel Agora.</a>
-        <a href="simulador.html" class="btn-simulador">Simular Financiamento</a>
+        <a href="#" class="btn-simulador" onclick="abrirModalSimulador();return false;">Simular Financiamento (Grátis)</a>
       </div>
     </div>
 
@@ -1015,6 +1061,11 @@
                 <option value="" disabled selected>Selecione</option>
                 <option>Rio de Janeiro - RJ</option>
                 <option>Grande Rio - RJ</option>
+		<option>Niterói - RJ</option>
+		<option>São Gonçalo - RJ</option>
+		<option>São Pedro da Aldeia - RJ</option>
+		<option>Cabo Frio - RJ</option>
+		<option>Araruama e Iguaba - RJ</option>
                 <option>São Paulo - SP</option>
                 <option>Grande SP</option>
                 <option>Indiferente</option>
@@ -1067,15 +1118,15 @@
     <div class="reveal">
       <div class="section-tag">Por que escolher a WAL Imóveis</div>
       <h2 class="section-title">Vantagens que só <em>quem é da FAB</em> pode ter</h2>
-      <p class="section-desc">Somos especializados no universo militar e sabemos exatamente como maximizar os benefícios a que você tem direito.</p>
+      <p class="section-desc">Somos especializados no universo FAB e sabemos exatamente como maximizar os benefícios a que você tem direito.</p>
     </div>
     <div class="benefits-grid reveal" style="transition-delay:0.1s">
       <div class="benefit-item">
         <div class="benefit-icon">
           <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
         </div>
-        <div class="benefit-title">FGHABexplicado pra você</div>
-        <div class="benefit-desc">Entendemos o Fundo de Garantia Habitacional do Militar melhor do que ninguém. Usamos cada centavo disponível para reduzir sua entrada e suas parcelas.</div>
+        <div class="benefit-title">Financiamento</div>
+        <div class="benefit-desc">Para você que é Militar, Servidor, Temporário e Pensionistas, existe as possibilidades de financiamento de Imóveis Novos, Usados, Lançamento e em Construção.</div>
       </div>
       <div class="benefit-item">
         <div class="benefit-icon">
@@ -1096,7 +1147,7 @@
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
         </div>
         <div class="benefit-title">Atendimento 24 horas</div>
-        <div class="benefit-desc">Sabemos que o militar não tem horário comercial. Nosso chatbot e equipe de consultores garantem resposta rápida a qualquer momento do dia.</div>
+        <div class="benefit-desc">Sabemos que o militar não tem horário comercial. A nossa Central de Atendimento 24h e equipe de consultores garantem resposta rápida a qualquer momento do dia e todos os dias da semana.</div>
       </div>
       <div class="benefit-item">
         <div class="benefit-icon">
@@ -1187,43 +1238,43 @@
       <div class="reveal">
         <div class="section-tag">Benefício exclusivo</div>
         <h2 class="section-title">O que é o <em>CFIAe</em> e como funciona</h2>
-        <p class="section-desc" style="margin-bottom:0">O Fundo de Garantia Habitacional para Militares das Forças Armadas é um benefício que a maioria dos militares não utiliza por desconhecimento. Nós cuidamos de tudo.</p>
+        <p class="section-desc" style="margin-bottom:0">A Caixa de Financiamento Imobiliário da Aeronáutica (CFIAe) é uma autarquia federal vinculada ao Comando da Aeronáutica, criada para apoiar militares, servidores civis e pensionistas da FAB na conquista da casa própria.</p> 
         <div class="fghab-steps">
           <div class="fghab-step">
             <div class="step-num">01</div>
             <div class="step-content">
-              <div class="step-title">Você tem saldo acumulado</div>
-              <div class="step-desc">Militares e servidores acumulam saldo no CFIAe longo do tempo de serviço, disponível para uso em aquisição de imóvel.</div>
+              <div class="step-title">Até 100k</div>
+              <div class="step-desc">Para imovéis na Planta (Sinal e Documentação).</div>
             </div>
           </div>
           <div class="fghab-step">
             <div class="step-num">02</div>
             <div class="step-content">
-              <div class="step-title">Usamos como entrada ou amortização</div>
-              <div class="step-desc">O saldo pode ser usado para reduzir o valor da entrada ou amortizar o saldo devedor do financiamento — menos parcelas, menor prazo.</div>
+              <div class="step-title">Valor maximo de financiamento</div>
+              <div class="step-desc">A CFIAe concede financiamento imobiliário de até R$ 1.000.000,00 a aquisição de imóveis novos e usados</div>
             </div>
           </div>
           <div class="fghab-step">
             <div class="step-num">03</div>
             <div class="step-content">
-              <div class="step-title">Combinamos com outros benefícios</div>
-              <div class="step-desc">CFIAe + taxas diferenciadas para servidor público = condição que o mercado comum simplesmente não consegue oferecer.</div>
+              <div class="step-title">Financia 100% do imóvel?</div>
+              <div class="step-desc">Não, o valor de financiamento pode ser de até 90% do valor de avaliação de imóvel</div>
             </div>
           </div>
         </div>
       </div>
       <div class="reveal" style="transition-delay:0.15s">
         <div class="fghab-box">
-          <div class="fghab-highlight">+ R$ 40 mil</div>
-          <div class="fghab-highlight-label">de benefícios que a maioria dos militares não usa</div>
+          <div class="fghab-highlight">+ de 5 possibilidades</div>
+          <div class="fghab-highlight-label">de benefícios que a maioria dos servidores da FAB não usa</div>
           <div class="fghab-items">
             <div class="fghab-item">
               <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
-              Fundo CFIAe— exclusivo para militares e Funcionários da FAB
+              Financiamento CFIAe— exclusivo para militares e Funcionários da FAB
             </div>
             <div class="fghab-item">
               <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
-              FGTS — tempo de serviço civil anterior
+              FGTS — entrada e composição de renda
             </div>
             <div class="fghab-item">
               <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
@@ -1235,8 +1286,14 @@
             </div>
             <div class="fghab-item">
               <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
-              Subsídio habitacional — renda compatível
+              Subsídio habitacional CEF — renda compatível
             </div>
+	     <div class="fghab-item">
+              <div class="fghab-check"><svg viewBox="0 0 12 10"><path d="M1 5l3.5 4L11 1" stroke="#C9A84C" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></div>
+              SAC ou PRICE — qual a melhor opção
+            </div>
+	
+
           </div>
         </div>
       </div>
@@ -1258,8 +1315,8 @@
         <div class="test-author">
           <div class="test-avatar">RS</div>
           <div>
-            <div class="test-name">2º Ten. Rodrigo Santos</div>
-            <div class="test-role">Piloto — Base Aérea do Galeão, RJ</div>
+            <div class="test-name">Sr. Rodrigo Santos</div>
+            <div class="test-role">Rio de Janeiro, RJ</div>
           </div>
         </div>
       </div>
@@ -1269,8 +1326,8 @@
         <div class="test-author">
           <div class="test-avatar">CF</div>
           <div>
-            <div class="test-name">Sgt. Carlos Ferreira</div>
-            <div class="test-role">Mecânico de Aeronaves — Base Santa Cruz, RJ</div>
+            <div class="test-name">Sr. Carlos Ferreira</div>
+            <div class="test-role">São José dos Campos, SP</div>
           </div>
         </div>
       </div>
@@ -1280,8 +1337,8 @@
         <div class="test-author">
           <div class="test-avatar">AM</div>
           <div>
-            <div class="test-name">Ana Mendes</div>
-            <div class="test-role">Analista Administrativa — CINDACTA II, SP</div>
+            <div class="test-name">Sra Ana Mendes</div>
+            <div class="test-role">São Paulo - SP</div>
           </div>
         </div>
       </div>
@@ -1295,7 +1352,7 @@
     <div class="reveal">
       <div class="section-tag">Próximo passo</div>
       <h2 class="section-title" style="text-align:center">Pronto para conquistar<br>seu <em>imóvel próprio</em>?</h2>
-      <p class="section-desc">Sem compromisso, sem pressão. Um consultor especializado no universo militar analisa sua situação e apresenta as melhores opções disponíveis para você.</p>
+      <p class="section-desc">Sem compromisso, sem pressão. Um consultor especializado no universo FAB analisa sua situação e apresenta as melhores opções disponíveis para você.</p>
       <div>
         <a href="#contato" class="cta-btn-large">Quero meu atendimento gratuito</a>
         <a href="https://wa.me/5521999999999?text=Olá,%20sou%20da%20FAB%20e%20quero%20conhecer%20os%20imóveis" class="cta-whatsapp" target="_blank">
@@ -1596,6 +1653,37 @@
   </div>
 </footer>
 
+<!-- MODAL SIMULADOR -->
+<div class="sim-overlay" id="simOverlay">
+  <div class="sim-box">
+    <button class="sim-close" onclick="fecharModalSimulador()">✕</button>
+
+    <!-- STEP 1: Telefone -->
+    <div id="simStep1">
+      <div class="sim-title">Simulador Gratuito</div>
+      <p class="sim-sub">Informe seu WhatsApp para acessar o simulador de financiamento imobiliário.</p>
+      <label class="sim-label">Telefone / WhatsApp <span style="color:var(--gold)">*</span></label>
+      <input class="sim-input" type="tel" id="simFone" placeholder="(00) 00000-0000" maxlength="15">
+      <div class="sim-erro" id="simFoneErro">Informe um telefone válido com DDD.</div>
+      <div class="sim-loading" id="simLoading">Verificando...</div>
+      <button class="sim-btn" id="simBtnVerificar" onclick="verificarFone()">Verificar e continuar →</button>
+    </div>
+
+    <!-- STEP 2: Nome + Email (só para novos) -->
+    <div id="simStep2" style="display:none">
+      <div class="sim-title">Quase lá!</div>
+      <p class="sim-sub">Informe seus dados para liberar o acesso ao simulador.</p>
+      <label class="sim-label">Nome Completo <span style="color:var(--gold)">*</span></label>
+      <input class="sim-input" type="text" id="simNome" placeholder="Seu nome completo">
+      <div class="sim-erro" id="simNomeErro">Informe seu nome completo.</div>
+      <label class="sim-label">E-mail <span style="color:var(--gold)">*</span></label>
+      <input class="sim-input" type="email" id="simEmail" placeholder="seuemail@email.com">
+      <div class="sim-erro" id="simEmailErro">Informe um e-mail válido.</div>
+      <button class="sim-btn" id="simBtnSimular" onclick="salvarESimular()">Simular Grátis! →</button>
+    </div>
+  </div>
+</div>
+
 <!-- WHATSAPP FLOAT -->
 <a class="wa-float" href="https://wa.me/5521997263950?text=Olá,%20sou%20da%20FAB%20e%20quero%20conhecer%20os%20imóveis" target="_blank" title="Atendimento 24hs">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -1653,6 +1741,115 @@
   function showSuccess() {
     document.querySelector('.form-fields').classList.add('hide');
     document.querySelector('.form-success').classList.add('show');
+  }
+
+  /* ─── MODAL SIMULADOR ─── */
+  function abrirModalSimulador() {
+    document.getElementById('simOverlay').classList.add('show');
+    document.getElementById('simStep1').style.display = 'block';
+    document.getElementById('simStep2').style.display = 'none';
+    document.getElementById('simFone').value = '';
+    document.getElementById('simFone').focus();
+  }
+
+  function fecharModalSimulador() {
+    document.getElementById('simOverlay').classList.remove('show');
+  }
+
+  // Máscara telefone no modal
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('simFone').addEventListener('input', function() {
+      let v = this.value.replace(/\D/g,'').slice(0,11);
+      if (v.length > 10) v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+      else if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+      else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+      this.value = v;
+    });
+    document.getElementById('simFone').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') verificarFone();
+    });
+  });
+
+  async function verificarFone() {
+    const fone = document.getElementById('simFone').value.trim();
+    const erroEl = document.getElementById('simFoneErro');
+    const loadEl = document.getElementById('simLoading');
+    const btnEl  = document.getElementById('simBtnVerificar');
+
+    erroEl.style.display = 'none';
+    if (fone.replace(/\D/g,'').length < 10) {
+      erroEl.style.display = 'block'; return;
+    }
+
+    btnEl.disabled = true;
+    loadEl.style.display = 'block';
+
+    try {
+      // GET para verificar se telefone já existe na aba SIMULACOES
+      const resp = await fetch(
+        GOOGLE_SCRIPT_URL + '?action=checkSim&fone=' + encodeURIComponent(fone),
+        { method: 'GET' }
+      );
+      const result = await resp.json();
+
+      if (result.exists) {
+        // Telefone já cadastrado: incrementa contador e abre simulador
+        fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tipo: 'simulacao', atualizar: true, telefone: fone,
+            timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
+          })
+        });
+        fecharModalSimulador();
+        window.location.href = 'simulador.html';
+      } else {
+        // Novo: pede nome e e-mail
+        loadEl.style.display = 'none';
+        btnEl.disabled = false;
+        document.getElementById('simStep1').style.display = 'none';
+        document.getElementById('simStep2').style.display = 'block';
+        document.getElementById('simNome').focus();
+      }
+    } catch(err) {
+      // Em caso de erro de rede, libera acesso mesmo assim
+      fecharModalSimulador();
+      window.location.href = 'simulador.html';
+    }
+  }
+
+  async function salvarESimular() {
+    const nome  = document.getElementById('simNome').value.trim();
+    const email = document.getElementById('simEmail').value.trim();
+    const fone  = document.getElementById('simFone').value.trim();
+    let ok = true;
+
+    document.getElementById('simNomeErro').style.display  = 'none';
+    document.getElementById('simEmailErro').style.display = 'none';
+
+    if (!nome)  { document.getElementById('simNomeErro').style.display  = 'block'; ok = false; }
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      document.getElementById('simEmailErro').style.display = 'block'; ok = false;
+    }
+    if (!ok) return;
+
+    const btn = document.getElementById('simBtnSimular');
+    btn.textContent = 'Aguarde...'; btn.disabled = true;
+
+    // Grava novo registro na aba SIMULACOES
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: 'simulacao', atualizar: false,
+        telefone: fone, nome, email,
+        timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
+      })
+    });
+
+    fecharModalSimulador();
+    window.location.href = 'simulador.html';
   }
 </script>
 
