@@ -277,6 +277,108 @@
   .alert-ok  {background:rgba(34,197,94,.08);border-color:var(--green);color:#86efac}
   .alert-warn{background:rgba(245,158,11,.08);border-color:var(--amber);color:#fcd34d}
 
+  /* ─── MODAL CADASTRO ─── */
+  .cad-overlay{
+    position:fixed;inset:0;background:rgba(10,22,40,.95);
+    z-index:1000;display:none;align-items:flex-start;
+    justify-content:center;padding:60px 20px 40px;overflow-y:auto;
+  }
+  .cad-overlay.show{display:flex}
+  .cad-box{background:var(--navy-mid);border:1px solid var(--border);width:100%;max-width:780px;position:relative}
+  .cad-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
+  .cad-header{display:flex;align-items:center;justify-content:space-between;
+    padding:22px 28px;border-bottom:1px solid var(--border)}
+  .cad-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold)}
+  .cad-close{background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+  .cad-close:hover{color:var(--off-white)}
+  .cad-body{padding:28px}
+  .cad-section{margin-bottom:24px}
+  .cad-section-title{
+    font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--gold-dim);
+    margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);
+  }
+  .cad-grid{display:grid;gap:14px}
+  .cad-grid-2{grid-template-columns:1fr 1fr}
+  .cad-grid-3{grid-template-columns:1fr 1fr 1fr}
+  .cad-field{display:flex;flex-direction:column;gap:6px}
+  .cad-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--text-muted)}
+  .cad-label .req{color:var(--gold);margin-left:2px}
+  .cad-input,.cad-select,.cad-textarea{
+    background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);
+    color:var(--off-white);padding:10px 12px;font-family:'Barlow',sans-serif;
+    font-size:13px;outline:none;transition:border-color .2s;width:100%;
+  }
+  .cad-input:focus,.cad-select:focus,.cad-textarea:focus{border-color:var(--gold);background:rgba(201,168,76,.05)}
+  .cad-input::placeholder,.cad-textarea::placeholder{color:rgba(255,255,255,.2)}
+  .cad-select{appearance:none;-webkit-appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;
+    background-color:rgba(255,255,255,.04);padding-right:34px;cursor:pointer}
+  .cad-select option{background:#112240}
+  .cad-textarea{resize:vertical;min-height:80px;line-height:1.6}
+  /* Toggles */
+  .toggle-row{display:flex;gap:28px;flex-wrap:wrap}
+  .toggle-item{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+  .toggle-label{font-size:13px;color:var(--off-white)}
+  .toggle-input{display:none}
+  .toggle-track{width:42px;height:22px;background:rgba(255,255,255,.1);border-radius:11px;
+    position:relative;transition:background .2s;border:1px solid rgba(201,168,76,.2);flex-shrink:0}
+  .toggle-input:checked + .toggle-track{background:var(--gold)}
+  .toggle-track::after{content:'';position:absolute;top:3px;left:3px;
+    width:14px;height:14px;background:white;border-radius:50%;transition:transform .2s}
+  .toggle-input:checked + .toggle-track::after{transform:translateX(20px)}
+  /* Img preview */
+  .img-preview{width:70px;height:50px;object-fit:cover;border:1px solid var(--border);
+    border-radius:2px;display:none;margin-top:4px}
+  /* Modal footer */
+  .cad-footer{display:flex;justify-content:flex-end;gap:10px;
+    padding:18px 28px;border-top:1px solid var(--border)}
+  .btn-cad-cancel{
+    height:40px;padding:0 20px;background:transparent;color:var(--text-muted);
+    border:1px solid rgba(138,150,168,.3);
+    font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;
+  }
+  .btn-cad-cancel:hover{color:var(--off-white);border-color:var(--text-muted)}
+  .btn-cad-save{
+    height:40px;padding:0 24px;background:var(--gold);color:var(--navy);border:none;
+    font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;
+    display:flex;align-items:center;gap:6px;
+  }
+  .btn-cad-save:hover{background:var(--gold-light)}
+  .btn-cad-save:disabled{opacity:.6;cursor:not-allowed}
+  /* Botões de ação na tabela */
+  .btn-tbl{
+    font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;
+    border:none;cursor:pointer;transition:all .2s;white-space:nowrap;
+  }
+  .btn-tbl-edit{background:rgba(201,168,76,.15);color:var(--gold)}
+  .btn-tbl-edit:hover{background:var(--gold);color:var(--navy)}
+  .btn-tbl-on{background:rgba(34,197,94,.12);color:var(--green)}
+  .btn-tbl-on:hover{background:var(--green);color:white}
+  .btn-tbl-off{background:rgba(220,38,38,.1);color:#F87171}
+  .btn-tbl-off:hover{background:#DC2626;color:white}
+  /* Toast */
+  .toast{
+    position:fixed;bottom:28px;right:28px;z-index:2000;
+    background:var(--navy-mid);border:1px solid var(--border);
+    border-left:4px solid var(--green);
+    padding:14px 20px;font-size:13px;color:var(--off-white);
+    display:none;align-items:center;gap:10px;
+    box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:380px;line-height:1.4;
+  }
+  .toast.show{display:flex}
+  @media(max-width:700px){
+    .cad-grid-2,.cad-grid-3{grid-template-columns:1fr}
+    .cad-body{padding:20px}
+    .cad-footer{padding:16px 20px}
+  }
+
   /* ─── COLUMNS REFERENCE ─── */
   .cols-table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
   .cols-table th{
@@ -340,6 +442,147 @@
 </head>
 <body>
 
+<!-- ══════════════ MODAL CADASTRO / EDIÇÃO ══════════════ -->
+<div class="cad-overlay" id="cadOverlay">
+  <div class="cad-box">
+    <div class="cad-header">
+      <div class="cad-title" id="cadTitle">Novo Imóvel</div>
+      <button class="cad-close" onclick="fecharForm()">✕</button>
+    </div>
+    <div class="cad-body">
+      <form id="cadForm" autocomplete="off">
+
+        <!-- VISIBILIDADE -->
+        <div class="cad-section">
+          <div class="cad-section-title">Visibilidade</div>
+          <div class="toggle-row">
+            <label class="toggle-item">
+              <input type="checkbox" class="toggle-input" id="cadAtivo" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-label">Ativo — aparece no site</span>
+            </label>
+            <label class="toggle-item">
+              <input type="checkbox" class="toggle-input" id="cadDestaque">
+              <span class="toggle-track"></span>
+              <span class="toggle-label">★ Destaque na página inicial</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- INFORMAÇÕES PRINCIPAIS -->
+        <div class="cad-section">
+          <div class="cad-section-title">Informações Principais</div>
+          <div class="cad-field" style="margin-bottom:14px">
+            <label class="cad-label">Nome do Empreendimento <span class="req">*</span></label>
+            <input class="cad-input" type="text" id="cadNome" placeholder="Ex: Residencial Aurora Galeão">
+          </div>
+          <div class="cad-grid cad-grid-3">
+            <div class="cad-field">
+              <label class="cad-label">Tipo <span class="req">*</span></label>
+              <select class="cad-select" id="cadTipo">
+                <option value="">Selecione</option>
+                <option>Lançamento</option>
+                <option>Novo</option>
+                <option>Em Construção</option>
+                <option>Usado</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Cidade <span class="req">*</span></label>
+              <select class="cad-select" id="cadCidade">
+                <option value="">Selecione</option>
+                <option>Rio de Janeiro</option>
+                <option>São Paulo</option>
+                <option>Grande Rio</option>
+                <option>Grande SP</option>
+                <option>Niterói</option>
+                <option>Guarulhos</option>
+                <option>Outra</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Construtora / Proprietário</label>
+              <input class="cad-input" type="text" id="cadConstrutora" placeholder="Ex: Cyrela, MRV...">
+            </div>
+          </div>
+        </div>
+
+        <!-- VALORES -->
+        <div class="cad-section">
+          <div class="cad-section-title">Valores e Unidades</div>
+          <div class="cad-grid cad-grid-3">
+            <div class="cad-field">
+              <label class="cad-label">Faixa de Valor</label>
+              <select class="cad-select" id="cadFaixa">
+                <option value="">Selecione</option>
+                <option>Até R$ 300.000</option>
+                <option>De R$ 300.000 a R$ 500.000</option>
+                <option>De R$ 500.000 a R$ 700.000</option>
+                <option>De R$ 700.000 a R$ 900.000</option>
+                <option>De R$ 900.000 a R$ 1.250.000</option>
+                <option>Acima de R$ 1.250.000</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Valor a partir de (R$ mil)</label>
+              <input class="cad-input" type="number" id="cadValor" placeholder="Ex: 450" min="0" step="1">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Tipologia / Unidades</label>
+              <input class="cad-input" type="text" id="cadQtd" placeholder="Ex: 2 e 3 quartos">
+            </div>
+          </div>
+        </div>
+
+        <!-- CONTEÚDO -->
+        <div class="cad-section">
+          <div class="cad-section-title">Conteúdo e Links</div>
+          <div class="cad-field" style="margin-bottom:14px">
+            <label class="cad-label">Descrição</label>
+            <textarea class="cad-textarea" id="cadDescricao"
+              placeholder="Descreva o empreendimento: diferenciais, infraestrutura, localização próxima à base..."></textarea>
+          </div>
+          <div class="cad-grid cad-grid-2" style="margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">URL da Imagem de Capa</label>
+              <input class="cad-input" type="url" id="cadImagem"
+                placeholder="https://..." oninput="atualizarImgPreview()">
+              <img class="img-preview" id="imgPreview" alt="Preview da imagem">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Link Blogger / Página Descritiva</label>
+              <input class="cad-input" type="url" id="cadBlog" placeholder="https://...">
+              <span style="font-size:11px;color:var(--text-muted);margin-top:2px">
+                Página do imóvel no blog / site descritivo
+              </span>
+            </div>
+          </div>
+          <div class="cad-field">
+            <label class="cad-label">Observações Internas</label>
+            <textarea class="cad-textarea" id="cadObs" style="min-height:60px"
+              placeholder="Notas para uso interno (não aparece no site)..."></textarea>
+          </div>
+        </div>
+
+      </form>
+    </div>
+    <div class="cad-footer">
+      <button class="btn-cad-cancel" onclick="fecharForm()">Cancelar</button>
+      <button class="btn-cad-save" id="btnSalvarImovel" onclick="salvarImovel()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Salvar Imóvel
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST NOTIFICAÇÃO -->
+<div class="toast" id="adminToast"></div>
+
 <!-- PIN OVERLAY -->
 <div class="pin-overlay" id="pinOverlay">
   <div class="pin-box">
@@ -380,9 +623,13 @@
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
       Abrir Planilha
     </a>
-    <button class="btn-header btn-primary" onclick="fetchPreview()">
+    <button class="btn-header btn-outline" onclick="fetchPreview()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.5"/></svg>
-      Atualizar Prévia
+      Atualizar
+    </button>
+    <button class="btn-header btn-primary" onclick="abrirFormNovo()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Novo Imóvel
     </button>
   </div>
 </div>
@@ -504,8 +751,9 @@
           <tr>
             <th>Status</th><th>Imagem</th><th>Nome do Empreendimento</th>
             <th>Tipo</th><th>Construtora</th><th>Cidade</th>
-            <th>Faixa de Valor</th><th>Unid.</th><th>Blog / Descritivo</th>
-            <th style="color:var(--gold)">★ Destaque</th>
+            <th>Faixa de Valor</th><th>Unid.</th><th>Blog</th>
+            <th style="color:var(--gold)">★</th>
+            <th style="color:var(--gold)">Ações</th>
           </tr>
         </thead>
         <tbody id="tbl-body">
@@ -774,8 +1022,10 @@ function onEdit(e) {
 </div>
 
 <script>
-/* ── PIN ── */
-const ADMIN_PIN = 'FAB2024';
+/* ── CONFIGURAÇÕES ── */
+const ADMIN_PIN           = 'FAB2024';
+const APPS_SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
+const PLANILHA_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 
 function checkPin() {
   const pin = document.getElementById('pinInput').value;
@@ -952,22 +1202,30 @@ function renderTable() {
   document.getElementById('tbl-body').innerHTML = data.map(d => `
     <tr>
       <td>${d.ativo
-        ? '<span class="pill-ativo" title="Ativo"></span> Ativo'
-        : '<span class="pill-inativo" title="Inativo"></span> Inativo'}</td>
-      <td class="td-img"><img src="${d.imagem||''}"
-          onerror="this.style.display='none'" alt=""></td>
+        ? '<span class="pill-ativo"></span> Ativo'
+        : '<span class="pill-inativo"></span> Inativo'}</td>
+      <td class="td-img"><img src="${d.imagem||''}" onerror="this.style.display='none'" alt=""></td>
       <td class="td-nome">${d.nome}</td>
       <td><span class="badge-tipo ${tipoClass(d.tipo)}">${d.tipo}</span></td>
-      <td>${d.construtora}</td>
+      <td>${d.construtora||'—'}</td>
       <td>${d.cidade}</td>
-      <td class="td-valor">${d.faixa}</td>
+      <td class="td-valor">${d.faixa||'—'}</td>
       <td>${d.qtd||'—'}</td>
       <td class="td-link">${d.blog
         ? `<a href="${d.blog}" target="_blank" rel="noopener">Abrir →</a>`
         : '—'}</td>
       <td style="text-align:center">${d.destaque
-        ? '<span style="color:var(--gold);font-size:16px" title="Exibido na página principal">★</span>'
-        : '<span style="color:var(--text-muted);font-size:13px">—</span>'}</td>
+        ? '<span style="color:var(--gold);font-size:16px">★</span>'
+        : '<span style="color:var(--text-muted)">—</span>'}</td>
+      <td>
+        <div style="display:flex;gap:5px;white-space:nowrap">
+          <button class="btn-tbl btn-tbl-edit" onclick="abrirFormEdit('${d.id}')">✏ Editar</button>
+          <button class="btn-tbl ${d.ativo ? 'btn-tbl-on' : 'btn-tbl-off'}"
+                  onclick="toggleAtivo('${d.id}',${d.ativo})">
+            ${d.ativo ? '⏸ Desativar' : '▶ Ativar'}
+          </button>
+        </div>
+      </td>
     </tr>
   `).join('');
 }
@@ -977,6 +1235,137 @@ function abrirPlanilha() {
   if (!url) { alert('Configure a URL da planilha primeiro.'); return; }
   const id = extractSheetId(url);
   if (id) window.open(`https://docs.google.com/spreadsheets/d/${id}/edit`, '_blank');
+}
+
+/* ══════════════ CADASTRO / EDIÇÃO DE IMÓVEIS ══════════════ */
+let editandoId = null;
+
+function abrirFormNovo() {
+  editandoId = null;
+  document.getElementById('cadTitle').textContent = 'Novo Imóvel';
+  document.getElementById('cadForm').reset();
+  document.getElementById('cadAtivo').checked   = true;
+  document.getElementById('cadDestaque').checked = false;
+  document.getElementById('imgPreview').style.display = 'none';
+  document.getElementById('cadOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('cadNome').focus(), 100);
+}
+
+function abrirFormEdit(id) {
+  const d = sheetData.find(x => x.id === id);
+  if (!d) return;
+  editandoId = id;
+  document.getElementById('cadTitle').textContent = 'Editar Imóvel';
+
+  document.getElementById('cadAtivo').checked     = d.ativo;
+  document.getElementById('cadDestaque').checked  = d.destaque;
+  document.getElementById('cadNome').value         = d.nome        || '';
+  document.getElementById('cadTipo').value         = d.tipo        || '';
+  document.getElementById('cadConstrutora').value  = d.construtora || '';
+  document.getElementById('cadCidade').value       = d.cidade      || '';
+  document.getElementById('cadFaixa').value        = d.faixa       || '';
+  document.getElementById('cadValor').value        = d.valor       || '';
+  document.getElementById('cadQtd').value          = d.qtd         || '';
+  document.getElementById('cadDescricao').value    = d.descricao   || '';
+  document.getElementById('cadImagem').value       = d.imagem      || '';
+  document.getElementById('cadBlog').value         = d.blog        || '';
+  document.getElementById('cadObs').value          = d.obs         || '';
+  atualizarImgPreview();
+
+  document.getElementById('cadOverlay').classList.add('show');
+  document.getElementById('cadOverlay').scrollTop = 0;
+}
+
+function fecharForm() {
+  document.getElementById('cadOverlay').classList.remove('show');
+}
+
+function atualizarImgPreview() {
+  const url = document.getElementById('cadImagem').value.trim();
+  const img  = document.getElementById('imgPreview');
+  if (url) { img.src = url; img.style.display = 'block'; }
+  else img.style.display = 'none';
+}
+
+function coletarDadosForm() {
+  return {
+    tipo:         'imovel',
+    id:           editandoId || '',
+    ativo:        document.getElementById('cadAtivo').checked,
+    destaque:     document.getElementById('cadDestaque').checked,
+    nome:         document.getElementById('cadNome').value.trim(),
+    tipo_imovel:  document.getElementById('cadTipo').value,
+    construtora:  document.getElementById('cadConstrutora').value.trim(),
+    cidade:       document.getElementById('cadCidade').value,
+    faixa:        document.getElementById('cadFaixa').value,
+    valor:        parseFloat(document.getElementById('cadValor').value) || 0,
+    qtd:          document.getElementById('cadQtd').value.trim(),
+    descricao:    document.getElementById('cadDescricao').value.trim(),
+    imagem:       document.getElementById('cadImagem').value.trim(),
+    blog:         document.getElementById('cadBlog').value.trim(),
+    obs:          document.getElementById('cadObs').value.trim(),
+    operacao:     editandoId ? 'editar' : 'criar',
+  };
+}
+
+async function salvarImovel() {
+  const d = coletarDadosForm();
+
+  if (!d.nome)       { alert('O nome do empreendimento é obrigatório.'); document.getElementById('cadNome').focus(); return; }
+  if (!d.tipo_imovel){ alert('Selecione o tipo do imóvel.');              document.getElementById('cadTipo').focus(); return; }
+  if (!d.cidade)     { alert('Selecione a cidade.');                      document.getElementById('cadCidade').focus(); return; }
+
+  const btn = document.getElementById('btnSalvarImovel');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Salvando...';
+  btn.disabled  = true;
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(d)
+    });
+  } catch(e) { /* no-cors — assume ok */ }
+
+  fecharForm();
+  btn.innerHTML = orig;
+  btn.disabled  = false;
+
+  mostrarToast(editandoId
+    ? `✅ "${d.nome}" atualizado! Recarregando em 3s...`
+    : `✅ "${d.nome}" cadastrado! Recarregando em 3s...`);
+
+  setTimeout(() => fetchPreview(), 3000);
+}
+
+async function toggleAtivo(id, ativoAtual) {
+  const d = sheetData.find(x => x.id === id);
+  if (!d) return;
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tipo: 'imovel', operacao: 'editar', id,
+        ativo: !ativoAtual, destaque: d.destaque,
+        nome: d.nome, tipo_imovel: d.tipo, construtora: d.construtora,
+        cidade: d.cidade, faixa: d.faixa, valor: d.valor, qtd: d.qtd,
+        descricao: d.descricao, imagem: d.imagem, blog: d.blog, obs: d.obs,
+      })
+    });
+  } catch(e) { /* no-cors */ }
+
+  mostrarToast(`${!ativoAtual ? '✅ Ativado' : '⏸ Desativado'}: "${d.nome}". Recarregando em 3s...`);
+  setTimeout(() => fetchPreview(), 3000);
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById('adminToast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 6000);
 }
 
 /* ── INIT ── */
