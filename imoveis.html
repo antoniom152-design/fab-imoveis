@@ -261,11 +261,41 @@
     display: block; text-align: center; padding: 9px 6px;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
-    text-decoration: none; transition: background .2s, transform .15s;
+    cursor: pointer; transition: background .2s, transform .15s;
     background: transparent; color: var(--off-white);
     border: 1px solid rgba(255,255,255,.15);
   }
   .card-btn-sim:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ─── MODAL SIMULADOR ─── */
+  .sim-overlay{position:fixed;inset:0;background:rgba(10,22,40,0.94);z-index:1000;
+    display:none;align-items:center;justify-content:center;padding:20px}
+  .sim-overlay.show{display:flex}
+  .sim-box{background:var(--navy-mid);border:1px solid var(--border);
+    padding:40px 36px;max-width:420px;width:100%;position:relative}
+  .sim-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+    background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
+  .sim-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
+    color:var(--gold);margin-bottom:6px}
+  .sim-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+  .sim-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:11px;
+    letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
+  .sim-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);
+    color:var(--off-white);padding:11px 14px;font-family:'Barlow',sans-serif;
+    font-size:14px;outline:none;transition:border-color .2s;margin-bottom:14px}
+  .sim-input:focus{border-color:var(--gold);background:rgba(201,168,76,.05)}
+  .sim-input::placeholder{color:rgba(255,255,255,.2)}
+  .sim-btn{width:100%;background:var(--gold);color:var(--navy);border:none;
+    padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;
+    font-weight:700;letter-spacing:.13em;text-transform:uppercase;
+    cursor:pointer;transition:background .2s;margin-top:4px}
+  .sim-btn:hover{background:var(--gold-light)}
+  .sim-btn:disabled{opacity:.6;cursor:not-allowed}
+  .sim-erro{font-size:11px;color:#DC2626;margin-top:-10px;margin-bottom:10px;display:none}
+  .sim-loading{text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0;display:none}
+  .sim-close{position:absolute;top:14px;right:16px;background:none;border:none;
+    color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1}
+  .sim-close:hover{color:var(--gold)}
 
   .card-btn-reserva {
     display: block; text-align: center; padding: 9px 6px;
@@ -427,37 +457,62 @@ const FAIXA_LABEL_MAP = {
   'Até 2.500 mil':'Até R$ 2.500 mil','Acima de 2.500 mil':'Acima de R$ 2.500 mil'
 };
 
+// ID fixo da planilha de imóveis (fallback — não depende do admin)
+const SHEET_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+
+// Converte URLs do Google Drive para formato de imagem direta
+function fixDriveUrl(url) {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id  = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
+
 function extractSheetId(url) {
   const m = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
   return m ? m[1] : null;
 }
 
+// JSONP — sem problema de CORS para leitura do Google Sheets
+function gvizJsonpImoveis(sheetId) {
+  return new Promise(function(resolve, reject) {
+    const cbName = 'im_' + Date.now();
+    const script = document.createElement('script');
+    const timer  = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 10000);
+    function cleanup() {
+      clearTimeout(timer); delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                 '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                 '&sheet=IMOVEISDISPONIVEIS';
+    script.onerror = function() { cleanup(); reject(new Error('error')); };
+    document.head.appendChild(script);
+  });
+}
+
 async function fetchFromSheet(sheetId) {
-  const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=IMOVEISDISPONIVEIS`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const text = await res.text();
-  const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
-  if (!match) throw new Error('Formato inesperado');
-  const json = JSON.parse(match[1]);
+  const json  = await gvizJsonpImoveis(sheetId);
   const table = json.table;
   if (!table || !table.rows) return [];
   return table.rows
     .filter(row => row.c && row.c[1] && row.c[1].v === true) // Somente ativos
     .map(row => {
-      const g = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
-      const nome   = String(g(5) || '');
-      const cidade = String(g(4) || '');
-      const faixaKey = String(g(8) || '');
+      const g = (i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
+      const nome     = g(5);
+      const cidade   = g(4);
+      const faixaKey = g(8);
       return {
         nome,
         cidade,
-        tipo:       String(g(2) || 'Novo'),
+        tipo:       g(2) || 'Novo',
         valor:      parseFloat(g(9)) || FAIXA_VALOR_MAP[faixaKey] || 0,
         faixaTexto: FAIXA_LABEL_MAP[faixaKey] || faixaKey,
-        descricao:  String(g(6) || ''),
-        imagem:     String(g(7) || ''),
-        blogUrl:    String(g(11) || '#'),
+        descricao:  g(6),
+        imagem:     fixDriveUrl(g(7)),   // ← converte URL do Drive
+        blogUrl:    g(11) || '#',
         wppMsg:     `Olá! Tenho interesse no ${nome} (${cidade}).`
       };
     })
@@ -475,29 +530,28 @@ async function initImóveis() {
     Carregando empreendimentos…
   </div>`;
 
+  // Tenta URL do localStorage (salva pelo admin) ou usa ID fixo
   const savedUrl = localStorage.getItem('fab_sheet_url');
-  if (savedUrl) {
-    const id = extractSheetId(savedUrl);
-    if (id) {
-      try {
-        const dados = await fetchFromSheet(id);
-        if (dados.length > 0) {
-          _baseCompleta = dados;
-          imoveis = [...dados];
-          badge.innerHTML = '<span class="fonte-badge fonte-sheet">● Dados ao vivo — Google Sheets</span>';
-          render();
-          return;
-        }
-      } catch(e) {
-        console.warn('Falha ao carregar planilha:', e.message);
-      }
+  const matchId  = savedUrl && savedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const sheetId  = (matchId && matchId[1]) || SHEET_IMOVEIS_ID;
+
+  try {
+    const dados = await fetchFromSheet(sheetId);
+    if (dados.length > 0) {
+      _baseCompleta = dados;
+      imoveis       = [...dados];
+      badge.innerHTML = '<span class="fonte-badge fonte-sheet">● Dados ao vivo — Google Sheets</span>';
+      render();
+      return;
     }
+  } catch(e) {
+    console.warn('Falha ao carregar planilha:', e.message);
   }
 
   // Fallback: dados locais
   _baseCompleta = [...IMOVEISDISPONIVEIS];
-  imoveis = [...IMOVEISDISPONIVEIS];
-  badge.innerHTML = '<span class="fonte-badge fonte-local">Dados locais (sem planilha configurada)</span>';
+  imoveis       = [...IMOVEISDISPONIVEIS];
+  badge.innerHTML = '<span class="fonte-badge fonte-local">Dados locais</span>';
   render();
 }
 
@@ -680,7 +734,7 @@ function renderCard(im) {
             ${im.cidade}
           </div>
         </div>
-        <img src="${im.imagem}" alt="${im.nome}" loading="lazy"
+        <img src="${fixDriveUrl(im.imagem)}" alt="${im.nome}" loading="lazy"
              onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=60'">
       </div>
 
@@ -706,7 +760,7 @@ function renderCard(im) {
           </a>
 
           <div class="card-btns-row">
-            <a href="simulador.html" class="card-btn-sim">&#9654; Simular Financiamento</a>
+            <button class="card-btn-sim" onclick="abrirModalSimImoveis()">&#9654; Simular Financiamento</button>
             <a href="reserva.html" class="card-btn-reserva">Reservar Agora</a>
           </div>
         </div>
@@ -731,7 +785,8 @@ function filtrar() {
   const cidade = document.getElementById('f-cidade').value;
   const faixa  = document.getElementById('f-faixa').value;
 
-  imoveis = IMOVEISDISPONIVEIS.filter(im => {
+  const base = _baseCompleta || IMOVEISDISPONIVEIS;
+  imoveis = base.filter(im => {
     if (tipo   && im.tipo   !== tipo)   return false;
     if (cidade && im.cidade !== cidade) return false;
     if (!faixaMatch(im.valor, faixa))   return false;
@@ -767,6 +822,136 @@ function render() {
 
 // Inicia carregando da planilha (ou fallback local)
 initImóveis();
+
+/* ═══ MODAL SIMULAR FINANCIAMENTO ═══════════════════════ */
+const SIM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
+
+function abrirModalSimImoveis() {
+  document.getElementById('simOverlayIm').classList.add('show');
+  document.getElementById('simStep1Im').style.display = 'block';
+  document.getElementById('simStep2Im').style.display = 'none';
+  document.getElementById('simFoneIm').value = '';
+  document.getElementById('simFoneIm').focus();
+}
+function fecharModalSimImoveis() {
+  document.getElementById('simOverlayIm').classList.remove('show');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('simFoneIm').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 10) v='('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+    else if (v.length > 6) v='('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+    else if (v.length > 2) v='('+v.slice(0,2)+') '+v.slice(2);
+    this.value = v;
+  });
+  document.getElementById('simFoneIm').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') verificarFoneIm();
+  });
+});
+
+function jsonpRequestIm(url) {
+  return new Promise(function(resolve, reject) {
+    var cbName = 'simImCb_' + Date.now();
+    var script = document.createElement('script');
+    var timer  = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 8000);
+    function cleanup() { clearTimeout(timer); delete window[cbName]; if (script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.src = url + '&callback=' + cbName;
+    script.onerror = function() { cleanup(); reject(new Error('error')); };
+    document.head.appendChild(script);
+  });
+}
+
+async function verificarFoneIm() {
+  const fone   = document.getElementById('simFoneIm').value.trim();
+  const erroEl = document.getElementById('simFoneErroIm');
+  const loadEl = document.getElementById('simLoadingIm');
+  const btnEl  = document.getElementById('simBtnVerIm');
+
+  erroEl.style.display = 'none';
+  if (fone.replace(/\D/g,'').length < 10) { erroEl.style.display = 'block'; return; }
+
+  btnEl.disabled = true; loadEl.style.display = 'block';
+
+  function irStep2() {
+    loadEl.style.display = 'none'; btnEl.disabled = false;
+    document.getElementById('simStep1Im').style.display = 'none';
+    document.getElementById('simStep2Im').style.display = 'block';
+    document.getElementById('simNomeIm').focus();
+  }
+
+  try {
+    const result = await jsonpRequestIm(SIM_SCRIPT_URL + '?action=checkSim&fone=' + encodeURIComponent(fone));
+    if (result.exists) {
+      fetch(SIM_SCRIPT_URL, { method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ tipo:'simulacao', atualizar:true, telefone:fone,
+          timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}) })
+      });
+      fecharModalSimImoveis();
+      window.location.href = 'simulador.html';
+    } else { irStep2(); }
+  } catch(err) { irStep2(); }
+}
+
+async function salvarESimularIm() {
+  const nome  = document.getElementById('simNomeIm').value.trim();
+  const email = document.getElementById('simEmailIm').value.trim();
+  const fone  = document.getElementById('simFoneIm').value.trim();
+
+  document.getElementById('simNomeErroIm').style.display  = 'none';
+  document.getElementById('simEmailErroIm').style.display = 'none';
+  let ok = true;
+  if (!nome)  { document.getElementById('simNomeErroIm').style.display  = 'block'; ok = false; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+    document.getElementById('simEmailErroIm').style.display = 'block'; ok = false;
+  }
+  if (!ok) return;
+
+  const btn = document.getElementById('simBtnSimIm');
+  btn.textContent = 'Aguarde...'; btn.disabled = true;
+
+  fetch(SIM_SCRIPT_URL, { method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ tipo:'simulacao', atualizar:false, telefone:fone,
+      nome, email,
+      timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}) })
+  });
+
+  fecharModalSimImoveis();
+  window.location.href = 'simulador.html';
+}
 </script>
+
+<!-- MODAL SIMULAR FINANCIAMENTO -->
+<div class="sim-overlay" id="simOverlayIm">
+  <div class="sim-box">
+    <button class="sim-close" onclick="fecharModalSimImoveis()">✕</button>
+
+    <div id="simStep1Im">
+      <div class="sim-title">Simulador Gratuito</div>
+      <p class="sim-sub">Informe seu WhatsApp para acessar o simulador de financiamento.</p>
+      <label class="sim-label">Telefone / WhatsApp <span style="color:var(--gold)">*</span></label>
+      <input class="sim-input" type="tel" id="simFoneIm" placeholder="(00) 00000-0000" maxlength="15">
+      <div class="sim-erro" id="simFoneErroIm">Informe um telefone válido com DDD.</div>
+      <div class="sim-loading" id="simLoadingIm">Verificando...</div>
+      <button class="sim-btn" id="simBtnVerIm" onclick="verificarFoneIm()">Verificar e continuar →</button>
+    </div>
+
+    <div id="simStep2Im" style="display:none">
+      <div class="sim-title">Quase lá!</div>
+      <p class="sim-sub">Informe seus dados para liberar o acesso ao simulador.</p>
+      <label class="sim-label">Nome Completo <span style="color:var(--gold)">*</span></label>
+      <input class="sim-input" type="text" id="simNomeIm" placeholder="Seu nome completo">
+      <div class="sim-erro" id="simNomeErroIm">Informe seu nome completo.</div>
+      <label class="sim-label">E-mail <span style="color:var(--gold)">*</span></label>
+      <input class="sim-input" type="email" id="simEmailIm" placeholder="seuemail@email.com">
+      <div class="sim-erro" id="simEmailErroIm">Informe um e-mail válido.</div>
+      <button class="sim-btn" id="simBtnSimIm" onclick="salvarESimularIm()">Simular Grátis! →</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
