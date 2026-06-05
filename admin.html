@@ -847,6 +847,32 @@ function extractSheetId(url) {
   return m ? m[1] : null;
 }
 
+// JSONP para Google Sheets gviz — sem problema de CORS
+function gvizJsonp(id, sheet) {
+  return new Promise(function(resolve, reject) {
+    var cbName = 'gviz_' + Date.now();
+    var script  = document.createElement('script');
+    var timer   = setTimeout(function() {
+      cleanup();
+      reject(new Error('Timeout — verifique se a planilha está pública e publicada na web'));
+    }, 10000);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.src = 'https://docs.google.com/spreadsheets/d/' + id +
+                 '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                 '&sheet=' + encodeURIComponent(sheet);
+    script.onerror = function() {
+      cleanup();
+      reject(new Error('Não foi possível carregar. Verifique se a planilha está compartilhada como "Qualquer pessoa com o link".'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
 async function fetchPreview() {
   const url = localStorage.getItem('fab_sheet_url') || '';
   if (!url) { setConnStatus('err','Sem URL configurada','Configure a conexão acima'); return; }
@@ -859,13 +885,7 @@ async function fetchPreview() {
     '<tr><td colspan="9"><div class="loading-row">⏳ Carregando dados da planilha…</div></td></tr>';
 
   try {
-    const gviz = `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:json&sheet=IMOVEISDISPONIVEIS`;
-    const res = await fetch(gviz);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
-    const match = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
-    if (!match) throw new Error('Resposta inesperada');
-    const json = JSON.parse(match[1]);
+    const json = await gvizJsonp(id, 'IMOVEISDISPONIVEIS');
     sheetData = parseGvizToAdmin(json.table);
     setConnStatus('ok', `Conectado — ${sheetData.length} registros encontrados`, new Date().toLocaleTimeString('pt-BR'));
     renderStats(sheetData);
@@ -873,9 +893,9 @@ async function fetchPreview() {
     document.getElementById('count-badge').textContent = sheetData.filter(i=>i.ativo).length;
     document.getElementById('tbl-fonte').textContent = 'Fonte: Google Sheets';
   } catch(e) {
-    setConnStatus('err','Erro ao conectar',e.message);
+    setConnStatus('err','Erro ao conectar', e.message);
     document.getElementById('tbl-body').innerHTML =
-      `<tr><td colspan="9"><div class="empty-table">Erro: ${e.message}<br>Verifique se a planilha está publicada na web.</div></td></tr>`;
+      `<tr><td colspan="9"><div class="empty-table">❌ ${e.message}</div></td></tr>`;
   }
 }
 
