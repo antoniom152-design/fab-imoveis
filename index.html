@@ -1770,8 +1770,28 @@
     });
   });
 
+  // JSONP — sem problema de CORS com Google Apps Script
+  function jsonpRequest(url) {
+    return new Promise(function(resolve, reject) {
+      var cbName = 'simCb_' + Date.now();
+      var script = document.createElement('script');
+      var timer = setTimeout(function() {
+        cleanup(); reject(new Error('timeout'));
+      }, 8000);
+      function cleanup() {
+        clearTimeout(timer);
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      }
+      window[cbName] = function(data) { cleanup(); resolve(data); };
+      script.src = url + '&callback=' + cbName;
+      script.onerror = function() { cleanup(); reject(new Error('error')); };
+      document.head.appendChild(script);
+    });
+  }
+
   async function verificarFone() {
-    const fone = document.getElementById('simFone').value.trim();
+    const fone   = document.getElementById('simFone').value.trim();
     const erroEl = document.getElementById('simFoneErro');
     const loadEl = document.getElementById('simLoading');
     const btnEl  = document.getElementById('simBtnVerificar');
@@ -1784,13 +1804,19 @@
     btnEl.disabled = true;
     loadEl.style.display = 'block';
 
+    function irParaStep2() {
+      loadEl.style.display = 'none';
+      btnEl.disabled = false;
+      document.getElementById('simStep1').style.display = 'none';
+      document.getElementById('simStep2').style.display = 'block';
+      document.getElementById('simNome').focus();
+    }
+
     try {
-      // GET para verificar se telefone já existe na aba SIMULACOES
-      const resp = await fetch(
-        GOOGLE_SCRIPT_URL + '?action=checkSim&fone=' + encodeURIComponent(fone),
-        { method: 'GET' }
+      // Verifica telefone via JSONP (sem problema de CORS)
+      const result = await jsonpRequest(
+        GOOGLE_SCRIPT_URL + '?action=checkSim&fone=' + encodeURIComponent(fone)
       );
-      const result = await resp.json();
 
       if (result.exists) {
         // Telefone já cadastrado: incrementa contador e abre simulador
@@ -1805,17 +1831,11 @@
         fecharModalSimulador();
         window.location.href = 'simulador.html';
       } else {
-        // Novo: pede nome e e-mail
-        loadEl.style.display = 'none';
-        btnEl.disabled = false;
-        document.getElementById('simStep1').style.display = 'none';
-        document.getElementById('simStep2').style.display = 'block';
-        document.getElementById('simNome').focus();
+        irParaStep2();
       }
     } catch(err) {
-      // Em caso de erro de rede, libera acesso mesmo assim
-      fecharModalSimulador();
-      window.location.href = 'simulador.html';
+      // Se JSONP falhar: pede nome e e-mail (não redireciona sem salvar)
+      irParaStep2();
     }
   }
 
