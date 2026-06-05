@@ -1955,31 +1955,50 @@
    Quando o admin marcar "Destaque — Página Principal" (col O = TRUE)
    em algum imóvel, ele substitui os cartões fixos desta seção.
 ══════════════════════════════════════════════════════════ */
-(async function initDestaques() {
-  const url = localStorage.getItem('fab_sheet_url');
-  if (!url) return; // sem planilha → mantém cartões fixos
+// JSONP — sem problema de CORS para leitura do Google Sheets
+function gvizJsonpIndex(sheetId, sheet) {
+  return new Promise(function(resolve, reject) {
+    var cbName = 'idx_' + Date.now();
+    var script  = document.createElement('script');
+    var timer   = setTimeout(function() {
+      cleanup(); reject(new Error('timeout'));
+    }, 8000);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                 '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                 '&sheet=' + encodeURIComponent(sheet);
+    script.onerror = function() { cleanup(); reject(new Error('error')); };
+    document.head.appendChild(script);
+  });
+}
 
-  const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if (!match) return;
-  const sheetId = match[1];
+(async function initDestaques() {
+  // ID fixo da planilha de imóveis (fallback seguro)
+  const SHEET_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+
+  // Tenta pegar do localStorage (salvo pelo admin) ou usa o ID fixo
+  const urlSalva = localStorage.getItem('fab_sheet_url');
+  const match    = urlSalva && urlSalva.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const sheetId  = (match && match[1]) || SHEET_IMOVEIS;
 
   try {
-    const gviz = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=IMOVEISDISPONIVEIS`;
-    const res  = await fetch(gviz);
-    if (!res.ok) return;
-    const text = await res.text();
-    const m    = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/);
-    if (!m) return;
-    const table = JSON.parse(m[1]).table;
+    const json  = await gvizJsonpIndex(sheetId, 'IMOVEISDISPONIVEIS');
+    const table = json.table;
     if (!table || !table.rows) return;
 
-    // Filtra: Ativo (col B = TRUE) E Destaque (col O = TRUE)
-    const destaques = table.rows.filter(row =>
-      row.c && row.c[1] && row.c[1].v === true &&  // Ativo
-      row.c[14] && row.c[14].v === true             // Destaque p/ página principal
+    const ativos = table.rows.filter(row =>
+      row.c && row.c[1] && row.c[1].v === true  // Ativo
     );
+    if (!ativos.length) return; // nenhum ativo → mantém cartões fixos
 
-    if (!destaques.length) return; // nenhum destaque → mantém cartões fixos
+    // Prioridade: marcados como Destaque; se não houver, pega os 3 primeiros ativos
+    const comDestaque = ativos.filter(row => row.c[14] && row.c[14].v === true);
+    const destaques   = comDestaque.length ? comDestaque : ativos.slice(0, 3);
 
     const g = (row, i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
 
