@@ -1522,119 +1522,111 @@ function mostrarToast(msg) {
 }
 
 /* ══════════════ MÓDULOS: LEADS / RESERVAS / SIMULAÇÕES / VISITAS ══════════════ */
-const PLANILHA_LEADS_ID = '1UKSyzkYpVxtsSb4UrBvgslp7FFXtYk8DUeqJVGzk0M0';
+// URL do Apps Script WAL Imóveis (usado como proxy para leitura das abas)
+const WAL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
 
-function gvizJsonpAdmin(planilhaId, sheet) {
+// Chama o Apps Script via JSONP e retorna os dados da aba solicitada
+function queryScript(action) {
   return new Promise(function(resolve, reject) {
     const cb = 'adm_' + Date.now();
     const s  = document.createElement('script');
-    const t  = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 10000);
+    const t  = setTimeout(function() { cleanup(); reject(new Error('Timeout — tente novamente')); }, 20000);
     function cleanup() { clearTimeout(t); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
-    window[cb] = d => { cleanup(); resolve(d); };
-    s.src = 'https://docs.google.com/spreadsheets/d/' + planilhaId +
-            '/gviz/tq?tqx=out:json;responseHandler:' + cb + '&sheet=' + encodeURIComponent(sheet);
-    s.onerror = () => { cleanup(); reject(new Error('Erro ao carregar')); };
+    window[cb] = function(data) { cleanup(); resolve(data); };
+    s.src = WAL_SCRIPT_URL + '?action=' + action + '&callback=' + cb;
+    s.onerror = function() { cleanup(); reject(new Error('Falha na conexão com o script')); };
     document.head.appendChild(s);
   });
 }
 
-function filtraPorPeriodo(rows, colIdx, de, ate) {
-  return rows.filter(row => {
-    const val = row.c && row.c[colIdx] && (row.c[colIdx].f || row.c[colIdx].v || '');
-    if (!val) return false;
-    const parts = String(val).match(/(\d{2})\/(\d{2})\/(\d{4})/);
-    if (!parts) return true;
-    const d = new Date(parts[3], parseInt(parts[2])-1, parseInt(parts[1]));
-    if (de  && d < new Date(de))  return false;
-    if (ate && d > new Date(ate + 'T23:59:59')) return false;
-    return true;
-  });
+// Filtra registros por período (campo de data no formato dd/MM/yyyy)
+function filtraPorData(dateStr, de, ate) {
+  if (!dateStr) return false;
+  const m = String(dateStr).match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  if (!m) return true;
+  const d = new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+  if (de  && d < new Date(de))  return false;
+  if (ate && d > new Date(ate + 'T23:59:59')) return false;
+  return true;
 }
 
-function g(row, i) { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; }
+// Gera tabela HTML a partir de array de objetos
+function tabelaHtml(rows, cols) {
+  if (!rows.length) return '<div class="empty-table">Nenhum registro no período.</div>';
+  const headers = cols || Object.keys(rows[0]);
+  return '<table><thead><tr>' + headers.map(h => '<th>'+h+'</th>').join('') +
+    '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + headers.map(h => '<td>'+(r[h]||'—')+'</td>').join('') + '</tr>').join('') +
+    '</tbody></table>';
+}
 
 async function consultarLeads() {
   const de  = document.getElementById('leads-de').value;
   const ate = document.getElementById('leads-ate').value;
-  document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
   try {
-    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'Leads');
-    if (!json.table || !json.table.rows) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado encontrado.</div>'; return; }
-    let rows = json.table.rows;
-    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    const result = await queryScript('getLeads');
+    if (result.error) throw new Error(result.error);
+    let rows = result.rows || [];
+    if (de || ate) rows = rows.filter(r => filtraPorData(r['Timestamp'] || '', de, ate));
     document.getElementById('leads-count').textContent = rows.length + ' registro(s) encontrado(s)';
-    if (!rows.length) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Nenhum registro no período.</div>'; return; }
-    document.getElementById('leads-table-wrap').innerHTML =
-      '<table><thead><tr><th>Data/Hora</th><th>Nome</th><th>WhatsApp</th><th>Posto/Cargo</th><th>Base</th><th>Cidade</th><th>Faixa</th><th>Pagamento</th></tr></thead><tbody>' +
-      rows.map(r => `<tr><td>${g(r,0)}</td><td>${g(r,1)}</td><td>${g(r,2)}</td><td>${g(r,3)}</td><td>${g(r,4)}</td><td>${g(r,5)}</td><td>${g(r,6)}</td><td>${g(r,7)}</td></tr>`).join('') +
-      '</tbody></table>';
-  } catch(e) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+    document.getElementById('leads-table-wrap').innerHTML = tabelaHtml(rows,
+      ['Timestamp','Nome','WhatsApp','Posto/Cargo','Base/Unidade','Cidade Desejada','Faixa de Valor','Forma de Pagamento']);
+  } catch(e) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
 async function consultarReservas() {
   const de  = document.getElementById('res-de').value;
   const ate = document.getElementById('res-ate').value;
-  document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
   try {
-    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'RESERVA');
-    if (!json.table || !json.table.rows) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado.</div>'; return; }
-    let rows = json.table.rows;
-    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    const result = await queryScript('getReservas');
+    if (result.error) throw new Error(result.error);
+    let rows = result.rows || [];
+    if (de || ate) rows = rows.filter(r => filtraPorData(r['Timestamp'] || '', de, ate));
     document.getElementById('res-count').textContent = rows.length + ' registro(s) encontrado(s)';
-    if (!rows.length) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Nenhum registro no período.</div>'; return; }
-    document.getElementById('res-table-wrap').innerHTML =
-      '<table><thead><tr><th>Data/Hora</th><th>Nome</th><th>Telefone</th><th>CPF</th><th>Est. Civil</th><th>Empreendimento</th><th>Faixa</th><th>Pagamento</th><th>Docs</th></tr></thead><tbody>' +
-      rows.map(r => `<tr><td>${g(r,0)}</td><td>${g(r,1)}</td><td>${g(r,3)}</td><td>${g(r,5)}</td><td>${g(r,6)}</td><td>${g(r,12)}</td><td>${g(r,13)}</td><td>${g(r,15)}</td><td>${g(r,17)}</td></tr>`).join('') +
-      '</tbody></table>';
-  } catch(e) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+    document.getElementById('res-table-wrap').innerHTML = tabelaHtml(rows,
+      ['Timestamp','Nome Titular','Telefone','CPF','Estado Civil','Empreendimento','Faixa Valor','Forma Pagamento','Qtd Docs']);
+  } catch(e) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
 async function consultarSimulacoes() {
   const de  = document.getElementById('sim-de').value;
   const ate = document.getElementById('sim-ate').value;
-  document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
   try {
-    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'SIMULACOES');
-    if (!json.table || !json.table.rows) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado.</div>'; return; }
-    let rows = json.table.rows;
-    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    const result = await queryScript('getSimulacoes');
+    if (result.error) throw new Error(result.error);
+    let rows = result.rows || [];
+    if (de || ate) rows = rows.filter(r => filtraPorData(r['Data/Hora'] || '', de, ate));
     document.getElementById('sim-count').textContent = rows.length + ' registro(s) encontrado(s)';
-    if (!rows.length) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Nenhum registro no período.</div>'; return; }
-    document.getElementById('sim-table-wrap').innerHTML =
-      '<table><thead><tr><th>Data/Hora</th><th>Telefone</th><th>Nome</th><th>E-mail</th><th>Acessos</th></tr></thead><tbody>' +
-      rows.map(r => `<tr><td>${g(r,0)}</td><td>${g(r,1)}</td><td>${g(r,2)}</td><td>${g(r,3)}</td><td style="text-align:center;color:var(--gold);font-weight:700">${g(r,4)||1}</td></tr>`).join('') +
-      '</tbody></table>';
-  } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+    document.getElementById('sim-table-wrap').innerHTML = tabelaHtml(rows,
+      ['Data/Hora','Telefone','Nome','E-mail','Contador']);
+  } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
 async function consultarVisitas() {
   const de  = document.getElementById('vis-de').value;
   const ate = document.getElementById('vis-ate').value;
-  document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
   try {
-    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'VISITAS');
-    if (!json.table || !json.table.rows) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado.</div>'; return; }
-    const allRows = json.table.rows;
-    const hoje    = new Date().toLocaleDateString('pt-BR');
-    const semana  = new Date(Date.now() - 7*86400000);
-    const mes     = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-    document.getElementById('vis-hoje').textContent   = allRows.filter(r => g(r,0).startsWith(hoje)).length;
-    document.getElementById('vis-semana').textContent = allRows.filter(r => { const d = parseDateBR(g(r,0)); return d && d >= semana; }).length;
-    document.getElementById('vis-mes').textContent    = allRows.filter(r => { const d = parseDateBR(g(r,0)); return d && d >= mes; }).length;
-    document.getElementById('vis-total').textContent  = allRows.length;
-    let rows = allRows;
-    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    const result = await queryScript('getVisitas');
+    if (result.error) throw new Error(result.error);
+    const all  = result.rows || [];
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const sem  = new Date(Date.now() - 7*86400000);
+    const mes  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const parseD = s => { const m=String(s).match(/(\d{2})\/(\d{2})\/(\d{4})/); return m?new Date(parseInt(m[3]),parseInt(m[2])-1,parseInt(m[1])):null; };
+    document.getElementById('vis-hoje').textContent   = all.filter(r => { const d=parseD(r['Data/Hora']||''); return d&&d>=hoje; }).length;
+    document.getElementById('vis-semana').textContent = all.filter(r => { const d=parseD(r['Data/Hora']||''); return d&&d>=sem; }).length;
+    document.getElementById('vis-mes').textContent    = all.filter(r => { const d=parseD(r['Data/Hora']||''); return d&&d>=mes; }).length;
+    document.getElementById('vis-total').textContent  = all.length;
+    let rows = all;
+    if (de || ate) rows = rows.filter(r => filtraPorData(r['Data/Hora'] || '', de, ate));
     document.getElementById('vis-count').textContent = rows.length + ' visita(s) no período';
-    document.getElementById('vis-table-wrap').innerHTML =
-      '<table><thead><tr><th>Data/Hora</th><th>Página</th><th>Origem</th></tr></thead><tbody>' +
-      rows.slice(-200).reverse().map(r => `<tr><td>${g(r,0)}</td><td>${g(r,2)}</td><td>${g(r,3)}</td></tr>`).join('') +
-      '</tbody></table>';
-  } catch(e) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
-}
-
-function parseDateBR(str) {
-  const m = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
-  return m ? new Date(m[3], parseInt(m[2])-1, parseInt(m[1])) : null;
+    document.getElementById('vis-table-wrap').innerHTML = tabelaHtml([...rows].reverse().slice(0,500),
+      ['Data/Hora','Página','Origem']);
+  } catch(e) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
 /* ── INIT ── */
