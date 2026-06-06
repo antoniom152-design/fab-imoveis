@@ -1722,6 +1722,15 @@ function tabelaHtml(rows, cols) {
     '</tbody></table>';
 }
 
+// Retorna o valor do primeiro campo que contenha uma data válida no objeto
+function getPrimeiraData(r) {
+  for (const k of Object.keys(r)) {
+    const v = String(r[k] || '');
+    if (/\d{1,2}\/\d{1,2}\/\d{4}/.test(v) || /\d{4}-\d{2}-\d{2}/.test(v)) return v;
+  }
+  return '';
+}
+
 async function consultarLeads() {
   const de  = document.getElementById('leads-de').value;
   const ate = document.getElementById('leads-ate').value;
@@ -1730,10 +1739,9 @@ async function consultarLeads() {
     const result = await queryScript('getLeads');
     if (result.error) throw new Error(result.error);
     let rows = result.rows || [];
-    if (de || ate) rows = rows.filter(r => filtraPorData(r['Timestamp'] || '', de, ate));
+    if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
     document.getElementById('leads-count').textContent = rows.length + ' registro(s) encontrado(s)';
-    document.getElementById('leads-table-wrap').innerHTML = tabelaHtml(rows,
-      ['Timestamp','Nome','WhatsApp','Posto/Cargo','Base/Unidade','Cidade Desejada','Faixa de Valor','Forma de Pagamento']);
+    document.getElementById('leads-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
@@ -1745,10 +1753,9 @@ async function consultarReservas() {
     const result = await queryScript('getReservas');
     if (result.error) throw new Error(result.error);
     let rows = result.rows || [];
-    if (de || ate) rows = rows.filter(r => filtraPorData(r['Timestamp'] || '', de, ate));
+    if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
     document.getElementById('res-count').textContent = rows.length + ' registro(s) encontrado(s)';
-    document.getElementById('res-table-wrap').innerHTML = tabelaHtml(rows,
-      ['Timestamp','Nome Titular','Telefone','CPF','Estado Civil','Empreendimento','Faixa Valor','Forma Pagamento','Qtd Docs']);
+    document.getElementById('res-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
@@ -1760,10 +1767,9 @@ async function consultarSimulacoes() {
     const result = await queryScript('getSimulacoes');
     if (result.error) throw new Error(result.error);
     let rows = result.rows || [];
-    if (de || ate) rows = rows.filter(r => filtraPorData(r['Data/Hora'] || '', de, ate));
+    if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
     document.getElementById('sim-count').textContent = rows.length + ' registro(s) encontrado(s)';
-    document.getElementById('sim-table-wrap').innerHTML = tabelaHtml(rows,
-      ['Data/Hora','Telefone','Nome','E-mail','Contador']);
+    document.getElementById('sim-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
@@ -1778,16 +1784,18 @@ async function consultarVisitas() {
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const sem  = new Date(Date.now() - 7*86400000);
     const mes  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
-    const parseD = s => { const m=String(s).match(/(\d{2})\/(\d{2})\/(\d{4})/); return m?new Date(parseInt(m[3]),parseInt(m[2])-1,parseInt(m[1])):null; };
-    document.getElementById('vis-hoje').textContent   = all.filter(r => { const d=parseD(r['Data/Hora']||''); return d&&d>=hoje; }).length;
-    document.getElementById('vis-semana').textContent = all.filter(r => { const d=parseD(r['Data/Hora']||''); return d&&d>=sem; }).length;
-    document.getElementById('vis-mes').textContent    = all.filter(r => { const d=parseD(r['Data/Hora']||''); return d&&d>=mes; }).length;
+    const parseD = s => {
+      const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      return m ? new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1])) : null;
+    };
+    document.getElementById('vis-hoje').textContent   = all.filter(r => { const d=parseD(getPrimeiraData(r)); return d&&d>=hoje; }).length;
+    document.getElementById('vis-semana').textContent = all.filter(r => { const d=parseD(getPrimeiraData(r)); return d&&d>=sem; }).length;
+    document.getElementById('vis-mes').textContent    = all.filter(r => { const d=parseD(getPrimeiraData(r)); return d&&d>=mes; }).length;
     document.getElementById('vis-total').textContent  = all.length;
     let rows = all;
-    if (de || ate) rows = rows.filter(r => filtraPorData(r['Data/Hora'] || '', de, ate));
+    if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
     document.getElementById('vis-count').textContent = rows.length + ' visita(s) no período';
-    document.getElementById('vis-table-wrap').innerHTML = tabelaHtml([...rows].reverse().slice(0,500),
-      ['Data/Hora','Página','Origem']);
+    document.getElementById('vis-table-wrap').innerHTML = tabelaHtml([...rows].reverse().slice(0,500)); // usa todas as colunas
   } catch(e) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
