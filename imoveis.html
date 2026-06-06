@@ -379,6 +379,14 @@
 <div class="filter-bar">
   <div class="filter-inner">
     <div class="filter-group">
+      <span class="filter-label">UF</span>
+      <select class="filter-select" id="f-uf">
+        <option value="">Todos</option>
+        <option value="RJ">RJ</option>
+        <option value="SP">SP</option>
+      </select>
+    </div>
+    <div class="filter-group">
       <span class="filter-label">Tipo de Imóvel</span>
       <select class="filter-select" id="f-tipo">
         <option value="">Todos os tipos</option>
@@ -398,6 +406,11 @@
         <option value="São Paulo">São Paulo</option>
         <option value="São José dos Campos">São José dos Campos</option>
       </select>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Bairro</span>
+      <input class="filter-select" type="text" id="f-bairro" placeholder="Digite o bairro..."
+             style="height:38px;padding:9px 12px;font-size:13px">
     </div>
     <div class="filter-group">
       <span class="filter-label">Faixa de Valor</span>
@@ -513,6 +526,8 @@ async function fetchFromSheet(sheetId) {
         descricao:  g(6),
         imagem:     fixDriveUrl(g(7)),   // ← converte URL do Drive
         blogUrl:    g(11) || '#',
+        uf:         g(15) || '',
+        bairro:     g(16) || '',
         wppMsg:     `Olá! Tenho interesse no ${nome} (${cidade}).`
       };
     })
@@ -785,10 +800,14 @@ function filtrar() {
   const cidade = document.getElementById('f-cidade').value;
   const faixa  = document.getElementById('f-faixa').value;
 
-  const base = _baseCompleta || IMOVEISDISPONIVEIS;
+  const uf     = document.getElementById('f-uf').value;
+  const bairro = document.getElementById('f-bairro').value.trim().toLowerCase();
+  const base   = _baseCompleta || IMOVEISDISPONIVEIS;
   imoveis = base.filter(im => {
+    if (uf     && (im.uf     || '').toUpperCase() !== uf.toUpperCase()) return false;
     if (tipo   && im.tipo   !== tipo)   return false;
     if (cidade && im.cidade !== cidade) return false;
+    if (bairro && !(im.bairro || '').toLowerCase().includes(bairro)) return false;
     if (!faixaMatch(im.valor, faixa))   return false;
     return true;
   });
@@ -796,8 +815,10 @@ function filtrar() {
 }
 
 function limpar() {
+  document.getElementById('f-uf').value     = '';
   document.getElementById('f-tipo').value   = '';
   document.getElementById('f-cidade').value = '';
+  document.getElementById('f-bairro').value = '';
   document.getElementById('f-faixa').value  = '';
   // Reseta para a base completa (local ou da planilha, conforme carregado)
   imoveis = _baseCompleta ? [..._baseCompleta] : [...IMOVEISDISPONIVEIS];

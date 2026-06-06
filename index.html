@@ -842,6 +842,20 @@
   }
   .btn-reserva:hover { background: #B91C1C; transform: translateY(-2px); box-shadow: 0 6px 24px rgba(220,38,38,0.45); }
 
+  /* ─── TÍTULO DE ESTADO NOS EMPREENDIMENTOS ─── */
+  .props-estado {
+    display: flex; align-items: center; gap: 12px;
+    margin: 36px 0 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--gold);
+  }
+  .props-estado::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--gold-dim), transparent);
+  }
+  .props-estado:first-of-type { margin-top: 20px; }
+
   /* ─── BOTÃO SIMULADOR ─── */
   .btn-simulador {
     display: inline-block;
@@ -1037,21 +1051,7 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Base / Unidade</label>
-              <select class="form-select" required>
-                <option value="" disabled selected>Selecione</option>
-                <optgroup label="Rio de Janeiro">
-                  <option>Galeão (BASM)</option>
-                  <option>Santa Cruz (BASC)</option>
-                  <option>Campo dos Afonsos</option>
-                  <option>Outra - RJ</option>
-                </optgroup>
-                <optgroup label="São Paulo">
-                  <option>Cumbica (BASC)</option>
-                  <option>Campo de Marte</option>
-                  <option>AFA - Pirassununga</option>
-                  <option>Outra - SP</option>
-                </optgroup>
-              </select>
+              <input class="form-input" type="text" placeholder="Ex: Galeão, Santa Cruz, Cumbica..." required>
             </div>
             <div class="form-group">
               <label class="form-label">Cidade desejada</label>
@@ -1072,7 +1072,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Faixa de valor</label>
-            <select class="form-select">
+            <select class="form-select" required>
               <option value="" disabled selected>Selecione</option>
               <option>Até R$ 300.000</option>
               <option>De R$ 300.000 a R$ 500.000</option>
@@ -1084,7 +1084,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">Forma de Pagamento</label>
-            <select class="form-select">
+            <select class="form-select" required>
               <option value="" disabled selected>Selecione</option>
               <option>À Vista</option>
               <option>Financiamento Bancário</option>
@@ -1184,52 +1184,36 @@
       </div>
       <a href="imoveis.html" class="props-link">Ver todos →</a>
     </div>
-    <div class="props-grid reveal" id="props-grid" style="transition-delay:0.1s">
-      <!-- Cartões padrão (fallback enquanto não há planilha configurada) -->
+    <!-- Rio de Janeiro -->
+    <div class="props-estado reveal">📍 Rio de Janeiro — RJ</div>
+    <div class="props-grid reveal" id="props-grid-rj" style="transition-delay:0.1s">
       <div class="prop-card">
-        <div class="prop-tag">FGHABdisponível</div>
+        <div class="prop-tag">Lançamento</div>
         <img class="prop-img" src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=600&q=80" alt="Reserva Atlântica" loading="lazy">
         <div class="prop-body">
           <div class="prop-city">Rio de Janeiro — Próx. Galeão</div>
           <div class="prop-name">Reserva Atlântica</div>
           <div class="prop-desc">2 e 3 quartos, lazer completo, área verde, segurança 24h. Financiamento facilitado para militares.</div>
           <div class="prop-footer">
-            <div>
-              <div class="prop-price-label">A partir de</div>
-              <div class="prop-price">R$ 380.000</div>
-            </div>
+            <div><div class="prop-price-label">A partir de</div><div class="prop-price">R$ 380.000</div></div>
             <button class="prop-btn" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Saiba mais</button>
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- São Paulo -->
+    <div class="props-estado reveal" style="margin-top:40px">📍 São Paulo — SP</div>
+    <div class="props-grid reveal" id="props-grid-sp" style="transition-delay:0.15s">
       <div class="prop-card">
-        <div class="prop-tag">Lançamento</div>
+        <div class="prop-tag">Novo</div>
         <img class="prop-img" src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=600&q=80" alt="Gran Vitória" loading="lazy">
         <div class="prop-body">
           <div class="prop-city">São Paulo — Próx. Cumbica</div>
           <div class="prop-name">Gran Vitória Residencial</div>
           <div class="prop-desc">Studios e 2 quartos, infraestrutura moderna, transporte fácil. Condições especiais para servidores FAB.</div>
           <div class="prop-footer">
-            <div>
-              <div class="prop-price-label">A partir de</div>
-              <div class="prop-price">R$ 290.000</div>
-            </div>
-            <button class="prop-btn" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Saiba mais</button>
-          </div>
-        </div>
-      </div>
-      <div class="prop-card">
-        <div class="prop-tag">Pronto para morar</div>
-        <img class="prop-img" src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=600&q=80" alt="Portal das Águias" loading="lazy">
-        <div class="prop-body">
-          <div class="prop-city">Rio de Janeiro — Santa Cruz</div>
-          <div class="prop-name">Portal das Águias</div>
-          <div class="prop-desc">3 quartos suite, condomínio fechado, varanda gourmet. Financiamento SBPE com taxa reduzida para militares.</div>
-          <div class="prop-footer">
-            <div>
-              <div class="prop-price-label">A partir de</div>
-              <div class="prop-price">R$ 520.000</div>
-            </div>
+            <div><div class="prop-price-label">A partir de</div><div class="prop-price">R$ 290.000</div></div>
             <button class="prop-btn" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Saiba mais</button>
           </div>
         </div>
@@ -1708,6 +1692,18 @@
   // PASSO 1: Substitua a URL abaixo pela URL do seu Google Apps Script (veja instruções no README)
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
 
+  // ─── CONTADOR DE VISITAS ───
+  fetch(GOOGLE_SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      tipo: 'visita',
+      timestamp: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      pagina: 'index.html',
+      referrer: document.referrer || 'Direto'
+    })
+  }).catch(() => {});
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -2028,34 +2024,36 @@ function gvizJsonpIndex(sheetId, sheet) {
     const table = json.table;
     if (!table || !table.rows) return;
 
-    const ativos = table.rows.filter(row =>
-      row.c && row.c[1] && row.c[1].v === true  // Ativo
-    );
-    if (!ativos.length) return; // nenhum ativo → mantém cartões fixos
-
-    // Prioridade: marcados como Destaque; se não houver, pega os 3 primeiros ativos
-    const comDestaque = ativos.filter(row => row.c[14] && row.c[14].v === true);
-    const destaques   = comDestaque.length ? comDestaque : ativos.slice(0, 3);
-
     const g = (row, i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
 
-    const html = destaques.map(row => {
+    // Filtra ativos com Destaque marcado, separando por UF
+    const destaques = table.rows.filter(row =>
+      row.c && row.c[1] && row.c[1].v === true &&   // Ativo
+      row.c[14] && row.c[14].v === true              // Destaque = TRUE
+    );
+
+    const destRJ = destaques.filter(row => g(row,15).toUpperCase() === 'RJ').slice(0,3);
+    const destSP = destaques.filter(row => g(row,15).toUpperCase() === 'SP').slice(0,3);
+
+    if (!destRJ.length && !destSP.length) return; // nenhum destaque → mantém fallback
+
+    function cardHtml(row) {
       const nome      = g(row, 5);
       const cidade    = g(row, 4);
+      const bairro    = g(row, 16);
       const tipo      = g(row, 2);
-      const faixa     = g(row, 8).replace('Até ','').replace(' mil','') || '—';
-      const preco     = g(row, 9) ? `R$ ${parseFloat(g(row,9)).toLocaleString('pt-BR')}.000` : faixa;
+      const preco     = g(row, 9) ? `R$ ${parseFloat(g(row,9)).toLocaleString('pt-BR')}.000` : g(row, 8) || '—';
       const descricao = g(row, 6);
       const imagem    = fixDriveUrl(g(row, 7)) || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80';
       const blogUrl   = g(row, 11) || '#';
-
+      const localStr  = [bairro, cidade].filter(Boolean).join(' — ');
       return `
         <div class="prop-card">
           <div class="prop-tag">${tipo}</div>
           <img class="prop-img" src="${imagem}" alt="${nome}" loading="lazy"
                onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80'">
           <div class="prop-body">
-            <div class="prop-city">${cidade}</div>
+            <div class="prop-city">${localStr}</div>
             <div class="prop-name">${nome}</div>
             <div class="prop-desc">${descricao}</div>
             <div class="prop-footer">
@@ -2070,9 +2068,10 @@ function gvizJsonpIndex(sheetId, sheet) {
             </div>
           </div>
         </div>`;
-    }).join('');
+    }
 
-    document.getElementById('props-grid').innerHTML = html;
+    if (destRJ.length) document.getElementById('props-grid-rj').innerHTML = destRJ.map(cardHtml).join('');
+    if (destSP.length) document.getElementById('props-grid-sp').innerHTML = destSP.map(cardHtml).join('');
 
   } catch(e) {
     // Silencia erros — mantém cartões fixos como fallback

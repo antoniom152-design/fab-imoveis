@@ -476,6 +476,30 @@
             <label class="cad-label">Nome do Empreendimento <span class="req">*</span></label>
             <input class="cad-input" type="text" id="cadNome" placeholder="Ex: Residencial Aurora Galeão">
           </div>
+          <div class="cad-grid" style="grid-template-columns:80px 1fr 1fr;margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">UF</label>
+              <input class="cad-input" type="text" id="cadUF" placeholder="RJ" maxlength="2"
+                     style="text-transform:uppercase">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Cidade <span class="req">*</span></label>
+              <select class="cad-select" id="cadCidade">
+                <option value="">Selecione</option>
+                <option>Rio de Janeiro</option>
+                <option>Niterói</option>
+                <option>São Pedro da Aldeia</option>
+                <option>São Paulo</option>
+                <option>São José dos Campos</option>
+                <option>Guarulhos</option>
+                <option>Outra</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Bairro</label>
+              <input class="cad-input" type="text" id="cadBairro" placeholder="Ex: Barra da Tijuca">
+            </div>
+          </div>
           <div class="cad-grid cad-grid-3">
             <div class="cad-field">
               <label class="cad-label">Tipo <span class="req">*</span></label>
@@ -488,17 +512,8 @@
               </select>
             </div>
             <div class="cad-field">
-              <label class="cad-label">Cidade <span class="req">*</span></label>
-              <select class="cad-select" id="cadCidade">
-                <option value="">Selecione</option>
-                <option>Rio de Janeiro</option>
-                <option>São Paulo</option>
-                <option>Grande Rio</option>
-                <option>Grande SP</option>
-                <option>Niterói</option>
-                <option>Guarulhos</option>
-                <option>Outra</option>
-              </select>
+              <label class="cad-label">Construtora / Proprietário</label>
+              <input class="cad-input" type="text" id="cadConstrutora" placeholder="Ex: Cyrela, MRV...">
             </div>
             <div class="cad-field">
               <label class="cad-label">Construtora / Proprietário</label>
@@ -641,6 +656,22 @@
     Imóveis Cadastrados
     <span class="tb-count" id="count-badge">—</span>
   </button>
+  <button class="tab-btn" onclick="switchTab('leads')" id="tab-leads">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Leads
+  </button>
+  <button class="tab-btn" onclick="switchTab('reservas')" id="tab-reservas">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    Reservas
+  </button>
+  <button class="tab-btn" onclick="switchTab('simulacoes')" id="tab-simulacoes">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    Simulações
+  </button>
+  <button class="tab-btn" onclick="switchTab('visitas')" id="tab-visitas">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+    Visitas
+  </button>
   <button class="tab-btn" onclick="switchTab('setup')" id="tab-setup">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Configurar Planilha
@@ -713,6 +744,14 @@
   <!-- FILTROS DA TABELA -->
   <div class="tbl-filters">
     <div class="tbl-filter-grp">
+      <span class="tbl-filter-lbl">UF</span>
+      <select class="tbl-filter-sel" id="tf-uf" onchange="renderTable()">
+        <option value="">Todos</option>
+        <option value="RJ">RJ</option>
+        <option value="SP">SP</option>
+      </select>
+    </div>
+    <div class="tbl-filter-grp">
       <span class="tbl-filter-lbl">Tipo</span>
       <select class="tbl-filter-sel" id="tf-tipo" onchange="renderTable()">
         <option value="">Todos</option>
@@ -728,6 +767,12 @@
         <option>São Pedro da Aldeia</option><option>São Paulo</option>
         <option>São José dos Campos</option>
       </select>
+    </div>
+    <div class="tbl-filter-grp">
+      <span class="tbl-filter-lbl">Construtora</span>
+      <input class="tbl-filter-sel" type="text" id="tf-construtora"
+             placeholder="Buscar..." oninput="renderTable()"
+             style="height:32px;padding:6px 10px;font-size:12px">
     </div>
     <div class="tbl-filter-grp">
       <span class="tbl-filter-lbl">Status</span>
@@ -978,6 +1023,104 @@ function onEdit(e) {
 </div><!-- .main -->
 </div><!-- tab setup -->
 
+<!-- ══════════════ PAINÉIS: LEADS / RESERVAS / SIMULAÇÕES / VISITAS ══════════════ -->
+<style>
+  .query-card{background:var(--navy-mid);border:1px solid var(--border);padding:20px 24px;margin-bottom:20px;position:relative}
+  .query-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
+  .query-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+  .qf-group{display:flex;flex-direction:column;gap:5px}
+  .qf-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted)}
+  .qf-input{height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--off-white);padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .2s;min-width:140px}
+  .qf-input:focus{border-color:var(--gold)}
+  .btn-query{height:36px;padding:0 20px;background:var(--gold);color:var(--navy);border:none;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
+  .btn-query:hover{background:var(--gold-light)}
+  .query-count{font-size:12px;color:var(--text-muted);margin-top:10px}
+  .query-table-wrap{overflow-x:auto;margin-top:12px}
+  .query-table-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
+  .query-table-wrap thead th{background:var(--navy);padding:9px 12px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap}
+  .query-table-wrap tbody tr{border-bottom:1px solid rgba(201,168,76,.06)}
+  .query-table-wrap tbody tr:hover{background:rgba(201,168,76,.04)}
+  .query-table-wrap tbody td{padding:9px 12px;color:var(--text-muted);vertical-align:middle}
+  .vis-stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+  .vis-card{background:var(--navy-mid);border:1px solid var(--border);padding:18px;text-align:center}
+  .vis-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gold);line-height:1}
+  .vis-lbl{font-size:11px;color:var(--text-muted);margin-top:6px}
+</style>
+
+<!-- LEADS -->
+<div class="tab-panel" id="panel-leads">
+<div class="main">
+  <div class="query-card">
+    <div class="query-filters">
+      <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="leads-de"></div>
+      <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="leads-ate"></div>
+      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarLeads()">&#128269; Consultar</button></div>
+    </div>
+    <div class="query-count" id="leads-count"></div>
+  </div>
+  <div class="query-table-wrap" id="leads-table-wrap">
+    <div class="empty-table">Selecione o período e clique em Consultar.</div>
+  </div>
+</div>
+</div>
+
+<!-- RESERVAS -->
+<div class="tab-panel" id="panel-reservas">
+<div class="main">
+  <div class="query-card">
+    <div class="query-filters">
+      <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="res-de"></div>
+      <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="res-ate"></div>
+      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarReservas()">&#128269; Consultar</button></div>
+    </div>
+    <div class="query-count" id="res-count"></div>
+  </div>
+  <div class="query-table-wrap" id="res-table-wrap">
+    <div class="empty-table">Selecione o período e clique em Consultar.</div>
+  </div>
+</div>
+</div>
+
+<!-- SIMULAÇÕES -->
+<div class="tab-panel" id="panel-simulacoes">
+<div class="main">
+  <div class="query-card">
+    <div class="query-filters">
+      <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="sim-de"></div>
+      <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="sim-ate"></div>
+      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarSimulacoes()">&#128269; Consultar</button></div>
+    </div>
+    <div class="query-count" id="sim-count"></div>
+  </div>
+  <div class="query-table-wrap" id="sim-table-wrap">
+    <div class="empty-table">Selecione o período e clique em Consultar.</div>
+  </div>
+</div>
+</div>
+
+<!-- VISITAS -->
+<div class="tab-panel" id="panel-visitas">
+<div class="main">
+  <div class="vis-stat">
+    <div class="vis-card"><div class="vis-num" id="vis-hoje">—</div><div class="vis-lbl">Visitas Hoje</div></div>
+    <div class="vis-card"><div class="vis-num" id="vis-semana">—</div><div class="vis-lbl">Esta Semana</div></div>
+    <div class="vis-card"><div class="vis-num" id="vis-mes">—</div><div class="vis-lbl">Este Mês</div></div>
+    <div class="vis-card"><div class="vis-num" id="vis-total">—</div><div class="vis-lbl">Total</div></div>
+  </div>
+  <div class="query-card">
+    <div class="query-filters">
+      <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="vis-de"></div>
+      <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="vis-ate"></div>
+      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas()">&#128269; Consultar</button></div>
+    </div>
+    <div class="query-count" id="vis-count"></div>
+  </div>
+  <div class="query-table-wrap" id="vis-table-wrap">
+    <div class="empty-table">Selecione o período e clique em Consultar.</div>
+  </div>
+</div>
+</div>
+
 <!-- ══════════════ TAB: COLUNAS ══════════════ -->
 <div class="tab-panel" id="panel-colunas">
 <div class="main">
@@ -1158,7 +1301,8 @@ function parseGvizToAdmin(table) {
       tipo: g(2), construtora: g(3), cidade: g(4), nome: g(5),
       descricao: g(6), imagem: g(7), faixa: g(8), valor: parseFloat(g(9)) || 0,
       qtd: g(10), blog: g(11), data: g(12), obs: g(13),
-      destaque: row.c && row.c[14] && row.c[14].v === true
+      destaque: row.c && row.c[14] && row.c[14].v === true,
+      uf: g(15), bairro: g(16)
     };
   }).filter(r => r.nome);
 }
@@ -1181,13 +1325,18 @@ function renderStats(data) {
 function tipoClass(t){return{Novo:'bt-novo',Usado:'bt-usado','Lançamento':'bt-lancamento','Em Construção':'bt-construcao'}[t]||'bt-novo'}
 
 function renderTable() {
-  const tipo   = document.getElementById('tf-tipo').value;
-  const cidade = document.getElementById('tf-cidade').value;
-  const ativo  = document.getElementById('tf-ativo').value;
+  const uf         = document.getElementById('tf-uf').value;
+  const tipo       = document.getElementById('tf-tipo').value;
+  const cidade     = document.getElementById('tf-cidade').value;
+  const construtEl = document.getElementById('tf-construtora');
+  const construtora = construtEl ? construtEl.value.trim().toLowerCase() : '';
+  const ativo      = document.getElementById('tf-ativo').value;
 
   let data = sheetData.filter(d => {
+    if (uf     && (d.uf||'').toUpperCase() !== uf.toUpperCase()) return false;
     if (tipo   && d.tipo   !== tipo)   return false;
     if (cidade && d.cidade !== cidade) return false;
+    if (construtora && !(d.construtora||'').toLowerCase().includes(construtora)) return false;
     if (ativo === '1' && !d.ativo)     return false;
     if (ativo === '0' && d.ativo)      return false;
     return true;
@@ -1260,6 +1409,8 @@ function abrirFormEdit(id) {
   document.getElementById('cadAtivo').checked     = d.ativo;
   document.getElementById('cadDestaque').checked  = d.destaque;
   document.getElementById('cadNome').value         = d.nome        || '';
+  document.getElementById('cadUF').value           = (d.uf         || '').toUpperCase();
+  document.getElementById('cadBairro').value       = d.bairro      || '';
   document.getElementById('cadTipo').value         = d.tipo        || '';
   document.getElementById('cadConstrutora').value  = d.construtora || '';
   document.getElementById('cadCidade').value       = d.cidade      || '';
@@ -1294,6 +1445,8 @@ function coletarDadosForm() {
     ativo:        document.getElementById('cadAtivo').checked,
     destaque:     document.getElementById('cadDestaque').checked,
     nome:         document.getElementById('cadNome').value.trim(),
+    uf:           document.getElementById('cadUF').value.trim().toUpperCase(),
+    bairro:       document.getElementById('cadBairro').value.trim(),
     tipo_imovel:  document.getElementById('cadTipo').value,
     construtora:  document.getElementById('cadConstrutora').value.trim(),
     cidade:       document.getElementById('cadCidade').value,
@@ -1366,6 +1519,122 @@ function mostrarToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 6000);
+}
+
+/* ══════════════ MÓDULOS: LEADS / RESERVAS / SIMULAÇÕES / VISITAS ══════════════ */
+const PLANILHA_LEADS_ID = '1UKSyzkYpVxtsSb4UrBvgslp7FFXtYk8DUeqJVGzk0M0';
+
+function gvizJsonpAdmin(planilhaId, sheet) {
+  return new Promise(function(resolve, reject) {
+    const cb = 'adm_' + Date.now();
+    const s  = document.createElement('script');
+    const t  = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 10000);
+    function cleanup() { clearTimeout(t); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = d => { cleanup(); resolve(d); };
+    s.src = 'https://docs.google.com/spreadsheets/d/' + planilhaId +
+            '/gviz/tq?tqx=out:json;responseHandler:' + cb + '&sheet=' + encodeURIComponent(sheet);
+    s.onerror = () => { cleanup(); reject(new Error('Erro ao carregar')); };
+    document.head.appendChild(s);
+  });
+}
+
+function filtraPorPeriodo(rows, colIdx, de, ate) {
+  return rows.filter(row => {
+    const val = row.c && row.c[colIdx] && (row.c[colIdx].f || row.c[colIdx].v || '');
+    if (!val) return false;
+    const parts = String(val).match(/(\d{2})\/(\d{2})\/(\d{4})/);
+    if (!parts) return true;
+    const d = new Date(parts[3], parseInt(parts[2])-1, parseInt(parts[1]));
+    if (de  && d < new Date(de))  return false;
+    if (ate && d > new Date(ate + 'T23:59:59')) return false;
+    return true;
+  });
+}
+
+function g(row, i) { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; }
+
+async function consultarLeads() {
+  const de  = document.getElementById('leads-de').value;
+  const ate = document.getElementById('leads-ate').value;
+  document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  try {
+    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'Leads');
+    if (!json.table || !json.table.rows) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado encontrado.</div>'; return; }
+    let rows = json.table.rows;
+    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    document.getElementById('leads-count').textContent = rows.length + ' registro(s) encontrado(s)';
+    if (!rows.length) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Nenhum registro no período.</div>'; return; }
+    document.getElementById('leads-table-wrap').innerHTML =
+      '<table><thead><tr><th>Data/Hora</th><th>Nome</th><th>WhatsApp</th><th>Posto/Cargo</th><th>Base</th><th>Cidade</th><th>Faixa</th><th>Pagamento</th></tr></thead><tbody>' +
+      rows.map(r => `<tr><td>${g(r,0)}</td><td>${g(r,1)}</td><td>${g(r,2)}</td><td>${g(r,3)}</td><td>${g(r,4)}</td><td>${g(r,5)}</td><td>${g(r,6)}</td><td>${g(r,7)}</td></tr>`).join('') +
+      '</tbody></table>';
+  } catch(e) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+}
+
+async function consultarReservas() {
+  const de  = document.getElementById('res-de').value;
+  const ate = document.getElementById('res-ate').value;
+  document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  try {
+    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'RESERVA');
+    if (!json.table || !json.table.rows) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado.</div>'; return; }
+    let rows = json.table.rows;
+    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    document.getElementById('res-count').textContent = rows.length + ' registro(s) encontrado(s)';
+    if (!rows.length) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Nenhum registro no período.</div>'; return; }
+    document.getElementById('res-table-wrap').innerHTML =
+      '<table><thead><tr><th>Data/Hora</th><th>Nome</th><th>Telefone</th><th>CPF</th><th>Est. Civil</th><th>Empreendimento</th><th>Faixa</th><th>Pagamento</th><th>Docs</th></tr></thead><tbody>' +
+      rows.map(r => `<tr><td>${g(r,0)}</td><td>${g(r,1)}</td><td>${g(r,3)}</td><td>${g(r,5)}</td><td>${g(r,6)}</td><td>${g(r,12)}</td><td>${g(r,13)}</td><td>${g(r,15)}</td><td>${g(r,17)}</td></tr>`).join('') +
+      '</tbody></table>';
+  } catch(e) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+}
+
+async function consultarSimulacoes() {
+  const de  = document.getElementById('sim-de').value;
+  const ate = document.getElementById('sim-ate').value;
+  document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  try {
+    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'SIMULACOES');
+    if (!json.table || !json.table.rows) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado.</div>'; return; }
+    let rows = json.table.rows;
+    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    document.getElementById('sim-count').textContent = rows.length + ' registro(s) encontrado(s)';
+    if (!rows.length) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Nenhum registro no período.</div>'; return; }
+    document.getElementById('sim-table-wrap').innerHTML =
+      '<table><thead><tr><th>Data/Hora</th><th>Telefone</th><th>Nome</th><th>E-mail</th><th>Acessos</th></tr></thead><tbody>' +
+      rows.map(r => `<tr><td>${g(r,0)}</td><td>${g(r,1)}</td><td>${g(r,2)}</td><td>${g(r,3)}</td><td style="text-align:center;color:var(--gold);font-weight:700">${g(r,4)||1}</td></tr>`).join('') +
+      '</tbody></table>';
+  } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+}
+
+async function consultarVisitas() {
+  const de  = document.getElementById('vis-de').value;
+  const ate = document.getElementById('vis-ate').value;
+  document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">Carregando...</div>';
+  try {
+    const json = await gvizJsonpAdmin(PLANILHA_LEADS_ID, 'VISITAS');
+    if (!json.table || !json.table.rows) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">Nenhum dado.</div>'; return; }
+    const allRows = json.table.rows;
+    const hoje    = new Date().toLocaleDateString('pt-BR');
+    const semana  = new Date(Date.now() - 7*86400000);
+    const mes     = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    document.getElementById('vis-hoje').textContent   = allRows.filter(r => g(r,0).startsWith(hoje)).length;
+    document.getElementById('vis-semana').textContent = allRows.filter(r => { const d = parseDateBR(g(r,0)); return d && d >= semana; }).length;
+    document.getElementById('vis-mes').textContent    = allRows.filter(r => { const d = parseDateBR(g(r,0)); return d && d >= mes; }).length;
+    document.getElementById('vis-total').textContent  = allRows.length;
+    let rows = allRows;
+    if (de || ate) rows = filtraPorPeriodo(rows, 0, de, ate);
+    document.getElementById('vis-count').textContent = rows.length + ' visita(s) no período';
+    document.getElementById('vis-table-wrap').innerHTML =
+      '<table><thead><tr><th>Data/Hora</th><th>Página</th><th>Origem</th></tr></thead><tbody>' +
+      rows.slice(-200).reverse().map(r => `<tr><td>${g(r,0)}</td><td>${g(r,2)}</td><td>${g(r,3)}</td></tr>`).join('') +
+      '</tbody></table>';
+  } catch(e) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">Erro: ' + e.message + '</div>'; }
+}
+
+function parseDateBR(str) {
+  const m = str.match(/(\d{2})\/(\d{2})\/(\d{4})/);
+  return m ? new Date(m[3], parseInt(m[2])-1, parseInt(m[1])) : null;
 }
 
 /* ── INIT ── */
