@@ -167,59 +167,80 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 .placeholder strong{display:block;font-size:1.1rem;font-family:'DM Serif Display',serif;color:var(--ink);margin-bottom:.5rem;font-weight:400}
 .disclaimer{margin-top:1rem;font-size:11px;color:var(--ink-muted);line-height:1.6;text-align:center;padding:0 1rem}
 
-@media(max-width:950px){.main{grid-template-columns:1fr}.summary-grid{grid-template-columns:1fr 1fr}.tab-row{grid-template-columns:1fr 1fr}.encargo-row{grid-template-columns:1fr 1fr}}
+/* ── TABLET ── */
+@media(max-width:950px){
+  .main{grid-template-columns:1fr}
+  .summary-grid{grid-template-columns:1fr 1fr}
+  .tab-row{grid-template-columns:1fr 1fr}
+  .encargo-row{grid-template-columns:1fr 1fr}
+}
+
+/* ── MOBILE ── */
 @media(max-width:640px){
   .nav-fab{padding:10px 14px}
   .nav-logo img{height:46px}
   .nav-logo>span{font-size:16px}
-  .header{padding:1.75rem 1rem 1.5rem}
-  .main{grid-template-columns:1fr;padding:1.5rem 1rem 3rem}
-  .summary-grid{grid-template-columns:1fr 1fr}
-
-  /* Tabs do comparativo — 1 coluna em mobile */
-  .tab-row{grid-template-columns:1fr 1fr;gap:6px}
-  .tab{padding:.65rem .75rem}
-  .tab-label{font-size:9px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .tab-value{font-size:1rem}
-  .tab-sub{display:none} /* oculta subtexto longo nos cards de seleção */
-
-  /* Cards de resumo */
-  .s-card{padding:.7rem .75rem}
-  .s-val{font-size:.95rem}
-
-  /* Encargos */
-  .encargo-row{grid-template-columns:1fr 1fr;gap:6px}
-  .enc-card{padding:.6rem .75rem}
-  .enc-card.total-card{grid-column:1/-1}
-  .enc-val{font-size:12px}
-  .enc-card.total-card .enc-val{font-size:14px}
-
-  /* Tabela de parcelas — scroll horizontal */
-  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tbl-scroll{max-height:260px;overflow-x:auto}
-  table{min-width:480px;font-size:11px}
-  thead th{padding:6px 7px;font-size:9px}
-  tbody td{padding:6px 7px}
-
-  .disclaimer{font-size:10px;padding:0 .5rem}
-
+  .header{padding:1.5rem 1rem 1.25rem}
+  .header h1{font-size:clamp(22px,6vw,32px)}
+  .main{grid-template-columns:1fr;padding:1rem 1rem 3rem}
   input[type=text],input[type=date],select{font-size:16px}
-  .sim-action-btn{flex:1 1 100%}
+  .row2{grid-template-columns:1fr}
+  .btn{margin-top:1rem}
+
+  /* ── Tabs comparativo: scroll horizontal ── */
+  .tab-row{
+    display:flex;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    gap:8px;
+    padding-bottom:6px;
+    /* esconde scrollbar mas mantém funcional */
+    scrollbar-width:none;
+  }
+  .tab-row::-webkit-scrollbar{display:none}
+  .tab{
+    flex:0 0 auto;
+    min-width:150px;
+    max-width:170px;
+    scroll-snap-align:start;
+    padding:.75rem .9rem;
+  }
+  .tab-label{font-size:9px;letter-spacing:.06em;line-height:1.3;margin-bottom:4px}
+  .tab-value{font-size:1.05rem;line-height:1.1}
+  .tab-sub{font-size:10px;margin-top:3px;line-height:1.3}
+
+  /* ── Resumo 2×2 ── */
+  .summary-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .s-card{padding:.75rem .8rem}
+  .s-label{font-size:9px}
+  .s-val{font-size:.95rem}
+  .s-sub{font-size:10px}
+
+  /* ── Encargos: 1 coluna ── */
+  .encargo-row{grid-template-columns:1fr;gap:8px}
+  .enc-card{padding:.7rem .9rem}
+  .enc-card.total-card{grid-column:auto}
+  .enc-label{font-size:9px}
+  .enc-val{font-size:13px}
+  .enc-card.total-card .enc-val{font-size:15px}
+
+  /* ── Tabela: scroll horizontal ── */
+  .table-wrap{overflow:hidden}
+  .tbl-scroll{
+    overflow-x:auto;
+    overflow-y:auto;
+    max-height:280px;
+    -webkit-overflow-scrolling:touch;
+  }
+  table{min-width:520px;font-size:11px}
+  thead th{padding:6px 8px;font-size:9px}
+  tbody td{padding:6px 8px}
+
+  .disclaimer{font-size:10px;padding:0 .25rem;text-align:left}
+  .sim-actions-bar{flex-direction:column;gap:8px}
+  .sim-action-btn{width:100%;flex:none}
 }
-@media(max-width:420px){
-  /* Telas muito pequenas — tabs em coluna única */
-  .tab-row{grid-template-columns:1fr}
-  .tab{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.6rem .85rem}
-  .tab-label{flex:1;font-size:9px}
-  .tab-value{font-size:1rem;flex-shrink:0}
-  .summary-grid{grid-template-columns:1fr 1fr}
-  .encargo-row{grid-template-columns:1fr}
-}
-@media(max-width:360px){
-  .summary-grid{grid-template-columns:1fr}
-  .encargo-row{grid-template-columns:1fr}
-}
-@media(max-width:480px){.nav-fab{padding:12px 16px}.header{padding:2rem 1.2rem}.summary-grid{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr}.encargo-row{grid-template-columns:1fr}}
 
 /* ─── BARRA DE AÇÕES (imprimir / pdf) ─── */
 .sim-actions-bar{
