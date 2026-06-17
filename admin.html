@@ -434,9 +434,46 @@
   .tbl-filter-sel option{background:#112240}
 
   @media(max-width:768px){
-    nav,.page-header,.tabs-bar,.main{padding-left:20px;padding-right:20px}
+    nav,.page-header,.tabs-bar,.main{padding-left:16px;padding-right:16px}
     .step-body{padding-left:22px}
     .stats-grid{grid-template-columns:repeat(2,1fr)}
+    .query-filters{flex-wrap:wrap}
+    .qf-group{min-width:140px;flex:1}
+  }
+
+  @media(max-width:640px){
+    nav{padding:12px 16px;flex-wrap:wrap;gap:8px}
+    .nav-logo-text span:last-child{display:none}
+    .nav-title{font-size:13px}
+    .page-header{padding:16px}
+    .page-header h1{font-size:18px}
+
+    .tabs-bar{padding:0 8px;gap:2px;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+    .tabs-bar::-webkit-scrollbar{height:2px}
+    .tabs-bar::-webkit-scrollbar-thumb{background:var(--gold-dim)}
+    .tab-btn{white-space:nowrap;padding:10px 12px;font-size:10px;flex-shrink:0}
+    .tab-btn svg{display:none}
+    .tb-count{display:none}
+
+    .main{padding:16px}
+    .stats-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+    .stat-card{padding:14px 12px}
+    .stat-num{font-size:24px}
+
+    .query-card{padding:16px}
+    .query-filters{flex-direction:column;gap:8px}
+    .qf-group{width:100%}
+    .qf-input,.btn-query{width:100%}
+
+    .cad-grid-2,.cad-grid-3{grid-template-columns:1fr}
+
+    /* Tabelas de consulta — scroll horizontal */
+    .query-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .query-table-wrap table{min-width:600px}
+
+    /* Construtoras — formulário */
+    #const-form-wrap .query-card{padding:16px}
+    #const-search{width:100%!important}
   }
 </style>
 </head>
@@ -450,7 +487,7 @@
       <button class="cad-close" onclick="fecharForm()">✕</button>
     </div>
     <div class="cad-body">
-      <form id="cadForm" autocomplete="off">
+      <form id="cadForm" autocomplete="off" onsubmit="return false">
 
         <!-- VISIBILIDADE -->
         <div class="cad-section">
@@ -476,28 +513,97 @@
             <label class="cad-label">Nome do Empreendimento <span class="req">*</span></label>
             <input class="cad-input" type="text" id="cadNome" placeholder="Ex: Residencial Aurora Galeão">
           </div>
+          <!-- campos hidden — fonte de verdade para UF/Cidade/Bairro -->
+          <input type="hidden" id="cadUFVal">
+          <input type="hidden" id="cadCidadeVal">
+          <input type="hidden" id="cadBairroVal">
+
           <div class="cad-grid" style="grid-template-columns:80px 1fr 1fr;margin-bottom:14px">
+            <!-- UF -->
             <div class="cad-field">
               <label class="cad-label">UF</label>
-              <input class="cad-input" type="text" id="cadUF" placeholder="RJ" maxlength="2"
-                     style="text-transform:uppercase">
+              <select class="cad-select" id="cadUF" onchange="onCadUF()">
+                <option value="">UF</option>
+                <option value="AC">AC</option><option value="AL">AL</option>
+                <option value="AM">AM</option><option value="AP">AP</option>
+                <option value="BA">BA</option><option value="CE">CE</option>
+                <option value="DF">DF</option><option value="ES">ES</option>
+                <option value="GO">GO</option><option value="MA">MA</option>
+                <option value="MG">MG</option><option value="MS">MS</option>
+                <option value="MT">MT</option><option value="PA">PA</option>
+                <option value="PB">PB</option><option value="PE">PE</option>
+                <option value="PI">PI</option><option value="PR">PR</option>
+                <option value="RJ">RJ</option><option value="RN">RN</option>
+                <option value="RO">RO</option><option value="RR">RR</option>
+                <option value="RS">RS</option><option value="SC">SC</option>
+                <option value="SE">SE</option><option value="SP">SP</option>
+                <option value="TO">TO</option>
+              </select>
+              <div id="cadUFOutraWrap" style="display:none;margin-top:6px">
+                <input class="cad-input" type="text" id="cadUFOutra" placeholder="Ex: MG" maxlength="2"
+                       style="width:100%;text-transform:uppercase"
+                       oninput="confirmarOutra('cadUFVal',this.value.toUpperCase(),'cadUFConfirm')">
+                <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+                  <button type="button" id="cadUFConfirm"
+                          onclick="confirmarOutraBtn('cadUF','cadUFOutra','cadUFVal','cadUFConfirm')"
+                          style="font-size:11px;color:var(--gold);background:none;border:1px solid var(--gold);
+                                 border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
+                    ✓ Usar este valor
+                  </button>
+                  <button type="button" onclick="voltarCadSelect('cadUF','cadUFOutraWrap')"
+                          style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0">
+                    ✕ Voltar para a lista
+                  </button>
+                </div>
+              </div>
             </div>
+            <!-- Cidade -->
             <div class="cad-field">
               <label class="cad-label">Cidade <span class="req">*</span></label>
-              <select class="cad-select" id="cadCidade">
-                <option value="">Selecione</option>
-                <option>Rio de Janeiro</option>
-                <option>Niterói</option>
-                <option>São Pedro da Aldeia</option>
-                <option>São Paulo</option>
-                <option>São José dos Campos</option>
-                <option>Guarulhos</option>
-                <option>Outra</option>
+              <select class="cad-select" id="cadCidade" onchange="onCadCidade()">
+                <option value="">Selecione primeiro a UF</option>
               </select>
+              <div id="cadCidadeOutraWrap" style="display:none;margin-top:6px">
+                <input class="cad-input" type="text" id="cadCidadeOutra" placeholder="Digite o nome da cidade"
+                       style="width:100%"
+                       oninput="confirmarOutra('cadCidadeVal',this.value,'cadCidadeConfirm')">
+                <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+                  <button type="button" id="cadCidadeConfirm"
+                          onclick="confirmarOutraBtn('cadCidade','cadCidadeOutra','cadCidadeVal','cadCidadeConfirm')"
+                          style="font-size:11px;color:var(--gold);background:none;border:1px solid var(--gold);
+                                 border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
+                    ✓ Usar este valor
+                  </button>
+                  <button type="button" onclick="voltarCadSelect('cadCidade','cadCidadeOutraWrap')"
+                          style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0">
+                    ✕ Voltar para a lista
+                  </button>
+                </div>
+              </div>
             </div>
+            <!-- Bairro -->
             <div class="cad-field">
               <label class="cad-label">Bairro</label>
-              <input class="cad-input" type="text" id="cadBairro" placeholder="Ex: Barra da Tijuca">
+              <select class="cad-select" id="cadBairro" onchange="onCadBairro()">
+                <option value="">Selecione primeiro a cidade</option>
+              </select>
+              <div id="cadBairroOutraWrap" style="display:none;margin-top:6px">
+                <input class="cad-input" type="text" id="cadBairroOutra" placeholder="Ex: Barra da Tijuca"
+                       style="width:100%"
+                       oninput="confirmarOutra('cadBairroVal',this.value,'cadBairroConfirm')">
+                <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+                  <button type="button" id="cadBairroConfirm"
+                          onclick="confirmarOutraBtn('cadBairro','cadBairroOutra','cadBairroVal','cadBairroConfirm')"
+                          style="font-size:11px;color:var(--gold);background:none;border:1px solid var(--gold);
+                                 border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
+                    ✓ Usar este valor
+                  </button>
+                  <button type="button" onclick="voltarCadSelect('cadBairro','cadBairroOutraWrap')"
+                          style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0">
+                    ✕ Voltar para a lista
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
           <div class="cad-grid cad-grid-3">
@@ -582,8 +688,8 @@
       </form>
     </div>
     <div class="cad-footer">
-      <button class="btn-cad-cancel" onclick="fecharForm()">Cancelar</button>
-      <button class="btn-cad-save" id="btnSalvarImovel" onclick="salvarImovel()">
+      <button type="button" class="btn-cad-cancel" onclick="fecharForm()">Cancelar</button>
+      <button type="button" class="btn-cad-save" id="btnSalvarImovel" onclick="salvarImovel()">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
           <polyline points="17 21 17 13 7 13 7 21"/>
@@ -676,6 +782,10 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     Configurar Planilha
   </button>
+  <button class="tab-btn" onclick="switchTab('construtoras')" id="tab-construtoras">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="1"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+    Construtoras
+  </button>
   <button class="tab-btn" onclick="switchTab('colunas')" id="tab-colunas">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     Estrutura da Planilha
@@ -715,9 +825,24 @@
       <div class="stat-sub" id="st-ativo-sub">aguardando dados</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Lançamentos</div>
-      <div class="stat-val" id="st-lancamento">—</div>
-      <div class="stat-sub">em oferta</div>
+      <div class="stat-label">Lançamento</div>
+      <div class="stat-val" id="st-tipo-lancamento">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Novo</div>
+      <div class="stat-val" id="st-tipo-novo">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Usado</div>
+      <div class="stat-val" id="st-tipo-usado">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Em Construção</div>
+      <div class="stat-val" id="st-tipo-construcao">—</div>
+      <div class="stat-sub">imóveis</div>
     </div>
     <div class="stat-card">
       <div class="stat-label">Rio de Janeiro</div>
@@ -730,13 +855,33 @@
       <div class="stat-sub">imóveis</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Até R$ 500 mil</div>
-      <div class="stat-val" id="st-500">—</div>
+      <div class="stat-label">Até R$ 300 mil</div>
+      <div class="stat-val" id="st-f1">—</div>
       <div class="stat-sub">imóveis</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Acima R$ 1 milhão</div>
-      <div class="stat-val" id="st-1m">—</div>
+      <div class="stat-label">R$ 300 – 500 mil</div>
+      <div class="stat-val" id="st-f2">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">R$ 500 – 700 mil</div>
+      <div class="stat-val" id="st-f3">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">R$ 700 – 900 mil</div>
+      <div class="stat-val" id="st-f4">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">R$ 900 mil – 1,25 mi</div>
+      <div class="stat-val" id="st-f5">—</div>
+      <div class="stat-sub">imóveis</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Acima R$ 1,25 mi</div>
+      <div class="stat-val" id="st-f6">—</div>
       <div class="stat-sub">imóveis</div>
     </div>
   </div>
@@ -801,14 +946,14 @@
         <thead>
           <tr>
             <th>Status</th><th>Imagem</th><th>Nome do Empreendimento</th>
-            <th>Tipo</th><th>Construtora</th><th>Cidade</th>
+            <th>Tipo</th><th>Construtora</th><th>Cidade</th><th>Bairro</th>
             <th>Faixa de Valor</th><th>Unid.</th><th>Blog</th>
             <th style="color:var(--gold)">★</th>
             <th style="color:var(--gold)">Ações</th>
           </tr>
         </thead>
         <tbody id="tbl-body">
-          <tr><td colspan="9"><div class="loading-row">
+          <tr><td colspan="12"><div class="loading-row">
             Carregando dados… configure a conexão acima.
           </div></td></tr>
         </tbody>
@@ -1063,12 +1208,26 @@ function onEdit(e) {
       <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarLeads()">&#128269; Consultar</button></div>
     </div>
     <div class="query-count" id="leads-count"></div>
-    <button class="btn-query" onclick="imprimirTabela('Leads','leads-table-wrap',document.getElementById('leads-count').textContent)" style="margin-top:10px;background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn-query" onclick="imprimirTabela('Leads','leads-table-wrap',document.getElementById('leads-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+      <button class="btn-query" onclick="abrirEmpreendimentos()" style="background:var(--gold);color:var(--navy);border:none;font-weight:700">🏠 Ver Empreendimentos Disponíveis</button>
+    </div>
   </div>
   <div class="query-table-wrap" id="leads-table-wrap">
     <div class="empty-table">Selecione o período e clique em Consultar.</div>
   </div>
 </div>
+</div>
+
+<!-- MODAL EMPREENDIMENTOS -->
+<div id="modal-empreendimentos" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.75);align-items:center;justify-content:center">
+  <div style="position:relative;width:95vw;height:92vh;background:var(--navy);border:1px solid var(--border);display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <span style="font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold)">Empreendimentos Disponíveis</span>
+      <button onclick="fecharEmpreendimentos()" style="background:none;border:1px solid var(--border);color:var(--off-white);padding:6px 14px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.1em">✕ Fechar</button>
+    </div>
+    <iframe id="iframe-empreendimentos" src="" style="flex:1;border:none;width:100%" allowfullscreen></iframe>
+  </div>
 </div>
 
 <!-- RESERVAS -->
@@ -1131,6 +1290,107 @@ function onEdit(e) {
 </div>
 </div>
 
+<!-- ══════════════ TAB: CONSTRUTORAS ══════════════ -->
+<div class="tab-panel" id="panel-construtoras">
+<div class="main">
+
+  <!-- BARRA DE AÇÕES -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted)" id="const-count-label">—</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <input type="text" id="const-search" class="cad-input" placeholder="🔍 Buscar por nome, cidade ou estado…" style="width:280px;margin:0" oninput="filtrarConstrutoras()">
+      <button class="btn-cad-save" type="button" onclick="abrirFormConstrutora()" style="padding:9px 18px">+ Nova Construtora</button>
+    </div>
+  </div>
+
+  <!-- FORMULÁRIO CADASTRO / EDIÇÃO -->
+  <div id="const-form-wrap" style="display:none">
+    <div class="query-card" style="margin-bottom:20px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:18px" id="const-form-titulo">Nova Construtora</div>
+      <form id="constForm" autocomplete="off" onsubmit="return false">
+        <input type="hidden" id="constId">
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+
+          <div>
+            <label class="cad-label">Nome da Construtora <span class="req">*</span></label>
+            <input class="cad-input" id="constNome" placeholder="Ex: Construtora XYZ" required>
+          </div>
+
+          <div>
+            <label class="cad-label">Telefone / WhatsApp</label>
+            <input class="cad-input" id="constTelefone" placeholder="(21) 99999-9999">
+          </div>
+
+          <div>
+            <label class="cad-label">Site</label>
+            <input class="cad-input" id="constSite" placeholder="https://www.construtora.com.br">
+          </div>
+
+          <div>
+            <label class="cad-label">Viabilizador (nome)</label>
+            <input class="cad-input" id="constViabilizador" placeholder="Nome do responsável">
+          </div>
+
+          <div>
+            <label class="cad-label">Telefone do Viabilizador</label>
+            <input class="cad-input" id="constTelViabilizador" placeholder="(21) 99999-9999">
+          </div>
+
+          <div>
+            <label class="cad-label">Comissão (%)</label>
+            <input class="cad-input" id="constComissao" type="number" step="0.01" min="0" max="100" placeholder="Ex: 3.5">
+          </div>
+
+          <div>
+            <label class="cad-label">Link do Drive</label>
+            <input class="cad-input" id="constDrive" placeholder="https://drive.google.com/…">
+          </div>
+
+          <div>
+            <label class="cad-label">Data de Inclusão</label>
+            <input class="cad-input" id="constData" type="date">
+          </div>
+
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px">
+
+          <div>
+            <label class="cad-label">Estados de Atuação</label>
+            <input class="cad-input" id="constEstados" placeholder="Ex: RJ, SP, MG">
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Separe por vírgula</div>
+          </div>
+
+          <div>
+            <label class="cad-label">Cidades de Atuação</label>
+            <input class="cad-input" id="constCidades" placeholder="Ex: Rio de Janeiro, Niterói, São Paulo">
+            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Separe por vírgula</div>
+          </div>
+
+        </div>
+
+        <div style="margin-top:14px">
+          <label class="cad-label">Observações</label>
+          <textarea class="cad-textarea" id="constObs" rows="3" placeholder="Observações gerais sobre a construtora…"></textarea>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+          <button type="button" class="btn-cad-cancel" onclick="fecharFormConstrutora()">Cancelar</button>
+          <button type="button" class="btn-cad-save" id="btnSalvarConstrutora" onclick="salvarConstrutora()">💾 Salvar Construtora</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="query-table-wrap" id="const-table-wrap">
+    <div class="empty-table">Nenhuma construtora cadastrada ainda.</div>
+  </div>
+
+</div>
+</div>
+
 <!-- ══════════════ TAB: COLUNAS ══════════════ -->
 <div class="tab-panel" id="panel-colunas">
 <div class="main">
@@ -1177,7 +1437,7 @@ function onEdit(e) {
 <script>
 /* ── CONFIGURAÇÕES ── */
 const ADMIN_PIN           = 'FAB2024';
-const APPS_SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbxwklDy6PqzVdn1J2tRYmuLcbuBOx56YmLf4Agg3oKDeJwwLz8c482R6-eZwns0Ddolsw/exec';
+const APPS_SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbxaYe-YjMZWc8z7VM_cS1FkPwQwQOU26xpnjgxZQfj4mrAO2KURuHOeH84WwX0HelXHpg/exec';
 const PLANILHA_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 
 function checkPin() {
@@ -1206,6 +1466,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
+  if (name === 'construtoras') carregarConstrutoras();
 }
 
 /* ── STEPS ── */
@@ -1286,7 +1547,7 @@ async function fetchPreview() {
 
   setConnStatus('warn','Conectando…','');
   document.getElementById('tbl-body').innerHTML =
-    '<tr><td colspan="9"><div class="loading-row">⏳ Carregando dados da planilha…</div></td></tr>';
+    '<tr><td colspan="12"><div class="loading-row">⏳ Carregando dados da planilha…</div></td></tr>';
 
   try {
     const json = await gvizJsonp(id, 'IMOVEISDISPONIVEIS');
@@ -1299,7 +1560,7 @@ async function fetchPreview() {
   } catch(e) {
     setConnStatus('err','Erro ao conectar', e.message);
     document.getElementById('tbl-body').innerHTML =
-      `<tr><td colspan="9"><div class="empty-table">❌ ${e.message}</div></td></tr>`;
+      `<tr><td colspan="12"><div class="empty-table">❌ ${e.message}</div></td></tr>`;
   }
 }
 
@@ -1322,11 +1583,20 @@ function renderStats(data) {
   const ativos = data.filter(d => d.ativo);
   document.getElementById('st-total').textContent = ativos.length;
   document.getElementById('st-ativo-sub').textContent = `${data.filter(d=>!d.ativo).length} inativos`;
-  document.getElementById('st-lancamento').textContent = ativos.filter(d=>d.tipo==='Lançamento').length;
-  document.getElementById('st-rj').textContent = ativos.filter(d=>d.cidade==='Rio de Janeiro').length;
-  document.getElementById('st-sp').textContent = ativos.filter(d=>d.cidade==='São Paulo').length;
-  document.getElementById('st-500').textContent = ativos.filter(d=>d.valor>0&&d.valor<=500).length;
-  document.getElementById('st-1m').textContent = ativos.filter(d=>d.valor>1000).length;
+  const tipoCount = t => ativos.filter(d=>d.tipo===t).length;
+  document.getElementById('st-tipo-lancamento').textContent = tipoCount('Lançamento');
+  document.getElementById('st-tipo-novo').textContent       = tipoCount('Novo');
+  document.getElementById('st-tipo-usado').textContent      = tipoCount('Usado');
+  document.getElementById('st-tipo-construcao').textContent = tipoCount('Em Construção');
+  document.getElementById('st-rj').textContent = ativos.filter(d=>(d.uf||'').toUpperCase()==='RJ').length;
+  document.getElementById('st-sp').textContent = ativos.filter(d=>(d.uf||'').toUpperCase()==='SP').length;
+  const faixaCount = f => ativos.filter(d => d.faixa === f).length;
+  document.getElementById('st-f1').textContent = faixaCount('Até R$ 300.000');
+  document.getElementById('st-f2').textContent = faixaCount('De R$ 300.000 a R$ 500.000');
+  document.getElementById('st-f3').textContent = faixaCount('De R$ 500.000 a R$ 700.000');
+  document.getElementById('st-f4').textContent = faixaCount('De R$ 700.000 a R$ 900.000');
+  document.getElementById('st-f5').textContent = faixaCount('De R$ 900.000 a R$ 1.250.000');
+  document.getElementById('st-f6').textContent = faixaCount('Acima de R$ 1.250.000');
   // Destaques na página principal
   const dest = ativos.filter(d=>d.destaque).length;
   document.getElementById('st-ativo-sub').textContent =
@@ -1334,6 +1604,131 @@ function renderStats(data) {
 }
 
 function tipoClass(t){return{Novo:'bt-novo',Usado:'bt-usado','Lançamento':'bt-lancamento','Em Construção':'bt-construcao'}[t]||'bt-novo'}
+
+/* ── Helpers para selects com "Outra..." ── */
+
+// Atualiza o hidden e mostra o botão "✓ Usar" enquanto o usuário digita
+function confirmarOutra(hiddenId, val, btnId) {
+  document.getElementById(hiddenId).value = val;
+  const btn = document.getElementById(btnId);
+  if (btn) btn.style.display = val.trim() ? 'inline-block' : 'none';
+}
+
+// Clique no botão "✓ Usar este valor" — confirma o valor e dispara o cascade
+function confirmarOutraBtn(selId, inputId, hiddenId, btnId) {
+  const val = document.getElementById(inputId).value.trim();
+  if (!val) return;
+  document.getElementById(hiddenId).value = val;
+  document.getElementById(btnId).textContent = '✓ ' + val;
+  document.getElementById(btnId).style.color  = 'var(--gold)';
+  document.getElementById(btnId).style.cursor = 'default';
+  // Dispara cascade para popular o próximo nível
+  if (selId === 'cadUF')    _preencherCidadesPorUF(val.toUpperCase());
+  if (selId === 'cadCidade') _preencherBairrosPorCidade(
+    document.getElementById('cadUFVal').value.toUpperCase(), val
+  );
+}
+
+function voltarCadSelect(selId, wrapId) {
+  document.getElementById(selId).value = '';
+  document.getElementById(wrapId).style.display = 'none';
+  // Limpa o hidden correspondente
+  const hiddenMap = { cadUF:'cadUFVal', cadCidade:'cadCidadeVal', cadBairro:'cadBairroVal' };
+  if (hiddenMap[selId]) document.getElementById(hiddenMap[selId]).value = '';
+  if (selId === 'cadUF')    { _resetCidade(); _resetBairro(); }
+  if (selId === 'cadCidade'){ _resetBairro(); }
+}
+
+function _resetCidade() {
+  _cadPopulateSelect('cadCidade', [], 'Selecione primeiro a UF', true);
+  document.getElementById('cadCidadeOutraWrap').style.display = 'none';
+  document.getElementById('cadCidadeVal').value = '';
+}
+function _resetBairro() {
+  _cadPopulateSelect('cadBairro', [], 'Selecione primeiro a cidade', true);
+  document.getElementById('cadBairroOutraWrap').style.display = 'none';
+  document.getElementById('cadBairroVal').value = '';
+}
+
+function _cadPopulateSelect(selId, opcoes, placeholder, comOutra) {
+  const sel = document.getElementById(selId);
+  sel.innerHTML = '<option value="">' + placeholder + '</option>';
+  opcoes.forEach(function(v) {
+    const o = document.createElement('option'); o.value = v; o.textContent = v; sel.appendChild(o);
+  });
+  if (comOutra) {
+    const o = document.createElement('option'); o.value = '__outra__'; o.textContent = '➕ Outra...'; sel.appendChild(o);
+  }
+}
+
+function _preencherCidadesPorUF(uf) {
+  const cidades = [...new Set(
+    sheetData.filter(d => (d.uf||'').toUpperCase() === uf && d.cidade).map(d => d.cidade)
+  )].sort();
+  _cadPopulateSelect('cadCidade', cidades, cidades.length ? 'Selecione a cidade' : 'Nenhuma cadastrada', true);
+}
+
+function _preencherBairrosPorCidade(uf, cidade) {
+  const bairros = [...new Set(
+    sheetData.filter(d => (d.uf||'').toUpperCase() === uf && d.cidade === cidade && d.bairro).map(d => d.bairro)
+  )].sort();
+  _cadPopulateSelect('cadBairro', bairros, bairros.length ? 'Selecione o bairro' : 'Nenhum cadastrado', true);
+}
+
+/* ── Handlers dos selects ── */
+function onCadUF() {
+  const sel = document.getElementById('cadUF');
+  _resetCidade(); _resetBairro();
+  if (sel.value === '__outra__') {
+    document.getElementById('cadUFOutraWrap').style.display = 'block';
+    document.getElementById('cadUFOutra').value = '';
+    document.getElementById('cadUFVal').value   = '';
+    document.getElementById('cadUFConfirm').style.display = 'none';
+    document.getElementById('cadUFOutra').focus();
+    return;
+  }
+  document.getElementById('cadUFOutraWrap').style.display = 'none';
+  const uf = sel.value.toUpperCase();
+  document.getElementById('cadUFVal').value = uf;
+  if (uf) _preencherCidadesPorUF(uf);
+}
+
+function onCadCidade() {
+  const sel = document.getElementById('cadCidade');
+  _resetBairro();
+  if (sel.value === '__outra__') {
+    document.getElementById('cadCidadeOutraWrap').style.display = 'block';
+    document.getElementById('cadCidadeOutra').value = '';
+    document.getElementById('cadCidadeVal').value   = '';
+    document.getElementById('cadCidadeConfirm').style.display = 'none';
+    document.getElementById('cadCidadeOutra').focus();
+    return;
+  }
+  document.getElementById('cadCidadeOutraWrap').style.display = 'none';
+  const cidade = sel.value;
+  document.getElementById('cadCidadeVal').value = cidade;
+  if (cidade) {
+    const uf = document.getElementById('cadUFVal').value.toUpperCase();
+    _preencherBairrosPorCidade(uf, cidade);
+  }
+}
+
+function onCadBairro() {
+  const sel = document.getElementById('cadBairro');
+  if (sel.value === '__outra__') {
+    document.getElementById('cadBairroOutraWrap').style.display = 'block';
+    document.getElementById('cadBairroOutra').value = '';
+    document.getElementById('cadBairroVal').value   = '';
+    document.getElementById('cadBairroConfirm').style.display = 'none';
+    document.getElementById('cadBairroOutra').focus();
+    return;
+  }
+  document.getElementById('cadBairroOutraWrap').style.display = 'none';
+  document.getElementById('cadBairroVal').value = sel.value;
+}
+
+/* getCidadeValue mantido para compatibilidade */
+function getCidadeValue() { return document.getElementById('cadCidadeVal').value; }
 
 function renderTable() {
   const uf         = document.getElementById('tf-uf').value;
@@ -1357,7 +1752,7 @@ function renderTable() {
 
   if (!data.length) {
     document.getElementById('tbl-body').innerHTML =
-      '<tr><td colspan="9"><div class="empty-table">Nenhum registro encontrado para os filtros selecionados.</div></td></tr>';
+      '<tr><td colspan="12"><div class="empty-table">Nenhum registro encontrado para os filtros selecionados.</div></td></tr>';
     return;
   }
 
@@ -1371,6 +1766,7 @@ function renderTable() {
       <td><span class="badge-tipo ${tipoClass(d.tipo)}">${d.tipo}</span></td>
       <td>${d.construtora||'—'}</td>
       <td>${d.cidade}</td>
+      <td>${d.bairro||'—'}</td>
       <td class="td-valor">${d.faixa||'—'}</td>
       <td>${d.qtd||'—'}</td>
       <td class="td-link">${d.blog
@@ -1406,9 +1802,18 @@ function abrirFormNovo() {
   editandoId = null;
   document.getElementById('cadTitle').textContent = 'Novo Imóvel';
   document.getElementById('cadForm').reset();
-  document.getElementById('cadAtivo').checked   = true;
+  document.getElementById('cadAtivo').checked    = true;
   document.getElementById('cadDestaque').checked = false;
   document.getElementById('imgPreview').style.display = 'none';
+  // Reseta selects encadeados e hidden fields
+  document.getElementById('cadUFVal').value     = '';
+  document.getElementById('cadCidadeVal').value = '';
+  document.getElementById('cadBairroVal').value = '';
+  document.getElementById('cadUFOutraWrap').style.display     = 'none';
+  document.getElementById('cadCidadeOutraWrap').style.display = 'none';
+  document.getElementById('cadBairroOutraWrap').style.display = 'none';
+  _cadPopulateSelect('cadCidade', [], 'Selecione primeiro a UF',     true);
+  _cadPopulateSelect('cadBairro', [], 'Selecione primeiro a cidade', true);
   document.getElementById('cadOverlay').classList.add('show');
   setTimeout(() => document.getElementById('cadNome').focus(), 100);
 }
@@ -1422,11 +1827,57 @@ function abrirFormEdit(id) {
   document.getElementById('cadAtivo').checked     = d.ativo;
   document.getElementById('cadDestaque').checked  = d.destaque;
   document.getElementById('cadNome').value         = d.nome        || '';
-  document.getElementById('cadUF').value           = (d.uf         || '').toUpperCase();
-  document.getElementById('cadBairro').value       = d.bairro      || '';
   document.getElementById('cadTipo').value         = d.tipo        || '';
   document.getElementById('cadConstrutora').value  = d.construtora || '';
-  document.getElementById('cadCidade').value       = d.cidade      || '';
+
+  // ── UF ──
+  const ufVal  = (d.uf || '').toUpperCase();
+  const ufSel  = document.getElementById('cadUF');
+  const ufOpts = Array.from(ufSel.options).map(o => o.value);
+  document.getElementById('cadUFVal').value = ufVal;
+  if (ufVal && !ufOpts.includes(ufVal)) {
+    ufSel.value = '__outra__';
+    document.getElementById('cadUFOutraWrap').style.display  = 'block';
+    document.getElementById('cadUFOutra').value              = ufVal;
+    document.getElementById('cadUFConfirm').textContent      = '✓ ' + ufVal;
+    document.getElementById('cadUFConfirm').style.display    = 'inline-block';
+  } else {
+    ufSel.value = ufVal;
+    document.getElementById('cadUFOutraWrap').style.display  = 'none';
+  }
+
+  // ── Cidade (popula lista da UF primeiro) ──
+  if (ufVal) _preencherCidadesPorUF(ufVal);
+  const cidadeSel  = document.getElementById('cadCidade');
+  const cidadeOpts = Array.from(cidadeSel.options).map(o => o.value);
+  document.getElementById('cadCidadeVal').value = d.cidade || '';
+  if (d.cidade && !cidadeOpts.includes(d.cidade)) {
+    cidadeSel.value = '__outra__';
+    document.getElementById('cadCidadeOutraWrap').style.display  = 'block';
+    document.getElementById('cadCidadeOutra').value              = d.cidade;
+    document.getElementById('cadCidadeConfirm').textContent      = '✓ ' + d.cidade;
+    document.getElementById('cadCidadeConfirm').style.display    = 'inline-block';
+  } else {
+    cidadeSel.value = d.cidade || '';
+    document.getElementById('cadCidadeOutraWrap').style.display  = 'none';
+  }
+
+  // ── Bairro (popula lista da Cidade primeiro) ──
+  if (d.cidade) _preencherBairrosPorCidade(ufVal, d.cidade);
+  const bairroSel  = document.getElementById('cadBairro');
+  const bairroOpts = Array.from(bairroSel.options).map(o => o.value);
+  document.getElementById('cadBairroVal').value = d.bairro || '';
+  if (d.bairro && !bairroOpts.includes(d.bairro)) {
+    bairroSel.value = '__outra__';
+    document.getElementById('cadBairroOutraWrap').style.display  = 'block';
+    document.getElementById('cadBairroOutra').value              = d.bairro;
+    document.getElementById('cadBairroConfirm').textContent      = '✓ ' + d.bairro;
+    document.getElementById('cadBairroConfirm').style.display    = 'inline-block';
+  } else {
+    bairroSel.value = d.bairro || '';
+    document.getElementById('cadBairroOutraWrap').style.display  = 'none';
+  }
+
   document.getElementById('cadFaixa').value        = d.faixa       || '';
   document.getElementById('cadValor').value        = d.valor       || '';
   document.getElementById('cadQtd').value          = d.qtd         || '';
@@ -1458,11 +1909,11 @@ function coletarDadosForm() {
     ativo:        document.getElementById('cadAtivo').checked,
     destaque:     document.getElementById('cadDestaque').checked,
     nome:         document.getElementById('cadNome').value.trim(),
-    uf:           document.getElementById('cadUF').value.trim().toUpperCase(),
-    bairro:       document.getElementById('cadBairro').value.trim(),
+    uf:           document.getElementById('cadUFVal').value.toUpperCase(),
+    bairro:       document.getElementById('cadBairroVal').value,
     tipo_imovel:  document.getElementById('cadTipo').value,
     construtora:  document.getElementById('cadConstrutora').value.trim(),
-    cidade:       document.getElementById('cadCidade').value,
+    cidade:       document.getElementById('cadCidadeVal').value,
     faixa:        document.getElementById('cadFaixa').value,
     valor:        parseFloat(document.getElementById('cadValor').value) || 0,
     qtd:          document.getElementById('cadQtd').value.trim(),
@@ -1489,7 +1940,7 @@ async function salvarImovel() {
   try {
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(d)
     });
   } catch(e) { /* no-cors — assume ok */ }
@@ -1512,7 +1963,7 @@ async function toggleAtivo(id, ativoAtual) {
   try {
     await fetch(APPS_SCRIPT_URL, {
       method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         tipo: 'imovel', operacao: 'editar', id,
         ativo: !ativoAtual, destaque: d.destaque,
@@ -1614,7 +2065,7 @@ function imprimirPortfolio() {
 
 /* ══════════════ MÓDULOS: LEADS / RESERVAS / SIMULAÇÕES / VISITAS ══════════════ */
 // URL do Apps Script WAL Imóveis (usado como proxy para leitura das abas)
-const WAL_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
+const WAL_SCRIPT_URL = APPS_SCRIPT_URL; // mesmo endpoint: doGet para leitura, doPost para gravação
 
 // Chama o Apps Script via JSONP e retorna os dados da aba solicitada
 function queryScript(action) {
@@ -1672,6 +2123,270 @@ function filtraPorData(dateStr, de, ate) {
 }
 
 // Imprime / gera PDF da tabela atual
+function abrirEmpreendimentos() {
+  const modal = document.getElementById('modal-empreendimentos');
+  const iframe = document.getElementById('iframe-empreendimentos');
+  if (!iframe.src || iframe.src === window.location.href || iframe.src === 'about:blank' || iframe.src === '') {
+    iframe.src = 'imoveis.html';
+  }
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharEmpreendimentos() {
+  document.getElementById('modal-empreendimentos').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+/* ══════════════ CONSTRUTORAS ══════════════ */
+let _construtoras = [];
+let _constEditId  = null;
+
+function abrirFormConstrutora(id) {
+  _constEditId = id || null;
+  const titulo = document.getElementById('const-form-titulo');
+  titulo.textContent = id ? 'Editar Construtora' : 'Nova Construtora';
+
+  if (id) {
+    const c = _construtoras.find(x => x.id === id);
+    if (!c) return;
+    document.getElementById('constId').value             = c.id;
+    document.getElementById('constNome').value           = c.nome        || '';
+    document.getElementById('constTelefone').value       = c.telefone    || '';
+    document.getElementById('constSite').value           = c.site        || '';
+    document.getElementById('constViabilizador').value   = c.viabilizador|| '';
+    document.getElementById('constTelViabilizador').value= c.tel_viab    || '';
+    document.getElementById('constComissao').value       = c.comissao    || '';
+    document.getElementById('constDrive').value          = c.drive       || '';
+    document.getElementById('constData').value           = c.data        || '';
+    document.getElementById('constEstados').value        = c.estados     || '';
+    document.getElementById('constCidades').value        = c.cidades     || '';
+    document.getElementById('constObs').value            = c.obs         || '';
+  } else {
+    document.getElementById('constForm').reset();
+    document.getElementById('constId').value = '';
+    const hoje = new Date().toISOString().split('T')[0];
+    document.getElementById('constData').value = hoje;
+  }
+
+  document.getElementById('const-form-wrap').style.display = 'block';
+  document.getElementById('constNome').focus();
+  document.getElementById('const-form-wrap').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function fecharFormConstrutora() {
+  document.getElementById('const-form-wrap').style.display = 'none';
+  document.getElementById('constForm').reset();
+  _constEditId = null;
+}
+
+function coletarDadosConstrutora() {
+  return {
+    id:          document.getElementById('constId').value.trim(),
+    nome:        document.getElementById('constNome').value.trim(),
+    telefone:    document.getElementById('constTelefone').value.trim(),
+    site:        document.getElementById('constSite').value.trim(),
+    viabilizador:document.getElementById('constViabilizador').value.trim(),
+    tel_viab:    document.getElementById('constTelViabilizador').value.trim(),
+    comissao:    document.getElementById('constComissao').value.trim(),
+    drive:       document.getElementById('constDrive').value.trim(),
+    data:        document.getElementById('constData').value,
+    estados:     document.getElementById('constEstados').value.trim(),
+    cidades:     document.getElementById('constCidades').value.trim(),
+    obs:         document.getElementById('constObs').value.trim()
+  };
+}
+
+async function salvarConstrutora() {
+  const dados = coletarDadosConstrutora();
+  if (!dados.nome) { alert('Informe o Nome da Construtora.'); return; }
+
+  const btn = document.getElementById('btnSalvarConstrutora');
+  btn.disabled = true;
+  btn.textContent = 'Salvando…';
+
+  const acao = dados.id ? 'editar' : 'criar';
+  if (!dados.id) dados.id = 'C' + Date.now();
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ tipo: 'construtora', acao, dados })
+    });
+
+    if (acao === 'criar') {
+      _construtoras.push({ ...dados });
+    } else {
+      const idx = _construtoras.findIndex(x => x.id === dados.id);
+      if (idx >= 0) _construtoras[idx] = { ...dados };
+    }
+
+    fecharFormConstrutora();
+    renderTabelaConstrutoras(_construtoras);
+    mostrarToastConst('✅ Construtora salva com sucesso!');
+  } catch(e) {
+    mostrarToastConst('❌ Erro ao salvar. Tente novamente.');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '💾 Salvar Construtora';
+}
+
+async function excluirConstrutora(id) {
+  if (!confirm('Confirma a exclusão desta construtora?')) return;
+  const c = _construtoras.find(x => x.id === id);
+  if (!c) return;
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ tipo: 'construtora', acao: 'excluir', dados: { id } })
+    });
+    _construtoras = _construtoras.filter(x => x.id !== id);
+    renderTabelaConstrutoras(_construtoras);
+    mostrarToastConst('🗑 Construtora removida.');
+  } catch(e) {
+    mostrarToastConst('❌ Erro ao excluir.');
+  }
+}
+
+function filtrarConstrutoras() {
+  const termo = document.getElementById('const-search').value.toLowerCase();
+  if (!termo) { renderTabelaConstrutoras(_construtoras); return; }
+  const filtradas = _construtoras.filter(c =>
+    (c.nome    || '').toLowerCase().includes(termo) ||
+    (c.estados || '').toLowerCase().includes(termo) ||
+    (c.cidades || '').toLowerCase().includes(termo) ||
+    (c.viabilizador || '').toLowerCase().includes(termo)
+  );
+  renderTabelaConstrutoras(filtradas);
+}
+
+function renderTabelaConstrutoras(lista) {
+  const wrap = document.getElementById('const-table-wrap');
+  const label = document.getElementById('const-count-label');
+  label.textContent = lista.length + ' construtora' + (lista.length !== 1 ? 's' : '') + ' encontrada' + (lista.length !== 1 ? 's' : '');
+
+  if (lista.length === 0) {
+    wrap.innerHTML = '<div class="empty-table">Nenhuma construtora encontrada.</div>';
+    return;
+  }
+
+  const linhas = lista.map(c => `
+    <tr>
+      <td><strong style="color:var(--off-white)">${esc(c.nome)}</strong></td>
+      <td>${esc(c.telefone)}</td>
+      <td>${c.site ? `<a href="${esc(c.site)}" target="_blank" style="color:var(--gold);text-decoration:none">${esc(c.site)}</a>` : '—'}</td>
+      <td>${esc(c.viabilizador)}<br><span style="color:var(--text-muted);font-size:11px">${esc(c.tel_viab)}</span></td>
+      <td>${esc(c.estados) || '—'}</td>
+      <td>${esc(c.cidades) || '—'}</td>
+      <td style="color:var(--gold);font-weight:600">${c.comissao ? c.comissao + '%' : '—'}</td>
+      <td>${c.drive ? `<a href="${esc(c.drive)}" target="_blank" style="color:var(--gold);text-decoration:none">📁 Drive</a>` : '—'}</td>
+      <td>${esc(c.data) || '—'}</td>
+      <td style="max-width:180px;white-space:normal">${esc(c.obs) || '—'}</td>
+      <td style="white-space:nowrap">
+        <button onclick="abrirFormConstrutora('${c.id}')" style="background:rgba(201,168,76,.15);border:1px solid var(--border);color:var(--gold);padding:4px 10px;cursor:pointer;font-size:11px;margin-right:4px">✏ Editar</button>
+        <button onclick="excluirConstrutora('${c.id}')" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:#f87171;padding:4px 10px;cursor:pointer;font-size:11px">🗑</button>
+      </td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:var(--navy-mid)">
+          <th class="">Nome</th>
+          <th class="">Telefone</th>
+          <th class="">Site</th>
+          <th class="">Viabilizador</th>
+          <th class="">Estados</th>
+          <th class="">Cidades</th>
+          <th class="">Comissão</th>
+          <th class="">Drive</th>
+          <th class="">Data</th>
+          <th class="">Obs</th>
+          <th class="">Ações</th>
+        </tr>
+      </thead>
+      <tbody>${linhas}</tbody>
+    </table>
+    </div>`;
+}
+
+async function carregarConstrutoras() {
+  const wrap = document.getElementById('const-table-wrap');
+  wrap.innerHTML = '<div class="empty-table">⏳ Carregando construtoras…</div>';
+  document.getElementById('const-count-label').textContent = 'Carregando…';
+
+  try {
+    const dados = await new Promise((resolve, reject) => {
+      const cb = 'walConstCb_' + Date.now();
+      const sc = document.createElement('script');
+      const tm = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 12000);
+      function cleanup() { clearTimeout(tm); delete window[cb]; sc.remove(); }
+      window[cb] = d => { cleanup(); resolve(d); };
+      sc.onerror = () => { cleanup(); reject(new Error('falhou')); };
+      sc.src = WAL_SCRIPT_URL + '?action=getConstrutoras&callback=' + cb;
+      document.head.appendChild(sc);
+    });
+
+    if (dados && dados.error) throw new Error(dados.error);
+
+    const rows = (dados && dados.rows) ? dados.rows : [];
+
+    // Mapeia os cabeçalhos reais da planilha para os campos internos
+    _construtoras = rows.map(r => ({
+      id:          r['ID']                  || r['id']           || '',
+      nome:        r['Nome']                || r['nome']         || '',
+      telefone:    r['Telefone']            || r['telefone']     || '',
+      site:        r['Site']               || r['site']         || '',
+      viabilizador:r['Viabilizador']       || r['viabilizador'] || '',
+      tel_viab:    r['Tel Viabilizador']   || r['tel_viab']     || '',
+      comissao:    r['Comissão (%)']        || r['comissao']     || '',
+      drive:       r['Link Drive']          || r['drive']        || '',
+      data:        r['Data Inclusão']       || r['data']         || '',
+      estados:     r['Estados de Atuação'] || r['estados']      || '',
+      cidades:     r['Cidades de Atuação'] || r['cidades']      || '',
+      obs:         r['Observações']         || r['obs']          || ''
+    }));
+
+    renderTabelaConstrutoras(_construtoras);
+
+  } catch(e) {
+    _construtoras = [];
+    wrap.innerHTML = `
+      <div class="empty-table" style="color:#f87171">
+        ❌ Falha ao carregar construtoras: ${e.message}<br>
+        <button onclick="carregarConstrutoras()" style="margin-top:10px;background:var(--gold);color:var(--navy);border:none;padding:8px 18px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:12px;letter-spacing:.1em">
+          🔄 Tentar novamente
+        </button>
+      </div>`;
+    document.getElementById('const-count-label').textContent = 'Erro ao carregar';
+  }
+}
+
+function mostrarToastConst(msg) {
+  const t = document.getElementById('toast-admin') || document.querySelector('.toast-admin');
+  if (t) { t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3500); return; }
+  const div = document.createElement('div');
+  div.textContent = msg;
+  Object.assign(div.style, {
+    position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
+    background:'var(--navy-mid)', border:'1px solid var(--gold)', color:'var(--off-white)',
+    padding:'12px 24px', fontFamily:"'Barlow Condensed',sans-serif", fontSize:'13px',
+    letterSpacing:'.06em', zIndex:'9999', borderRadius:'2px', whiteSpace:'nowrap'
+  });
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3500);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
 function imprimirTabela(titulo, tblWrapId, contagem) {
   const tabela = document.getElementById(tblWrapId);
   if (!tabela || !tabela.querySelector('table')) {

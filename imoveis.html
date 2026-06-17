@@ -325,9 +325,27 @@
     .filter-inner { gap: 10px; }
     .filter-group { min-width: 140px; }
   }
-  @media (max-width: 600px) {
-    .imoveis-grid { grid-template-columns: 1fr; }
+  @media (max-width: 640px) {
+    .nav-fab { padding: 12px 16px; }
+    .nav-logo-text span:first-child { font-size: 14px; }
+    .nav-logo-text span:last-child { display: none; }
+    .nav-logo svg { width: 28px; height: 28px; }
+
+    .page-hero { padding: 28px 16px 24px; }
+    .page-hero h1 { font-size: clamp(22px, 6vw, 32px); }
+
+    .filter-bar { padding: 14px 16px; }
+    .filter-inner { flex-direction: column; gap: 8px; }
     .filter-group { min-width: 100%; }
+    .filter-group select { font-size: 16px; }
+
+    .results-wrap { padding: 20px 16px 48px; }
+    .results-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+
+    .imoveis-grid { grid-template-columns: 1fr; gap: 16px; }
+
+    .page-footer { padding: 20px 16px; }
+    .page-footer p + p { margin-top: 6px; font-size: 11px; }
   }
 
   /* ─── LOADING / FONTE ─── */
@@ -380,7 +398,7 @@
   <div class="filter-inner">
     <div class="filter-group">
       <span class="filter-label">UF</span>
-      <select class="filter-select" id="f-uf">
+      <select class="filter-select" id="f-uf" onchange="atualizarCidadesFiltro();filtrar()">
         <option value="">Todos</option>
         <option value="RJ">RJ</option>
         <option value="SP">SP</option>
@@ -398,7 +416,7 @@
     </div>
     <div class="filter-group">
       <span class="filter-label">Cidade</span>
-      <select class="filter-select" id="f-cidade">
+      <select class="filter-select" id="f-cidade" onchange="atualizarBairrosFiltro();filtrar()">
         <option value="">Todas as cidades</option>
         <option value="Rio de Janeiro">Rio de Janeiro</option>
         <option value="Niterói">Niterói</option>
@@ -409,8 +427,9 @@
     </div>
     <div class="filter-group">
       <span class="filter-label">Bairro</span>
-      <input class="filter-select" type="text" id="f-bairro" placeholder="Digite o bairro..."
-             style="height:38px;padding:9px 12px;font-size:13px">
+      <select class="filter-select" id="f-bairro">
+        <option value="">Todos os bairros</option>
+      </select>
     </div>
     <div class="filter-group">
       <span class="filter-label">Faixa de Valor</span>
@@ -452,6 +471,19 @@
 </div>
 
 <script>
+/* URL base do site — usada nos links de compartilhamento.
+   Quando o site estiver hospedado (ex: GitHub Pages, domínio próprio),
+   esta constante garante que o link enviado pelo WhatsApp seja clicável.
+   Se estiver rodando localmente, usa o caminho relativo como fallback. */
+const SITE_BASE_URL = (function() {
+  const o = window.location.origin;
+  if (!o || o === 'null' || o.startsWith('file')) {
+    // rodando local — retorna string vazia; o link não será clicável mas não quebrará
+    return '';
+  }
+  return o + window.location.pathname.replace(/imoveis\.html.*$/, '');
+})();
+
 /* ================================================================
    INTEGRAÇÃO GOOGLE SHEETS
    Quando o admin configurar a URL da planilha no painel admin.html,
@@ -518,13 +550,14 @@ async function fetchFromSheet(sheetId) {
       const cidade   = g(4);
       const faixaKey = g(8);
       return {
+        id:         g(0),
         nome,
         cidade,
         tipo:       g(2) || 'Novo',
         valor:      parseFloat(g(9)) || FAIXA_VALOR_MAP[faixaKey] || 0,
         faixaTexto: FAIXA_LABEL_MAP[faixaKey] || faixaKey,
         descricao:  g(6),
-        imagem:     fixDriveUrl(g(7)),   // ← converte URL do Drive
+        imagem:     fixDriveUrl(g(7)),
         blogUrl:    g(11) || '#',
         uf:         g(15) || '',
         bairro:     g(16) || '',
@@ -556,6 +589,7 @@ async function initImóveis() {
       _baseCompleta = dados;
       imoveis       = [...dados];
       badge.innerHTML = '<span class="fonte-badge fonte-sheet">● Dados ao vivo — Google Sheets</span>';
+      atualizarCidadesFiltro();
       render();
       return;
     }
@@ -567,6 +601,7 @@ async function initImóveis() {
   _baseCompleta = [...IMOVEISDISPONIVEIS];
   imoveis       = [...IMOVEISDISPONIVEIS];
   badge.innerHTML = '<span class="fonte-badge fonte-local">Dados locais</span>';
+  atualizarCidadesFiltro();
   render();
 }
 
@@ -764,7 +799,7 @@ function renderCard(im) {
 
         <div class="card-actions">
           <!-- Mais informações → Blogger -->
-          <a href="${im.blogUrl}" target="_blank" rel="noopener" class="card-btn-info">
+          <a href="imovel.html?id=${im.id}" class="card-btn-info">
             &#9432;&ensp;Ver todas as informações do imóvel
           </a>
 
@@ -778,10 +813,61 @@ function renderCard(im) {
             <button class="card-btn-sim" onclick="abrirModalSimImoveis()">&#9654; Simular Financiamento</button>
             <a href="reserva.html" class="card-btn-reserva">Reservar Agora</a>
           </div>
+          <button onclick="compartilharImovelCatalogo('${im.nome}','${im.cidade}','${im.uf}','${im.valor}','${im.id}')"
+            style="width:100%;margin-top:8px;padding:9px 0;background:transparent;
+                   border:1px solid rgba(201,168,76,.35);color:var(--gold);cursor:pointer;
+                   font-family:'Barlow Condensed',sans-serif;font-size:12px;
+                   font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+                   transition:border-color .2s,background .2s"
+            onmouseover="this.style.borderColor='var(--gold)';this.style.background='rgba(201,168,76,.07)'"
+            onmouseout="this.style.borderColor='rgba(201,168,76,.35)';this.style.background='transparent'">
+            &#8679; Compartilhar
+          </button>
         </div>
       </div>
     </div>
   `;
+}
+
+let _linkCompartilhado = '';
+
+function copiarLinkCompartilhado(btn) {
+  navigator.clipboard.writeText(_linkCompartilhado).then(() => {
+    btn.textContent = '✅ Link copiado!';
+    setTimeout(() => { btn.textContent = '🔗 Copiar Link'; }, 2000);
+  });
+}
+
+function compartilharImovelCatalogo(nome, cidade, uf, valor, id) {
+  const link    = SITE_BASE_URL ? SITE_BASE_URL + 'imovel.html?id=' + id : 'imovel.html?id=' + id;
+  _linkCompartilhado = link;
+  const preco   = valor > 0 ? 'R$ ' + parseFloat(valor).toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
+  const texto   = 'Olá! Vi esse imóvel no site da WAL Consultoria e achei interessante:\n' +
+                  '*' + nome + '* — ' + cidade + (uf ? '/' + uf : '') + '\n' +
+                  'A partir de ' + preco + '\n' +
+                  'Saiba mais: ' + link;
+  const assunto = 'Imóvel interessante — ' + nome;
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:9000;display:flex;align-items:center;justify-content:center';
+
+  const wppHref   = 'https://wa.me/?text=' + encodeURIComponent(texto);
+  const mailHref  = 'mailto:?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(texto);
+  const btnStyle  = 'display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-decoration:none;';
+
+  modal.innerHTML =
+    '<div style="background:var(--navy-mid);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative">' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer">✕</button>' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px">Compartilhar Imóvel</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
+        '<a href="' + mailHref + '" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);">✉️ Enviar por E-mail</a>' +
+        '<button onclick="copiarLinkCompartilhado(this)" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
 }
 
 function faixaMatch(valor, faixaId) {
@@ -793,21 +879,48 @@ function faixaMatch(valor, faixaId) {
 }
 
 let imoveis = [];
-let _baseCompleta = null; // guardará os dados carregados (sheet ou local)
+let _baseCompleta = null;
+
+function atualizarCidadesFiltro() {
+  const uf   = document.getElementById('f-uf').value;
+  const base = _baseCompleta || IMOVEISDISPONIVEIS;
+  const cidades = uf
+    ? [...new Set(base.filter(im => (im.uf||'').toUpperCase() === uf).map(im => im.cidade).filter(Boolean))].sort()
+    : [];
+  const sel = document.getElementById('f-cidade');
+  sel.innerHTML = '<option value="">Todas as cidades</option>' +
+    cidades.map(c => `<option value="${c}">${c}</option>`).join('');
+  atualizarBairrosFiltro();
+}
+
+function atualizarBairrosFiltro() {
+  const uf     = document.getElementById('f-uf').value;
+  const cidade = document.getElementById('f-cidade').value;
+  const base   = _baseCompleta || IMOVEISDISPONIVEIS;
+  const bairros = [...new Set(
+    base.filter(im =>
+      (!uf     || (im.uf||'').toUpperCase() === uf) &&
+      (!cidade || im.cidade === cidade) &&
+      im.bairro
+    ).map(im => im.bairro)
+  )].sort();
+  const sel = document.getElementById('f-bairro');
+  sel.innerHTML = '<option value="">Todos os bairros</option>' +
+    bairros.map(b => `<option value="${b}">${b}</option>`).join('');
+}
 
 function filtrar() {
+  const uf     = document.getElementById('f-uf').value;
   const tipo   = document.getElementById('f-tipo').value;
   const cidade = document.getElementById('f-cidade').value;
+  const bairro = document.getElementById('f-bairro').value;
   const faixa  = document.getElementById('f-faixa').value;
-
-  const uf     = document.getElementById('f-uf').value;
-  const bairro = document.getElementById('f-bairro').value.trim().toLowerCase();
   const base   = _baseCompleta || IMOVEISDISPONIVEIS;
   imoveis = base.filter(im => {
-    if (uf     && (im.uf     || '').toUpperCase() !== uf.toUpperCase()) return false;
+    if (uf     && (im.uf||'').toUpperCase() !== uf.toUpperCase()) return false;
     if (tipo   && im.tipo   !== tipo)   return false;
     if (cidade && im.cidade !== cidade) return false;
-    if (bairro && !(im.bairro || '').toLowerCase().includes(bairro)) return false;
+    if (bairro && im.bairro !== bairro) return false;
     if (!faixaMatch(im.valor, faixa))   return false;
     return true;
   });
@@ -820,7 +933,7 @@ function limpar() {
   document.getElementById('f-cidade').value = '';
   document.getElementById('f-bairro').value = '';
   document.getElementById('f-faixa').value  = '';
-  // Reseta para a base completa (local ou da planilha, conforme carregado)
+  atualizarCidadesFiltro();
   imoveis = _baseCompleta ? [..._baseCompleta] : [...IMOVEISDISPONIVEIS];
   render();
 }

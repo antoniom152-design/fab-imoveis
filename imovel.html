@@ -1,0 +1,1058 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empreendimento — WAL Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C97A;
+    --gold-dim: #8A6E30;
+    --navy: #0A1628;
+    --navy-mid: #112240;
+    --navy-light: #1C3461;
+    --off-white: #F5F2EC;
+    --text-muted: #8A96A8;
+    --border: rgba(201,168,76,0.2);
+  }
+
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Barlow', sans-serif; background: var(--navy); color: var(--off-white); min-height: 100vh; }
+
+  /* ─── LOADING ─── */
+  #loading-state {
+    position: fixed; inset: 0; background: var(--navy);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 9999; gap: 1rem;
+  }
+  #loading-state .ls-logo {
+    font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--gold);
+  }
+  #loading-state .ls-sub {
+    font-size: .75rem; color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: .2em; text-transform: uppercase;
+  }
+  .ls-spinner {
+    width: 32px; height: 32px; border: 2px solid var(--border);
+    border-top-color: var(--gold); border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ─── NAV ─── */
+  .nav-fab {
+    position: sticky; top: 0; z-index: 200;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px 48px;
+    background: rgba(10,22,40,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .nav-logo svg { width: 36px; height: 36px; flex-shrink: 0; }
+  .nav-logo-text span:first-child {
+    display: block; font-family: 'Playfair Display', serif;
+    font-size: 17px; font-weight: 700; color: var(--gold); letter-spacing: .04em;
+  }
+  .nav-logo-text span:last-child {
+    display: block; font-size: 10px; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted);
+  }
+  .nav-back {
+    display: flex; align-items: center; gap: 7px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--text-muted); text-decoration: none; transition: color .2s;
+  }
+  .nav-back:hover { color: var(--gold); }
+  .nav-back svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; }
+
+  /* ─── BREADCRUMB ─── */
+  .breadcrumb {
+    padding: 14px 48px;
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; transition: color .2s; }
+  .breadcrumb a:hover { color: var(--gold); }
+  .breadcrumb span { color: var(--gold); }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative; height: 520px; overflow: hidden;
+    background: var(--navy-mid);
+  }
+  .hero-slides { position: relative; width: 100%; height: 100%; }
+  .hero-slide {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    opacity: 0; transition: opacity .6s ease;
+  }
+  .hero-slide.active { opacity: 1; }
+  .hero-slide::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(10,22,40,.25) 0%, rgba(10,22,40,.75) 100%);
+  }
+  .hero-content {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 40px 48px; z-index: 2;
+  }
+  .hero-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 10px;
+  }
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 52px); font-weight: 900;
+    color: var(--off-white); line-height: 1.15; margin-bottom: 8px;
+  }
+  .hero-title em { font-style: normal; color: var(--gold); }
+  .hero-location {
+    font-size: 14px; font-weight: 300; color: rgba(245,242,236,.75);
+    letter-spacing: .04em;
+  }
+  .hero-nav {
+    position: absolute; top: 50%; right: 24px; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 3;
+  }
+  .hero-nav button {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(10,22,40,.6); border: 1px solid var(--border);
+    color: var(--gold); cursor: pointer; font-size: 14px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  .hero-nav button:hover { background: rgba(201,168,76,.2); }
+  .hero-dots {
+    position: absolute; bottom: 16px; right: 48px;
+    display: flex; gap: 6px; z-index: 3;
+  }
+  .hero-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: rgba(245,242,236,.3); cursor: pointer;
+    transition: background .3s;
+  }
+  .hero-dot.active { background: var(--gold); }
+
+  /* ─── SUMMARY BAR ─── */
+  .summary-bar {
+    background: var(--navy-mid);
+    border-bottom: 1px solid var(--border);
+    padding: 0 48px;
+  }
+  .summary-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; gap: 0;
+  }
+  .summary-item {
+    flex: 1; padding: 20px 24px;
+    border-right: 1px solid var(--border);
+  }
+  .summary-item:last-child { border-right: none; }
+  .summary-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 4px;
+  }
+  .summary-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 600; color: var(--off-white);
+  }
+  .summary-value.gold { color: var(--gold); }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main-wrap {
+    max-width: 1200px; margin: 0 auto;
+    display: grid; grid-template-columns: 1fr 340px;
+    gap: 40px; padding: 48px 48px 80px;
+  }
+
+  /* ─── CONTEÚDO PRINCIPAL ─── */
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px; font-weight: 700; color: var(--off-white);
+    margin-bottom: 20px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-title em { font-style: normal; color: var(--gold); }
+
+  .descricao-text {
+    font-size: 15px; font-weight: 300; line-height: 1.85;
+    color: rgba(245,242,236,.85); margin-bottom: 40px;
+  }
+
+  /* ─── DIFERENCIAIS ─── */
+  .diferenciais-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px; margin-bottom: 40px;
+  }
+  .diferencial-item {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    padding: 18px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .diferencial-icon { font-size: 20px; flex-shrink: 0; }
+  .diferencial-label {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; letter-spacing: .06em; color: var(--off-white);
+  }
+
+  /* ─── TABELA PREÇOS ─── */
+  .preco-table {
+    width: 100%; border-collapse: collapse; margin-bottom: 40px;
+  }
+  .preco-table th {
+    background: var(--navy-mid); padding: 12px 16px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--text-muted); text-align: left; border-bottom: 1px solid var(--border);
+  }
+  .preco-table td {
+    padding: 14px 16px; border-bottom: 1px solid rgba(201,168,76,.08);
+    font-size: 14px; color: var(--off-white);
+  }
+  .preco-table tr:last-child td { border-bottom: none; }
+  .preco-destaque { color: var(--gold); font-weight: 600; font-family: 'Playfair Display', serif; }
+
+  /* ─── DOWNLOADS ─── */
+  .downloads-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 40px; }
+  .download-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    text-decoration: none; color: var(--off-white);
+    transition: border-color .2s, background .2s;
+  }
+  .download-item:hover { border-color: var(--gold); background: rgba(201,168,76,.06); }
+  .download-item svg { width: 18px; height: 18px; flex-shrink: 0; fill: var(--gold); }
+  .download-label { font-size: 13px; }
+  .download-desc { font-size: 11px; color: var(--text-muted); }
+
+  /* ─── MAPA ─── */
+  .mapa-embed {
+    width: 100%; height: 300px; border: 1px solid var(--border);
+    margin-bottom: 40px; filter: grayscale(.4) contrast(.9);
+  }
+
+  /* ─── OUTROS EMPREENDIMENTOS ─── */
+  .outros-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px; margin-top: 16px;
+  }
+  .outro-card {
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    overflow: hidden; text-decoration: none; color: inherit;
+    transition: border-color .2s, transform .2s;
+    display: flex; flex-direction: column;
+  }
+  .outro-card:hover { border-color: var(--gold); transform: translateY(-3px); }
+  .outro-card img {
+    width: 100%; height: 160px; object-fit: cover;
+    display: block;
+  }
+  .outro-card-body { padding: 16px; }
+  .outro-tipo {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 6px;
+  }
+  .outro-nome {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px; font-weight: 700; color: var(--off-white);
+    margin-bottom: 4px;
+  }
+  .outro-cidade { font-size: 12px; color: var(--text-muted); }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { display: flex; flex-direction: column; gap: 24px; }
+
+  .sidebar-card {
+    background: var(--navy-mid);
+    border: 1px solid var(--border);
+    padding: 24px;
+  }
+  .sidebar-card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px;
+  }
+
+  /* Preço sidebar */
+  .sidebar-price-main {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px; font-weight: 900; color: var(--gold);
+    line-height: 1.1; margin-bottom: 4px;
+  }
+  .sidebar-price-sub { font-size: 12px; color: var(--text-muted); margin-bottom: 16px; }
+  .sidebar-price-note {
+    font-size: 11px; color: var(--text-muted); line-height: 1.5;
+    padding-top: 12px; border-top: 1px solid var(--border);
+  }
+
+  /* Formulário */
+  .form-group { margin-bottom: 12px; }
+  .form-label {
+    display: block; font-family: 'Barlow Condensed', sans-serif;
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+    color: var(--text-muted); margin-bottom: 5px;
+  }
+  .form-input, .form-select {
+    width: 100%; background: rgba(255,255,255,.05);
+    border: 1px solid var(--border); color: var(--off-white);
+    padding: 10px 13px; font-family: 'Barlow', sans-serif;
+    font-size: 13px; outline: none; transition: border-color .2s;
+    appearance: none; -webkit-appearance: none;
+  }
+  .form-input:focus, .form-select:focus { border-color: var(--gold); }
+  .form-select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    padding-right: 32px; cursor: pointer;
+  }
+  .form-select option { background: #112240; }
+
+  .btn-interesse {
+    width: 100%; padding: 13px;
+    background: var(--gold); color: var(--navy);
+    border: none; cursor: pointer;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    transition: background .2s; margin-top: 4px;
+  }
+  .btn-interesse:hover { background: var(--gold-light); }
+
+  /* Links úteis */
+  .util-links { display: flex; flex-direction: column; gap: 8px; }
+  .util-link {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 14px;
+    background: rgba(255,255,255,.03);
+    border: 1px solid var(--border);
+    text-decoration: none; color: var(--off-white);
+    font-size: 13px; transition: border-color .2s, background .2s;
+  }
+  .util-link:hover { border-color: var(--gold); background: rgba(201,168,76,.06); }
+  .util-link svg { width: 16px; height: 16px; flex-shrink: 0; fill: var(--gold); }
+
+  /* ─── TOAST ─── */
+  #toast {
+    position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+    background: var(--navy-mid); border: 1px solid var(--gold);
+    color: var(--off-white); padding: 12px 24px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; letter-spacing: .06em;
+    z-index: 9000; opacity: 0; pointer-events: none;
+    transition: opacity .3s; white-space: nowrap;
+  }
+  #toast.show { opacity: 1; }
+
+  /* ─── WPP FLUTUANTE ─── */
+  .wpp-float {
+    position: fixed; bottom: 24px; right: 24px; z-index: 500;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: #25D366; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(37,211,102,.4);
+    text-decoration: none; transition: transform .2s, box-shadow .2s;
+  }
+  .wpp-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(37,211,102,.5); }
+  .wpp-float svg { width: 28px; height: 28px; fill: white; }
+
+  /* ─── FOOTER ─── */
+  .page-footer {
+    border-top: 1px solid var(--border);
+    padding: 28px 48px;
+    text-align: center;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .page-footer a { color: var(--text-muted); text-decoration: none; }
+  .page-footer a:hover { color: var(--gold); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .nav-fab { padding: 14px 20px; }
+    .breadcrumb { padding: 12px 20px; }
+    .hero { height: 380px; }
+    .hero-content { padding: 28px 20px; }
+    .hero-nav { display: none; }
+    .hero-dots { right: 20px; }
+    .summary-bar { padding: 0 20px; }
+    .summary-inner { flex-wrap: wrap; }
+    .summary-item { flex: 1 1 50%; border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-item:last-child { border-bottom: none; }
+    .main-wrap {
+      grid-template-columns: 1fr; padding: 28px 20px 60px; gap: 32px;
+    }
+    .sidebar { order: -1; }
+    .outros-grid { grid-template-columns: 1fr 1fr; }
+    .page-footer { padding: 20px; }
+  }
+  @media (max-width: 640px) {
+    .nav-fab { padding: 12px 16px; }
+    .nav-logo-text span:last-child { display: none; }
+    .nav-back span { display: none; }
+
+    .breadcrumb { padding: 10px 16px; font-size: 10px; }
+
+    .hero { height: 280px; }
+    .hero-content { padding: 20px 16px; }
+    .hero-title { font-size: clamp(20px, 6vw, 32px); }
+    .hero-location { font-size: 12px; }
+
+    .summary-bar { padding: 0 16px; }
+    .summary-inner { flex-wrap: wrap; }
+    .summary-item { flex: 1 1 50%; padding: 14px 12px; border-right: none; border-bottom: 1px solid var(--border); }
+    .summary-item:nth-child(odd) { border-right: 1px solid var(--border); }
+    .summary-item:last-child, .summary-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
+    .summary-value { font-size: 13px; }
+
+    .main-wrap { padding: 20px 16px 48px; gap: 24px; }
+
+    .section-title { font-size: 18px; }
+    .descricao-text { font-size: 14px; }
+
+    .diferenciais-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .diferencial-item { padding: 12px 14px; }
+
+    .sidebar-card { padding: 18px 16px; }
+    .sidebar-price-main { font-size: 22px; }
+
+    .form-input, .form-select { font-size: 16px; }
+
+    .outros-grid { grid-template-columns: 1fr; }
+
+    .page-footer { padding: 20px 16px; }
+
+    .wpp-float { width: 48px; height: 48px; bottom: 16px; right: 16px; }
+    .wpp-float svg { width: 24px; height: 24px; }
+  }
+  @media (max-width: 500px) {
+    .outros-grid { grid-template-columns: 1fr; }
+    .diferenciais-grid { grid-template-columns: 1fr 1fr; }
+    .summary-item { flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-state">
+  <div class="ls-logo">WAL Imóveis</div>
+  <div class="ls-spinner"></div>
+  <div class="ls-sub">Carregando empreendimento…</div>
+</div>
+
+<!-- NAV -->
+<nav class="nav-fab">
+  <a href="index.html" class="nav-logo">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" fill="none"/>
+      <path d="M20 4L36 14V26L20 36L4 26V14L20 4Z" stroke="#C9A84C" stroke-width="1.5" fill="rgba(201,168,76,0.08)"/>
+      <text x="20" y="25" text-anchor="middle" fill="#C9A84C" font-family="serif" font-size="13" font-weight="bold">W</text>
+    </svg>
+    <div class="nav-logo-text">
+      <span>WAL Imóveis</span>
+      <span>Assessoria Imobiliária FAB</span>
+    </div>
+  </a>
+  <a href="imoveis.html" class="nav-back">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Portfólio
+  </a>
+</nav>
+
+<!-- BREADCRUMB -->
+<div class="breadcrumb">
+  <a href="index.html">Início</a> ›
+  <a href="imoveis.html">Portfólio</a> ›
+  <span id="bc-nome">—</span>
+</div>
+
+<!-- HERO COM GALERIA -->
+<section class="hero">
+  <div class="hero-slides" id="hero-slides">
+    <div class="hero-slide active" id="slide-1"></div>
+    <div class="hero-slide" id="slide-2"></div>
+    <div class="hero-slide" id="slide-3"></div>
+  </div>
+  <div class="hero-content">
+    <div class="hero-tag" id="hero-tag">—</div>
+    <h1 class="hero-title" id="hero-title">—</h1>
+    <div class="hero-location" id="hero-location">—</div>
+  </div>
+  <div class="hero-nav" id="hero-nav">
+    <button onclick="prevSlide()" title="Anterior">&#8679;</button>
+    <button onclick="nextSlide()" title="Próximo">&#8681;</button>
+  </div>
+  <div class="hero-dots" id="hero-dots"></div>
+</section>
+
+<!-- SUMMARY BAR -->
+<div class="summary-bar">
+  <div class="summary-inner">
+    <div class="summary-item">
+      <div class="summary-label">Tipologia</div>
+      <div class="summary-value" id="sum-tipologia">—</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">A partir de</div>
+      <div class="summary-value gold" id="sum-valor">—</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Localização</div>
+      <div class="summary-value" id="sum-local">—</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-label">Financiamento</div>
+      <div class="summary-value">CFIAe · FGTS · SFH</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+  <!-- COLUNA ESQUERDA -->
+  <div class="main-content">
+
+    <!-- DESCRIÇÃO -->
+    <h2 class="section-title">Sobre o <em>Empreendimento</em></h2>
+    <p class="descricao-text" id="descricao-text">—</p>
+
+    <!-- DIFERENCIAIS -->
+    <h2 class="section-title">Diferenciais do <em>Projeto</em></h2>
+    <div class="diferenciais-grid" id="diferenciais-grid">
+      <div class="diferencial-item"><span class="diferencial-icon">🏊</span><span class="diferencial-label">Lazer completo</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">🔒</span><span class="diferencial-label">Segurança 24h</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">🚗</span><span class="diferencial-label">Garagem inclusa</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">💡</span><span class="diferencial-label">Área gourmet</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">🌳</span><span class="diferencial-label">Área verde</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">📍</span><span class="diferencial-label">Localização privilegiada</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">🏋️</span><span class="diferencial-label">Academia</span></div>
+      <div class="diferencial-item"><span class="diferencial-icon">🏢</span><span class="diferencial-label">Acabamento premium</span></div>
+    </div>
+
+    <!-- TABELA DE PREÇOS -->
+    <h2 class="section-title">Tabela de <em>Preços</em></h2>
+    <table class="preco-table">
+      <thead>
+        <tr>
+          <th>Tipologia</th>
+          <th>Faixa / Configuração</th>
+          <th>Valor</th>
+          <th>Financiamento</th>
+        </tr>
+      </thead>
+      <tbody id="preco-tbody">
+        <tr>
+          <td>—</td><td>—</td><td>—</td><td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- DOWNLOADS / LINKS -->
+    <h2 class="section-title">Documentos e <em>Links</em></h2>
+    <div class="downloads-list" id="downloads-list">
+      <!-- preenchido dinamicamente -->
+    </div>
+
+    <!-- MAPA -->
+    <h2 class="section-title">Localização</h2>
+    <iframe id="mapa-embed" class="mapa-embed"
+      frameborder="0" allowfullscreen loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade" src="about:blank"></iframe>
+
+    <!-- OUTROS EMPREENDIMENTOS -->
+    <h2 class="section-title" style="margin-top:40px">Outros <em>Empreendimentos</em></h2>
+    <div class="outros-grid" id="outros-grid">
+      <!-- preenchido dinamicamente -->
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- PREÇOS -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Valores</div>
+      <div class="sidebar-price-main" id="sb-preco">—</div>
+      <div class="sidebar-price-sub" id="sb-preco-sub">Consulte condições</div>
+      <div class="sidebar-price-note">
+        Valores sujeitos a alteração. Condições especiais para militares das FA.
+        Utilize o CFIAe, FGTS e financiamento pelo SFH.
+      </div>
+    </div>
+
+    <!-- FORMULÁRIO DE INTERESSE -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Tenho Interesse</div>
+      <div class="form-group">
+        <label class="form-label">Nome completo</label>
+        <input type="text" id="cc-nome" class="form-input" placeholder="Seu nome">
+      </div>
+      <div class="form-group">
+        <label class="form-label">WhatsApp</label>
+        <input type="tel" id="cc-wpp" class="form-input" placeholder="(21) 99999-9999">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Posto / Graduação</label>
+        <select id="cc-posto" class="form-select">
+          <option value="">Selecione...</option>
+          <option>Civil</option>
+          <option>Sd / Cb</option>
+          <option>3º Sgt / 2º Sgt / 1º Sgt</option>
+          <option>Subtenente / Suboficial</option>
+          <option>2º Ten / 1º Ten / Cap</option>
+          <option>Maj / TC / Cel</option>
+          <option>Gen / Al / Brig</option>
+          <option>Inativo / Reserva</option>
+        </select>
+      </div>
+      <button class="btn-interesse" onclick="enviarInteresse()">
+        Quero ser contactado
+      </button>
+      <button class="btn-interesse" onclick="compartilharImovel()" style="margin-top:8px;background:transparent;border:1px solid var(--gold);color:var(--gold)">
+        &#128279; Compartilhar
+      </button>
+    </div>
+
+    <!-- LINKS ÚTEIS -->
+    <div class="sidebar-card">
+      <div class="sidebar-card-title">Links Úteis</div>
+      <div class="util-links" id="util-links">
+        <a href="simulador.html" class="util-link">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a4 4 0 0 1 0 8 4 4 0 0 1 0-8zm0 10c2.67 0 8 1.34 8 4v1H4v-1c0-2.66 5.33-4 8-4z"/></svg>
+          Simular Financiamento
+        </a>
+        <a href="reserva.html" class="util-link">
+          <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+          Reservar este Imóvel
+        </a>
+      </div>
+    </div>
+
+  </aside>
+
+</div><!-- /main-wrap -->
+
+<!-- FOOTER -->
+<footer class="page-footer">
+  <p>&copy; 2025 WAL Imóveis — Assessoria Imobiliária para Militares da FAB</p>
+  <p style="margin-top:6px">
+    <a href="index.html">Início</a> &ensp;·&ensp;
+    <a href="imoveis.html">Portfólio</a> &ensp;·&ensp;
+    <a href="simulador.html">Simulador</a> &ensp;·&ensp;
+    <a href="reserva.html">Reserva</a>
+  </p>
+</footer>
+
+<!-- WPP FLUTUANTE -->
+<a id="wpp-float" href="#" class="wpp-float" target="_blank" rel="noopener" title="WhatsApp">
+  <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+</a>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<script>
+const SHEET_ID   = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+const SHEET_NAME = 'IMOVEISDISPONIVEIS';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaYe-YjMZWc8z7VM_cS1FkPwQwQOU26xpnjgxZQfj4mrAO2KURuHOeH84WwX0HelXHpg/exec';
+const WPP_NUM    = '5521977263950';
+
+const SITE_BASE_URL = (function() {
+  const o = window.location.origin;
+  if (!o || o === 'null' || o.startsWith('file')) return '';
+  return o + window.location.pathname.replace(/imovel\.html.*$/, '');
+})();
+
+let imovelAtual = null;
+let currentSlide = 0;
+let totalSlides  = 1;
+
+function fixDriveUrl(url) {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id  = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
+
+function fetchSheet() {
+  return new Promise(function(resolve, reject) {
+    const cbName = 'walCb_' + Date.now();
+    const script  = document.createElement('script');
+    const timer   = setTimeout(function() {
+      cleanup(); reject(new Error('timeout'));
+    }, 10000);
+    function cleanup() {
+      clearTimeout(timer);
+      delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.onerror = function() { cleanup(); reject(new Error('JSONP falhou')); };
+    const savedUrl = localStorage.getItem('fab_sheet_url');
+    const matchId  = savedUrl && savedUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+    const sheetId  = (matchId && matchId[1]) || SHEET_ID;
+    script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                 '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                 '&sheet=' + encodeURIComponent(SHEET_NAME);
+    document.head.appendChild(script);
+  });
+}
+
+function parseRow(row) {
+  const g = function(i) {
+    const c = row.c && row.c[i];
+    return c ? String(c.f || c.v || '') : '';
+  };
+  return {
+    id:          g(0),
+    ativo:       row.c && row.c[1] && row.c[1].v === true,
+    tipo:        g(2) || 'Novo',
+    construtora: g(3),
+    cidade:      g(4),
+    nome:        g(5),
+    descricao:   g(6),
+    imagem:      fixDriveUrl(g(7)),
+    faixa:       g(8),
+    valor:       parseFloat(g(9)) || 0,
+    unidades:    g(10),
+    blogUrl:     g(11),
+    uf:          g(15),
+    bairro:      g(16)
+  };
+}
+
+function mostrarErro(msg) {
+  const ls = document.getElementById('loading-state');
+  ls.innerHTML = `
+    <div style="text-align:center;padding:2rem">
+      <div style="font-size:2.5rem;margin-bottom:1rem">🏠</div>
+      <div style="font-family:'Playfair Display',serif;font-size:1.3rem;
+        color:var(--gold);margin-bottom:.75rem">${msg}</div>
+      <a href="imoveis.html" style="font-family:'Barlow Condensed',sans-serif;
+        font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;
+        color:var(--navy);background:var(--gold);padding:12px 28px;
+        text-decoration:none;display:inline-block;margin-top:.5rem">
+        Ver todos os imóveis →
+      </a>
+    </div>`;
+}
+
+function mostrarToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+/* ─── GALERIA ─── */
+function initSlides(imagem) {
+  const s1 = document.getElementById('slide-1');
+  const s2 = document.getElementById('slide-2');
+  const s3 = document.getElementById('slide-3');
+
+  if (!imagem) {
+    s1.style.backgroundImage = "url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=80')";
+    totalSlides = 1;
+  } else {
+    s1.style.backgroundImage = `url('${imagem}')`;
+    s2.style.backgroundImage = `url('${imagem}')`;
+    s2.style.filter = 'brightness(0.82)';
+    s3.style.backgroundImage = `url('${imagem}')`;
+    s3.style.filter = 'brightness(0.68)';
+    totalSlides = 1; // única imagem real — ocultar controles
+  }
+
+  const nav  = document.getElementById('hero-nav');
+  const dots = document.getElementById('hero-dots');
+  if (totalSlides <= 1) {
+    nav.style.display  = 'none';
+    dots.style.display = 'none';
+  } else {
+    buildDots();
+  }
+}
+
+function buildDots() {
+  const dots = document.getElementById('hero-dots');
+  dots.innerHTML = '';
+  for (let i = 0; i < totalSlides; i++) {
+    const d = document.createElement('div');
+    d.className = 'hero-dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goSlide(i);
+    dots.appendChild(d);
+  }
+}
+
+function goSlide(idx) {
+  const slides = document.querySelectorAll('.hero-slide');
+  const dots   = document.querySelectorAll('.hero-dot');
+  slides[currentSlide].classList.remove('active');
+  if (dots[currentSlide]) dots[currentSlide].classList.remove('active');
+  currentSlide = (idx + totalSlides) % totalSlides;
+  slides[currentSlide].classList.add('active');
+  if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+}
+
+function nextSlide() { goSlide(currentSlide + 1); }
+function prevSlide() { goSlide(currentSlide - 1); }
+
+/* ─── RENDER ─── */
+function renderImovel(im, todos) {
+  imovelAtual = im;
+
+  // título da página
+  document.title = im.nome + ' — WAL Imóveis';
+
+  // breadcrumb
+  document.getElementById('bc-nome').textContent = im.nome;
+
+  // hero
+  document.getElementById('hero-tag').textContent = im.tipo + ' · ' + im.cidade;
+  const nomePartes = im.nome.split(' ');
+  const ultima     = nomePartes.pop();
+  document.getElementById('hero-title').innerHTML =
+    (nomePartes.join(' ') + ' <em>' + ultima + '</em>').trim();
+  const localParts = [im.bairro, im.cidade + (im.uf ? '/' + im.uf : '')].filter(Boolean);
+  document.getElementById('hero-location').textContent = localParts.join(' · ');
+
+  initSlides(im.imagem);
+
+  // summary bar
+  document.getElementById('sum-tipologia').textContent = im.faixa || im.tipo || '—';
+  document.getElementById('sum-valor').textContent =
+    im.valor > 0 ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
+  document.getElementById('sum-local').textContent =
+    [im.cidade, im.uf].filter(Boolean).join('/') || '—';
+
+  // descrição
+  document.getElementById('descricao-text').textContent =
+    im.descricao || 'Entre em contato para obter mais informações sobre este empreendimento.';
+
+  // tabela preços
+  const valorStr = im.valor > 0
+    ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil'
+    : 'Consulte-nos';
+  document.getElementById('preco-tbody').innerHTML = `
+    <tr>
+      <td>${im.tipo || '—'}</td>
+      <td>${im.faixa || '—'}</td>
+      <td class="preco-destaque">${valorStr}</td>
+      <td>CFIAe · FGTS · SFH</td>
+    </tr>`;
+
+  // sidebar preço
+  document.getElementById('sb-preco').textContent =
+    im.valor > 0 ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
+  document.getElementById('sb-preco-sub').textContent = im.faixa || 'Condições especiais para militares';
+
+  // downloads / links
+  const dlList = document.getElementById('downloads-list');
+  let dlHtml = '';
+  if (im.blogUrl && im.blogUrl !== '#') {
+    dlHtml += `
+      <a href="${im.blogUrl}" target="_blank" rel="noopener" class="download-item">
+        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6z"/></svg>
+        <div>
+          <div class="download-label">Página completa no Blogger</div>
+          <div class="download-desc">Fotos, plantas e informações detalhadas</div>
+        </div>
+      </a>`;
+  }
+  dlHtml += `
+    <a href="simulador.html" class="download-item">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      <div>
+        <div class="download-label">Simulador de Financiamento</div>
+        <div class="download-desc">Calcule as parcelas do CFIAe e SFH</div>
+      </div>
+    </a>
+    <a href="reserva.html" class="download-item">
+      <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      <div>
+        <div class="download-label">Reservar este Imóvel</div>
+        <div class="download-desc">Formulário de reserva e intenção de compra</div>
+      </div>
+    </a>`;
+  dlList.innerHTML = dlHtml;
+
+  // links úteis sidebar — adicionar Blogger se disponível
+  if (im.blogUrl && im.blogUrl !== '#') {
+    const utilLinks = document.getElementById('util-links');
+    utilLinks.insertAdjacentHTML('afterbegin', `
+      <a href="${im.blogUrl}" target="_blank" rel="noopener" class="util-link">
+        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H7l5-8v4h4l-5 8z"/></svg>
+        Ver no Blogger
+      </a>`);
+  }
+
+  // mapa
+  const mapaQuery = encodeURIComponent((im.bairro ? im.bairro + ', ' : '') + im.cidade + (im.uf ? ' ' + im.uf : '') + ', Brasil');
+  document.getElementById('mapa-embed').src =
+    'https://maps.google.com/maps?q=' + mapaQuery + '&output=embed&z=14';
+
+  // WPP flutuante
+  const wppMsg = encodeURIComponent('Olá! Tenho interesse no ' + im.nome + ' em ' + im.cidade + '. Pode me ajudar?');
+  document.getElementById('wpp-float').href = 'https://wa.me/' + WPP_NUM + '?text=' + wppMsg;
+
+  // outros empreendimentos
+  const outros = todos
+    .filter(o => o.ativo && o.id !== im.id && o.nome)
+    .sort(() => Math.random() - 0.5)
+    .slice(0, 3);
+
+  const outrosGrid = document.getElementById('outros-grid');
+  if (outros.length === 0) {
+    outrosGrid.innerHTML = '<p style="color:var(--text-muted);font-size:13px">Nenhum outro empreendimento disponível no momento.</p>';
+  } else {
+    outrosGrid.innerHTML = outros.map(function(o) {
+      const img = o.imagem || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=60';
+      return `
+        <a href="imovel.html?id=${o.id}" class="outro-card">
+          <img src="${img}" alt="${o.nome}"
+               onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=60'"
+               loading="lazy">
+          <div class="outro-card-body">
+            <div class="outro-tipo">${o.tipo}</div>
+            <div class="outro-nome">${o.nome}</div>
+            <div class="outro-cidade">${[o.bairro, o.cidade].filter(Boolean).join(' — ')}</div>
+          </div>
+        </a>`;
+    }).join('');
+  }
+
+  // remove loading
+  document.getElementById('loading-state').remove();
+}
+
+/* ─── INTERESSE ─── */
+let _linkCompartilhadoImovel = '';
+
+function copiarLinkImovel(btn) {
+  navigator.clipboard.writeText(_linkCompartilhadoImovel).then(() => {
+    btn.textContent = '✅ Link copiado!';
+    setTimeout(() => { btn.textContent = '🔗 Copiar Link'; }, 2000);
+  });
+}
+
+function compartilharImovel() {
+  if (!imovelAtual) return;
+  const im      = imovelAtual;
+  const link    = SITE_BASE_URL ? SITE_BASE_URL + 'imovel.html?id=' + im.id : 'imovel.html?id=' + im.id;
+  _linkCompartilhadoImovel = link;
+  const preco   = im.valor > 0 ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
+  const local   = [im.bairro, im.cidade + (im.uf ? '/' + im.uf : '')].filter(Boolean).join(' — ');
+  const texto   = 'Olá! Vi esse imóvel no site da WAL Consultoria e achei interessante:\n' +
+                  '*' + im.nome + '* — ' + local + '\n' +
+                  'A partir de ' + preco + '\n' +
+                  'Saiba mais: ' + link;
+  const assunto = 'Imóvel interessante — ' + im.nome;
+
+  const modal     = document.createElement('div');
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:9000;display:flex;align-items:center;justify-content:center';
+
+  const wppHref  = 'https://wa.me/?text=' + encodeURIComponent(texto);
+  const mailHref = 'mailto:?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(texto);
+  const btnStyle = 'display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-decoration:none;';
+
+  modal.innerHTML =
+    '<div style="background:var(--navy-mid);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative">' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer">✕</button>' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px">Compartilhar Imóvel</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
+        '<a href="' + mailHref + '" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);">✉️ Enviar por E-mail</a>' +
+        '<button onclick="copiarLinkImovel(this)" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function enviarInteresse() {
+  const nome  = document.getElementById('cc-nome').value.trim();
+  const wpp   = document.getElementById('cc-wpp').value.trim();
+  const posto = document.getElementById('cc-posto').value;
+
+  if (!nome || !wpp) {
+    mostrarToast('⚠️ Preencha nome e WhatsApp.');
+    return;
+  }
+  if (!imovelAtual) return;
+
+  fetch(SCRIPT_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      tipo:        'lead',
+      timestamp:   new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      nome, whatsapp: wpp, posto,
+      base:        imovelAtual.nome,
+      cidade:      imovelAtual.cidade,
+      faixa_valor: imovelAtual.faixa,
+      origem:      'pagina_imovel'
+    })
+  });
+
+  mostrarToast('✅ Recebemos seu interesse! Entraremos em contato em breve.');
+  const msg = encodeURIComponent('Olá! Sou ' + nome + ' e tenho interesse no ' + imovelAtual.nome + ' em ' + imovelAtual.cidade + '.');
+  setTimeout(function() {
+    window.open('https://wa.me/' + WPP_NUM + '?text=' + msg, '_blank');
+  }, 1200);
+}
+
+/* ─── INIT ─── */
+document.addEventListener('DOMContentLoaded', async function() {
+  const params   = new URLSearchParams(window.location.search);
+  const imovelId = params.get('id');
+
+  if (!imovelId) {
+    mostrarErro('Nenhum imóvel selecionado.');
+    return;
+  }
+
+  try {
+    const json  = await fetchSheet();
+    const table = json && json.table;
+    if (!table || !table.rows) throw new Error('Planilha vazia');
+
+    const todos = table.rows
+      .filter(function(row) { return row.c && row.c[0]; })
+      .map(parseRow);
+
+    const encontrado = todos.find(function(im) { return im.id === imovelId; });
+
+    if (!encontrado) {
+      mostrarErro('Imóvel não encontrado.');
+      return;
+    }
+
+    renderImovel(encontrado, todos);
+
+  } catch(e) {
+    console.error('imovel.html:', e);
+    mostrarErro('Não foi possível carregar o imóvel.<br>Tente novamente mais tarde.');
+  }
+});
+</script>
+</body>
+</html>

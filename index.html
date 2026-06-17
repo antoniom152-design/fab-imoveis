@@ -963,6 +963,50 @@
     footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
     .form-row { grid-template-columns: 1fr; }
   }
+
+  /* ─── TABLET (≤ 1024px) ─── */
+  @media (max-width: 1024px) {
+    nav { padding: 16px 32px; }
+    .hero-content { padding: 60px 32px; gap: 40px; grid-template-columns: 1fr 360px; }
+    .section-inner { padding: 0 32px; }
+  }
+
+  /* ─── MOBILE (≤ 640px) ─── */
+  @media (max-width: 640px) {
+    nav { padding: 14px 16px; }
+    .nav-cta { font-size: 11px; padding: 8px 14px; letter-spacing: .08em; }
+    .logo-emblem { height: 38px; }
+
+    .hero { padding-top: 70px; min-height: auto; }
+    .hero-content { padding: 40px 16px 48px; grid-template-columns: 1fr; gap: 32px; }
+    .hero-title { font-size: clamp(28px, 7vw, 40px); }
+    .hero-sub { font-size: 15px; margin-bottom: 24px; }
+    .hero-stats { flex-direction: column; gap: 16px; margin-bottom: 28px; }
+    .stat-num { font-size: 22px; }
+
+    .section-inner { padding: 0 16px; }
+    section { padding: 48px 0 !important; }
+
+    .benefits-grid { grid-template-columns: 1fr; gap: 12px; }
+    .props-grid { grid-template-columns: 1fr; gap: 16px; }
+    .test-grid { grid-template-columns: 1fr; gap: 16px; }
+
+    .form-row { grid-template-columns: 1fr; }
+    .form-row select, .form-row input { font-size: 16px; }
+
+    footer { padding: 24px 16px; gap: 12px; font-size: 11px; }
+
+    /* Empreendimentos selecionados — cards em coluna única */
+    section .section-inner [style*="repeat(5,1fr)"] {
+      grid-template-columns: 1fr !important;
+      gap: 16px !important;
+    }
+    section .section-inner [style*="repeat(5,1fr)"] > div:last-child {
+      grid-column: auto;
+    }
+
+    .fghab-inner { gap: 24px; }
+  }
 </style>
 </head>
 <body>
@@ -1019,16 +1063,16 @@
         <form onsubmit="handleSubmit(event)">
           <div class="form-group">
             <label class="form-label">Nome completo</label>
-            <input class="form-input" type="text" placeholder="Ex: Ten. João Silva" required>
+            <input class="form-input" id="f-nome" type="text" placeholder="Ex: Ten. João Silva" required>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">WhatsApp</label>
-              <input class="form-input" type="tel" placeholder="(21) 99726-3950" required>
+              <input class="form-input" id="f-wpp" type="tel" placeholder="(21) 99726-3950" required>
             </div>
             <div class="form-group">
               <label class="form-label">Posto / Cargo</label>
-              <select class="form-select" required>
+              <select class="form-select" id="f-posto" required>
                 <option value="" disabled selected>Selecione</option>
                 <optgroup label="Oficiais">
                   <option>Oficial General</option>
@@ -1051,49 +1095,69 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Base / Unidade</label>
-              <input class="form-input" type="text" placeholder="Ex: Galeão, Santa Cruz, Cumbica..." required>
+              <input class="form-input" id="f-base" type="text" placeholder="Ex: Galeão, Santa Cruz, Cumbica..." required>
             </div>
             <div class="form-group">
-              <label class="form-label">Cidade desejada</label>
-              <select class="form-select" required>
+              <label class="form-label">Estado desejado (UF)</label>
+              <select class="form-select" id="f-uf-form" onchange="fCaptura('h-estado',this.value);onFormUF()" required>
                 <option value="" disabled selected>Selecione</option>
-                <option>Rio de Janeiro - RJ</option>
-                <option>Grande Rio - RJ</option>
-		<option>Niterói - RJ</option>
-		<option>São Gonçalo - RJ</option>
-		<option>São Pedro da Aldeia - RJ</option>
-		<option>Cabo Frio - RJ</option>
-		<option>Araruama e Iguaba - RJ</option>
-                <option>São Paulo - SP</option>
-                <option>Grande SP</option>
-                <option>Indiferente</option>
+                <option value="RJ">Rio de Janeiro — RJ</option>
+                <option value="SP">São Paulo — SP</option>
               </select>
+              <input type="hidden" id="h-estado">
             </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Faixa de valor</label>
-            <select class="form-select" required>
-              <option value="" disabled selected>Selecione</option>
-              <option>Até R$ 300.000</option>
-              <option>De R$ 300.000 a R$ 500.000</option>
-              <option>De R$ 500.000 a R$ 700.000</option>
-              <option>De R$ 700.000 a R$ 900.000</option>
-              <option>De R$ 900.000 a R$ 1.250.000</option>
-              <option>Acima de R$ 1.250.000</option>
-            </select>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Cidade desejada</label>
+              <select class="form-select" id="f-cidade-form" onchange="fCaptura('h-cidade',this.value);onFormCidade()" required>
+                <option value="" disabled selected>Selecione primeiro o estado</option>
+              </select>
+              <input type="hidden" id="h-cidade">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Bairro desejado</label>
+              <select class="form-select" id="f-bairro-form" onchange="fCaptura('h-bairro',this.value);onFormBairro()">
+                <option value="" disabled selected>Selecione primeiro a cidade</option>
+              </select>
+              <input type="hidden" id="h-bairro">
+            </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Forma de Pagamento</label>
-            <select class="form-select" required>
-              <option value="" disabled selected>Selecione</option>
-              <option>À Vista</option>
-              <option>Financiamento Bancário</option>
-              <option>FGTS + Financiamento</option>
-              <option>CFIAe + Financiamento</option>
-              <option>CFIAe</option>
-              <option>35 / 65</option>
-              <option>Construtora + Banco</option>
-            </select>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Faixa de valor</label>
+              <select class="form-select" id="f-faixa-form" onchange="fCaptura('h-faixa',this.value);onFormFaixa()">
+                <option value="" disabled selected>Selecione primeiro o bairro</option>
+              </select>
+              <input type="hidden" id="h-faixa">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Imóvel de interesse</label>
+              <select class="form-select" id="f-imovel-form" onchange="fCaptura('h-imovel',this.value)">
+                <option value="" disabled selected>Selecione primeiro a faixa</option>
+              </select>
+              <input type="hidden" id="h-imovel">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Forma de Pagamento</label>
+              <select class="form-select" id="f-pagamento-form">
+                <option value="" disabled selected>Selecione</option>
+                <option>POUPEX</option>
+                <option>CFIAe</option>
+                <option>FGTS + Financiamento</option>
+                <option>À Vista</option>
+                <option>A definir</option>
+              </select>
+            </div>
+            <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:4px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--text-muted)">
+                <input type="checkbox" id="f-agendar-form"
+                       style="width:16px;height:16px;accent-color:var(--gold)">
+                Quero agendar uma consulta com o Consultor WAL
+              </label>
+            </div>
           </div>
           <button type="submit" class="btn-submit">Quero conhecer as opções →</button>
           <p class="form-privacy">Seus dados estão seguros. Não compartilhamos suas informações com terceiros. <a href="#">Política de privacidade</a></p>
@@ -1633,6 +1697,100 @@
 </div><!-- .section-inner -->
 </section>
 
+<!-- E-BOOK -->
+<section style="background:var(--navy-mid);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:60px 48px">
+  <div style="max-width:900px;margin:0 auto;display:flex;align-items:center;gap:48px;flex-wrap:wrap">
+    <div style="flex:1;min-width:260px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.25em;
+                  text-transform:uppercase;color:var(--gold);margin-bottom:12px">E-book Gratuito</div>
+      <h2 style="font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,34px);
+                 font-weight:900;color:var(--off-white);line-height:1.2;margin-bottom:14px">
+        Guia de Financiamento Imobiliário<br>para <em style="font-style:normal;color:var(--gold)">Militares da FAB</em>
+      </h2>
+      <p style="font-size:14px;font-weight:300;color:var(--text-muted);line-height:1.8;margin-bottom:24px">
+        Tudo que você precisa saber para financiar seu imóvel usando os benefícios exclusivos
+        da Aeronáutica. POUPEX, CFIAe, FGTS, SAC vs Price, documentação necessária e muito
+        mais — em linguagem simples e direta para militares da ativa, reserva e pensionistas.
+      </p>
+      <button onclick="abrirModalEbook()"
+        style="display:inline-flex;align-items:center;gap:10px;
+               background:var(--gold);color:var(--navy);border:none;cursor:pointer;
+               padding:14px 32px;font-family:'Barlow Condensed',sans-serif;
+               font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+               transition:background .2s"
+        onmouseover="this.style.background='var(--gold-light)'"
+        onmouseout="this.style.background='var(--gold)'">
+        📥 Baixar E-book Gratuitamente
+      </button>
+    </div>
+    <div style="flex-shrink:0;width:160px;text-align:center;opacity:.85">
+      <div style="background:linear-gradient(135deg,var(--navy-light),var(--navy));
+                  border:2px solid var(--gold);padding:28px 20px;
+                  font-family:'Playfair Display',serif">
+        <div style="font-size:36px;margin-bottom:8px">📖</div>
+        <div style="font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.06em">GUIA COMPLETO</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Financiamento FAB</div>
+        <div style="margin-top:12px;font-size:10px;font-weight:700;
+                    background:var(--gold);color:var(--navy);padding:4px 10px;letter-spacing:.1em">GRATUITO</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MODAL E-BOOK -->
+<div id="ebookOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.9);
+     z-index:9500;align-items:center;justify-content:center">
+  <div style="background:var(--navy-mid);border:1px solid var(--border);
+              padding:36px 40px;max-width:420px;width:90%;position:relative">
+    <button onclick="fecharModalEbook()"
+      style="position:absolute;top:14px;right:16px;background:none;border:none;
+             color:var(--text-muted);font-size:20px;cursor:pointer">✕</button>
+
+    <!-- STEP 1 -->
+    <div id="ebookStep1">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;
+                  letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">
+        Acesso ao E-book
+      </div>
+      <p style="font-size:14px;color:var(--text-muted);margin-bottom:20px;line-height:1.6">
+        Digite seu WhatsApp para verificar se você já tem acesso ou para cadastrar:
+      </p>
+      <input type="tel" id="ebook-fone" placeholder="(21) 99999-9999"
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);
+               color:var(--off-white);padding:12px 14px;font-family:'Barlow',sans-serif;
+               font-size:14px;outline:none;margin-bottom:14px">
+      <button onclick="verificarFoneEbook()"
+        style="width:100%;background:var(--gold);color:var(--navy);border:none;cursor:pointer;
+               padding:13px;font-family:'Barlow Condensed',sans-serif;
+               font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase">
+        Verificar →
+      </button>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="ebookStep2" style="display:none">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;
+                  letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:14px">
+        Cadastre-se para baixar
+      </div>
+      <input type="text" id="ebook-nome" placeholder="Seu nome completo"
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);
+               color:var(--off-white);padding:11px 14px;font-family:'Barlow',sans-serif;
+               font-size:13px;outline:none;margin-bottom:10px">
+      <input type="email" id="ebook-email" placeholder="Seu e-mail"
+        style="width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);
+               color:var(--off-white);padding:11px 14px;font-family:'Barlow',sans-serif;
+               font-size:13px;outline:none;margin-bottom:14px">
+      <button onclick="cadastrarEbook()"
+        style="width:100%;background:var(--gold);color:var(--navy);border:none;cursor:pointer;
+               padding:13px;font-family:'Barlow Condensed',sans-serif;
+               font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase">
+        📥 Baixar gratuitamente
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-copy">© 2026 WAL Imóveis — CRECI 12261-J. Todos os direitos reservados.</div>
@@ -1690,7 +1848,7 @@
 
   // ─── GOOGLE SHEETS INTEGRATION ───
   // PASSO 1: Substitua a URL abaixo pela URL do seu Google Apps Script (veja instruções no README)
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaYe-YjMZWc8z7VM_cS1FkPwQwQOU26xpnjgxZQfj4mrAO2KURuHOeH84WwX0HelXHpg/exec';
 
   // ─── CONTADOR DE VISITAS ───
   fetch(GOOGLE_SCRIPT_URL, {
@@ -1704,6 +1862,86 @@
     })
   }).catch(() => {});
 
+  /* ─── SELECTS ENCADEADOS DO FORMULÁRIO ─── */
+  let _formSheetCache = null;
+
+  async function loadFormSheetCache() {
+    if (_formSheetCache) return _formSheetCache;
+    const SHEET_ID_FORM = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+    const data = await gvizJsonpIndex(SHEET_ID_FORM, 'IMOVEISDISPONIVEIS');
+    const g = (row, i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
+    _formSheetCache = (data.table && data.table.rows || [])
+      .filter(row => row.c && row.c[1] && row.c[1].v === true)
+      .map(row => ({
+        id:     g(row, 0), nome:   g(row, 5), cidade: g(row, 4),
+        uf:     g(row, 15), bairro: g(row, 16), faixa:  g(row, 8)
+      }));
+    return _formSheetCache;
+  }
+
+  function populateSelect(selId, options, placeholder) {
+    const sel = document.getElementById(selId);
+    sel.innerHTML = options.length
+      ? '<option value="" disabled selected>' + placeholder + '</option>' +
+        options.map(o => `<option value="${o}">${o}</option>`).join('')
+      : '<option value="" disabled selected>Nenhuma opção disponível no momento</option>';
+  }
+
+  async function onFormUF() {
+    const uf = document.getElementById('f-uf-form').value;
+    let rows = [];
+    try { rows = await loadFormSheetCache(); } catch(e) {}
+    const cidades = [...new Set(rows.filter(r => r.uf === uf && r.cidade).map(r => r.cidade))].sort();
+    populateSelect('f-cidade-form', cidades, 'Selecione a cidade');
+    populateSelect('f-bairro-form', [], 'Selecione primeiro a cidade');
+    populateSelect('f-faixa-form',  [], 'Selecione primeiro o bairro');
+    populateSelect('f-imovel-form', [], 'Selecione primeiro a faixa');
+  }
+
+  async function onFormCidade() {
+    const uf     = document.getElementById('f-uf-form').value;
+    const cidade = document.getElementById('f-cidade-form').value;
+    let rows = [];
+    try { rows = await loadFormSheetCache(); } catch(e) {}
+    const bairros = [...new Set(rows.filter(r => r.uf === uf && r.cidade === cidade && r.bairro).map(r => r.bairro))].sort();
+    populateSelect('f-bairro-form', bairros, bairros.length ? 'Selecione o bairro' : 'Qualquer bairro');
+    populateSelect('f-faixa-form',  [], 'Selecione primeiro o bairro');
+    populateSelect('f-imovel-form', [], 'Selecione primeiro a faixa');
+  }
+
+  async function onFormBairro() {
+    const uf     = document.getElementById('f-uf-form').value;
+    const cidade = document.getElementById('f-cidade-form').value;
+    const bairro = document.getElementById('f-bairro-form').value;
+    let rows = [];
+    try { rows = await loadFormSheetCache(); } catch(e) {}
+    const filtrados = rows.filter(r => r.uf === uf && r.cidade === cidade && (!bairro || r.bairro === bairro));
+    const faixas = [...new Set(filtrados.filter(r => r.faixa).map(r => r.faixa))];
+    populateSelect('f-faixa-form', faixas, faixas.length ? 'Selecione a faixa' : 'Qualquer faixa');
+    populateSelect('f-imovel-form', [], 'Selecione primeiro a faixa');
+  }
+
+  async function onFormFaixa() {
+    const uf     = document.getElementById('f-uf-form').value;
+    const cidade = document.getElementById('f-cidade-form').value;
+    const bairro = document.getElementById('f-bairro-form').value;
+    const faixa  = document.getElementById('f-faixa-form').value;
+    let rows = [];
+    try { rows = await loadFormSheetCache(); } catch(e) {}
+    const imoveis = rows.filter(r =>
+      r.uf === uf && r.cidade === cidade &&
+      (!bairro || r.bairro === bairro) &&
+      (!faixa  || r.faixa  === faixa)
+    ).map(r => r.nome).filter(Boolean);
+    const unicos = [...new Set(imoveis)];
+    populateSelect('f-imovel-form', unicos, unicos.length ? 'Selecione o empreendimento' : 'Nenhum disponível');
+  }
+
+  function fCaptura(hiddenId, val) {
+    const el = document.getElementById(hiddenId);
+    if (el) el.value = val;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -1711,59 +1949,81 @@
     btn.textContent = 'Enviando...';
     btn.disabled = true;
 
-    // Coleta os dados do formulário
-    const inputs = e.target.querySelectorAll('input, select');
+    // h-* são campos hidden atualizados no onchange de cada select
+    // v() lê o select diretamente como fallback
+    const v  = id => { const el = document.getElementById(id); return el ? (el.value || '') : ''; };
+    const hv = (hid, fid) => v(hid) || v(fid); // prefere hidden (capturado no onchange)
+    const agendar = document.getElementById('f-agendar-form') && document.getElementById('f-agendar-form').checked;
+
     const data = {
-      tipo:           'lead',
-      timestamp:      new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-      nome:           inputs[0].value,
-      whatsapp:       inputs[1].value,
-      posto:          inputs[2].value,
-      base:           inputs[3].value,
-      cidade:         inputs[4].value,
-      faixa_valor:    inputs[5].value,
-      forma_pagamento: inputs[6].value,
-      origem:         document.referrer || 'Direto'
+      tipo:             'lead',
+      timestamp:        new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      nome:             v('f-nome'),
+      whatsapp:         v('f-wpp'),
+      posto:            v('f-posto'),
+      base:             v('f-base'),
+      estado:           hv('h-estado',  'f-uf-form'),
+      cidade:           hv('h-cidade',  'f-cidade-form'),
+      bairro_desejado:  hv('h-bairro',  'f-bairro-form'),
+      faixa_valor:      hv('h-faixa',   'f-faixa-form'),
+      imovel_interesse: hv('h-imovel',  'f-imovel-form'),
+      forma_pagamento:  v('f-pagamento-form'),
+      quer_agendar:     agendar ? 'Sim' : 'Não',
+      origem:           document.referrer || 'Direto'
     };
 
     try {
-      // Envia para o Google Apps Script (que salva no Google Sheets)
       await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors', // necessário para Google Apps Script
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(data)
       });
       showSuccess(data);
     } catch (err) {
-      // Fallback: mesmo com erro de rede, mostra sucesso ao usuário
-      // (no-cors não retorna erro real; o envio normalmente funciona)
       showSuccess(data);
     }
   }
 
   function showSuccess(data) {
-    // Monta mensagem para o chatbot com todos os dados do formulário
-    const mensagem = encodeURIComponent(
-      'Sou Funcionário da FAB\n\n' +
-      'Nome: '              + (data.nome            || '') + '\n' +
-      'WhatsApp: '          + (data.whatsapp        || '') + '\n' +
-      'Posto/Cargo: '       + (data.posto           || '') + '\n' +
-      'Base/Unidade: '      + (data.base            || '') + '\n' +
-      'Cidade Desejada: '   + (data.cidade          || '') + '\n' +
-      'Faixa de Valor: '    + (data.faixa_valor     || '') + '\n' +
-      'Forma de Pagamento: '+ (data.forma_pagamento || '')
-    );
-    const waUrl = 'https://wa.me/5521997263950?text=' + mensagem;
+    const agendar = data.quer_agendar === 'Sim';
+    let mensagem;
+    if (agendar) {
+      mensagem = encodeURIComponent(
+        'Sou Funcionário da FAB\n\n' +
+        'Nome: '              + (data.nome             || '') + '\n' +
+        'WhatsApp: '          + (data.whatsapp         || '') + '\n' +
+        'Posto/Cargo: '       + (data.posto            || '') + '\n' +
+        'Base/Unidade: '      + (data.base             || '') + '\n' +
+        'Imóvel: '            + (data.imovel_interesse || '') + '\n' +
+        'Bairro: '            + (data.bairro_desejado  || '') + '\n' +
+        'Cidade: '            + (data.cidade           || '') + '/' + (data.estado || '') + '\n' +
+        'Faixa: '             + (data.faixa_valor      || '') + '\n' +
+        'Forma de pagamento: '+ (data.forma_pagamento  || '') + '\n\n' +
+        'Gostaria de AGENDAR uma consulta com o Consultor WAL.\n' +
+        'Pode me informar os horários disponíveis?'
+      );
+    } else {
+      mensagem = encodeURIComponent(
+        'Sou Funcionário da FAB\n\n' +
+        'Nome: '              + (data.nome             || '') + '\n' +
+        'WhatsApp: '          + (data.whatsapp         || '') + '\n' +
+        'Posto/Cargo: '       + (data.posto            || '') + '\n' +
+        'Base/Unidade: '      + (data.base             || '') + '\n' +
+        'Estado: '            + (data.estado           || '') + '\n' +
+        'Cidade Desejada: '   + (data.cidade           || '') + '\n' +
+        'Bairro Desejado: '   + (data.bairro_desejado  || '') + '\n' +
+        'Faixa de Valor: '    + (data.faixa_valor      || '') + '\n' +
+        'Imóvel de Interesse: '+(data.imovel_interesse || '') + '\n' +
+        'Forma de Pagamento: '+ (data.forma_pagamento  || '')
+      );
+    }
+    const waUrl = 'https://wa.me/5521977263950?text=' + mensagem;
 
-    // Atualiza o botão de fallback com a URL montada
     const btn = document.getElementById('wa-lead-btn');
     if (btn) btn.href = waUrl;
 
-    // Tenta abrir o WhatsApp automaticamente
     window.open(waUrl, '_blank');
 
-    // Exibe a mensagem de sucesso
     document.querySelector('.form-fields').classList.add('hide');
     document.querySelector('.form-success').classList.add('show');
   }
@@ -1845,14 +2105,16 @@
 
       if (result.exists) {
         // Telefone já cadastrado: incrementa contador e abre simulador
-        fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST', mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            tipo: 'simulacao', atualizar: true, telefone: fone,
-            timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
-          })
-        });
+        try {
+          await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'text/plain' },
+            body: JSON.stringify({
+              tipo: 'simulacao', atualizar: true, telefone: fone,
+              timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
+            })
+          });
+        } catch(e) {}
         fecharModalSimulador();
         window.location.href = 'simulador.html';
       } else {
@@ -1882,16 +2144,20 @@
     const btn = document.getElementById('simBtnSimular');
     btn.textContent = 'Aguarde...'; btn.disabled = true;
 
-    // Grava novo registro na aba SIMULACOES
-    fetch(GOOGLE_SCRIPT_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        tipo: 'simulacao', atualizar: false,
-        telefone: fone, nome, email,
-        timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
-      })
+    const payload = JSON.stringify({
+      tipo: 'simulacao', atualizar: false,
+      telefone: fone, nome, email,
+      timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
     });
+
+    // Aguarda o envio completar antes de navegar (evita cancelamento pelo browser)
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: payload
+      });
+    } catch(e) {}
 
     fecharModalSimulador();
     window.location.href = 'simulador.html';
@@ -2045,7 +2311,7 @@ function gvizJsonpIndex(sheetId, sheet) {
       const preco     = g(row, 9) ? `R$ ${parseFloat(g(row,9)).toLocaleString('pt-BR')}.000` : g(row, 8) || '—';
       const descricao = g(row, 6);
       const imagem    = fixDriveUrl(g(row, 7)) || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80';
-      const blogUrl   = g(row, 11) || '#';
+      const imovelId  = g(row, 0);
       const localStr  = [bairro, cidade].filter(Boolean).join(' — ');
       return `
         <div class="prop-card">
@@ -2061,10 +2327,14 @@ function gvizJsonpIndex(sheetId, sheet) {
                 <div class="prop-price-label">A partir de</div>
                 <div class="prop-price">${preco}</div>
               </div>
-              <a href="${blogUrl}" target="_blank" rel="noopener" class="prop-btn"
+              <a href="imovel.html?id=${imovelId}" class="prop-btn"
                  style="text-decoration:none;display:inline-flex;align-items:center">
                 Saiba mais
               </a>
+              <button class="prop-btn" onclick="compartilharImovel('${nome}','${cidade}','${g(row,15)}','${preco}','${imovelId}')"
+                style="background:transparent;border:1px solid var(--gold);color:var(--gold)">
+                &#8679; Compartilhar
+              </button>
             </div>
           </div>
         </div>`;
@@ -2074,10 +2344,119 @@ function gvizJsonpIndex(sheetId, sheet) {
     if (destSP.length) document.getElementById('props-grid-sp').innerHTML = destSP.map(cardHtml).join('');
 
   } catch(e) {
-    // Silencia erros — mantém cartões fixos como fallback
     console.warn('Destaques: falha ao carregar planilha', e.message);
   }
 })();
+
+  /* ─── E-BOOK ─── */
+  const EBOOK_URL = 'https://drive.google.com/uc?export=download&id=1XQOjlvkhe2vyELjf1VUz8m8LjogaYXbn';
+  let _ebookFone = '';
+
+  function abrirModalEbook() {
+    const o = document.getElementById('ebookOverlay');
+    o.style.display = 'flex';
+    document.getElementById('ebookStep1').style.display = 'block';
+    document.getElementById('ebookStep2').style.display = 'none';
+    document.getElementById('ebook-fone').value = '';
+    document.getElementById('ebook-fone').focus();
+  }
+
+  function fecharModalEbook() {
+    document.getElementById('ebookOverlay').style.display = 'none';
+  }
+
+  document.getElementById('ebook-fone') && document.getElementById('ebook-fone').addEventListener('keydown', e => {
+    if (e.key === 'Enter') verificarFoneEbook();
+  });
+
+  function verificarFoneEbook() {
+    const fone = document.getElementById('ebook-fone').value.trim();
+    if (!fone) return;
+    _ebookFone = fone;
+    jsonpRequest(GOOGLE_SCRIPT_URL + '?action=checkEbook&fone=' + encodeURIComponent(fone))
+      .then(res => {
+        if (res && res.exists) {
+          fetch(GOOGLE_SCRIPT_URL, {
+            method:'POST', mode:'no-cors',
+            headers:{'Content-Type':'application/json'},
+            body: JSON.stringify({ tipo:'ebook', atualizar:true, telefone:fone,
+              timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}),
+              pagina:'index' })
+          });
+          fecharModalEbook();
+          window.open(EBOOK_URL, '_blank');
+        } else {
+          document.getElementById('ebookStep1').style.display = 'none';
+          document.getElementById('ebookStep2').style.display = 'block';
+        }
+      })
+      .catch(() => {
+        document.getElementById('ebookStep1').style.display = 'none';
+        document.getElementById('ebookStep2').style.display = 'block';
+      });
+  }
+
+  function cadastrarEbook() {
+    const nome  = document.getElementById('ebook-nome').value.trim();
+    const email = document.getElementById('ebook-email').value.trim();
+    if (!nome) return;
+    fetch(GOOGLE_SCRIPT_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        tipo:'ebook', atualizar:false, telefone:_ebookFone,
+        nome, email,
+        timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}),
+        pagina:'index'
+      })
+    });
+    fecharModalEbook();
+    window.open(EBOOK_URL, '_blank');
+  }
+
+  let _linkCompartilhadoIndex = '';
+
+  function copiarLinkIndex(btn) {
+    navigator.clipboard.writeText(_linkCompartilhadoIndex).then(() => {
+      btn.textContent = '✅ Link copiado!';
+      setTimeout(() => { btn.textContent = '🔗 Copiar Link'; }, 2000);
+    });
+  }
+
+  function compartilharImovel(nome, cidade, uf, preco, id) {
+    const o    = window.location.origin;
+    const base = (!o || o === 'null' || o.startsWith('file')) ? '' : o + window.location.pathname.replace(/index\.html.*$/, '');
+    const link = base ? base + 'imovel.html?id=' + id : 'imovel.html?id=' + id;
+    _linkCompartilhadoIndex = link;
+
+    const texto   = 'Olá! Vi esse imóvel no site da WAL Consultoria e achei interessante:\n' +
+                    '*' + nome + '* — ' + cidade + (uf ? '/' + uf : '') + '\n' +
+                    'A partir de ' + preco + '\n' +
+                    'Saiba mais: ' + link;
+    const assunto = 'Imóvel interessante — ' + nome;
+
+    const modal    = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:9000;display:flex;align-items:center;justify-content:center';
+
+    const wppHref  = 'https://wa.me/?text=' + encodeURIComponent(texto);
+    const mailHref = 'mailto:?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(texto);
+    const btnStyle = 'display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-decoration:none;';
+
+    modal.innerHTML =
+      '<div style="background:var(--navy-mid);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative">' +
+        '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer">✕</button>' +
+        '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px">Compartilhar Imóvel</div>' +
+        '<div style="display:flex;flex-direction:column;gap:10px">' +
+          '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
+          '<a href="' + mailHref + '" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);">✉️ Enviar por E-mail</a>' +
+          '<button onclick="copiarLinkIndex(this)" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(modal);
+    modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  }
+
 </script>
 </body>
 </html>
