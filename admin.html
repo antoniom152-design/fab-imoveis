@@ -1438,6 +1438,7 @@ function onEdit(e) {
 /* ── CONFIGURAÇÕES ── */
 const ADMIN_PIN           = 'FAB2024';
 const APPS_SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbxaYe-YjMZWc8z7VM_cS1FkPwQwQOU26xpnjgxZQfj4mrAO2KURuHOeH84WwX0HelXHpg/exec';
+const DEFAULT_SHEET_URL   = 'https://docs.google.com/spreadsheets/d/1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk/edit?usp=sharing';
 const PLANILHA_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 
 function checkPin() {
@@ -1789,8 +1790,7 @@ function renderTable() {
 }
 
 function abrirPlanilha() {
-  const url = localStorage.getItem('fab_sheet_url');
-  if (!url) { alert('Configure a URL da planilha primeiro.'); return; }
+  const url = localStorage.getItem('fab_sheet_url') || DEFAULT_SHEET_URL;
   const id = extractSheetId(url);
   if (id) window.open(`https://docs.google.com/spreadsheets/d/${id}/edit`, '_blank');
 }
@@ -2516,13 +2516,10 @@ async function consultarVisitas() {
 
 /* ── INIT ── */
 function initAdmin() {
-  const savedUrl = localStorage.getItem('fab_sheet_url');
-  if (savedUrl) {
-    document.getElementById('sheetUrl').value = savedUrl;
-    fetchPreview();
-  } else {
-    setConnStatus('err','Sem planilha configurada','Siga o guia na aba "Configurar Planilha"');
-  }
+  const savedUrl = localStorage.getItem('fab_sheet_url') || DEFAULT_SHEET_URL;
+  localStorage.setItem('fab_sheet_url', savedUrl);
+  document.getElementById('sheetUrl').value = savedUrl;
+  fetchPreview();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
