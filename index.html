@@ -950,14 +950,21 @@
     .benefits-grid, .props-grid, .test-grid { grid-template-columns: 1fr; }
     .servicos .section-inner > div { grid-template-columns: 1fr !important; gap: 36px !important; }
 
-    /* Etapas mobile — colapsa para grid 2 colunas */
-    section .section-inner [style*="repeat(5,1fr)"] {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 32px 0 !important;
+    /* Etapas mobile — lista vertical em ordem correta */
+    .etapas-row {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 28px !important;
     }
-    section .section-inner [style*="repeat(5,1fr)"] > div:last-child {
-      grid-column: 1 / -1;
-    }
+    .etapas-row > div { padding: 0 !important; flex-direction: row !important; align-items: flex-start !important; gap: 16px !important; }
+    .etapas-row > div > div:first-child { flex-shrink: 0; }
+    .etapas-row > div > div:last-child { margin-top: 0 !important; text-align: left !important; }
+    /* Linha conectora horizontal dentro de cada row fica invisível em mobile */
+    .etapas-row > div[style*="position:absolute"] { display: none !important; }
+    /* Fileira 2: DOM tem 10→6, inverte para mostrar 6→10 */
+    .etapas-row-2 { flex-direction: column-reverse !important; }
+    /* Esconde o conector serpentina vertical */
+    .etapas-conn { display: none !important; }
     .fghab-inner { grid-template-columns: 1fr; gap: 40px; }
     .section-inner { padding: 0 24px; }
     footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
@@ -1500,7 +1507,7 @@
   <div class="reveal" style="transition-delay:.1s">
 
     <!-- FILEIRA 1: etapas 1 → 5 -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;margin-bottom:0">
+    <div class="etapas-row etapas-row-1" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative;margin-bottom:0">
 
       <!-- Linha conectora fileira 1 -->
       <div style="position:absolute;top:28px;left:calc(10% + 8px);right:calc(10% + 8px);height:2px;
@@ -1584,12 +1591,12 @@
     </div>
 
     <!-- CONECTOR SERPENTINA (direita, entre fileiras) -->
-    <div style="display:flex;justify-content:flex-end;padding:0 calc(10% - 28px)">
+    <div class="etapas-conn" style="display:flex;justify-content:flex-end;padding:0 calc(10% - 28px)">
       <div style="width:2px;height:56px;background:linear-gradient(to bottom,var(--gold),var(--gold-dim))"></div>
     </div>
 
     <!-- FILEIRA 2: etapas 10 ← 6  (invertida visualmente) -->
-    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative">
+    <div class="etapas-row etapas-row-2" style="display:grid;grid-template-columns:repeat(5,1fr);gap:0;position:relative">
 
       <!-- Linha conectora fileira 2 -->
       <div style="position:absolute;top:28px;left:calc(10% + 8px);right:calc(10% + 8px);height:2px;
@@ -2312,7 +2319,8 @@ function gvizJsonpIndex(sheetId, sheet) {
       const descricao = g(row, 6);
       const imagem    = fixDriveUrl(g(row, 7)) || 'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80';
       const imovelId  = g(row, 0);
-      const localStr  = [bairro, cidade].filter(Boolean).join(' — ');
+      const uf        = g(row, 15);
+      const localStr  = [bairro, cidade + (uf ? '/' + uf : '')].filter(Boolean).join(' — ');
       return `
         <div class="prop-card">
           <div class="prop-tag">${tipo}</div>

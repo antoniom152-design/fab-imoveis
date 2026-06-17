@@ -815,9 +815,10 @@ function renderCard(im) {
         <div class="card-header">
           <div class="card-tipo-badge ${tipoBadgeClass(im.tipo)}">${im.tipo}</div>
           <div class="card-nome">${im.nome}</div>
+          ${im.bairro ? `<div class="card-cidade"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>${im.bairro}</div>` : ''}
           <div class="card-cidade">
             <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
-            ${im.cidade}
+            ${im.cidade}${im.uf ? '/' + im.uf : ''}
           </div>
         </div>
         <img src="${fixDriveUrl(im.imagem)}" alt="${im.nome}" loading="lazy"
