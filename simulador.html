@@ -175,13 +175,49 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
   .header{padding:1.75rem 1rem 1.5rem}
   .main{grid-template-columns:1fr;padding:1.5rem 1rem 3rem}
   .summary-grid{grid-template-columns:1fr 1fr}
-  .tab-row{grid-template-columns:1fr 1fr}
+
+  /* Tabs do comparativo — 1 coluna em mobile */
+  .tab-row{grid-template-columns:1fr 1fr;gap:6px}
+  .tab{padding:.65rem .75rem}
+  .tab-label{font-size:9px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tab-value{font-size:1rem}
+  .tab-sub{display:none} /* oculta subtexto longo nos cards de seleção */
+
+  /* Cards de resumo */
+  .s-card{padding:.7rem .75rem}
+  .s-val{font-size:.95rem}
+
+  /* Encargos */
+  .encargo-row{grid-template-columns:1fr 1fr;gap:6px}
+  .enc-card{padding:.6rem .75rem}
+  .enc-card.total-card{grid-column:1/-1}
+  .enc-val{font-size:12px}
+  .enc-card.total-card .enc-val{font-size:14px}
+
+  /* Tabela de parcelas — scroll horizontal */
+  .table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tbl-scroll{max-height:260px;overflow-x:auto}
+  table{min-width:480px;font-size:11px}
+  thead th{padding:6px 7px;font-size:9px}
+  tbody td{padding:6px 7px}
+
+  .disclaimer{font-size:10px;padding:0 .5rem}
+
   input[type=text],input[type=date],select{font-size:16px}
-  .encargo-row{grid-template-columns:1fr}
   .sim-action-btn{flex:1 1 100%}
+}
+@media(max-width:420px){
+  /* Telas muito pequenas — tabs em coluna única */
+  .tab-row{grid-template-columns:1fr}
+  .tab{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:.6rem .85rem}
+  .tab-label{flex:1;font-size:9px}
+  .tab-value{font-size:1rem;flex-shrink:0}
+  .summary-grid{grid-template-columns:1fr 1fr}
+  .encargo-row{grid-template-columns:1fr}
 }
 @media(max-width:360px){
   .summary-grid{grid-template-columns:1fr}
+  .encargo-row{grid-template-columns:1fr}
 }
 @media(max-width:480px){.nav-fab{padding:12px 16px}.header{padding:2rem 1.2rem}.summary-grid{grid-template-columns:1fr 1fr}.row2{grid-template-columns:1fr}.encargo-row{grid-template-columns:1fr}}
 
