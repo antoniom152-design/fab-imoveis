@@ -1583,7 +1583,7 @@ function parseGvizToAdmin(table) {
       descricao: g(6), imagem: g(7), faixa: g(8), valor: parseFloat(g(9)) || 0,
       qtd: g(10), blog: g(11), data: g(12), obs: g(13),
       destaque: row.c && row.c[14] && row.c[14].v === true,
-      uf: g(15), bairro: g(16)
+      uf: g(15), bairro: g(16), linkDrive: g(17)
     };
   }).filter(r => r.nome);
 }
@@ -1892,7 +1892,7 @@ function abrirFormEdit(id) {
   document.getElementById('cadDescricao').value    = d.descricao   || '';
   document.getElementById('cadImagem').value       = d.imagem      || '';
   document.getElementById('cadBlog').value         = d.blog        || '';
-  document.getElementById('cadLinkDrive').value    = d['Link Drive'] || d.link_drive || '';
+  document.getElementById('cadLinkDrive').value    = d.linkDrive || d.link_drive || '';
   document.getElementById('cadObs').value          = d.obs         || '';
   atualizarImgPreview();
 
