@@ -128,11 +128,19 @@ function getGaleria(imovelId) {
 
     var dados   = aba.getDataRange().getValues();
     var headers = dados[0].map(function(h) { return String(h).trim(); });
-    var colId    = headers.indexOf('ID');
-    var colDrive = headers.indexOf('Link Drive');
 
-    if (colId === -1)    return { files: [], error: 'Coluna ID não encontrada' };
-    if (colDrive === -1) return { files: [], error: 'Coluna "Link Drive" não encontrada na planilha IMOVEISDISPONIVEIS' };
+    // Busca as colunas por nome (mais seguro) com fallback para índice fixo
+    var colId    = headers.indexOf('ID');
+    if (colId === -1) colId = 0; // col A = ID
+    var colDrive = headers.indexOf('Link Drive');
+    if (colDrive === -1) colDrive = 17; // col R = Link Drive (padrão)
+
+    // Valida que a coluna encontrada faz sentido (deve conter "drive.google" ou estar vazia)
+    // Se o nome do cabeçalho encontrado não for "Link Drive", usa índice fixo
+    var headerEncontrado = String(dados[0][colDrive] || '').trim();
+    if (headerEncontrado !== 'Link Drive') {
+      colDrive = 17;
+    }
 
     var linkDrive = '';
     for (var i = 1; i < dados.length; i++) {
@@ -140,6 +148,11 @@ function getGaleria(imovelId) {
         linkDrive = String(dados[i][colDrive] || '').trim();
         break;
       }
+    }
+
+    // Segurança: ignora se não parece um link do Drive
+    if (linkDrive && linkDrive.indexOf('drive.google') === -1) {
+      return { files: [], error: 'O campo "Link Drive" do empreendimento não contém um link do Google Drive. Valor encontrado: ' + linkDrive };
     }
 
     if (!linkDrive) return { files: [] };
