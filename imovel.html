@@ -445,6 +445,77 @@
     .diferenciais-grid { grid-template-columns: 1fr 1fr; }
     .summary-item { flex: 1 1 100%; }
   }
+
+  /* ─── MODAL GALERIA ─── */
+  #galeriaModal {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(10,22,40,.96); flex-direction: column;
+    overflow: hidden;
+  }
+  .galeria-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .galeria-header-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 13px;
+    font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold);
+  }
+  .galeria-close {
+    background: none; border: 1px solid var(--border); color: var(--off-white);
+    width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+    font-size: 16px; display: flex; align-items: center; justify-content: center;
+  }
+  .galeria-body {
+    flex: 1; overflow-y: auto; padding: 20px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .galeria-fotos {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 8px;
+  }
+  .galeria-foto {
+    aspect-ratio: 4/3; overflow: hidden; border-radius: 6px; cursor: pointer;
+    background: var(--navy-light);
+  }
+  .galeria-foto img {
+    width: 100%; height: 100%; object-fit: cover;
+    transition: transform .25s;
+  }
+  .galeria-foto:hover img { transform: scale(1.05); }
+  .galeria-video { margin-bottom: 16px; }
+  .galeria-section-title {
+    font-family: 'Barlow Condensed', sans-serif; font-size: 11px;
+    font-weight: 700; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 12px;
+  }
+
+  /* ─── LIGHTBOX FOTO ─── */
+  #fotoModal {
+    display: none; position: fixed; inset: 0; z-index: 1100;
+    background: rgba(0,0,0,.92); align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px; padding: 16px;
+  }
+  #fotoModal img {
+    max-width: 100%; max-height: 80vh; border-radius: 6px;
+    object-fit: contain;
+  }
+  #fotoModalNome {
+    font-size: 12px; color: var(--text-muted);
+    font-family: 'Barlow Condensed', sans-serif; letter-spacing: .08em;
+  }
+  .foto-modal-close {
+    position: absolute; top: 16px; right: 16px;
+    background: none; border: 1px solid rgba(255,255,255,.25);
+    color: #fff; width: 36px; height: 36px; border-radius: 50%;
+    cursor: pointer; font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  @media (max-width: 640px) {
+    .galeria-fotos { grid-template-columns: repeat(2, 1fr); }
+    .galeria-body { padding: 14px; }
+  }
 </style>
 </head>
 <body>
@@ -626,7 +697,10 @@
       <button class="btn-interesse" onclick="enviarInteresse()">
         Quero ser contactado
       </button>
-      <button class="btn-interesse" onclick="compartilharImovel()" style="margin-top:8px;background:transparent;border:1px solid var(--gold);color:var(--gold)">
+      <button class="btn-interesse" id="btn-galeria" onclick="abrirGaleria()" style="margin-top:8px;background:var(--navy-light);border:1px solid var(--gold);color:var(--gold)">
+        &#128247; Fotos e Vídeos
+      </button>
+      <button class="btn-interesse" onclick="compartilharImovel()" style="margin-top:8px;background:transparent;border:1px solid var(--border);color:var(--text-muted)">
         &#128279; Compartilhar
       </button>
     </div>
@@ -660,6 +734,24 @@
     <a href="reserva.html">Reserva</a>
   </p>
 </footer>
+
+<!-- MODAL GALERIA -->
+<div id="galeriaModal">
+  <div class="galeria-header">
+    <div class="galeria-header-title">&#128247; Fotos e Vídeos</div>
+    <button class="galeria-close" onclick="fecharGaleria()">&#10005;</button>
+  </div>
+  <div class="galeria-body" id="galeriaGrid">
+    <div style="text-align:center;padding:3rem;color:var(--text-muted)">Carregando...</div>
+  </div>
+</div>
+
+<!-- LIGHTBOX FOTO -->
+<div id="fotoModal" onclick="fecharFoto()">
+  <button class="foto-modal-close" onclick="fecharFoto()">&#10005;</button>
+  <img id="fotoModalImg" src="" alt="">
+  <div id="fotoModalNome"></div>
+</div>
 
 <!-- WPP FLUTUANTE -->
 <a id="wpp-float" href="#" class="wpp-float" target="_blank" rel="noopener" title="WhatsApp">
@@ -736,7 +828,8 @@ function parseRow(row) {
     unidades:    g(10),
     blogUrl:     g(11),
     uf:          g(15),
-    bairro:      g(16)
+    bairro:      g(16),
+    linkDrive:   g(17)
   };
 }
 
@@ -818,6 +911,10 @@ function prevSlide() { goSlide(currentSlide - 1); }
 /* ─── RENDER ─── */
 function renderImovel(im, todos) {
   imovelAtual = im;
+
+  // botão galeria: ocultar se não há Link Drive
+  const btnGaleria = document.getElementById('btn-galeria');
+  if (btnGaleria) btnGaleria.style.display = im.linkDrive ? '' : 'none';
 
   // título da página
   document.title = im.nome + ' — WAL Imóveis';
@@ -1018,6 +1115,99 @@ function enviarInteresse() {
   setTimeout(function() {
     window.open('https://wa.me/' + WPP_NUM + '?text=' + msg, '_blank');
   }, 1200);
+}
+
+/* ─── GALERIA DRIVE ─── */
+function abrirGaleria() {
+  if (!imovelAtual || !imovelAtual.linkDrive) {
+    mostrarToast('⚠️ Galeria não disponível para este empreendimento.');
+    return;
+  }
+  const modal = document.getElementById('galeriaModal');
+  modal.style.display = 'flex';
+  document.getElementById('galeriaGrid').innerHTML =
+    '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Carregando...</div>';
+  carregarGaleria(imovelAtual.id);
+}
+
+function fecharGaleria() {
+  document.getElementById('galeriaModal').style.display = 'none';
+}
+
+function carregarGaleria(imovelId) {
+  const cbName = 'galCb_' + Date.now();
+  const script = document.createElement('script');
+  const timer  = setTimeout(function() {
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    document.getElementById('galeriaGrid').innerHTML =
+      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Tempo esgotado. Tente novamente.</div>';
+  }, 15000);
+
+  window[cbName] = function(data) {
+    clearTimeout(timer);
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+    renderGaleria(data);
+  };
+  script.onerror = function() {
+    clearTimeout(timer);
+    document.getElementById('galeriaGrid').innerHTML =
+      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Erro ao carregar galeria.</div>';
+  };
+  script.src = SCRIPT_URL + '?action=getGaleria&id=' + encodeURIComponent(imovelId) + '&callback=' + cbName;
+  document.head.appendChild(script);
+}
+
+function renderGaleria(data) {
+  const container = document.getElementById('galeriaGrid');
+  if (!data || !data.files || !data.files.length) {
+    container.innerHTML =
+      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Nenhuma mídia disponível para este empreendimento.</div>';
+    return;
+  }
+  const images = data.files.filter(function(f) { return f.type === 'image'; });
+  const videos = data.files.filter(function(f) { return f.type === 'video'; });
+  let html = '';
+
+  if (images.length) {
+    html += '<div class="galeria-section-title">&#128247; Fotos (' + images.length + ')</div>';
+    html += '<div class="galeria-fotos">';
+    images.forEach(function(f) {
+      const nome = f.name.replace(/'/g, '');
+      html += '<div class="galeria-foto" onclick="abrirFoto(\'' + f.id + '\',\'' + nome + '\')" title="' + nome + '">' +
+        '<img src="https://drive.google.com/thumbnail?id=' + f.id + '&sz=w400" ' +
+        'onerror="this.src=\'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=60\'" ' +
+        'loading="lazy" alt="' + nome + '">' +
+        '</div>';
+    });
+    html += '</div>';
+  }
+
+  if (videos.length) {
+    html += '<div class="galeria-section-title" style="margin-top:24px">&#127909; Vídeos (' + videos.length + ')</div>';
+    videos.forEach(function(f) {
+      html += '<div class="galeria-video">' +
+        '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">' + f.name + '</div>' +
+        '<iframe src="https://drive.google.com/file/d/' + f.id + '/preview" ' +
+        'width="100%" height="220" frameborder="0" allowfullscreen ' +
+        'style="border-radius:8px;background:var(--navy);display:block"></iframe>' +
+        '</div>';
+    });
+  }
+
+  container.innerHTML = html;
+}
+
+function abrirFoto(fileId, nome) {
+  const modal = document.getElementById('fotoModal');
+  document.getElementById('fotoModalImg').src = 'https://drive.google.com/uc?export=view&id=' + fileId;
+  document.getElementById('fotoModalNome').textContent = nome;
+  modal.style.display = 'flex';
+}
+
+function fecharFoto() {
+  document.getElementById('fotoModal').style.display = 'none';
 }
 
 /* ─── INIT ─── */
