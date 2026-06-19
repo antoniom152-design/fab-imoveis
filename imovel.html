@@ -517,7 +517,6 @@
 
   @media (max-width: 640px) {
     .galeria-fotos { grid-template-columns: repeat(2, 1fr); }
-    .galeria-body { padding: 14px; }
   }
 </style>
 </head>
@@ -742,20 +741,9 @@
 <div id="galeriaModal">
   <div class="galeria-header">
     <div class="galeria-header-title">&#128247; Fotos e Vídeos</div>
-      <button class="galeria-close" onclick="fecharGaleria()">&#10005;</button>
+    <button class="galeria-close" onclick="fecharGaleria()">&#10005;</button>
   </div>
-  <div style="padding:10px 16px;background:var(--navy-light);border-bottom:1px solid var(--border);flex-shrink:0;display:flex;justify-content:center">
-    <a id="galeria-link-externo" href="#" target="_blank" rel="noopener"
-       style="font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
-              letter-spacing:.14em;text-transform:uppercase;color:var(--gold);
-              background:transparent;border:1px solid var(--gold);padding:7px 20px;
-              border-radius:4px;text-decoration:none">
-      &#8599; Abrir no Drive — ver fotos e vídeos em tamanho real
-    </a>
-  </div>
-  <div class="galeria-body" id="galeriaGrid">
-    <div style="text-align:center;padding:3rem;color:var(--text-muted)">Carregando...</div>
-  </div>
+  <div class="galeria-body" id="galeriaGrid"></div>
 </div>
 
 <!-- LIGHTBOX FOTO -->
@@ -1129,13 +1117,40 @@ function enviarInteresse() {
   }, 1200);
 }
 
-/* ─── GALERIA DRIVE ─── */
+/* ─── GALERIA ─── */
 function abrirGaleria() {
   if (!imovelAtual || !imovelAtual.linkDrive) {
     mostrarToast('⚠️ Galeria não disponível para este empreendimento.');
     return;
   }
-  window.open(imovelAtual.linkDrive, '_blank');
+  const link = imovelAtual.linkDrive.trim();
+
+  // Google Slides → abre modal com slideshow incorporado
+  if (link.includes('docs.google.com/presentation')) {
+    let embedUrl;
+    if (link.includes('pubembed') || link.includes('/pub?')) {
+      // URL já publicada — converte para embed
+      embedUrl = link.replace('/pub?', '/embed?').replace('pubembed', 'embed');
+    } else {
+      // URL de edição ou compartilhamento — extrai o ID
+      const m = link.match(/presentation\/d\/(?:e\/)?([a-zA-Z0-9_-]+)/);
+      if (!m) { mostrarToast('⚠️ Link do Slides inválido.'); return; }
+      embedUrl = 'https://docs.google.com/presentation/d/' + m[1] +
+                 '/embed?start=false&loop=false&delayms=5000&rm=minimal';
+    }
+    document.getElementById('galeriaGrid').innerHTML =
+      '<iframe src="' + embedUrl + '" allowfullscreen></iframe>';
+    document.getElementById('galeriaModal').style.display = 'flex';
+    return;
+  }
+
+  // Drive (pasta ou arquivo) → abre em nova aba
+  window.open(link, '_blank');
+}
+
+function fecharGaleria() {
+  document.getElementById('galeriaModal').style.display = 'none';
+  document.getElementById('galeriaGrid').innerHTML = '';
 }
 
 /* ─── INIT ─── */
