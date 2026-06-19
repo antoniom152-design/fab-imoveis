@@ -1135,22 +1135,7 @@ function abrirGaleria() {
     mostrarToast('⚠️ Galeria não disponível para este empreendimento.');
     return;
   }
-  const match = imovelAtual.linkDrive.match(/(?:folders\/|id=)([a-zA-Z0-9_-]+)/);
-  if (!match) {
-    mostrarToast('⚠️ Link do Drive inválido.');
-    return;
-  }
-  const folderId = match[1];
-  document.getElementById('galeria-link-externo').href =
-    'https://drive.google.com/drive/folders/' + folderId;
-  document.getElementById('galeriaGrid').innerHTML =
-    '<iframe src="https://drive.google.com/embeddedfolderview?id=' + folderId + '#grid" allowfullscreen></iframe>';
-  document.getElementById('galeriaModal').style.display = 'flex';
-}
-
-function fecharGaleria() {
-  document.getElementById('galeriaModal').style.display = 'none';
-  document.getElementById('galeriaGrid').innerHTML = '';
+  window.open(imovelAtual.linkDrive, '_blank');
 }
 
 /* ─── INIT ─── */
