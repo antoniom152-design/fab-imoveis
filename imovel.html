@@ -1123,100 +1123,23 @@ function abrirGaleria() {
     mostrarToast('⚠️ Galeria não disponível para este empreendimento.');
     return;
   }
+  const match = imovelAtual.linkDrive.match(/(?:folders\/|id=)([a-zA-Z0-9_-]+)/);
+  if (!match) {
+    mostrarToast('⚠️ Link do Drive inválido.');
+    return;
+  }
+  const folderId = match[1];
   const modal = document.getElementById('galeriaModal');
-  modal.style.display = 'flex';
   document.getElementById('galeriaGrid').innerHTML =
-    '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Carregando...</div>';
-  carregarGaleria(imovelAtual.id);
+    '<iframe src="https://drive.google.com/embeddedfolderview?id=' + folderId + '#grid" ' +
+    'style="width:100%;height:100%;min-height:520px;border:none" ' +
+    'allowfullscreen></iframe>';
+  modal.style.display = 'flex';
 }
 
 function fecharGaleria() {
   document.getElementById('galeriaModal').style.display = 'none';
-}
-
-function carregarGaleria(imovelId) {
-  const cbName = 'galCb_' + Date.now();
-  const script = document.createElement('script');
-  const timer  = setTimeout(function() {
-    delete window[cbName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    document.getElementById('galeriaGrid').innerHTML =
-      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Tempo esgotado. Tente novamente.</div>';
-  }, 15000);
-
-  window[cbName] = function(data) {
-    clearTimeout(timer);
-    delete window[cbName];
-    if (script.parentNode) script.parentNode.removeChild(script);
-    renderGaleria(data);
-  };
-  script.onerror = function() {
-    clearTimeout(timer);
-    document.getElementById('galeriaGrid').innerHTML =
-      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Erro ao carregar galeria.</div>';
-  };
-  script.src = SCRIPT_URL + '?action=getGaleria&id=' + encodeURIComponent(imovelId) + '&callback=' + cbName;
-  document.head.appendChild(script);
-}
-
-function renderGaleria(data) {
-  const container = document.getElementById('galeriaGrid');
-  if (!data) {
-    container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Sem resposta do servidor.</div>';
-    return;
-  }
-  if (data.error) {
-    container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted)">⚠️ ' + data.error + '</div>';
-    return;
-  }
-  if (!data.files || !data.files.length) {
-    const debugInfo = data.debug ? ' (pasta: ' + (data.debug.folderId || '?') + ', arquivos encontrados: ' + (data.debug.total || 0) + ')' : '';
-    container.innerHTML =
-      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Nenhuma mídia encontrada na pasta do Drive.' + debugInfo + '</div>';
-    return;
-  }
-  const images = data.files.filter(function(f) { return f.type === 'image'; });
-  const videos = data.files.filter(function(f) { return f.type === 'video'; });
-  let html = '';
-
-  if (images.length) {
-    html += '<div class="galeria-section-title">&#128247; Fotos (' + images.length + ')</div>';
-    html += '<div class="galeria-fotos">';
-    images.forEach(function(f) {
-      const nome = f.name.replace(/'/g, '');
-      html += '<div class="galeria-foto" onclick="abrirFoto(\'' + f.id + '\',\'' + nome + '\')" title="' + nome + '">' +
-        '<img src="https://drive.google.com/thumbnail?id=' + f.id + '&sz=w400" ' +
-        'onerror="this.src=\'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=400&q=60\'" ' +
-        'loading="lazy" alt="' + nome + '">' +
-        '</div>';
-    });
-    html += '</div>';
-  }
-
-  if (videos.length) {
-    html += '<div class="galeria-section-title" style="margin-top:24px">&#127909; Vídeos (' + videos.length + ')</div>';
-    videos.forEach(function(f) {
-      html += '<div class="galeria-video">' +
-        '<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">' + f.name + '</div>' +
-        '<iframe src="https://drive.google.com/file/d/' + f.id + '/preview" ' +
-        'width="100%" height="220" frameborder="0" allowfullscreen ' +
-        'style="border-radius:8px;background:var(--navy);display:block"></iframe>' +
-        '</div>';
-    });
-  }
-
-  container.innerHTML = html;
-}
-
-function abrirFoto(fileId, nome) {
-  const modal = document.getElementById('fotoModal');
-  document.getElementById('fotoModalImg').src = 'https://drive.google.com/uc?export=view&id=' + fileId;
-  document.getElementById('fotoModalNome').textContent = nome;
-  modal.style.display = 'flex';
-}
-
-function fecharFoto() {
-  document.getElementById('fotoModal').style.display = 'none';
+  document.getElementById('galeriaGrid').innerHTML = '';
 }
 
 /* ─── INIT ─── */
