@@ -678,6 +678,14 @@
               </span>
             </div>
           </div>
+          <div class="cad-field" style="margin-bottom:14px">
+            <label class="cad-label">Link Drive — Pasta de Fotos e Vídeos</label>
+            <input class="cad-input" type="url" id="cadLinkDrive"
+              placeholder="https://drive.google.com/drive/folders/...">
+            <span style="font-size:11px;color:var(--text-muted);margin-top:2px">
+              Pasta do Google Drive com as fotos e vídeos do empreendimento (permissão: qualquer pessoa com o link)
+            </span>
+          </div>
           <div class="cad-field">
             <label class="cad-label">Observações Internas</label>
             <textarea class="cad-textarea" id="cadObs" style="min-height:60px"
@@ -1884,6 +1892,7 @@ function abrirFormEdit(id) {
   document.getElementById('cadDescricao').value    = d.descricao   || '';
   document.getElementById('cadImagem').value       = d.imagem      || '';
   document.getElementById('cadBlog').value         = d.blog        || '';
+  document.getElementById('cadLinkDrive').value    = d['Link Drive'] || d.link_drive || '';
   document.getElementById('cadObs').value          = d.obs         || '';
   atualizarImgPreview();
 
@@ -1920,6 +1929,7 @@ function coletarDadosForm() {
     descricao:    document.getElementById('cadDescricao').value.trim(),
     imagem:       document.getElementById('cadImagem').value.trim(),
     blog:         document.getElementById('cadBlog').value.trim(),
+    link_drive:   document.getElementById('cadLinkDrive').value.trim(),
     obs:          document.getElementById('cadObs').value.trim(),
     operacao:     editandoId ? 'editar' : 'criar',
   };

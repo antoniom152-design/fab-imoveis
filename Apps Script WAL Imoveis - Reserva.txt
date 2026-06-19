@@ -562,10 +562,10 @@ function processarImovel(data) {
     var aba = ss.getSheetByName(ABA_IMOVEIS);
     if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
 
-    // Monta a linha na ordem das colunas A→Q
+    // Monta a linha na ordem das colunas A→R
     // A=ID | B=Ativo | C=Tipo | D=Construtora | E=Cidade | F=Nome
     // G=Descricao | H=Imagem | I=Faixa | J=Valor | K=Qtd | L=Blog
-    // M=Data | N=Obs | O=Destaque | P=UF | Q=Bairro
+    // M=Data | N=Obs | O=Destaque | P=UF | Q=Bairro | R=Link Drive
     var ativo    = data.ativo    === true || data.ativo    === 'true';
     var destaque = data.destaque === true || data.destaque === 'true';
 
@@ -579,7 +579,7 @@ function processarImovel(data) {
       if (linhaIdx === -1) { Logger.log('ID não encontrado: ' + data.id); return; }
 
       // Atualiza coluna por coluna (preserva ID e Data)
-      var r = aba.getRange(linhaIdx, 1, 1, 17).getValues()[0];
+      var r = aba.getRange(linhaIdx, 1, 1, 18).getValues()[0];
       r[1]  = ativo;
       r[2]  = data.tipo_imovel  || r[2];
       r[3]  = data.construtora  || r[3];
@@ -596,7 +596,8 @@ function processarImovel(data) {
       r[14] = destaque;
       r[15] = data.uf           || r[15];
       r[16] = data.bairro       !== undefined ? data.bairro     : r[16];
-      aba.getRange(linhaIdx, 1, 1, 17).setValues([r]);
+      r[17] = data.link_drive   !== undefined ? data.link_drive : r[17];
+      aba.getRange(linhaIdx, 1, 1, 18).setValues([r]);
       Logger.log('Imóvel atualizado: ID ' + data.id);
 
     } else {
@@ -620,7 +621,8 @@ function processarImovel(data) {
         data.obs          || '',
         destaque,
         data.uf           || '',
-        data.bairro       || ''
+        data.bairro       || '',
+        data.link_drive   || ''
       ]);
       Logger.log('Imóvel criado: ' + data.nome);
     }
