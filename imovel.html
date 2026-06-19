@@ -1161,9 +1161,18 @@ function carregarGaleria(imovelId) {
 
 function renderGaleria(data) {
   const container = document.getElementById('galeriaGrid');
-  if (!data || !data.files || !data.files.length) {
+  if (!data) {
+    container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Sem resposta do servidor.</div>';
+    return;
+  }
+  if (data.error) {
+    container.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--text-muted)">⚠️ ' + data.error + '</div>';
+    return;
+  }
+  if (!data.files || !data.files.length) {
+    const debugInfo = data.debug ? ' (pasta: ' + (data.debug.folderId || '?') + ', arquivos encontrados: ' + (data.debug.total || 0) + ')' : '';
     container.innerHTML =
-      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Nenhuma mídia disponível para este empreendimento.</div>';
+      '<div style="text-align:center;padding:3rem;color:var(--text-muted)">Nenhuma mídia encontrada na pasta do Drive.' + debugInfo + '</div>';
     return;
   }
   const images = data.files.filter(function(f) { return f.type === 'image'; });

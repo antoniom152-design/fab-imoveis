@@ -152,11 +152,16 @@ function getGaleria(imovelId) {
     var pasta = DriveApp.getFolderById(folderId);
     var iter  = pasta.getFiles();
     var files = [];
+    var total = 0;
+    var mimesSeen = [];
 
     while (iter.hasNext()) {
       var file = iter.next();
+      total++;
       var mime = file.getMimeType();
-      var isImage = mime.indexOf('image/') === 0;
+      if (mimesSeen.length < 5) mimesSeen.push(mime);
+      var isImage = mime.indexOf('image/') === 0 ||
+                    mime === 'application/vnd.google-apps.photo';
       var isVideo = mime.indexOf('video/') === 0 ||
                     mime === 'application/vnd.google-apps.video';
       if (!isImage && !isVideo) continue;
@@ -167,7 +172,7 @@ function getGaleria(imovelId) {
       });
     }
 
-    return { files: files };
+    return { files: files, debug: { folderId: folderId, total: total, mimes: mimesSeen } };
   } catch (err) {
     Logger.log('getGaleria erro: ' + err.message);
     return { files: [], error: err.message };
