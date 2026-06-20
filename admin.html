@@ -646,7 +646,7 @@
             </div>
             <div class="cad-field">
               <label class="cad-label">Valor a partir de (R$ mil)</label>
-              <input class="cad-input" type="number" id="cadValor" placeholder="Ex: 450" min="0" step="1">
+              <input class="cad-input" type="text" id="cadValor" placeholder="Ex: R$ 285.000" oninput="mascaraValor(this)">
             </div>
             <div class="cad-field">
               <label class="cad-label">Tipologia / Unidades</label>
@@ -1826,6 +1826,13 @@ function abrirFormNovo() {
   setTimeout(() => document.getElementById('cadNome').focus(), 100);
 }
 
+function mascaraValor(el) {
+  let v = el.value.replace(/\D/g, '');
+  if (!v) { el.value = ''; return; }
+  v = parseInt(v, 10).toLocaleString('pt-BR');
+  el.value = 'R$ ' + v;
+}
+
 function abrirFormEdit(id) {
   const d = sheetData.find(x => x.id === id);
   if (!d) return;
@@ -1887,7 +1894,7 @@ function abrirFormEdit(id) {
   }
 
   document.getElementById('cadFaixa').value        = d.faixa       || '';
-  document.getElementById('cadValor').value        = d.valor       || '';
+  document.getElementById('cadValor').value        = d.valor ? 'R$ ' + Number(d.valor).toLocaleString('pt-BR') : '';
   document.getElementById('cadQtd').value          = d.qtd         || '';
   document.getElementById('cadDescricao').value    = d.descricao   || '';
   document.getElementById('cadImagem').value       = d.imagem      || '';
@@ -1924,7 +1931,7 @@ function coletarDadosForm() {
     construtora:  document.getElementById('cadConstrutora').value.trim(),
     cidade:       document.getElementById('cadCidadeVal').value,
     faixa:        document.getElementById('cadFaixa').value,
-    valor:        parseFloat(document.getElementById('cadValor').value) || 0,
+    valor:        parseFloat(document.getElementById('cadValor').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     qtd:          document.getElementById('cadQtd').value.trim(),
     descricao:    document.getElementById('cadDescricao').value.trim(),
     imagem:       document.getElementById('cadImagem').value.trim(),
