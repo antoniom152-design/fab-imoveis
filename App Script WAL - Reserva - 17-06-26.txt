@@ -668,15 +668,21 @@ function processarVisitaLanding(data) {
     var aba = ss.getSheetByName(ABA_VISITAS);
     if (!aba) {
       aba = ss.insertSheet(ABA_VISITAS);
-      aba.appendRow(['Timestamp', 'Pagina', 'Referrer']);
-      aba.getRange(1, 1, 1, 3).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+      aba.appendRow(['Data/Hora', 'Data', 'Página', 'Origem', 'Tempo']);
+      aba.getRange(1, 1, 1, 5).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
       aba.setFrozenRows(1);
       Logger.log('Aba VISITAS criada em PLANILHA_ID');
     }
+    var agora   = new Date();
+    var dataHora = Utilities.formatDate(agora, 'America/Sao_Paulo', 'dd/MM/yyyy HH:mm:ss');
+    var dataBr   = Utilities.formatDate(agora, 'America/Sao_Paulo', 'dd/MM/yyyy');
+    var horaBr   = Utilities.formatDate(agora, 'America/Sao_Paulo', 'HH:mm:ss');
     aba.appendRow([
-      data.timestamp || new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-      data.pagina    || 'index.html',
-      data.referrer  || 'Direto'
+      dataHora,
+      dataBr,
+      data.pagina   || 'index.html',
+      data.referrer || 'Direto',
+      horaBr
     ]);
     Logger.log('Visita landing registrada: ' + data.pagina);
   } catch(e) { Logger.log('processarVisitaLanding erro: ' + e.message); }
