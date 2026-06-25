@@ -1278,26 +1278,32 @@ function onEdit(e) {
 </div>
 </div>
 
-<!-- VISITAS -->
+<!-- VISITAS POR EMPREENDIMENTO -->
 <div class="tab-panel" id="panel-visitas">
 <div class="main">
+  <div class="alert alert-info" style="margin-bottom:20px">
+    Contador de acessos à página de cada empreendimento — registrado automaticamente quando o lead clica em <strong>Saiba mais</strong>. Dados gravados na planilha <strong>WAL Imóveis — Portfólio</strong>, aba <strong>VISITAS</strong>.
+  </div>
   <div class="vis-stat">
     <div class="vis-card"><div class="vis-num" id="vis-hoje">—</div><div class="vis-lbl">Visitas Hoje</div></div>
-    <div class="vis-card"><div class="vis-num" id="vis-semana">—</div><div class="vis-lbl">Esta Semana</div></div>
+    <div class="vis-card"><div class="vis-num" id="vis-semana">—</div><div class="vis-lbl">Últimos 7 dias</div></div>
     <div class="vis-card"><div class="vis-num" id="vis-mes">—</div><div class="vis-lbl">Este Mês</div></div>
-    <div class="vis-card"><div class="vis-num" id="vis-total">—</div><div class="vis-lbl">Total</div></div>
+    <div class="vis-card"><div class="vis-num" id="vis-total">—</div><div class="vis-lbl">Total Geral</div></div>
   </div>
   <div class="query-card">
     <div class="query-filters">
       <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="vis-de"></div>
       <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="vis-ate"></div>
-      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas()">&#128269; Consultar</button></div>
+      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas()">&#128269; Ranking</button></div>
+      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas('detalhe')" style="background:var(--navy-light);border:1px solid var(--border)">&#128203; Detalhar</button></div>
     </div>
     <div class="query-count" id="vis-count"></div>
-    <button class="btn-query" onclick="imprimirTabela('Visitas','vis-table-wrap',document.getElementById('vis-count').textContent)" style="margin-top:10px;background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <button class="btn-query" onclick="imprimirTabela('Visitas por Empreendimento','vis-table-wrap',document.getElementById('vis-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+    </div>
   </div>
   <div class="query-table-wrap" id="vis-table-wrap">
-    <div class="empty-table">Selecione o período e clique em Consultar.</div>
+    <div class="empty-table">Selecione o período e clique em <strong>Ranking</strong> para ver os empreendimentos mais visitados, ou <strong>Detalhar</strong> para ver cada acesso individualmente.</div>
   </div>
 </div>
 </div>
@@ -1480,6 +1486,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('panel-' + name).classList.add('active');
   if (name === 'construtoras') carregarConstrutoras();
+  if (name === 'visitas') consultarVisitas();
 }
 
 /* ── STEPS ── */
@@ -2509,30 +2516,63 @@ async function consultarSimulacoes() {
   } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
 }
 
-async function consultarVisitas() {
+async function consultarVisitas(modo) {
   const de  = document.getElementById('vis-de').value;
   const ate = document.getElementById('vis-ate').value;
-  document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
+  const wrap = document.getElementById('vis-table-wrap');
+  wrap.innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
   try {
-    const result = await queryScript('getVisitas');
+    const result = await queryScript('getVisitasEmpreendimentos');
     if (result.error) throw new Error(result.error);
-    const all  = result.rows || [];
-    const hoje = new Date(); hoje.setHours(0,0,0,0);
-    const sem  = new Date(Date.now() - 7*86400000);
-    const mes  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+    const all = result.rows || [];
+
     const parseD = s => {
       const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
       return m ? new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1])) : null;
     };
-    document.getElementById('vis-hoje').textContent   = all.filter(r => { const d=parseD(getPrimeiraData(r)); return d&&d>=hoje; }).length;
-    document.getElementById('vis-semana').textContent = all.filter(r => { const d=parseD(getPrimeiraData(r)); return d&&d>=sem; }).length;
-    document.getElementById('vis-mes').textContent    = all.filter(r => { const d=parseD(getPrimeiraData(r)); return d&&d>=mes; }).length;
+    const getD = r => parseD(r['Data'] || r['data'] || getPrimeiraData(r));
+
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const sem  = new Date(hoje - 6*86400000); sem.setHours(0,0,0,0);
+    const mes  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+    document.getElementById('vis-hoje').textContent   = all.filter(r => { const d=getD(r); return d&&d>=hoje; }).length;
+    document.getElementById('vis-semana').textContent = all.filter(r => { const d=getD(r); return d&&d>=sem; }).length;
+    document.getElementById('vis-mes').textContent    = all.filter(r => { const d=getD(r); return d&&d>=mes; }).length;
     document.getElementById('vis-total').textContent  = all.length;
+
     let rows = all;
-    if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
-    document.getElementById('vis-count').textContent = rows.length + ' visita(s) no período';
-    document.getElementById('vis-table-wrap').innerHTML = tabelaHtml([...rows].reverse().slice(0,500)); // usa todas as colunas
-  } catch(e) { document.getElementById('vis-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
+    if (de || ate) rows = rows.filter(r => filtraPorData(r['Data'] || getPrimeiraData(r), de, ate));
+
+    document.getElementById('vis-count').textContent =
+      rows.length + ' visita(s) · ' + (modo === 'detalhe' ? 'detalhamento individual' : 'ranking por empreendimento');
+
+    if (!rows.length) { wrap.innerHTML = '<div class="empty-table">Nenhuma visita no período.</div>'; return; }
+
+    if (modo === 'detalhe') {
+      wrap.innerHTML = tabelaHtml([...rows].reverse().slice(0, 500),
+        ['Data','Hora','imovelId','Empreendimento']);
+      return;
+    }
+
+    // Agrupa por empreendimento e gera ranking
+    const grupos = {};
+    rows.forEach(r => {
+      const key = r['Empreendimento'] || r['imovelId'] || '(sem nome)';
+      if (!grupos[key]) grupos[key] = { empreendimento: key, id: r['imovelId']||'', total: 0 };
+      grupos[key].total++;
+    });
+    const ranking = Object.values(grupos).sort((a, b) => b.total - a.total);
+    const medals  = ['🥇','🥈','🥉'];
+    const rankRows = ranking.map((r, i) => ({
+      'Pos.':           medals[i] || (i+1)+'º',
+      'Empreendimento': r.empreendimento,
+      'ID':             r.id,
+      'Visitas':        r.total
+    }));
+    wrap.innerHTML = tabelaHtml(rankRows, ['Pos.','Empreendimento','ID','Visitas']);
+
+  } catch(e) { wrap.innerHTML = '<div class="empty-table">❌ ' + e.message + '</div>'; }
 }
 
 /* ── INIT ── */
