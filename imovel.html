@@ -1148,6 +1148,16 @@ function abrirGaleria() {
   window.open(link, '_blank');
 }
 
+function registrarVisita(imovelId, nome) {
+  try {
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ tipo: 'visita', imovelId: imovelId, nome: nome })
+    });
+  } catch(e) { console.warn('registrarVisita:', e); }
+}
+
 function fecharGaleria() {
   document.getElementById('galeriaModal').style.display = 'none';
   document.getElementById('galeriaGrid').innerHTML = '';
@@ -1180,6 +1190,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
 
     renderImovel(encontrado, todos);
+    registrarVisita(encontrado.id, encontrado.nome);
 
   } catch(e) {
     console.error('imovel.html:', e);
