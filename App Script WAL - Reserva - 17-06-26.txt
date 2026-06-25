@@ -41,6 +41,8 @@ function doGet(e) {
       result = lerAba(ABA_SIMULACOES);
     } else if (action === 'getVisitas') {
       result = lerAba(ABA_VISITAS);
+    } else if (action === 'getVisitasEmpreendimentos') {
+      result = lerAbaPortfolio(ABA_VISITAS);
     } else if (action === 'checkSim') {
       result = checkTelefone(ABA_SIMULACOES, e.parameter.fone || '');
     } else if (action === 'checkEbook') {
@@ -108,6 +110,29 @@ function lerAba(nomeAba) {
   for (var i = 1; i < dados.length; i++) {
     var linha = dados[i];
     // Ignora linhas completamente vazias
+    if (linha.every(function(c) { return c === '' || c === null || c === undefined; })) continue;
+    var obj = {};
+    headers.forEach(function(h, idx) {
+      obj[h] = linha[idx] !== undefined && linha[idx] !== null ? String(linha[idx]) : '';
+    });
+    rows.push(obj);
+  }
+  return { rows: rows };
+}
+
+/* Lê uma aba da planilha WAL Imóveis — Portfólio (PLANILHA_IMOVEIS_ID) */
+function lerAbaPortfolio(nomeAba) {
+  var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+  var aba = ss.getSheetByName(nomeAba);
+  if (!aba) return { rows: [], info: 'Aba "' + nomeAba + '" não encontrada no Portfólio' };
+
+  var dados = aba.getDataRange().getValues();
+  if (dados.length < 2) return { rows: [] };
+
+  var headers = dados[0].map(function(h) { return String(h).trim(); });
+  var rows = [];
+  for (var i = 1; i < dados.length; i++) {
+    var linha = dados[i];
     if (linha.every(function(c) { return c === '' || c === null || c === undefined; })) continue;
     var obj = {};
     headers.forEach(function(h, idx) {
@@ -638,7 +663,7 @@ function processarConstrutora(data) {
 /* ─── VISITA — registra acesso à página do empreendimento ── */
 function processarVisita(data) {
   try {
-    var ss  = SpreadsheetApp.openById(PLANILHA_ID);
+    var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
     var aba = ss.getSheetByName(ABA_VISITAS);
     if (!aba) {
       aba = ss.insertSheet(ABA_VISITAS);
