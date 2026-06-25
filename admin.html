@@ -1208,6 +1208,11 @@ function onEdit(e) {
   .vis-card{background:var(--navy-mid);border:1px solid var(--border);padding:18px;text-align:center}
   .vis-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gold);line-height:1}
   .vis-lbl{font-size:11px;color:var(--text-muted);margin-top:6px}
+  .vis-subtab{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    background:none;border:none;border-bottom:3px solid transparent;padding:10px 22px;cursor:pointer;
+    color:var(--text-muted);transition:color .2s,border-color .2s;margin-bottom:-2px}
+  .vis-subtab:hover{color:var(--off-white)}
+  .vis-subtab.active{color:var(--gold);border-bottom-color:var(--gold)}
 </style>
 
 <!-- LEADS -->
@@ -1278,33 +1283,75 @@ function onEdit(e) {
 </div>
 </div>
 
-<!-- VISITAS POR EMPREENDIMENTO -->
+<!-- VISITAS -->
 <div class="tab-panel" id="panel-visitas">
 <div class="main">
-  <div class="alert alert-info" style="margin-bottom:20px">
-    Contador de acessos à página de cada empreendimento — registrado automaticamente quando o lead clica em <strong>Saiba mais</strong>. Dados gravados na planilha <strong>WAL Imóveis — Portfólio</strong>, aba <strong>VISITAS</strong>.
+
+  <!-- Sub-abas -->
+  <div style="display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:22px">
+    <button class="vis-subtab active" id="subtab-emp" onclick="switchSubVisitas('emp')">
+      🏢 Empreendimentos
+    </button>
+    <button class="vis-subtab" id="subtab-landing" onclick="switchSubVisitas('landing')">
+      🌐 Landing Page
+    </button>
   </div>
-  <div class="vis-stat">
-    <div class="vis-card"><div class="vis-num" id="vis-hoje">—</div><div class="vis-lbl">Visitas Hoje</div></div>
-    <div class="vis-card"><div class="vis-num" id="vis-semana">—</div><div class="vis-lbl">Últimos 7 dias</div></div>
-    <div class="vis-card"><div class="vis-num" id="vis-mes">—</div><div class="vis-lbl">Este Mês</div></div>
-    <div class="vis-card"><div class="vis-num" id="vis-total">—</div><div class="vis-lbl">Total Geral</div></div>
-  </div>
-  <div class="query-card">
-    <div class="query-filters">
-      <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="vis-de"></div>
-      <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="vis-ate"></div>
-      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas()">&#128269; Ranking</button></div>
-      <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas('detalhe')" style="background:var(--navy-light);border:1px solid var(--border)">&#128203; Detalhar</button></div>
+
+  <!-- ── Sub-painel: EMPREENDIMENTOS ── -->
+  <div id="subpanel-emp">
+    <div class="alert alert-info" style="margin-bottom:20px">
+      Acessos à página de cada empreendimento — registrado quando o lead clica em <strong>Saiba mais</strong>. Planilha <strong>WAL Imóveis — Portfólio</strong> › aba <strong>VISITAS</strong>.
     </div>
-    <div class="query-count" id="vis-count"></div>
-    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn-query" onclick="imprimirTabela('Visitas por Empreendimento','vis-table-wrap',document.getElementById('vis-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+    <div class="vis-stat">
+      <div class="vis-card"><div class="vis-num" id="vis-hoje">—</div><div class="vis-lbl">Visitas Hoje</div></div>
+      <div class="vis-card"><div class="vis-num" id="vis-semana">—</div><div class="vis-lbl">Últimos 7 dias</div></div>
+      <div class="vis-card"><div class="vis-num" id="vis-mes">—</div><div class="vis-lbl">Este Mês</div></div>
+      <div class="vis-card"><div class="vis-num" id="vis-total">—</div><div class="vis-lbl">Total Geral</div></div>
+    </div>
+    <div class="query-card">
+      <div class="query-filters">
+        <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="vis-de"></div>
+        <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="vis-ate"></div>
+        <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas()">&#128269; Ranking</button></div>
+        <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas('detalhe')" style="background:var(--navy-light);border:1px solid var(--border)">&#128203; Detalhar</button></div>
+      </div>
+      <div class="query-count" id="vis-count"></div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="btn-query" onclick="imprimirTabela('Visitas por Empreendimento','vis-table-wrap',document.getElementById('vis-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+      </div>
+    </div>
+    <div class="query-table-wrap" id="vis-table-wrap">
+      <div class="empty-table">Selecione o período e clique em <strong>Ranking</strong> ou <strong>Detalhar</strong>.</div>
     </div>
   </div>
-  <div class="query-table-wrap" id="vis-table-wrap">
-    <div class="empty-table">Selecione o período e clique em <strong>Ranking</strong> para ver os empreendimentos mais visitados, ou <strong>Detalhar</strong> para ver cada acesso individualmente.</div>
+
+  <!-- ── Sub-painel: LANDING PAGE ── -->
+  <div id="subpanel-landing" style="display:none">
+    <div class="alert alert-info" style="margin-bottom:20px">
+      Entradas no sistema — registrado toda vez que alguém acessa o site <strong>index.html</strong>. Planilha <strong>Leads Landing Page FAB</strong> › aba <strong>VISITAS</strong>.
+    </div>
+    <div class="vis-stat">
+      <div class="vis-card"><div class="vis-num" id="lp-hoje">—</div><div class="vis-lbl">Hoje</div></div>
+      <div class="vis-card"><div class="vis-num" id="lp-semana">—</div><div class="vis-lbl">Últimos 7 dias</div></div>
+      <div class="vis-card"><div class="vis-num" id="lp-mes">—</div><div class="vis-lbl">Este Mês</div></div>
+      <div class="vis-card"><div class="vis-num" id="lp-total">—</div><div class="vis-lbl">Total Geral</div></div>
+    </div>
+    <div class="query-card">
+      <div class="query-filters">
+        <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="lp-de"></div>
+        <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="lp-ate"></div>
+        <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarLanding()">&#128269; Consultar</button></div>
+      </div>
+      <div class="query-count" id="lp-count"></div>
+      <div style="display:flex;gap:10px;margin-top:10px">
+        <button class="btn-query" onclick="imprimirTabela('Visitas Landing Page','lp-table-wrap',document.getElementById('lp-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+      </div>
+    </div>
+    <div class="query-table-wrap" id="lp-table-wrap">
+      <div class="empty-table">Selecione o período e clique em <strong>Consultar</strong>.</div>
+    </div>
   </div>
+
 </div>
 </div>
 
@@ -2514,6 +2561,51 @@ async function consultarSimulacoes() {
     document.getElementById('sim-count').textContent = rows.length + ' registro(s) encontrado(s)';
     document.getElementById('sim-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
+}
+
+function switchSubVisitas(sub) {
+  document.querySelectorAll('.vis-subtab').forEach(b => b.classList.remove('active'));
+  document.getElementById('subtab-' + sub).classList.add('active');
+  document.getElementById('subpanel-emp').style.display     = sub === 'emp'     ? '' : 'none';
+  document.getElementById('subpanel-landing').style.display = sub === 'landing' ? '' : 'none';
+  if (sub === 'landing') consultarLanding();
+}
+
+async function consultarLanding() {
+  const de  = document.getElementById('lp-de').value;
+  const ate = document.getElementById('lp-ate').value;
+  const wrap = document.getElementById('lp-table-wrap');
+  wrap.innerHTML = '<div class="empty-table">⏳ Carregando...</div>';
+  try {
+    const result = await queryScript('getVisitas');
+    if (result.error) throw new Error(result.error);
+    const all = result.rows || [];
+
+    const parseD = s => {
+      const m = String(s).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      return m ? new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1])) : null;
+    };
+    const getD = r => parseD(r['Data'] || r['data'] || getPrimeiraData(r));
+
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const sem  = new Date(hoje - 6*86400000); sem.setHours(0,0,0,0);
+    const mes  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+
+    document.getElementById('lp-hoje').textContent   = all.filter(r => { const d=getD(r); return d&&d>=hoje; }).length;
+    document.getElementById('lp-semana').textContent = all.filter(r => { const d=getD(r); return d&&d>=sem; }).length;
+    document.getElementById('lp-mes').textContent    = all.filter(r => { const d=getD(r); return d&&d>=mes; }).length;
+    document.getElementById('lp-total').textContent  = all.length;
+
+    let rows = all;
+    if (de || ate) rows = rows.filter(r => filtraPorData(r['Data'] || getPrimeiraData(r), de, ate));
+
+    document.getElementById('lp-count').textContent = rows.length + ' registro(s) no período';
+
+    if (!rows.length) { wrap.innerHTML = '<div class="empty-table">Nenhuma visita no período.</div>'; return; }
+
+    wrap.innerHTML = tabelaHtml([...rows].reverse().slice(0, 500),
+      ['Data/Hora', 'Data', 'Página', 'Origem', 'Tempo']);
+  } catch(e) { wrap.innerHTML = '<div class="empty-table">❌ ' + e.message + '</div>'; }
 }
 
 async function consultarVisitas(modo) {
