@@ -1153,7 +1153,7 @@ function registrarVisita(imovelId, nome) {
     fetch(SCRIPT_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ tipo: 'visita', imovelId: imovelId, nome: nome })
+      body: JSON.stringify({ tipo: 'visita_empreendimento', imovelId: imovelId, nome: nome })
     });
   } catch(e) { console.warn('registrarVisita:', e); }
 }

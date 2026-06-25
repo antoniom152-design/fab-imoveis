@@ -151,8 +151,9 @@ function doPost(e) {
     else if (data.tipo === 'simulacao') processarSimulacao(data);
     else if (data.tipo === 'ebook')     processarEbook(data);
     else if (data.tipo === 'imovel')       processarImovel(data);
-    else if (data.tipo === 'construtora')  processarConstrutora(data);
-    else if (data.tipo === 'visita')       processarVisita(data);
+    else if (data.tipo === 'construtora')         processarConstrutora(data);
+    else if (data.tipo === 'visita')              processarVisitaLanding(data);
+    else if (data.tipo === 'visita_empreendimento') processarVisita(data);
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -658,6 +659,27 @@ function processarConstrutora(data) {
     Logger.log('Construtora criada: ' + d.nome);
 
   } catch(e) { Logger.log('processarConstrutora erro: ' + e.message); }
+}
+
+/* ─── VISITA LANDING — registra acesso ao index.html na planilha principal ── */
+function processarVisitaLanding(data) {
+  try {
+    var ss  = SpreadsheetApp.openById(PLANILHA_ID);
+    var aba = ss.getSheetByName(ABA_VISITAS);
+    if (!aba) {
+      aba = ss.insertSheet(ABA_VISITAS);
+      aba.appendRow(['Timestamp', 'Pagina', 'Referrer']);
+      aba.getRange(1, 1, 1, 3).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+      aba.setFrozenRows(1);
+      Logger.log('Aba VISITAS criada em PLANILHA_ID');
+    }
+    aba.appendRow([
+      data.timestamp || new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+      data.pagina    || 'index.html',
+      data.referrer  || 'Direto'
+    ]);
+    Logger.log('Visita landing registrada: ' + data.pagina);
+  } catch(e) { Logger.log('processarVisitaLanding erro: ' + e.message); }
 }
 
 /* ─── VISITA — registra acesso à página do empreendimento ── */
