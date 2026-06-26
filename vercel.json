@@ -1,17 +1,6 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "api/chat.js", "use": "@vercel/node" },
-    { "src": "**/*.html", "use": "@vercel/static" },
-    { "src": "**/*.css",  "use": "@vercel/static" },
-    { "src": "**/*.js",   "use": "@vercel/static" },
-    { "src": "**/*.png",  "use": "@vercel/static" },
-    { "src": "**/*.jpg",  "use": "@vercel/static" },
-    { "src": "**/*.pdf",  "use": "@vercel/static" },
-    { "src": "**/*.svg",  "use": "@vercel/static" }
-  ],
-  "routes": [
-    { "src": "/api/chat", "dest": "/api/chat.js" },
-    { "src": "/(.*)",     "dest": "/$1" }
-  ]
+  "framework": null,
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "installCommand": null
 }
