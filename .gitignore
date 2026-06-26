@@ -1,0 +1,9 @@
+# Chave de API — NUNCA commitar
+api-key.txt
+
+# Dependências
+node_modules/
+
+# Sistema
+.DS_Store
+Thumbs.db
