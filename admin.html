@@ -3512,12 +3512,16 @@ function crmRenderLista() {
   if (prio)   lista = lista.filter(l => l.prioridade === prio);
   if (dtIni)  lista = lista.filter(l => (l.criado_em || '').slice(0,10) >= dtIni);
   if (dtFim)  lista = lista.filter(l => (l.criado_em || '').slice(0,10) <= dtFim);
-  if (busca)  lista = lista.filter(l =>
-    (l.nome||'').toLowerCase().includes(busca) ||
-    (l.telefone||'').toLowerCase().includes(busca) ||
-    (l.email||'').toLowerCase().includes(busca) ||
-    (l.solicitacao||'').toLowerCase().includes(busca)
-  );
+  if (busca) {
+    const norm = s => (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    const b = norm(busca);
+    lista = lista.filter(l =>
+      norm(l.nome).includes(b) ||
+      (l.telefone||'').replace(/\D/g,'').includes(b.replace(/\D/g,'')) ||
+      norm(l.email).includes(b) ||
+      norm(l.solicitacao).includes(b)
+    );
+  }
 
   if (ord === 'nome') lista.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
   else if (ord === 'prox') lista.sort((a,b) => {
