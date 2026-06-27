@@ -475,6 +475,141 @@
     #const-form-wrap .query-card{padding:16px}
     #const-search{width:100%!important}
   }
+
+  /* ─── CRM ─── */
+  .crm-stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:24px}
+  .crm-stat-pill{
+    display:flex;flex-direction:column;align-items:center;
+    background:var(--navy-mid);border:1px solid var(--border);
+    padding:12px 18px;min-width:90px;cursor:pointer;transition:all .2s;
+    border-bottom:3px solid transparent;position:relative;
+  }
+  .crm-stat-pill:hover{border-color:var(--gold);background:rgba(201,168,76,.05)}
+  .crm-stat-pill.active{border-bottom-color:var(--gold);background:rgba(201,168,76,.07)}
+  .crm-stat-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;line-height:1}
+  .crm-stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-top:4px}
+  .crm-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  .crm-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;flex:1}
+  .crm-search{
+    height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+    color:var(--off-white);padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;
+    outline:none;transition:border-color .2s;min-width:200px;
+  }
+  .crm-search:focus{border-color:var(--gold)}
+  .crm-search::placeholder{color:rgba(255,255,255,.25)}
+  .crm-sel{
+    height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+    color:var(--off-white);padding:0 28px 0 10px;font-family:'Barlow',sans-serif;font-size:12px;
+    outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 9px center;
+    transition:border-color .2s;
+  }
+  .crm-sel:focus{border-color:var(--gold)}
+  .crm-sel option{background:#112240}
+
+  /* Lead cards */
+  .crm-lead-table{width:100%;border-collapse:collapse;font-size:12px}
+  .crm-lead-table thead th{
+    background:var(--navy);padding:10px 14px;text-align:left;
+    font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);
+    border-bottom:1px solid var(--border);white-space:nowrap;
+  }
+  .crm-lead-table tbody tr{border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s;cursor:pointer}
+  .crm-lead-table tbody tr:hover{background:rgba(201,168,76,.05)}
+  .crm-lead-table tbody td{padding:12px 14px;color:var(--text-muted);vertical-align:middle}
+  .crm-nome{color:var(--off-white)!important;font-weight:600;font-size:13px}
+  .crm-acao-pendente{color:var(--gold)!important;font-size:11px;font-style:italic}
+  .crm-prox-data{font-size:11px}
+  .crm-prox-data.vencida{color:#F87171!important}
+  .crm-prox-data.hoje{color:#FCD34D!important}
+  .crm-prox-data.ok{color:#86EFAC!important}
+
+  /* Status badges */
+  .crm-badge{
+    display:inline-flex;align-items:center;gap:5px;
+    font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;
+    padding:3px 10px;border-radius:2px;white-space:nowrap;
+  }
+  .crm-badge-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+  .s-novo      {background:#1C2F1C;color:#86EFAC;--dot:#22C55E}
+  .s-contato   {background:#172040;color:#93C5FD;--dot:#3B82F6}
+  .s-proposta  {background:#2A1A40;color:#C4B5FD;--dot:#8B5CF6}
+  .s-aguardando{background:#2C200A;color:#FCD34D;--dot:#F59E0B}
+  .s-visita    {background:#0D2828;color:#5EEAD4;--dot:#14B8A6}
+  .s-fechado   {background:#0A2414;color:#6EE7B7;--dot:#10B981}
+  .s-perdido   {background:#2C0A0A;color:#FCA5A5;--dot:#EF4444}
+  .crm-badge-dot{background:var(--dot)}
+
+  /* Priority badge */
+  .p-alta  {color:#F87171;font-size:10px;font-weight:700;letter-spacing:.05em}
+  .p-media {color:#FCD34D;font-size:10px;font-weight:700;letter-spacing:.05em}
+  .p-baixa {color:var(--text-muted);font-size:10px;font-weight:700;letter-spacing:.05em}
+
+  /* CRM Modal layout */
+  .crm-modal-body{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:500px}
+  .crm-modal-left{padding:28px;border-right:1px solid var(--border);overflow-y:auto}
+  .crm-modal-right{padding:24px;display:flex;flex-direction:column;gap:0;background:rgba(10,22,40,.4)}
+  .crm-modal-section-title{
+    font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.2em;
+    text-transform:uppercase;color:var(--gold-dim);
+    margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);
+  }
+
+  /* Timeline */
+  .crm-timeline{flex:1;overflow-y:auto;max-height:420px;margin-bottom:14px;padding-right:4px}
+  .crm-timeline::-webkit-scrollbar{width:4px}
+  .crm-timeline::-webkit-scrollbar-track{background:transparent}
+  .crm-timeline::-webkit-scrollbar-thumb{background:var(--navy-light);border-radius:2px}
+  .crm-tl-item{display:flex;gap:12px;margin-bottom:14px;position:relative}
+  .crm-tl-item::before{
+    content:'';position:absolute;left:9px;top:22px;bottom:-14px;
+    width:1px;background:var(--border);
+  }
+  .crm-tl-item:last-child::before{display:none}
+  .crm-tl-dot{
+    width:20px;height:20px;border-radius:50%;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;margin-top:1px;border:1px solid rgba(201,168,76,.3);
+    background:var(--navy-mid);
+  }
+  .crm-tl-content{flex:1;min-width:0}
+  .crm-tl-meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:3px}
+  .crm-tl-tipo{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim)}
+  .crm-tl-data{font-size:10px;color:var(--text-muted);white-space:nowrap}
+  .crm-tl-nota{font-size:12px;color:var(--off-white);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .crm-add-int{border-top:1px solid var(--border);padding-top:14px;margin-top:auto}
+  .crm-add-int select,.crm-add-int textarea{
+    width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);
+    color:var(--off-white);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:12px;
+    outline:none;transition:border-color .2s;margin-bottom:8px;resize:none;line-height:1.5;
+  }
+  .crm-add-int select{appearance:none;-webkit-appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;
+  }
+  .crm-add-int select option{background:#112240}
+  .crm-add-int select:focus,.crm-add-int textarea:focus{border-color:var(--gold)}
+  .crm-add-int textarea::placeholder{color:rgba(255,255,255,.2)}
+  .btn-crm-int{
+    width:100%;height:36px;background:var(--gold);color:var(--navy);border:none;
+    font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s;
+  }
+  .btn-crm-int:hover{background:var(--gold-light)}
+
+  @keyframes crmPulse{
+    0%,100%{transform:scale(1);background:rgba(34,197,94,.2)}
+    50%{transform:scale(1.3);background:rgba(34,197,94,.6);color:#fff}
+  }
+
+  @media(max-width:860px){
+    .crm-modal-body{grid-template-columns:1fr}
+    .crm-modal-left{border-right:none;border-bottom:1px solid var(--border)}
+    .crm-timeline{max-height:280px}
+  }
 </style>
 </head>
 <body>
@@ -788,6 +923,11 @@
   <button class="tab-btn" onclick="switchTab('leads')" id="tab-leads">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     Leads
+  </button>
+  <button class="tab-btn" onclick="switchTab('crm')" id="tab-crm">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h.01M11 8h6M7 12h.01M11 12h4"/></svg>
+    CRM
+    <span class="tb-count" id="crm-count-badge" style="background:rgba(34,197,94,.2);color:#86EFAC">0</span>
   </button>
   <button class="tab-btn" onclick="switchTab('reservas')" id="tab-reservas">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -1514,6 +1654,537 @@ function onEdit(e) {
 </div>
 </div>
 
+<!-- ══════════════ TAB: CRM ══════════════ -->
+<div class="tab-panel" id="panel-crm">
+<div class="main">
+
+  <!-- CONEXÃO CRM -->
+  <div class="conn-card" id="crm-conn-card" style="display:none">
+    <div class="conn-status-row">
+      <span class="conn-dot warn" id="crm-conn-dot"></span>
+      <span class="conn-title" id="crm-conn-title">Planilha CRM não configurada</span>
+      <span class="conn-sub" id="crm-conn-sub"></span>
+    </div>
+    <div style="display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <input class="conn-input" type="text" id="crm-script-url" style="flex:1;min-width:300px"
+             placeholder="https://script.google.com/macros/s/…/exec  (URL do Web App implantado)">
+    </div>
+    <div class="conn-help">
+      Cole aqui a <strong>URL do Web App</strong> gerada ao implantar o Apps Script. Ela serve para leitura e gravação — não é necessário publicar a planilha na web nem compartilhá-la publicamente.
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <button class="btn-conn" onclick="crmSalvarConfig()">Salvar Conexão</button>
+      <button class="btn-conn-test" onclick="crmCarregar()">Testar / Recarregar</button>
+      <button class="btn-conn-test" onclick="toggleStep(document.getElementById('crm-setup-step'))">
+        📋 Ver guia de configuração
+      </button>
+    </div>
+  </div>
+
+  <!-- GUIA DE SETUP CRM -->
+  <div class="steps-grid" style="margin-bottom:28px">
+    <div class="step" id="crm-setup-step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">?</div>
+        <div>
+          <div class="step-title">Como configurar a Planilha CRM</div>
+          <div class="step-desc">Crie a planilha, rode o script e cole as URLs acima — leva 5 minutos</div>
+        </div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <ol>
+          <li>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--gold)">sheets.new</a> e crie uma planilha em branco</li>
+          <li>Renomeie o título para <strong>WAL — CRM de Leads</strong></li>
+          <li>Renomeie a aba inferior (Plan1) para <strong>LEADS</strong></li>
+          <li>Clique em <span class="chip">Extensões</span> → <span class="chip">Apps Script</span></li>
+          <li>Apague o código existente, cole o código abaixo e clique em <strong>Salvar (Ctrl+S)</strong></li>
+          <li>Selecione a função <span class="chip">setupCRM</span> e clique em <strong>▶ Executar</strong> — autorize as permissões quando pedido</li>
+          <li>Ainda no Apps Script → <span class="chip">Implantar</span> → <span class="chip">Novo deploy</span></li>
+          <li>Tipo: <strong>App da Web</strong> · Executar como: <strong>Eu (meu e-mail)</strong> · Quem tem acesso: <strong>Qualquer pessoa</strong> → clique em <strong>Implantar</strong></li>
+          <li>Copie a <strong>URL do Web App</strong> gerada → cole no campo acima → clique em <strong>Salvar Conexão</strong></li>
+        </ol>
+        <div class="alert alert-warn" style="margin-top:12px">
+          ⚠️ <strong>Não é preciso</strong> publicar a planilha na web nem compartilhá-la. Apenas o deploy do Apps Script é necessário.
+        </div>
+
+        <div class="code-wrap" style="margin-top:16px">
+          <button class="btn-copy" onclick="copiarCodigoCRM(this)">Copiar</button>
+          <pre id="crm-code-block" style="max-height:420px">/* ================================================
+ *  WAL CRM — Apps Script
+ *  Planilha: WAL — CRM de Leads  |  Aba: LEADS
+ * ================================================ */
+
+function setupCRM() {
+  var ss    = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = ss.getSheetByName('LEADS') || ss.getActiveSheet();
+  sheet.setName('LEADS');
+
+  var cols = [
+    'ID','Status','Prioridade','Nome','Telefone','Email',
+    'Origem','Consultor','Solicitação','Orçamento','Área',
+    'Observações','Próxima Ação','Data Próxima Ação',
+    'Criado em','Atualizado em','Histórico (JSON)'
+  ];
+  var hdr = sheet.getRange(1, 1, 1, cols.length);
+  hdr.setValues([cols])
+     .setBackground('#0A1628').setFontColor('#C9A84C')
+     .setFontWeight('bold').setFontSize(10);
+  sheet.setFrozenRows(1);
+  sheet.setRowHeight(1, 38);
+
+  [60,120,90,200,140,220,110,150,320,200,180,200,260,130,160,160,10]
+    .forEach(function(w,i){ sheet.setColumnWidth(i+1, w||10); });
+  sheet.hideColumns(17);
+
+  var dv = SpreadsheetApp.newDataValidation;
+  sheet.getRange('B2:B2000').setDataValidation(
+    dv().requireValueInList(['novo','contato','proposta','aguardando','visita','fechado','perdido'],true)
+        .setAllowInvalid(false).build());
+  sheet.getRange('C2:C2000').setDataValidation(
+    dv().requireValueInList(['alta','media','baixa'],true)
+        .setAllowInvalid(false).build());
+
+  var rng = sheet.getRange('A2:P2000');
+  sheet.setConditionalFormatRules([
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=$B2="fechado"')
+      .setBackground('#E8F5E9').setFontColor('#2E7D32')
+      .setRanges([rng]).build(),
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=$B2="perdido"')
+      .setBackground('#EEEEEE').setFontColor('#9E9E9E')
+      .setRanges([rng]).build(),
+    SpreadsheetApp.newConditionalFormatRule()
+      .whenFormulaSatisfied('=$C2="alta"')
+      .setBackground('#FFF3F3')
+      .setRanges([rng]).build()
+  ]);
+  hdr.protect().setDescription('Cabeçalho').setWarningOnly(true);
+  SpreadsheetApp.getUi().alert('✅ CRM configurado!\nAgora:\n1. Publique na web (aba LEADS → CSV)\n2. Implante como Web App\nCole as duas URLs no Painel Admin → CRM.');
+}
+
+/* ── Leitura via GET (JSONP) ─────────────────── */
+function doGet(e) {
+  var cb    = e.parameter.callback;
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('LEADS');
+  if (!sheet) return resp(cb, {error:'Aba LEADS não encontrada'});
+
+  var vals  = sheet.getDataRange().getValues();
+  if (vals.length <= 1) return resp(cb, {leads:[]});
+
+  var leads = vals.slice(1).map(function(r){
+    var hist = [];
+    try { hist = JSON.parse(String(r[16]||'[]')); } catch(x){}
+    function s(v){ // converte tudo para string segura
+      if(v===null||v===undefined) return '';
+      if(v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+      return String(v);
+    }
+    return {
+      id:s(r[0]), status:s(r[1])||'novo', prioridade:s(r[2])||'media',
+      nome:s(r[3]), telefone:s(r[4]), email:s(r[5]), origem:s(r[6]),
+      consultor:s(r[7]), solicitacao:s(r[8]), orcamento:s(r[9]),
+      area:s(r[10]), obs:s(r[11]), proxacao:s(r[12]), proxdata:s(r[13]),
+      criado_em:s(r[14]), atualizado_em:s(r[15]), historico:hist
+    };
+  }).filter(function(r){ return r.id && r.nome; });
+
+  return resp(cb, {leads:leads});
+}
+
+function resp(cb, obj) {
+  var body = JSON.stringify(obj);
+  if (cb) body = cb + '(' + body + ')';
+  return ContentService.createTextOutput(body)
+    .setMimeType(ContentService.MimeType.JAVASCRIPT);
+}
+
+/* ── Escrita via POST ────────────────────────── */
+function doPost(e) {
+  try {
+    var p     = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('LEADS');
+    if (!sheet) return jsonOut({error:'Aba não encontrada'});
+
+    if (p.action === 'criar')        return jsonOut(criarLead(sheet, p.lead));
+    if (p.action === 'atualizar')    return jsonOut(atualizarLead(sheet, p.lead));
+    if (p.action === 'excluir')      return jsonOut(excluirLead(sheet, p.id));
+    if (p.action === 'addInteracao') return jsonOut(addInteracao(sheet, p.id, p.interacao));
+    return jsonOut({error:'Ação desconhecida'});
+  } catch(err) { return jsonOut({error:err.message}); }
+}
+
+function criarLead(sheet, lead) {
+  var id  = 'CRM_' + Date.now();
+  var now = new Date().toISOString();
+  sheet.appendRow([
+    id, lead.status||'novo', lead.prioridade||'media',
+    lead.nome||'', lead.telefone||'', lead.email||'',
+    lead.origem||'', lead.consultor||'', lead.solicitacao||'',
+    lead.orcamento||'', lead.area||'', lead.obs||'',
+    lead.proxacao||'', lead.proxdata||'', now, now,
+    JSON.stringify(lead.historico||[])
+  ]);
+  return {ok:true, id:id};
+}
+
+function atualizarLead(sheet, lead) {
+  var vals = sheet.getDataRange().getValues();
+  for (var i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]) === String(lead.id)) {
+      var now  = new Date().toISOString();
+      var hist = lead.historico !== undefined
+        ? lead.historico
+        : (function(){ try{return JSON.parse(String(vals[i][16]||'[]'));}catch(x){return [];} })();
+      sheet.getRange(i+1, 1, 1, 17).setValues([[
+        lead.id,
+        lead.status      || vals[i][1],
+        lead.prioridade  || vals[i][2],
+        lead.nome        || vals[i][3],
+        lead.telefone    !== undefined ? lead.telefone    : vals[i][4],
+        lead.email       !== undefined ? lead.email       : vals[i][5],
+        lead.origem      !== undefined ? lead.origem      : vals[i][6],
+        lead.consultor   !== undefined ? lead.consultor   : vals[i][7],
+        lead.solicitacao !== undefined ? lead.solicitacao : vals[i][8],
+        lead.orcamento   !== undefined ? lead.orcamento   : vals[i][9],
+        lead.area        !== undefined ? lead.area        : vals[i][10],
+        lead.obs         !== undefined ? lead.obs         : vals[i][11],
+        lead.proxacao    !== undefined ? lead.proxacao    : vals[i][12],
+        lead.proxdata    !== undefined ? lead.proxdata    : vals[i][13],
+        vals[i][14], now, JSON.stringify(hist)
+      ]]);
+      return {ok:true};
+    }
+  }
+  return {error:'Lead não encontrado'};
+}
+
+function excluirLead(sheet, id) {
+  var vals = sheet.getDataRange().getValues();
+  for (var i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]) === String(id)) {
+      sheet.deleteRow(i+1);
+      return {ok:true};
+    }
+  }
+  return {error:'Lead não encontrado'};
+}
+
+function addInteracao(sheet, id, interacao) {
+  var vals = sheet.getDataRange().getValues();
+  for (var i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]) === String(id)) {
+      var hist = [];
+      try { hist = JSON.parse(String(vals[i][16]||'[]')); } catch(x){}
+      hist.push(interacao);
+      sheet.getRange(i+1, 16).setValue(new Date().toISOString());
+      sheet.getRange(i+1, 17).setValue(JSON.stringify(hist));
+      return {ok:true};
+    }
+  }
+  return {error:'Lead não encontrado'};
+}
+
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div class="crm-stats-row" id="crm-stats-row">
+    <div class="crm-stat-pill active" onclick="crmFiltrarStatus('')" id="crm-pill-all">
+      <span class="crm-stat-num" id="crm-n-all" style="color:var(--gold)">0</span>
+      <span class="crm-stat-lbl">Total</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('novo')" id="crm-pill-novo">
+      <span class="crm-stat-num" id="crm-n-novo" style="color:#86EFAC">0</span>
+      <span class="crm-stat-lbl">Novo Lead</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('contato')" id="crm-pill-contato">
+      <span class="crm-stat-num" id="crm-n-contato" style="color:#93C5FD">0</span>
+      <span class="crm-stat-lbl">Em Contato</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('proposta')" id="crm-pill-proposta">
+      <span class="crm-stat-num" id="crm-n-proposta" style="color:#C4B5FD">0</span>
+      <span class="crm-stat-lbl">Proposta</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('aguardando')" id="crm-pill-aguardando">
+      <span class="crm-stat-num" id="crm-n-aguardando" style="color:#FCD34D">0</span>
+      <span class="crm-stat-lbl">Aguardando</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('visita')" id="crm-pill-visita">
+      <span class="crm-stat-num" id="crm-n-visita" style="color:#5EEAD4">0</span>
+      <span class="crm-stat-lbl">Visita</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('fechado')" id="crm-pill-fechado">
+      <span class="crm-stat-num" id="crm-n-fechado" style="color:#6EE7B7">0</span>
+      <span class="crm-stat-lbl">Fechado ✓</span>
+    </div>
+    <div class="crm-stat-pill" onclick="crmFiltrarStatus('perdido')" id="crm-pill-perdido">
+      <span class="crm-stat-num" id="crm-n-perdido" style="color:#FCA5A5">0</span>
+      <span class="crm-stat-lbl">Perdido ✗</span>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="crm-toolbar">
+    <div class="crm-filters">
+      <input class="crm-search" type="text" id="crm-busca" placeholder="🔍 Buscar por nome, telefone ou e-mail…" oninput="crmRenderLista()">
+      <select class="crm-sel" id="crm-fil-origem" onchange="crmRenderLista()">
+        <option value="">Todas as origens</option>
+        <option>Site</option><option>WhatsApp</option><option>Instagram</option>
+        <option>Indicação</option><option>Ligação</option><option>Outro</option>
+      </select>
+      <select class="crm-sel" id="crm-fil-prio" onchange="crmRenderLista()">
+        <option value="">Todas as prioridades</option>
+        <option value="alta">Alta</option>
+        <option value="media">Média</option>
+        <option value="baixa">Baixa</option>
+      </select>
+      <select class="crm-sel" id="crm-fil-ord" onchange="crmRenderLista()">
+        <option value="recent">Mais recentes</option>
+        <option value="prox">Próxima ação</option>
+        <option value="nome">Nome A→Z</option>
+      </select>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="crm-last-update" style="font-size:13px;color:var(--gold-light);font-family:'Barlow Condensed',sans-serif;letter-spacing:.12em;font-weight:600;white-space:nowrap"></span>
+      <button class="btn-header btn-outline" onclick="crmExportar()" style="height:36px;padding:0 14px;font-size:11px">
+        🖨 Exportar
+      </button>
+      <button class="btn-header btn-primary" onclick="crmAbrirNovoLead()" style="height:36px;padding:0 16px;font-size:11px">
+        + Novo Lead
+      </button>
+    </div>
+  </div>
+
+  <!-- ALERTA AÇÕES VENCIDAS -->
+  <div id="crm-alert-vencidas" style="display:none;margin-bottom:16px" class="alert alert-warn"></div>
+
+  <!-- LISTA -->
+  <div class="table-wrap">
+    <div class="table-head-row">
+      <span id="crm-lista-label">Todos os Leads</span>
+      <span id="crm-lista-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text-muted)"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="crm-lead-table">
+        <thead>
+          <tr>
+            <th>Prioridade</th>
+            <th>Nome / Contato</th>
+            <th>Origem</th>
+            <th>Status</th>
+            <th>Solicitação</th>
+            <th>Próxima Ação</th>
+            <th>Data/Prazo</th>
+            <th>Última Interação</th>
+            <th style="color:var(--gold)">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="crm-tbody">
+          <tr><td colspan="9"><div class="empty-table">Nenhum lead cadastrado. Clique em <strong>+ Novo Lead</strong> para começar.</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- .main -->
+</div><!-- panel-crm -->
+
+<!-- ══════════════ MODAL CRM LEAD ══════════════ -->
+<div class="cad-overlay" id="crm-modal">
+  <div class="cad-box" style="max-width:940px;width:100%">
+    <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))"></div>
+
+    <!-- HEADER -->
+    <div class="cad-header" style="gap:14px;flex-wrap:wrap">
+      <div style="flex:1;min-width:0">
+        <div class="cad-title" id="crm-modal-titulo">Novo Lead</div>
+        <div id="crm-modal-sub" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <select id="crm-modal-status" onchange="crmOnStatusChange()"
+          style="height:34px;background:rgba(255,255,255,.04);border:1px solid var(--border);
+                 color:var(--off-white);padding:0 28px 0 10px;font-family:'Barlow Condensed',sans-serif;
+                 font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+                 outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;
+                 background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E\");
+                 background-repeat:no-repeat;background-position:right 9px center">
+          <option value="novo">🟢 Novo Lead</option>
+          <option value="contato">🔵 Em Contato</option>
+          <option value="proposta">🟣 Proposta Enviada</option>
+          <option value="aguardando">🟡 Aguardando Resposta</option>
+          <option value="visita">🩵 Visita Agendada</option>
+          <option value="fechado">✅ Fechado / Venda</option>
+          <option value="perdido">❌ Perdido</option>
+        </select>
+        <button class="cad-close" onclick="crmFecharModal()">✕</button>
+      </div>
+    </div>
+
+    <!-- BODY: 2 colunas -->
+    <div class="crm-modal-body">
+
+      <!-- ─ ESQUERDA: dados do lead ─ -->
+      <div class="crm-modal-left">
+
+        <!-- DADOS PESSOAIS -->
+        <div class="cad-section">
+          <div class="crm-modal-section-title">Dados do Lead</div>
+          <div class="cad-grid cad-grid-2" style="margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">Nome completo <span class="req">*</span></label>
+              <input class="cad-input" type="text" id="crm-nome" placeholder="Ex: João da Silva">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Prioridade</label>
+              <select class="cad-select" id="crm-prioridade">
+                <option value="alta">🔴 Alta</option>
+                <option value="media" selected>🟡 Média</option>
+                <option value="baixa">⚪ Baixa</option>
+              </select>
+            </div>
+          </div>
+          <div class="cad-grid cad-grid-2" style="margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">Telefone / WhatsApp</label>
+              <input class="cad-input" type="tel" id="crm-telefone" placeholder="(21) 99999-9999">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">E-mail</label>
+              <input class="cad-input" type="email" id="crm-email" placeholder="email@exemplo.com">
+            </div>
+          </div>
+          <div class="cad-grid cad-grid-2">
+            <div class="cad-field">
+              <label class="cad-label">Origem do Contato</label>
+              <select class="cad-select" id="crm-origem">
+                <option value="">Selecione</option>
+                <option>Site</option><option>WhatsApp</option><option>Instagram</option>
+                <option>Indicação</option><option>Ligação</option><option>Outro</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Consultor Responsável</label>
+              <input class="cad-input" type="text" id="crm-consultor" placeholder="Nome do consultor">
+            </div>
+          </div>
+        </div>
+
+        <!-- SOLICITAÇÃO -->
+        <div class="cad-section">
+          <div class="crm-modal-section-title">Solicitação do Cliente</div>
+          <div class="cad-field" style="margin-bottom:14px">
+            <label class="cad-label">O que o cliente procura / solicita <span class="req">*</span></label>
+            <textarea class="cad-textarea" id="crm-solicitacao" style="min-height:80px"
+              placeholder="Ex: Apartamento 2 quartos em Ilha do Governador, financiamento POUPEX, até R$ 400 mil…"></textarea>
+          </div>
+          <div class="cad-grid cad-grid-2" style="margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">Orçamento estimado</label>
+              <select class="cad-select" id="crm-orcamento">
+                <option value="">Não informado</option>
+                <option>Até R$ 300.000</option>
+                <option>De R$ 300.000 a R$ 500.000</option>
+                <option>De R$ 500.000 a R$ 700.000</option>
+                <option>De R$ 700.000 a R$ 900.000</option>
+                <option>De R$ 900.000 a R$ 1.250.000</option>
+                <option>Acima de R$ 1.250.000</option>
+              </select>
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Área / Bairro de interesse</label>
+              <input class="cad-input" type="text" id="crm-area" placeholder="Ex: Ilha do Governador, Galeão…">
+            </div>
+          </div>
+          <div class="cad-field">
+            <label class="cad-label">Observações internas</label>
+            <textarea class="cad-textarea" id="crm-obs" style="min-height:60px"
+              placeholder="Notas internas sobre o cliente…"></textarea>
+          </div>
+        </div>
+
+        <!-- PRÓXIMA AÇÃO -->
+        <div class="cad-section" style="margin-bottom:0">
+          <div class="crm-modal-section-title">Próxima Ação Pendente</div>
+          <div class="cad-grid cad-grid-2" style="margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">O que precisa ser feito</label>
+              <input class="cad-input" type="text" id="crm-proxacao" placeholder="Ex: Enviar simulação POUPEX">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Prazo</label>
+              <input class="cad-input" type="date" id="crm-proxdata">
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /left -->
+
+      <!-- ─ DIREITA: timeline ─ -->
+      <div class="crm-modal-right">
+        <div class="crm-modal-section-title">Histórico de Atendimento</div>
+
+        <!-- Timeline -->
+        <div class="crm-timeline" id="crm-timeline">
+          <div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">
+            Nenhuma interação registrada ainda.
+          </div>
+        </div>
+
+        <!-- Adicionar interação -->
+        <div class="crm-add-int">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Registrar Interação</div>
+          <select id="crm-int-tipo">
+            <option value="📞 Ligação">📞 Ligação</option>
+            <option value="💬 WhatsApp">💬 WhatsApp</option>
+            <option value="📧 E-mail">📧 E-mail</option>
+            <option value="🏠 Visita ao imóvel">🏠 Visita ao imóvel</option>
+            <option value="📋 Proposta enviada">📋 Proposta enviada</option>
+            <option value="📄 Documentação">📄 Documentação</option>
+            <option value="💡 Outros">💡 Outros</option>
+          </select>
+          <textarea id="crm-int-nota" rows="3"
+            placeholder="Descreva o que foi feito, o que o cliente disse, próximos passos…"></textarea>
+          <button class="btn-crm-int" onclick="crmAdicionarInteracao()">+ Registrar</button>
+        </div>
+      </div><!-- /right -->
+
+    </div><!-- /modal-body -->
+
+    <!-- FOOTER -->
+    <div class="cad-footer" style="justify-content:space-between">
+      <div>
+        <button type="button" id="crm-btn-excluir"
+          onclick="crmExcluirLead()"
+          style="display:none;height:36px;padding:0 16px;background:rgba(220,38,38,.1);
+                 color:#F87171;border:1px solid rgba(220,38,38,.3);
+                 font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+                 letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s">
+          🗑 Excluir Lead
+        </button>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn-cad-cancel" onclick="crmFecharModal()">Cancelar</button>
+        <button type="button" class="btn-cad-save" onclick="crmSalvarLead()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          Salvar Lead
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ── CONFIGURAÇÕES ── */
 const ADMIN_PIN           = 'FAB2024';
@@ -1549,6 +2220,7 @@ function switchTab(name) {
   document.getElementById('panel-' + name).classList.add('active');
   if (name === 'construtoras') carregarConstrutoras();
   if (name === 'visitas') consultarVisitas();
+  if (name === 'crm') { crmCarregar(); crmAtualizarStats(); crmRenderLista(); }
 }
 
 /* ── STEPS ── */
@@ -2682,12 +3354,610 @@ async function consultarVisitas(modo) {
   } catch(e) { wrap.innerHTML = '<div class="empty-table">❌ ' + e.message + '</div>'; }
 }
 
+/* ══════════════ CRM ══════════════ */
+const CRM_KEY        = 'wal_crm_leads';
+const CRM_SCRIPT_KEY = 'crm_script_url';
+const CRM_SCRIPT_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+let _crmLeads = [];
+let _crmEditId = null;
+let _crmFiltroStatus = '';
+
+const CRM_STATUS_LABEL = {
+  novo:'Novo Lead', contato:'Em Contato', proposta:'Proposta Enviada',
+  aguardando:'Aguardando Resposta', visita:'Visita Agendada',
+  fechado:'Fechado ✓', perdido:'Perdido ✗'
+};
+
+function crmGetScriptUrl() { return localStorage.getItem(CRM_SCRIPT_KEY) || CRM_SCRIPT_URL_DEFAULT; }
+
+function crmSetConnStatus(type, title, sub) {
+  const dot = document.getElementById('crm-conn-dot');
+  if (dot) dot.className = 'conn-dot ' + type;
+  const t = document.getElementById('crm-conn-title');
+  if (t) t.textContent = title;
+  const s = document.getElementById('crm-conn-sub');
+  if (s) s.textContent = sub;
+}
+
+function crmSalvarConfig() {
+  const scriptUrl = document.getElementById('crm-script-url').value.trim();
+  if (scriptUrl) localStorage.setItem(CRM_SCRIPT_KEY, scriptUrl);
+  crmCarregar();
+}
+
+// Leitura via JSONP direto no Apps Script (doGet com ?callback=)
+function crmJsonp(scriptUrl) {
+  return new Promise(function(resolve, reject) {
+    const cb = 'crmCb_' + Date.now();
+    const s  = document.createElement('script');
+    const t  = setTimeout(function() { cleanup(); reject(new Error('Timeout — verifique a URL do Web App')); }, 15000);
+    function cleanup() { clearTimeout(t); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = function(data) { cleanup(); resolve(data); };
+    s.onerror  = function() { cleanup(); reject(new Error('Falha ao carregar — verifique se o deploy está com acesso "Qualquer pessoa"')); };
+    s.src = scriptUrl + '?callback=' + cb;
+    document.head.appendChild(s);
+  });
+}
+
+function parseCRMFromGviz(table) {
+  if (!table || !table.rows) return [];
+  return table.rows.map(row => {
+    const g = i => { const c = row.c && row.c[i]; return c ? (c.f || String(c.v ?? '')) : ''; };
+    let historico = [];
+    try { historico = JSON.parse(g(16) || '[]'); } catch {}
+    return {
+      id: g(0), status: g(1) || 'novo', prioridade: g(2) || 'media',
+      nome: g(3), telefone: g(4), email: g(5), origem: g(6),
+      consultor: g(7), solicitacao: g(8), orcamento: g(9),
+      area: g(10), obs: g(11), proxacao: g(12), proxdata: g(13),
+      criado_em: g(14), atualizado_em: g(15), historico
+    };
+  }).filter(r => r.id && r.nome);
+}
+
+async function crmPostScript(payload) {
+  const url = crmGetScriptUrl();
+  if (!url) return;
+  try {
+    await fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+  } catch {}
+}
+
+async function crmCarregar() {
+  // Preenche input de config se já salvo
+  const savedScript = localStorage.getItem(CRM_SCRIPT_KEY) || '';
+  if (savedScript) document.getElementById('crm-script-url').value = savedScript;
+
+  const scriptUrl = crmGetScriptUrl();
+  if (!scriptUrl) {
+    try { _crmLeads = JSON.parse(localStorage.getItem(CRM_KEY) || '[]'); } catch { _crmLeads = []; }
+    crmSetConnStatus('warn', 'CRM não configurado — dados salvos localmente neste navegador', '');
+    crmAtualizarStats();
+    crmRenderLista();
+    return;
+  }
+
+  crmSetConnStatus('warn', 'Conectando ao CRM…', '');
+  try {
+    const data = await crmJsonp(scriptUrl);
+    if (data.error) throw new Error(data.error);
+    _crmLeads = (data.leads || []);
+    localStorage.setItem(CRM_KEY, JSON.stringify(_crmLeads));
+    _crmUltimaAtualizacao = new Date();
+    crmSetConnStatus('ok', `CRM conectado — ${_crmLeads.length} lead(s) carregado(s)`, new Date().toLocaleTimeString('pt-BR'));
+  } catch(e) {
+    try { _crmLeads = JSON.parse(localStorage.getItem(CRM_KEY) || '[]'); } catch { _crmLeads = []; }
+    crmSetConnStatus('err', 'Erro ao conectar: ' + e.message, 'exibindo cache local');
+  }
+  crmAtualizarStats();
+  crmRenderLista();
+  crmAtualizarRelogioRefresh();
+}
+
+function crmSalvarStorage() {
+  localStorage.setItem(CRM_KEY, JSON.stringify(_crmLeads));
+}
+
+function copiarCodigoCRM(btn) {
+  const code = document.getElementById('crm-code-block').innerText;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = '✓ Copiado!'; btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'Copiar'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+
+function crmAtualizarStats() {
+  const statusList = ['novo','contato','proposta','aguardando','visita','fechado','perdido'];
+  document.getElementById('crm-n-all').textContent = _crmLeads.length;
+  statusList.forEach(s => {
+    const el = document.getElementById('crm-n-' + s);
+    if (el) el.textContent = _crmLeads.filter(l => l.status === s).length;
+  });
+  const ativos = _crmLeads.filter(l => l.status !== 'fechado' && l.status !== 'perdido').length;
+  document.getElementById('crm-count-badge').textContent = ativos;
+}
+
+function crmFiltrarStatus(status) {
+  _crmFiltroStatus = status;
+  document.querySelectorAll('.crm-stat-pill').forEach(p => p.classList.remove('active'));
+  const pill = document.getElementById('crm-pill-' + (status || 'all'));
+  if (pill) pill.classList.add('active');
+  crmRenderLista();
+}
+
+function crmRenderLista() {
+  const busca   = (document.getElementById('crm-busca')?.value || '').toLowerCase().trim();
+  const origem  = document.getElementById('crm-fil-origem')?.value || '';
+  const prio    = document.getElementById('crm-fil-prio')?.value || '';
+  const ord     = document.getElementById('crm-fil-ord')?.value || 'recent';
+
+  let lista = [..._crmLeads];
+
+  if (_crmFiltroStatus) lista = lista.filter(l => l.status === _crmFiltroStatus);
+  if (origem) lista = lista.filter(l => l.origem === origem);
+  if (prio)   lista = lista.filter(l => l.prioridade === prio);
+  if (busca)  lista = lista.filter(l =>
+    (l.nome||'').toLowerCase().includes(busca) ||
+    (l.telefone||'').toLowerCase().includes(busca) ||
+    (l.email||'').toLowerCase().includes(busca) ||
+    (l.solicitacao||'').toLowerCase().includes(busca)
+  );
+
+  if (ord === 'nome') lista.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  else if (ord === 'prox') lista.sort((a,b) => {
+    if (!a.proxdata && !b.proxdata) return 0;
+    if (!a.proxdata) return 1;
+    if (!b.proxdata) return -1;
+    return a.proxdata.localeCompare(b.proxdata);
+  });
+  else lista.sort((a,b) => (b.criado_em||'').localeCompare(a.criado_em||''));
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const amanha = new Date(hoje); amanha.setDate(amanha.getDate()+1);
+
+  const label = _crmFiltroStatus ? CRM_STATUS_LABEL[_crmFiltroStatus] : 'Todos os Leads';
+  document.getElementById('crm-lista-label').textContent = label;
+  document.getElementById('crm-lista-count').textContent = lista.length + ' registro(s)';
+
+  // Alerta de ações vencidas
+  const vencidas = _crmLeads.filter(l => {
+    if (!l.proxdata || l.status === 'fechado' || l.status === 'perdido') return false;
+    return new Date(l.proxdata) < hoje;
+  });
+  const alertEl = document.getElementById('crm-alert-vencidas');
+  if (vencidas.length) {
+    alertEl.style.display = 'block';
+    alertEl.innerHTML = `⚠️ <strong>${vencidas.length} lead(s) com ação vencida:</strong> ` +
+      vencidas.slice(0,3).map(l => `<a href="#" onclick="crmAbrirLead('${l.id}');return false" style="color:var(--gold)">${esc(l.nome)}</a>`).join(', ') +
+      (vencidas.length > 3 ? ` e mais ${vencidas.length - 3}…` : '');
+  } else {
+    alertEl.style.display = 'none';
+  }
+
+  if (!lista.length) {
+    document.getElementById('crm-tbody').innerHTML =
+      '<tr><td colspan="9"><div class="empty-table">Nenhum lead encontrado para os filtros aplicados.</div></td></tr>';
+    return;
+  }
+
+  document.getElementById('crm-tbody').innerHTML = lista.map(l => {
+    const prioMap = {alta:'<span class="p-alta">▲ ALTA</span>',media:'<span class="p-media">▬ MÉDIA</span>',baixa:'<span class="p-baixa">▼ BAIXA</span>'};
+    const prioHtml = prioMap[l.prioridade] || '';
+
+    const statusHtml = `<span class="crm-badge s-${l.status}"><span class="crm-badge-dot"></span>${CRM_STATUS_LABEL[l.status]||l.status}</span>`;
+
+    let dataClass = '';
+    if (l.proxdata) {
+      const d = new Date(l.proxdata); d.setHours(0,0,0,0);
+      if (d < hoje) dataClass = 'vencida';
+      else if (d.getTime() === hoje.getTime()) dataClass = 'hoje';
+      else dataClass = 'ok';
+    }
+    const dataHtml = l.proxdata
+      ? `<span class="crm-prox-data ${dataClass}">${fmtData(l.proxdata)}</span>`
+      : '—';
+
+    const ultimaInt = l.historico && l.historico.length
+      ? l.historico[l.historico.length-1]
+      : null;
+    const ultimaHtml = ultimaInt
+      ? `<span style="font-size:11px">${ultimaInt.tipo}<br><span style="color:var(--text-muted)">${fmtData(ultimaInt.data)}</span></span>`
+      : '<span style="color:var(--text-muted);font-size:11px">—</span>';
+
+    const telStr = String(l.telefone || '').trim();
+    const contatoHtml = [
+      telStr ? `<a href="https://wa.me/55${telStr.replace(/\D/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none;font-size:11px">📱 ${esc(telStr)}</a>` : '',
+      l.email ? `<span style="font-size:11px;color:var(--text-muted)">${esc(String(l.email))}</span>` : ''
+    ].filter(Boolean).join('<br>');
+
+    return `<tr onclick="crmAbrirLead('${l.id}')">
+      <td>${prioHtml}</td>
+      <td>
+        <div class="crm-nome">${esc(l.nome)}</div>
+        <div style="margin-top:3px">${contatoHtml}</div>
+      </td>
+      <td style="font-size:11px">${esc(l.origem)||'—'}</td>
+      <td>${statusHtml}</td>
+      <td style="max-width:200px;white-space:normal;font-size:11px;line-height:1.4">${esc((l.solicitacao||'').substring(0,90))}${l.solicitacao&&l.solicitacao.length>90?'…':''}</td>
+      <td class="crm-acao-pendente">${esc(l.proxacao)||'—'}</td>
+      <td>${dataHtml}</td>
+      <td>${ultimaHtml}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn-tbl btn-tbl-edit" onclick="crmAbrirLead('${l.id}')" style="margin-bottom:4px">✏ Abrir</button><br>
+        <select onchange="crmMudarStatus('${l.id}',this.value);this.blur()"
+          style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+                 letter-spacing:.08em;background:rgba(255,255,255,.04);border:1px solid var(--border);
+                 color:var(--text-muted);padding:3px 6px;cursor:pointer;width:100%;
+                 outline:none;appearance:none;-webkit-appearance:none">
+          <option value="" disabled selected>↕ Status</option>
+          <option value="novo"      ${l.status==='novo'      ?'selected':''}>🟢 Novo Lead</option>
+          <option value="contato"   ${l.status==='contato'   ?'selected':''}>🔵 Em Contato</option>
+          <option value="proposta"  ${l.status==='proposta'  ?'selected':''}>🟣 Proposta</option>
+          <option value="aguardando"${l.status==='aguardando'?'selected':''}>🟡 Aguardando</option>
+          <option value="visita"    ${l.status==='visita'    ?'selected':''}>🩵 Visita</option>
+          <option value="fechado"   ${l.status==='fechado'   ?'selected':''}>✅ Fechado</option>
+          <option value="perdido"   ${l.status==='perdido'   ?'selected':''}>❌ Perdido</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function crmMudarStatus(id, novoStatus) {
+  const lead = _crmLeads.find(l => l.id === id);
+  if (!lead || lead.status === novoStatus) return;
+  const statusAnterior = lead.status;
+  lead.status = novoStatus;
+  lead.atualizado_em = new Date().toISOString();
+  crmSalvarStorage();
+  crmAtualizarStats();
+  crmRenderLista();
+  await crmPostScript({ action: 'atualizar', lead: { id, status: novoStatus, atualizado_em: lead.atualizado_em } });
+  mostrarToast(`✅ ${lead.nome} → ${CRM_STATUS_LABEL[novoStatus]}`);
+}
+
+function fmtData(isoOrStr) {
+  if (!isoOrStr) return '';
+  try {
+    const [y,m,d] = isoOrStr.split('-');
+    if (y && m && d) return `${d}/${m}/${y}`;
+  } catch{}
+  return isoOrStr;
+}
+
+function crmAbrirNovoLead() {
+  _crmEditId = null;
+  document.getElementById('crm-modal-titulo').textContent = 'Novo Lead';
+  document.getElementById('crm-modal-sub').textContent = '';
+  document.getElementById('crm-modal-status').value = 'novo';
+  document.getElementById('crm-btn-excluir').style.display = 'none';
+  ['crm-nome','crm-telefone','crm-email','crm-consultor','crm-solicitacao',
+   'crm-area','crm-obs','crm-proxacao','crm-proxdata'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
+  });
+  document.getElementById('crm-origem').value = '';
+  document.getElementById('crm-prioridade').value = 'media';
+  document.getElementById('crm-orcamento').value = '';
+  const hoje = new Date().toISOString().split('T')[0];
+  document.getElementById('crm-proxdata').value = hoje;
+  crmRenderTimeline([]);
+  document.querySelector('#crm-modal .btn-cad-save').innerHTML =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Lead';
+  document.getElementById('crm-modal').classList.add('show');
+  setTimeout(() => document.getElementById('crm-nome').focus(), 100);
+}
+
+function crmAbrirLead(id) {
+  const lead = _crmLeads.find(l => l.id === id);
+  if (!lead) return;
+  _crmEditId = id;
+
+  document.getElementById('crm-modal-titulo').textContent = lead.nome;
+  document.getElementById('crm-modal-sub').textContent =
+    (lead.origem ? 'Origem: ' + lead.origem + ' · ' : '') +
+    'Cadastrado em: ' + fmtData(lead.criado_em?.split('T')[0]);
+  document.getElementById('crm-modal-status').value = lead.status || 'novo';
+  document.getElementById('crm-btn-excluir').style.display = 'inline-flex';
+  document.querySelector('#crm-modal .btn-cad-save').innerHTML =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Atualizar Lead';
+
+  document.getElementById('crm-nome').value       = lead.nome || '';
+  document.getElementById('crm-telefone').value   = lead.telefone || '';
+  document.getElementById('crm-email').value      = lead.email || '';
+  document.getElementById('crm-origem').value     = lead.origem || '';
+  document.getElementById('crm-prioridade').value = lead.prioridade || 'media';
+  document.getElementById('crm-consultor').value  = lead.consultor || '';
+  document.getElementById('crm-solicitacao').value= lead.solicitacao || '';
+  document.getElementById('crm-orcamento').value  = lead.orcamento || '';
+  document.getElementById('crm-area').value       = lead.area || '';
+  document.getElementById('crm-obs').value        = lead.obs || '';
+  document.getElementById('crm-proxacao').value   = lead.proxacao || '';
+  document.getElementById('crm-proxdata').value   = lead.proxdata || '';
+
+  crmRenderTimeline(lead.historico || []);
+  document.getElementById('crm-int-nota').value = '';
+  document.getElementById('crm-modal').classList.add('show');
+  document.getElementById('crm-modal').scrollTop = 0;
+}
+
+function crmFecharModal() {
+  document.getElementById('crm-modal').classList.remove('show');
+  _crmEditId = null;
+}
+
+function crmOnStatusChange() {
+  // visual feedback apenas
+}
+
+function crmRenderTimeline(historico) {
+  const el = document.getElementById('crm-timeline');
+  if (!historico || !historico.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">Nenhuma interação registrada ainda.</div>';
+    return;
+  }
+  const icons = {'📞 Ligação':'📞','💬 WhatsApp':'💬','📧 E-mail':'📧','🏠 Visita ao imóvel':'🏠','📋 Proposta enviada':'📋','📄 Documentação':'📄','💡 Outros':'💡'};
+  el.innerHTML = [...historico].reverse().map(h => `
+    <div class="crm-tl-item">
+      <div class="crm-tl-dot">${icons[h.tipo]||'💡'}</div>
+      <div class="crm-tl-content">
+        <div class="crm-tl-meta">
+          <span class="crm-tl-tipo">${esc(h.tipo)}</span>
+          <span class="crm-tl-data">${fmtData(h.data?.split('T')[0])} ${h.hora||''}</span>
+        </div>
+        ${h.nota ? `<div class="crm-tl-nota">${esc(h.nota)}</div>` : ''}
+        ${h.consultor ? `<div style="font-size:10px;color:var(--text-muted);margin-top:3px">👤 ${esc(h.consultor)}</div>` : ''}
+      </div>
+    </div>`).join('');
+  el.scrollTop = 0;
+}
+
+async function crmAdicionarInteracao() {
+  const tipo  = document.getElementById('crm-int-tipo').value;
+  const nota  = document.getElementById('crm-int-nota').value.trim();
+  if (!nota) { document.getElementById('crm-int-nota').focus(); return; }
+
+  const agora = new Date();
+  const interacao = {
+    tipo,
+    nota,
+    data: agora.toISOString().split('T')[0],
+    hora: agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'}),
+    consultor: document.getElementById('crm-consultor')?.value.trim() || ''
+  };
+
+  if (_crmEditId) {
+    const lead = _crmLeads.find(l => l.id === _crmEditId);
+    if (lead) {
+      if (!lead.historico) lead.historico = [];
+      lead.historico.push(interacao);
+      lead.atualizado_em = agora.toISOString();
+      crmSalvarStorage();
+      crmRenderTimeline(lead.historico);
+      document.getElementById('crm-int-nota').value = '';
+      // Grava na planilha (no-cors, assume ok)
+      await crmPostScript({ action: 'addInteracao', id: _crmEditId, interacao });
+      mostrarToast('✅ Interação registrada!');
+    }
+  } else {
+    if (!window._crmIntTemp) window._crmIntTemp = [];
+    window._crmIntTemp.push(interacao);
+    crmRenderTimeline(window._crmIntTemp);
+    document.getElementById('crm-int-nota').value = '';
+  }
+}
+
+async function crmSalvarLead() {
+  const nome = document.getElementById('crm-nome').value.trim();
+  if (!nome) { alert('Informe o nome do lead.'); document.getElementById('crm-nome').focus(); return; }
+
+  const btn = document.querySelector('#crm-modal .btn-cad-save');
+  if (btn) { btn.textContent = '⏳ Salvando…'; btn.disabled = true; }
+
+  const agora = new Date().toISOString();
+  const leadData = {
+    nome,
+    telefone:    document.getElementById('crm-telefone').value.trim(),
+    email:       document.getElementById('crm-email').value.trim(),
+    origem:      document.getElementById('crm-origem').value,
+    prioridade:  document.getElementById('crm-prioridade').value,
+    consultor:   document.getElementById('crm-consultor').value.trim(),
+    status:      document.getElementById('crm-modal-status').value,
+    solicitacao: document.getElementById('crm-solicitacao').value.trim(),
+    orcamento:   document.getElementById('crm-orcamento').value,
+    area:        document.getElementById('crm-area').value.trim(),
+    obs:         document.getElementById('crm-obs').value.trim(),
+    proxacao:    document.getElementById('crm-proxacao').value.trim(),
+    proxdata:    document.getElementById('crm-proxdata').value,
+    atualizado_em: agora,
+  };
+
+  const isNovo = !_crmEditId;
+
+  if (_crmEditId) {
+    const idx = _crmLeads.findIndex(l => l.id === _crmEditId);
+    if (idx >= 0) _crmLeads[idx] = { ..._crmLeads[idx], ...leadData };
+    await crmPostScript({ action: 'atualizar', lead: { id: _crmEditId, ...leadData } });
+  } else {
+    leadData.id = 'CRM_' + Date.now();
+    leadData.criado_em = agora;
+    leadData.historico = window._crmIntTemp || [];
+    window._crmIntTemp = [];
+    _crmLeads.unshift(leadData);
+    await crmPostScript({ action: 'criar', lead: leadData });
+  }
+
+  crmSalvarStorage();
+  crmFecharModal();
+  crmAtualizarStats();
+  crmRenderLista();
+
+  if (btn) { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Lead'; btn.disabled = false; }
+
+  mostrarToast(isNovo ? `✅ Lead "${nome}" cadastrado!` : `✅ Lead "${nome}" atualizado!`);
+}
+
+async function crmExcluirLead() {
+  const lead = _crmLeads.find(l => l.id === _crmEditId);
+  if (!lead) return;
+  if (!confirm(`Confirma a exclusão do lead "${lead.nome}"?\n\nEssa ação não pode ser desfeita.`)) return;
+  _crmLeads = _crmLeads.filter(l => l.id !== _crmEditId);
+  crmSalvarStorage();
+  await crmPostScript({ action: 'excluir', id: _crmEditId });
+  crmFecharModal();
+  crmAtualizarStats();
+  crmRenderLista();
+  mostrarToast(`🗑 Lead "${lead.nome}" removido.`);
+}
+
+function crmExportar() {
+  if (!_crmLeads.length) { alert('Nenhum lead para exportar.'); return; }
+  const win = window.open('', '_blank');
+  const hoje = new Date().toLocaleString('pt-BR');
+  const rows = _crmLeads.map(l => ({
+    'Status': CRM_STATUS_LABEL[l.status] || l.status,
+    'Prioridade': l.prioridade?.toUpperCase() || '',
+    'Nome': l.nome || '',
+    'Telefone': l.telefone || '',
+    'Email': l.email || '',
+    'Origem': l.origem || '',
+    'Consultor': l.consultor || '',
+    'Orçamento': l.orcamento || '',
+    'Área': l.area || '',
+    'Solicitação': (l.solicitacao||'').replace(/\n/g,' '),
+    'Próxima Ação': l.proxacao || '',
+    'Prazo': fmtData(l.proxdata),
+    'Interações': (l.historico||[]).length,
+    'Cadastrado em': fmtData(l.criado_em?.split('T')[0]),
+  }));
+  const headers = Object.keys(rows[0]);
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="UTF-8"><title>CRM — WAL Imóveis</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;font-size:9pt;color:#000;padding:16px}
+      h1{font-size:14pt;color:#0A1628;border-bottom:3px solid #C9A84C;padding-bottom:8px;margin-bottom:12px}
+      h1 span{color:#C9A84C}
+      table{width:100%;border-collapse:collapse;font-size:8.5pt}
+      thead th{background:#0A1628;color:#C9A84C;padding:7px 8px;text-align:left;white-space:nowrap;font-size:8pt}
+      tbody td{padding:6px 8px;border-bottom:1px solid #e8e8e8;vertical-align:top}
+      tbody tr:nth-child(even){background:#f7f5f0}
+      .meta{font-size:8pt;color:#666;margin-bottom:10px}
+      @media print{@page{size:A4 landscape;margin:8mm}}
+    </style>
+  </head><body>
+    <h1>WAL Imóveis — <span>CRM de Leads</span></h1>
+    <p class="meta">Exportado em: ${hoje} · Total: ${_crmLeads.length} leads</p>
+    <table>
+      <thead><tr>${headers.map(h=>'<th>'+h+'</th>').join('')}</tr></thead>
+      <tbody>${rows.map(r=>'<tr>'+headers.map(h=>'<td>'+(r[h]||'—')+'</td>').join('')+'</tr>').join('')}</tbody>
+    </table>
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
+}
+
+/* ══════════════ CRM AUTO-REFRESH ══════════════ */
+let _crmAutoRefreshInterval = null;
+let _crmUltimaAtualizacao   = null;
+let _crmLeadsAnteriorCount  = 0;
+
+function crmIniciarAutoRefresh() {
+  if (_crmAutoRefreshInterval) return; // já rodando
+  _crmAutoRefreshInterval = setInterval(crmAutoRefreshTick, 2 * 60 * 1000); // 2 minutos
+}
+
+function crmPararAutoRefresh() {
+  if (_crmAutoRefreshInterval) {
+    clearInterval(_crmAutoRefreshInterval);
+    _crmAutoRefreshInterval = null;
+  }
+}
+
+async function crmAutoRefreshTick() {
+  // Só atualiza se: aba CRM ativa + modal fechado + sem foco na busca
+  const crmAtivo  = document.getElementById('panel-crm')?.classList.contains('active');
+  const modalOpen = document.getElementById('crm-modal')?.classList.contains('show');
+  const buscaFoco = document.activeElement === document.getElementById('crm-busca');
+  if (!crmAtivo || modalOpen || buscaFoco) return;
+
+  const scriptUrl = crmGetScriptUrl();
+  if (!scriptUrl) return;
+
+  try {
+    const data = await crmJsonp(scriptUrl);
+    if (data.error || !data.leads) return;
+
+    const novosLeads   = data.leads;
+    const countAnterior = _crmLeads.length;
+    const countNovo     = novosLeads.length;
+
+    _crmLeads = novosLeads;
+    localStorage.setItem(CRM_KEY, JSON.stringify(_crmLeads));
+    _crmUltimaAtualizacao = new Date();
+
+    crmAtualizarStats();
+    crmRenderLista();
+    crmAtualizarRelogioRefresh();
+
+    // Notifica se chegou novo lead
+    if (countNovo > countAnterior) {
+      const qtd = countNovo - countAnterior;
+      crmNotificarNovoLead(qtd);
+    }
+  } catch {}
+}
+
+function crmAtualizarRelogioRefresh() {
+  const el = document.getElementById('crm-last-update');
+  if (!el || !_crmUltimaAtualizacao) return;
+  el.textContent = 'Atualizado ' + _crmUltimaAtualizacao.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+}
+
+function crmNotificarNovoLead(qtd) {
+  // Toast destacado
+  const t = document.getElementById('adminToast');
+  t.style.borderLeftColor = '#22C55E';
+  t.textContent = `🔔 ${qtd} novo(s) lead(s) chegou ao CRM!`;
+  t.classList.add('show');
+  setTimeout(() => { t.classList.remove('show'); t.style.borderLeftColor = ''; }, 7000);
+
+  // Pisca o badge da aba CRM
+  const badge = document.getElementById('crm-count-badge');
+  if (badge) {
+    badge.style.animation = 'crmPulse .5s ease-in-out 4';
+    setTimeout(() => badge.style.animation = '', 2500);
+  }
+
+  // Som suave (beep via AudioContext)
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
+    gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.4);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.4);
+  } catch {}
+}
+
 /* ── INIT ── */
 function initAdmin() {
   const savedUrl = localStorage.getItem('fab_sheet_url') || DEFAULT_SHEET_URL;
   localStorage.setItem('fab_sheet_url', savedUrl);
   document.getElementById('sheetUrl').value = savedUrl;
   fetchPreview();
+  crmCarregar();
+  crmAtualizarStats();
+  crmIniciarAutoRefresh();
 }
 
 document.addEventListener('DOMContentLoaded', () => {

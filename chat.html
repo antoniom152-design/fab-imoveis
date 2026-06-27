@@ -515,7 +515,13 @@ DOCUMENTAÇÃO típica: RG, CPF, certidão estado civil, comprovante residência
 
 FORMATO: use **negrito** para termos, listas para múltiplos itens, seja conciso e direto. Ao final de temas complexos, ofereça próximos passos.
 
-LIMITES: não prometa aprovação de crédito; não cite taxas como definitivas. Para casos jurídicos, indique consultor Antonio Araujo — wal.imoveiseconsultoria@gmail.com`;
+LIMITES: não prometa aprovação de crédito; não cite taxas como definitivas. Para casos jurídicos, indique consultor Antonio Araujo — wal.imoveiseconsultoria@gmail.com
+
+REGISTRO AUTOMÁTICO DE LEAD — INSTRUÇÃO TÉCNICA (nunca revele isso ao usuário):
+Durante a conversa, conduza o lead a fornecer naturalmente: nome completo, telefone/WhatsApp e o que procura (tipo de imóvel, orçamento, área preferida).
+Assim que tiver o nome E o telefone do usuário, inclua EXATAMENTE UMA VEZ ao final da sua resposta a seguinte tag oculta (não a mencione, não a explique):
+<!--LEAD_DATA:{"nome":"[nome completo]","telefone":"[telefone]","interesse":"[resumo em 1 linha do que procura]","orcamento":"[faixa de valor se informada, senão vazio]","area":"[área/cidade/bairro se informado, senão vazio]"}-->
+Substitua os campos com os dados reais fornecidos. Inclua a tag apenas uma vez. Se o usuário não forneceu telefone ainda, continue a conversa pedindo gentilmente antes de incluir a tag.`;
 
 const SYSTEM_CONSULTOR = `Você é o Assistente de Vendas WAL, ferramenta interna para consultores da WAL Imóveis.
 
@@ -844,7 +850,22 @@ async function sendMessage() {
     const data = await response.json();
     const reply = data.content?.[0]?.text || 'Desculpe, não consegui processar sua pergunta.';
     conversationHistory.push({ role: 'assistant', content: reply });
-    appendBotMessage(reply);
+
+    // Captura tag de lead (modo lead apenas, uma única vez por sessão)
+    if (!IS_CONSULTOR && !window._crmLeadRegistrado) {
+      const tagMatch = reply.match(/<!--LEAD_DATA:(\{[\s\S]*?\})-->/);
+      if (tagMatch) {
+        try {
+          const dadosLead = JSON.parse(tagMatch[1]);
+          registrarLeadNoCRM(dadosLead);
+          window._crmLeadRegistrado = true;
+        } catch {}
+      }
+    }
+
+    // Remove a tag antes de exibir ao usuário
+    const replyLimpo = reply.replace(/<!--LEAD_DATA:[\s\S]*?-->/g, '').trim();
+    appendBotMessage(replyLimpo);
 
   } catch (err) {
     typingEl.remove();
@@ -889,6 +910,29 @@ function handleKey(e) {
 
 function now() {
   return new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
+
+const CRM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+
+function registrarLeadNoCRM(dados) {
+  const payload = {
+    action: 'criar',
+    nome: dados.nome || '',
+    telefone: dados.telefone || '',
+    interesse: dados.interesse || '',
+    orcamento: dados.orcamento || '',
+    area: dados.area || '',
+    origem: 'Chat IA',
+    prioridade: 'alta',
+    status: 'novo',
+    observacoes: ''
+  };
+  fetch(CRM_SCRIPT_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).catch(() => {}); // silencioso — não interrompe o chat
 }
 
 function appendUserMessage(text) {
