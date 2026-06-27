@@ -821,7 +821,7 @@ async function sendMessage() {
     }
 
     // Chama o backend (chave nunca exposta no front)
-    const response = await fetch('/api/chat', {
+    const response = await fetch('/api/claude', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

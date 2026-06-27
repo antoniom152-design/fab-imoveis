@@ -4,8 +4,7 @@
   "outputDirectory": ".",
   "installCommand": null,
   "routes": [
-    { "src": "/api/chat", "dest": "/api/chat.js" },
-    { "src": "/chat.html", "dest": "/chat.html" },
-    { "src": "/(.*)",      "dest": "/$1" }
+    { "src": "/api/claude", "dest": "/api/claude.js" },
+    { "src": "/(.*)",       "dest": "/$1" }
   ]
 }
