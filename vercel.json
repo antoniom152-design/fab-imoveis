@@ -2,9 +2,5 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": ".",
-  "installCommand": null,
-  "routes": [
-    { "src": "/api/claude", "dest": "/api/claude.js" },
-    { "src": "/(.*)",       "dest": "/$1" }
-  ]
+  "installCommand": null
 }
