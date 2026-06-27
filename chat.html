@@ -917,20 +917,21 @@ const CRM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHN
 function registrarLeadNoCRM(dados) {
   const payload = {
     action: 'criar',
-    nome: dados.nome || '',
-    telefone: dados.telefone || '',
-    interesse: dados.interesse || '',
-    orcamento: dados.orcamento || '',
-    area: dados.area || '',
-    origem: 'Chat IA',
-    prioridade: 'alta',
-    status: 'novo',
-    observacoes: ''
+    lead: {
+      nome: dados.nome || '',
+      telefone: dados.telefone || '',
+      solicitacao: dados.interesse || '',
+      orcamento: dados.orcamento || '',
+      area: dados.area || '',
+      origem: 'Chat IA',
+      prioridade: 'alta',
+      status: 'novo'
+    }
   };
   fetch(CRM_SCRIPT_URL, {
     method: 'POST',
     mode: 'no-cors',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload)
   }).catch(() => {}); // silencioso — não interrompe o chat
 }
