@@ -2,5 +2,13 @@
   "framework": null,
   "buildCommand": null,
   "outputDirectory": ".",
-  "installCommand": null
+  "installCommand": null,
+  "functions": {
+    "api/chat.js": { "runtime": "nodejs20.x" }
+  },
+  "routes": [
+    { "src": "/api/chat", "dest": "/api/chat.js" },
+    { "src": "/chat.html", "dest": "/chat.html" },
+    { "src": "/(.*)",      "dest": "/$1" }
+  ]
 }
