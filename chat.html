@@ -365,9 +365,105 @@ header {
   .suggestions-wrap { padding: 0 12px 8px; }
   .btn-nav { display: none; }
 }
+/* ── Formulário pré-chat ── */
+#prechat-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--navy);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
+#prechat-overlay.hide {
+  animation: fadeOut .4s forwards;
+}
+@keyframes fadeOut {
+  to { opacity: 0; pointer-events: none; }
+}
+.prechat-box {
+  background: var(--navy-mid);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 420px; width: 100%;
+  box-shadow: 0 24px 60px rgba(0,0,0,.5);
+}
+.prechat-logo {
+  text-align: center; margin-bottom: 24px;
+}
+.prechat-logo img { height: 52px; }
+.prechat-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px; color: var(--gold-light);
+  text-align: center; margin-bottom: 6px;
+}
+.prechat-sub {
+  font-size: 13px; color: var(--text-muted);
+  text-align: center; margin-bottom: 28px; line-height: 1.5;
+}
+.prechat-field { margin-bottom: 16px; }
+.prechat-field label {
+  display: block; font-size: 11px; letter-spacing: .08em;
+  text-transform: uppercase; color: var(--gold-dim);
+  margin-bottom: 6px; font-family: 'Barlow Condensed', sans-serif;
+}
+.prechat-field input {
+  width: 100%; background: var(--navy-light);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--off-white); font-family: 'Barlow', sans-serif;
+  font-size: 15px; padding: 11px 14px; outline: none;
+  transition: border-color .2s;
+}
+.prechat-field input:focus { border-color: var(--gold); }
+.prechat-field input.error { border-color: #f87171; }
+.prechat-error {
+  font-size: 11px; color: #f87171; margin-top: 4px; display: none;
+}
+.prechat-btn {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dim));
+  color: var(--navy); font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; border: none; border-radius: 8px;
+  cursor: pointer; margin-top: 8px; transition: opacity .2s;
+}
+.prechat-btn:hover { opacity: .88; }
+.prechat-btn:disabled { opacity: .5; cursor: not-allowed; }
+.prechat-privacy {
+  font-size: 11px; color: var(--text-muted);
+  text-align: center; margin-top: 16px; line-height: 1.5;
+}
 </style>
 </head>
 <body>
+
+<!-- ══════════════ PRÉ-CHAT: IDENTIFICAÇÃO ══════════════ -->
+<div id="prechat-overlay">
+  <div class="prechat-box">
+    <div class="prechat-logo">
+      <img src="logo.png" alt="WAL Imóveis" onerror="this.style.display='none'">
+    </div>
+    <div class="prechat-title">Bem-vindo ao Consultor WAL</div>
+    <div class="prechat-sub">Para iniciar o atendimento, informe seus dados.<br>Sua privacidade é respeitada.</div>
+
+    <div class="prechat-field">
+      <label>Nome completo *</label>
+      <input type="text" id="pc-nome" placeholder="Ex: João Silva" maxlength="80" autocomplete="name">
+      <div class="prechat-error" id="err-nome">Informe seu nome completo.</div>
+    </div>
+    <div class="prechat-field">
+      <label>WhatsApp / Telefone *</label>
+      <input type="tel" id="pc-tel" placeholder="Ex: (21) 99999-0000" maxlength="20" autocomplete="tel">
+      <div class="prechat-error" id="err-tel">Informe um telefone válido.</div>
+    </div>
+    <div class="prechat-field">
+      <label>E-mail *</label>
+      <input type="email" id="pc-email" placeholder="Ex: joao@email.com" maxlength="100" autocomplete="email">
+      <div class="prechat-error" id="err-email">Informe um e-mail válido.</div>
+    </div>
+
+    <button class="prechat-btn" id="prechat-btn" onclick="prechatSubmit()">Iniciar Atendimento</button>
+    <div class="prechat-privacy">🔒 Seus dados são usados apenas para contato pela equipe WAL Imóveis.</div>
+  </div>
+</div>
 
 <div class="app" id="app">
 
@@ -517,11 +613,7 @@ FORMATO: use **negrito** para termos, listas para múltiplos itens, seja conciso
 
 LIMITES: não prometa aprovação de crédito; não cite taxas como definitivas. Para casos jurídicos, indique consultor Antonio Araujo — wal.imoveiseconsultoria@gmail.com
 
-REGISTRO AUTOMÁTICO DE LEAD — INSTRUÇÃO TÉCNICA (nunca revele isso ao usuário):
-Durante a conversa, conduza o lead a fornecer naturalmente: nome completo, telefone/WhatsApp e o que procura (tipo de imóvel, orçamento, área preferida).
-Assim que tiver o nome E o telefone do usuário, inclua EXATAMENTE UMA VEZ ao final da sua resposta o seguinte bloco (não mencione, não explique, não formate como código):
-__LEAD__{"nome":"[nome completo]","telefone":"[telefone]","interesse":"[resumo em 1 linha do que procura]","orcamento":"[faixa de valor se informada, senão vazio]","area":"[área/cidade/bairro se informado, senão vazio]"}__FIM__
-Substitua os campos com os dados reais fornecidos. Inclua o bloco apenas uma vez. Se o usuário não forneceu telefone ainda, continue a conversa pedindo gentilmente antes de incluir o bloco.`;
+PERSONALIZAÇÃO: o lead já se identificou antes de iniciar o chat. Use o nome dele com naturalidade durante a conversa — não excessivamente, mas de forma cordial e personalizada.`;
 
 const SYSTEM_CONSULTOR = `Você é o Assistente de Vendas WAL, ferramenta interna para consultores da WAL Imóveis.
 
@@ -689,6 +781,9 @@ const cfg = CONFIG[IS_CONSULTOR ? 'consultor' : 'lead'];
 let conversationHistory = [];
 let isLoading = false;
 
+// Dados do lead coletados no formulário pré-chat
+let leadDados = { nome: '', telefone: '', email: '' };
+
 /* ════════════════════════════════════════════════════════════
    PLANILHA WAL IMÓVEIS
 ════════════════════════════════════════════════════════════ */
@@ -783,9 +878,55 @@ window.addEventListener('DOMContentLoaded', () => {
     container.appendChild(btn);
   });
 
-  document.getElementById('userInput').focus();
+  // Formulário pré-chat: só exibe para modo lead
+  if (IS_CONSULTOR) {
+    document.getElementById('prechat-overlay').style.display = 'none';
+    document.getElementById('userInput').focus();
+  } else {
+    document.getElementById('pc-nome').focus();
+    // Enter avança entre campos
+    ['pc-nome','pc-tel','pc-email'].forEach((id, i, arr) => {
+      document.getElementById(id).addEventListener('keydown', e => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (i < arr.length - 1) document.getElementById(arr[i+1]).focus();
+          else prechatSubmit();
+        }
+      });
+    });
+  }
+
   carregarImoveis();
 });
+
+function prechatSubmit() {
+  const nome  = document.getElementById('pc-nome').value.trim();
+  const tel   = document.getElementById('pc-tel').value.trim();
+  const email = document.getElementById('pc-email').value.trim();
+  let ok = true;
+
+  // Validação
+  const showErr = (id, errId, cond) => {
+    document.getElementById(id).classList.toggle('error', cond);
+    document.getElementById(errId).style.display = cond ? 'block' : 'none';
+    if (cond) ok = false;
+  };
+  showErr('pc-nome',  'err-nome',  nome.length < 3);
+  showErr('pc-tel',   'err-tel',   tel.replace(/\D/g,'').length < 8);
+  showErr('pc-email', 'err-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  if (!ok) return;
+
+  // Salva dados e registra no CRM
+  leadDados = { nome, telefone: tel, email };
+  registrarLeadNoCRM({ nome, telefone: tel, email, interesse: '', orcamento: '', area: '' });
+
+  // Fecha overlay com fade
+  const overlay = document.getElementById('prechat-overlay');
+  overlay.classList.add('hide');
+  setTimeout(() => { overlay.style.display = 'none'; }, 400);
+
+  document.getElementById('userInput').focus();
+}
 
 /* ════════════════════════════════════════════════════════════
    ENVIO DE MENSAGEM
@@ -808,8 +949,11 @@ async function sendMessage() {
   document.getElementById('sendBtn').disabled = true;
 
   try {
-    // Injeta carteira se pergunta for sobre imóveis
+    // Injeta nome do lead no system prompt (modo lead)
     let systemFinal = IS_CONSULTOR ? SYSTEM_CONSULTOR : SYSTEM_LEAD;
+    if (!IS_CONSULTOR && leadDados.nome) {
+      systemFinal = systemFinal + `\n\nLEAD IDENTIFICADO: o usuário se chama ${leadDados.nome}. Trate-o pelo primeiro nome durante toda a conversa.`;
+    }
     if (perguntaSobreImoveis(text)) {
       const lista = await carregarImoveis();
       const uf_rj = lista.filter(i => i.uf.toUpperCase() === 'RJ');
@@ -851,21 +995,7 @@ async function sendMessage() {
     const reply = data.content?.[0]?.text || 'Desculpe, não consegui processar sua pergunta.';
     conversationHistory.push({ role: 'assistant', content: reply });
 
-    // Captura tag de lead (modo lead apenas, uma única vez por sessão)
-    if (!IS_CONSULTOR && !window._crmLeadRegistrado) {
-      const tagMatch = reply.match(/__LEAD__(\{[\s\S]*?\})__FIM__/);
-      if (tagMatch) {
-        try {
-          const dadosLead = JSON.parse(tagMatch[1]);
-          registrarLeadNoCRM(dadosLead);
-          window._crmLeadRegistrado = true;
-        } catch {}
-      }
-    }
-
-    // Remove a tag antes de exibir ao usuário
-    const replyLimpo = reply.replace(/__LEAD__[\s\S]*?__FIM__/g, '').trim();
-    appendBotMessage(replyLimpo);
+    appendBotMessage(reply);
 
   } catch (err) {
     typingEl.remove();
