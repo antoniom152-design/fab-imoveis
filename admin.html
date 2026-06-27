@@ -1938,7 +1938,9 @@ function jsonOut(obj) {
       <select class="crm-sel" id="crm-fil-origem" onchange="crmRenderLista()">
         <option value="">Todas as origens</option>
         <option>Site</option><option>WhatsApp</option><option>Instagram</option>
-        <option>Indicação</option><option>Ligação</option><option>Outro</option>
+        <option>Indicação</option><option>Ligação</option><option>Facebook</option>
+        <option>Meta</option><option>Google</option><option>Campanha Marketing</option>
+        <option>Chat IA</option><option>Outro</option>
       </select>
       <select class="crm-sel" id="crm-fil-prio" onchange="crmRenderLista()">
         <option value="">Todas as prioridades</option>
@@ -1952,8 +1954,14 @@ function jsonOut(obj) {
         <option value="nome">Nome A→Z</option>
       </select>
     </div>
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <span id="crm-last-update" style="font-size:13px;color:var(--gold-light);font-family:'Barlow Condensed',sans-serif;letter-spacing:.12em;font-weight:600;white-space:nowrap"></span>
+      <input type="date" id="crm-fil-dt-ini" title="Data inicial (Criado em)" onchange="crmRenderLista()"
+        style="height:36px;padding:0 8px;background:var(--navy-light);border:1px solid var(--border);border-radius:6px;color:var(--off-white);font-size:12px;font-family:'Barlow',sans-serif;cursor:pointer">
+      <span style="color:var(--text-muted);font-size:12px">até</span>
+      <input type="date" id="crm-fil-dt-fim" title="Data final (Criado em)" onchange="crmRenderLista()"
+        style="height:36px;padding:0 8px;background:var(--navy-light);border:1px solid var(--border);border-radius:6px;color:var(--off-white);font-size:12px;font-family:'Barlow',sans-serif;cursor:pointer">
+      <button class="btn-header btn-outline" onclick="crmLimparDatas()" title="Limpar período" style="height:36px;padding:0 10px;font-size:13px;line-height:1">✕</button>
       <button class="btn-header btn-outline" onclick="crmExportar()" style="height:36px;padding:0 14px;font-size:11px">
         🖨 Exportar
       </button>
@@ -3494,12 +3502,16 @@ function crmRenderLista() {
   const origem  = document.getElementById('crm-fil-origem')?.value || '';
   const prio    = document.getElementById('crm-fil-prio')?.value || '';
   const ord     = document.getElementById('crm-fil-ord')?.value || 'recent';
+  const dtIni   = document.getElementById('crm-fil-dt-ini')?.value || '';
+  const dtFim   = document.getElementById('crm-fil-dt-fim')?.value || '';
 
   let lista = [..._crmLeads];
 
   if (_crmFiltroStatus) lista = lista.filter(l => l.status === _crmFiltroStatus);
   if (origem) lista = lista.filter(l => l.origem === origem);
   if (prio)   lista = lista.filter(l => l.prioridade === prio);
+  if (dtIni)  lista = lista.filter(l => (l.criado_em || '').slice(0,10) >= dtIni);
+  if (dtFim)  lista = lista.filter(l => (l.criado_em || '').slice(0,10) <= dtFim);
   if (busca)  lista = lista.filter(l =>
     (l.nome||'').toLowerCase().includes(busca) ||
     (l.telefone||'').toLowerCase().includes(busca) ||
@@ -3811,6 +3823,12 @@ async function crmExcluirLead() {
   crmAtualizarStats();
   crmRenderLista();
   mostrarToast(`🗑 Lead "${lead.nome}" removido.`);
+}
+
+function crmLimparDatas() {
+  document.getElementById('crm-fil-dt-ini').value = '';
+  document.getElementById('crm-fil-dt-fim').value = '';
+  crmRenderLista();
 }
 
 function crmExportar() {
