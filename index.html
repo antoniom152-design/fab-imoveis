@@ -1923,7 +1923,7 @@
   function registrarNoCRM(lead, notaHistorico) {
     const interacao = {
       tipo: lead.origem,
-      data: new Date().toISOString(),
+      data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
       nota: notaHistorico
     };
     fetch(CRM_URL, {

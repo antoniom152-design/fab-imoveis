@@ -3384,6 +3384,8 @@ async function consultarVisitas(modo) {
 }
 
 /* ══════════════ CRM ══════════════ */
+const agoraBR = () => new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T');
+
 const CRM_KEY        = 'wal_crm_leads';
 const CRM_SCRIPT_KEY = 'crm_script_url';
 const CRM_SCRIPT_URL_DEFAULT = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
@@ -3652,7 +3654,7 @@ async function crmMudarStatus(id, novoStatus) {
   if (!lead || lead.status === novoStatus) return;
   const statusAnterior = lead.status;
   lead.status = novoStatus;
-  lead.atualizado_em = new Date().toISOString();
+  lead.atualizado_em = agoraBR();
   crmSalvarStorage();
   crmAtualizarStats();
   crmRenderLista();
@@ -3810,7 +3812,7 @@ async function crmSalvarLead() {
   const btn = document.querySelector('#crm-modal .btn-cad-save');
   if (btn) { btn.textContent = '⏳ Salvando…'; btn.disabled = true; }
 
-  const agora = new Date().toISOString();
+  const agora = agoraBR();
   const leadData = {
     nome,
     telefone:    document.getElementById('crm-telefone').value.trim(),
