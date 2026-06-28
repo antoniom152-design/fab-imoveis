@@ -1984,6 +1984,7 @@ function jsonOut(obj) {
       <table class="crm-lead-table">
         <thead>
           <tr>
+            <th>Prioridade</th>
             <th>Nome / Contato</th>
             <th>Criado em</th>
             <th>Origem</th>
@@ -1996,7 +1997,7 @@ function jsonOut(obj) {
           </tr>
         </thead>
         <tbody id="crm-tbody">
-          <tr><td colspan="9"><div class="empty-table">Nenhum lead cadastrado. Clique em <strong>+ Novo Lead</strong> para começar.</div></td></tr>
+          <tr><td colspan="10"><div class="empty-table">Nenhum lead cadastrado. Clique em <strong>+ Novo Lead</strong> para começar.</div></td></tr>
         </tbody>
       </table>
     </div>
@@ -3593,10 +3594,9 @@ function crmRenderLista() {
     const criadoHtml = l.criado_em ? fmtDataHora(l.criado_em) : '—';
 
     return `<tr onclick="crmAbrirLead('${l.id}')">
+      <td>${prioHtml}</td>
       <td>
-        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-          <span class="crm-nome">${esc(l.nome)}</span>${prioHtml}
-        </div>
+        <div class="crm-nome">${esc(l.nome)}</div>
         <div style="margin-top:3px">${contatoHtml}</div>
       </td>
       <td style="font-size:11px;white-space:nowrap">${criadoHtml}</td>
