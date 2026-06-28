@@ -1267,7 +1267,7 @@
         <div class="section-tag">Portfólio exclusivo</div>
         <h2 class="section-title">Empreendimentos <em>selecionados</em></h2>
       </div>
-      <a href="imoveis.html" class="props-link">Ver todos →</a>
+      <a href="#" class="props-link" onclick="abrirModalVerTodos();return false;">Ver todos →</a>
     </div>
     <!-- Rio de Janeiro -->
     <div class="props-estado reveal">📍 Rio de Janeiro — RJ</div>
@@ -1758,6 +1758,52 @@
   </div>
 </section>
 
+<!-- MODAL VER TODOS -->
+<div id="verTodosOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.92);
+     z-index:9500;align-items:center;justify-content:center">
+  <div style="background:var(--navy-mid);border:1px solid var(--border);border-radius:14px;
+              padding:36px 32px;max-width:420px;width:90%;position:relative">
+    <button onclick="fecharModalVerTodos()" style="position:absolute;top:14px;right:16px;background:none;border:none;
+            color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1">✕</button>
+    <div style="font-family:'Playfair Display',serif;font-size:19px;color:var(--gold-light);margin-bottom:6px">
+      Ver Imóveis Disponíveis
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.5">
+      Informe seus dados para acessar a carteira completa de imóveis WAL.
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:5px;font-family:'Barlow Condensed',sans-serif">Nome completo *</label>
+      <input type="text" id="vt-nome" placeholder="Ex: João Silva" maxlength="80"
+        style="width:100%;background:var(--navy-light);border:1px solid var(--border);border-radius:8px;
+               color:var(--off-white);font-family:'Barlow',sans-serif;font-size:14px;padding:10px 13px;outline:none">
+      <div id="vt-err-nome" style="display:none;font-size:11px;color:#f87171;margin-top:3px">Informe seu nome.</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:5px;font-family:'Barlow Condensed',sans-serif">WhatsApp / Telefone *</label>
+      <input type="tel" id="vt-tel" placeholder="Ex: (21) 99999-0000" maxlength="20"
+        style="width:100%;background:var(--navy-light);border:1px solid var(--border);border-radius:8px;
+               color:var(--off-white);font-family:'Barlow',sans-serif;font-size:14px;padding:10px 13px;outline:none">
+      <div id="vt-err-tel" style="display:none;font-size:11px;color:#f87171;margin-top:3px">Informe um telefone válido.</div>
+    </div>
+    <div style="margin-bottom:20px">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:5px;font-family:'Barlow Condensed',sans-serif">E-mail *</label>
+      <input type="email" id="vt-email" placeholder="Ex: joao@email.com" maxlength="100"
+        style="width:100%;background:var(--navy-light);border:1px solid var(--border);border-radius:8px;
+               color:var(--off-white);font-family:'Barlow',sans-serif;font-size:14px;padding:10px 13px;outline:none">
+      <div id="vt-err-email" style="display:none;font-size:11px;color:#f87171;margin-top:3px">Informe um e-mail válido.</div>
+    </div>
+    <button id="vt-btn" onclick="confirmarVerTodos()"
+      style="width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold-dim));
+             color:var(--navy);font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;
+             letter-spacing:.1em;text-transform:uppercase;border:none;border-radius:8px;cursor:pointer">
+      Ver Imóveis →
+    </button>
+    <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:14px;line-height:1.5">
+      🔒 Seus dados são usados apenas para contato pela equipe WAL Imóveis.
+    </div>
+  </div>
+</div>
+
 <!-- MODAL E-BOOK -->
 <div id="ebookOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.9);
      z-index:9500;align-items:center;justify-content:center">
@@ -1870,6 +1916,26 @@
   // ─── GOOGLE SHEETS INTEGRATION ───
   // PASSO 1: Substitua a URL abaixo pela URL do seu Google Apps Script (veja instruções no README)
   const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxaYe-YjMZWc8z7VM_cS1FkPwQwQOU26xpnjgxZQfj4mrAO2KURuHOeH84WwX0HelXHpg/exec';
+
+  // ─── CRM WAL ───
+  const CRM_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+
+  function registrarNoCRM(lead, notaHistorico) {
+    const interacao = {
+      tipo: lead.origem,
+      data: new Date().toISOString(),
+      nota: notaHistorico
+    };
+    fetch(CRM_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'criarOuAtualizar',
+        lead: Object.assign({ prioridade: 'alta', status: 'novo' }, lead),
+        interacao
+      })
+    }).catch(() => {});
+  }
 
   // ─── CONTADOR DE VISITAS ───
   fetch(GOOGLE_SCRIPT_URL, {
@@ -2125,17 +2191,12 @@
       );
 
       if (result.exists) {
-        // Telefone já cadastrado: incrementa contador e abre simulador
-        try {
-          await fetch(GOOGLE_SCRIPT_URL, {
-            method: 'POST', mode: 'no-cors',
-            headers: { 'Content-Type': 'text/plain' },
-            body: JSON.stringify({
-              tipo: 'simulacao', atualizar: true, telefone: fone,
-              timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
-            })
-          });
-        } catch(e) {}
+        // Telefone já cadastrado: registra interação no CRM e abre simulador
+        registrarNoCRM(
+          { telefone: fone, origem: 'Simulador' },
+          'Retornou ao Simulador de Financiamento'
+        );
+        sessionStorage.setItem('sim_identificado', '1');
         fecharModalSimulador();
         window.location.href = 'simulador.html';
       } else {
@@ -2165,21 +2226,12 @@
     const btn = document.getElementById('simBtnSimular');
     btn.textContent = 'Aguarde...'; btn.disabled = true;
 
-    const payload = JSON.stringify({
-      tipo: 'simulacao', atualizar: false,
-      telefone: fone, nome, email,
-      timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})
-    });
-
-    // Aguarda o envio completar antes de navegar (evita cancelamento pelo browser)
-    try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: 'POST', mode: 'no-cors',
-        headers: { 'Content-Type': 'text/plain' },
-        body: payload
-      });
-    } catch(e) {}
-
+    // Registra no CRM (novo lead ou interação se já existir)
+    registrarNoCRM(
+      { nome, telefone: fone, email, origem: 'Simulador' },
+      'Acessou o Simulador de Financiamento'
+    );
+    sessionStorage.setItem('sim_identificado', '1');
     fecharModalSimulador();
     window.location.href = 'simulador.html';
   }
@@ -2374,6 +2426,49 @@ function gvizJsonpIndex(sheetId, sheet) {
   const EBOOK_URL = 'https://drive.google.com/uc?export=download&id=1XQOjlvkhe2vyELjf1VUz8m8LjogaYXbn';
   let _ebookFone = '';
 
+  function abrirModalVerTodos() {
+    const o = document.getElementById('verTodosOverlay');
+    o.style.display = 'flex';
+    document.getElementById('vt-nome').value  = '';
+    document.getElementById('vt-tel').value   = '';
+    document.getElementById('vt-email').value = '';
+    ['vt-err-nome','vt-err-tel','vt-err-email'].forEach(id => document.getElementById(id).style.display = 'none');
+    setTimeout(() => document.getElementById('vt-nome').focus(), 50);
+    // Enter avança entre campos
+    [['vt-nome','vt-tel'],['vt-tel','vt-email'],['vt-email',null]].forEach(([cur, nxt]) => {
+      document.getElementById(cur).onkeydown = e => {
+        if (e.key === 'Enter') { e.preventDefault(); nxt ? document.getElementById(nxt).focus() : confirmarVerTodos(); }
+      };
+    });
+  }
+
+  function fecharModalVerTodos() {
+    document.getElementById('verTodosOverlay').style.display = 'none';
+  }
+
+  function confirmarVerTodos() {
+    const nome  = document.getElementById('vt-nome').value.trim();
+    const tel   = document.getElementById('vt-tel').value.trim();
+    const email = document.getElementById('vt-email').value.trim();
+    let ok = true;
+    const err = (id, cond) => { document.getElementById(id).style.display = cond ? 'block' : 'none'; if (cond) ok = false; };
+    err('vt-err-nome',  nome.length < 3);
+    err('vt-err-tel',   tel.replace(/\D/g,'').length < 8);
+    err('vt-err-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+    if (!ok) return;
+
+    const btn = document.getElementById('vt-btn');
+    btn.textContent = 'Aguarde…'; btn.disabled = true;
+
+    registrarNoCRM(
+      { nome, telefone: tel, email, origem: 'Ver Todos' },
+      'Acessou a listagem completa de imóveis'
+    );
+
+    fecharModalVerTodos();
+    window.location.href = 'imoveis.html';
+  }
+
   function abrirModalEbook() {
     const o = document.getElementById('ebookOverlay');
     o.style.display = 'flex';
@@ -2398,13 +2493,10 @@ function gvizJsonpIndex(sheetId, sheet) {
     jsonpRequest(GOOGLE_SCRIPT_URL + '?action=checkEbook&fone=' + encodeURIComponent(fone))
       .then(res => {
         if (res && res.exists) {
-          fetch(GOOGLE_SCRIPT_URL, {
-            method:'POST', mode:'no-cors',
-            headers:{'Content-Type':'application/json'},
-            body: JSON.stringify({ tipo:'ebook', atualizar:true, telefone:fone,
-              timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}),
-              pagina:'index' })
-          });
+          registrarNoCRM(
+            { telefone: fone, origem: 'E-book' },
+            'Baixou o E-book novamente'
+          );
           fecharModalEbook();
           window.open(EBOOK_URL, '_blank');
         } else {
@@ -2422,16 +2514,10 @@ function gvizJsonpIndex(sheetId, sheet) {
     const nome  = document.getElementById('ebook-nome').value.trim();
     const email = document.getElementById('ebook-email').value.trim();
     if (!nome) return;
-    fetch(GOOGLE_SCRIPT_URL, {
-      method:'POST', mode:'no-cors',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({
-        tipo:'ebook', atualizar:false, telefone:_ebookFone,
-        nome, email,
-        timestamp: new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}),
-        pagina:'index'
-      })
-    });
+    registrarNoCRM(
+      { nome, telefone: _ebookFone, email, origem: 'E-book' },
+      'Baixou o E-book gratuitamente'
+    );
     fecharModalEbook();
     window.open(EBOOK_URL, '_blank');
   }

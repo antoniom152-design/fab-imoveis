@@ -1807,10 +1807,11 @@ function doPost(e) {
     var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('LEADS');
     if (!sheet) return jsonOut({error:'Aba não encontrada'});
 
-    if (p.action === 'criar')        return jsonOut(criarLead(sheet, p.lead));
-    if (p.action === 'atualizar')    return jsonOut(atualizarLead(sheet, p.lead));
-    if (p.action === 'excluir')      return jsonOut(excluirLead(sheet, p.id));
-    if (p.action === 'addInteracao') return jsonOut(addInteracao(sheet, p.id, p.interacao));
+    if (p.action === 'criar')            return jsonOut(criarLead(sheet, p.lead));
+    if (p.action === 'atualizar')        return jsonOut(atualizarLead(sheet, p.lead));
+    if (p.action === 'excluir')          return jsonOut(excluirLead(sheet, p.id));
+    if (p.action === 'addInteracao')     return jsonOut(addInteracao(sheet, p.id, p.interacao));
+    if (p.action === 'criarOuAtualizar') return jsonOut(criarOuAtualizarLead(sheet, p.lead, p.interacao));
     return jsonOut({error:'Ação desconhecida'});
   } catch(err) { return jsonOut({error:err.message}); }
 }
@@ -1869,6 +1870,25 @@ function excluirLead(sheet, id) {
     }
   }
   return {error:'Lead não encontrado'};
+}
+
+function criarOuAtualizarLead(sheet, lead, interacao) {
+  var telBusca   = String(lead.telefone || '').replace(/\D/g, '');
+  var emailBusca = String(lead.email    || '').toLowerCase().trim();
+  var vals = sheet.getDataRange().getValues();
+  for (var i = 1; i < vals.length; i++) {
+    var rowTel   = String(vals[i][4] || '').replace(/\D/g, '');
+    var rowEmail = String(vals[i][5] || '').toLowerCase().trim();
+    if ((telBusca && rowTel === telBusca) || (emailBusca && rowEmail === emailBusca)) {
+      var hist = [];
+      try { hist = JSON.parse(String(vals[i][16]||'[]')); } catch(x){}
+      if (interacao) hist.push(interacao);
+      sheet.getRange(i+1, 16).setValue(new Date().toISOString());
+      sheet.getRange(i+1, 17).setValue(JSON.stringify(hist));
+      return {ok:true, acao:'interacao', id:String(vals[i][0])};
+    }
+  }
+  return criarLead(sheet, lead);
 }
 
 function addInteracao(sheet, id, interacao) {

@@ -310,6 +310,53 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 </head>
 <body>
 
+<!-- ══════════════ PRÉ-FORMULÁRIO: IDENTIFICAÇÃO ══════════════ -->
+<div id="sim-prechat" style="display:none;position:fixed;inset:0;z-index:9999;
+     background:#0A1628;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#112240;border:1px solid rgba(201,168,76,.2);border-radius:16px;
+              padding:36px 32px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.5)">
+    <div style="text-align:center;margin-bottom:20px">
+      <img src="logo.png" alt="WAL" style="height:48px" onerror="this.style.display='none'">
+    </div>
+    <div style="font-family:'DM Serif Display',serif;font-size:20px;color:#E8C97A;text-align:center;margin-bottom:6px">
+      Simulador de Financiamento
+    </div>
+    <div style="font-size:13px;color:#8A96A8;text-align:center;margin-bottom:26px;line-height:1.5">
+      Informe seus dados para acessar o simulador gratuito.
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8A6E30;margin-bottom:5px">Nome completo *</label>
+      <input type="text" id="simp-nome" placeholder="Ex: João Silva" maxlength="80"
+        style="width:100%;background:#1C3461;border:1px solid rgba(201,168,76,.2);border-radius:8px;
+               color:#F5F2EC;font-size:14px;padding:10px 13px;outline:none;font-family:'DM Sans',sans-serif">
+      <div id="simp-err-nome" style="display:none;font-size:11px;color:#f87171;margin-top:3px">Informe seu nome.</div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8A6E30;margin-bottom:5px">WhatsApp / Telefone *</label>
+      <input type="tel" id="simp-tel" placeholder="Ex: (21) 99999-0000" maxlength="20"
+        style="width:100%;background:#1C3461;border:1px solid rgba(201,168,76,.2);border-radius:8px;
+               color:#F5F2EC;font-size:14px;padding:10px 13px;outline:none;font-family:'DM Sans',sans-serif">
+      <div id="simp-err-tel" style="display:none;font-size:11px;color:#f87171;margin-top:3px">Informe um telefone válido.</div>
+    </div>
+    <div style="margin-bottom:22px">
+      <label style="display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8A6E30;margin-bottom:5px">E-mail *</label>
+      <input type="email" id="simp-email" placeholder="Ex: joao@email.com" maxlength="100"
+        style="width:100%;background:#1C3461;border:1px solid rgba(201,168,76,.2);border-radius:8px;
+               color:#F5F2EC;font-size:14px;padding:10px 13px;outline:none;font-family:'DM Sans',sans-serif">
+      <div id="simp-err-email" style="display:none;font-size:11px;color:#f87171;margin-top:3px">Informe um e-mail válido.</div>
+    </div>
+    <button onclick="simpConfirmar()"
+      style="width:100%;padding:13px;background:linear-gradient(135deg,#C9A84C,#8A6E30);
+             color:#0A1628;font-size:15px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+             border:none;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif">
+      Acessar Simulador →
+    </button>
+    <div style="font-size:11px;color:#8A96A8;text-align:center;margin-top:14px;line-height:1.5">
+      🔒 Seus dados são usados apenas para contato pela equipe WAL Imóveis.
+    </div>
+  </div>
+</div>
+
 <!-- ═══ CABEÇALHO EXCLUSIVO PARA IMPRESSÃO / PDF ═══ -->
 <div class="print-header" id="printHeader">
   <div style="display:flex;align-items:flex-start;justify-content:space-between;
@@ -559,6 +606,60 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 </div>
 
 <script>
+// ── PRÉ-FORMULÁRIO ──
+const CRM_URL_SIM = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+
+function registrarNoCRMSim(lead, nota) {
+  fetch(CRM_URL_SIM, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'criarOuAtualizar',
+      lead: Object.assign({ prioridade: 'alta', status: 'novo' }, lead),
+      interacao: { tipo: lead.origem, data: new Date().toISOString(), nota }
+    })
+  }).catch(() => {});
+}
+
+function simpMostrarFormulario() {
+  const o = document.getElementById('sim-prechat');
+  o.style.display = 'flex';
+  document.getElementById('simp-nome').focus();
+  [['simp-nome','simp-tel'],['simp-tel','simp-email'],['simp-email',null]].forEach(([cur, nxt]) => {
+    document.getElementById(cur).onkeydown = e => {
+      if (e.key === 'Enter') { e.preventDefault(); nxt ? document.getElementById(nxt).focus() : simpConfirmar(); }
+    };
+  });
+}
+
+function simpConfirmar() {
+  const nome  = document.getElementById('simp-nome').value.trim();
+  const tel   = document.getElementById('simp-tel').value.trim();
+  const email = document.getElementById('simp-email').value.trim();
+  let ok = true;
+  const err = (id, cond) => { document.getElementById(id).style.display = cond ? 'block' : 'none'; if (cond) ok = false; };
+  err('simp-err-nome',  nome.length < 3);
+  err('simp-err-tel',   tel.replace(/\D/g,'').length < 8);
+  err('simp-err-email', !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email));
+  if (!ok) return;
+
+  registrarNoCRMSim(
+    { nome, telefone: tel, email, origem: 'Simulador' },
+    'Acessou o Simulador de Financiamento'
+  );
+
+  document.getElementById('sim-prechat').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Só exibe o formulário se vier direto (não via index.html que já coletou os dados)
+  const jaIdentificado = sessionStorage.getItem('sim_identificado');
+  if (!jaIdentificado) {
+    simpMostrarFormulario();
+  }
+  sessionStorage.setItem('sim_identificado', '1');
+});
+
 // ---- Utilidades ----
 const fmt = n => n.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
 const parseBR = s => parseFloat((s||'0').toString().replace(/\./g,'').replace(',','.'))||0;
