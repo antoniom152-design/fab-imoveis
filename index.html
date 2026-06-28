@@ -2191,7 +2191,15 @@
       );
 
       if (result.exists) {
-        // Telefone já cadastrado: registra interação no CRM e abre simulador
+        // Telefone já cadastrado: grava na planilha SIMULACOES e no CRM
+        fetch(GOOGLE_SCRIPT_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            tipo: 'simulacao', atualizar: true, telefone: fone,
+            timestamp: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+          })
+        }).catch(() => {});
         registrarNoCRM(
           { telefone: fone, origem: 'Simulador' },
           'Retornou ao Simulador de Financiamento'
@@ -2226,7 +2234,18 @@
     const btn = document.getElementById('simBtnSimular');
     btn.textContent = 'Aguarde...'; btn.disabled = true;
 
-    // Registra no CRM (novo lead ou interação se já existir)
+    // Grava na planilha SIMULACOES (comportamento original) e no CRM
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          tipo: 'simulacao', atualizar: false,
+          telefone: fone, nome, email,
+          timestamp: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+        })
+      });
+    } catch(e) {}
     registrarNoCRM(
       { nome, telefone: fone, email, origem: 'Simulador' },
       'Acessou o Simulador de Financiamento'
