@@ -3940,11 +3940,10 @@ function crmPararAutoRefresh() {
 }
 
 async function crmAutoRefreshTick() {
-  // Só atualiza se: aba CRM ativa + modal fechado + sem foco na busca
-  const crmAtivo  = document.getElementById('panel-crm')?.classList.contains('active');
+  // Nunca atualiza se modal aberto ou foco na busca (evita interromper o consultor)
   const modalOpen = document.getElementById('crm-modal')?.classList.contains('show');
   const buscaFoco = document.activeElement === document.getElementById('crm-busca');
-  if (!crmAtivo || modalOpen || buscaFoco) return;
+  if (modalOpen || buscaFoco) return;
 
   const scriptUrl = crmGetScriptUrl();
   if (!scriptUrl) return;
@@ -3953,7 +3952,7 @@ async function crmAutoRefreshTick() {
     const data = await crmJsonp(scriptUrl);
     if (data.error || !data.leads) return;
 
-    const novosLeads   = data.leads;
+    const novosLeads    = data.leads;
     const countAnterior = _crmLeads.length;
     const countNovo     = novosLeads.length;
 
@@ -3961,11 +3960,15 @@ async function crmAutoRefreshTick() {
     localStorage.setItem(CRM_KEY, JSON.stringify(_crmLeads));
     _crmUltimaAtualizacao = new Date();
 
-    crmAtualizarStats();
-    crmRenderLista();
-    crmAtualizarRelogioRefresh();
+    // Só re-renderiza a tela se a aba CRM estiver visível
+    const crmAtivo = document.getElementById('panel-crm')?.classList.contains('active');
+    if (crmAtivo) {
+      crmAtualizarStats();
+      crmRenderLista();
+      crmAtualizarRelogioRefresh();
+    }
 
-    // Notifica se chegou novo lead
+    // Notifica novo lead independentemente de qual aba está ativa
     if (countNovo > countAnterior) {
       const qtd = countNovo - countAnterior;
       crmNotificarNovoLead(qtd);
