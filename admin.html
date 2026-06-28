@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -1984,8 +1984,8 @@ function jsonOut(obj) {
       <table class="crm-lead-table">
         <thead>
           <tr>
-            <th>Prioridade</th>
             <th>Nome / Contato</th>
+            <th>Criado em</th>
             <th>Origem</th>
             <th>Status</th>
             <th>Solicitação</th>
@@ -3590,12 +3590,16 @@ function crmRenderLista() {
       l.email ? `<span style="font-size:11px;color:var(--text-muted)">${esc(String(l.email))}</span>` : ''
     ].filter(Boolean).join('<br>');
 
+    const criadoHtml = l.criado_em ? fmtDataHora(l.criado_em) : '—';
+
     return `<tr onclick="crmAbrirLead('${l.id}')">
-      <td>${prioHtml}</td>
       <td>
-        <div class="crm-nome">${esc(l.nome)}</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          <span class="crm-nome">${esc(l.nome)}</span>${prioHtml}
+        </div>
         <div style="margin-top:3px">${contatoHtml}</div>
       </td>
+      <td style="font-size:11px;white-space:nowrap">${criadoHtml}</td>
       <td style="font-size:11px">${esc(l.origem)||'—'}</td>
       <td>${statusHtml}</td>
       <td style="max-width:200px;white-space:normal;font-size:11px;line-height:1.4">${esc((l.solicitacao||'').substring(0,90))}${l.solicitacao&&l.solicitacao.length>90?'…':''}</td>
@@ -3639,8 +3643,21 @@ async function crmMudarStatus(id, novoStatus) {
 function fmtData(isoOrStr) {
   if (!isoOrStr) return '';
   try {
-    const [y,m,d] = isoOrStr.split('-');
+    const [y,m,d] = String(isoOrStr).split('T')[0].split('-');
     if (y && m && d) return `${d}/${m}/${y}`;
+  } catch{}
+  return isoOrStr;
+}
+
+function fmtDataHora(isoOrStr) {
+  if (!isoOrStr) return '';
+  try {
+    const s = String(isoOrStr);
+    const [datePart, timePart] = s.split('T');
+    const [y,m,d] = datePart.split('-');
+    if (!y || !m || !d) return s;
+    const hora = timePart ? timePart.substring(0,8) : '00:00:00';
+    return `${d}/${m}/${y} - ${hora}`;
   } catch{}
   return isoOrStr;
 }
