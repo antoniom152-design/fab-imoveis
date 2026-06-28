@@ -907,6 +907,21 @@
      CONFIGURAÇÕES — altere aqui conforme necessário
   ══════════════════════════════════════════════════════════ */
   const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwYpSzOI9NFIvcjhSV1TWjpqZYXa77O0LhW0tLAcyC4bYEBrMi2R2yQfq53XkgfE3u7LQ/exec';
+  const CRM_URL_RES = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+
+  function registrarNoCRMReserva(nome, telefone, email) {
+    const now = new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T');
+    const payload = {
+      action: 'criarOuAtualizar',
+      lead: { nome, telefone, email, origem: 'Reserva', prioridade: 'alta', status: 'novo' },
+      interacao: { tipo: 'Reserva', data: now, nota: 'Enviou formulário de reserva de imóvel' }
+    };
+    fetch(CRM_URL_RES, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    }).catch(() => {});
+  }
   const WPP_CONS_1  = '5522998136409';
   const WPP_CONS_2  = '5521972443592';
   const MAX_FILE_MB = 5;
@@ -1294,6 +1309,7 @@
     await new Promise(r => setTimeout(r, 600)); // pausa visual
 
     if (enviou) {
+      registrarNoCRMReserva(payload.nome, payload.telefone, payload.email);
       mostrarSucesso(payload.nome, payload.empreendimento, payload.conjuge);
     } else {
       btn.textContent = 'Confirmar Reserva e Enviar Documentos →';

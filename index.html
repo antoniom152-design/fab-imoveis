@@ -2065,10 +2065,15 @@
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify(data)
       });
-      showSuccess(data);
-    } catch (err) {
-      showSuccess(data);
-    }
+    } catch (err) { /* no-cors: assume enviado */ }
+
+    // Registra no CRM
+    registrarNoCRM(
+      { nome: data.nome, telefone: data.whatsapp, origem: 'Conhecer Opções' },
+      'Solicitou conhecer as opções de imóveis'
+    );
+
+    showSuccess(data);
   }
 
   function showSuccess(data) {
