@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    { "source": "/pre_cadastro", "destination": "/feirao/pre_cadastro/pre-cadastro-feirao.html" },
+    { "source": "/viabilizador", "destination": "/feirao/viabilizador/dashboard-viabilizador-wal.html" },
+    { "source": "/consultor", "destination": "/feirao/consultor/dashboard-feirao-atendente.html" },
+    { "source": "/cliente", "destination": "/feirao/cliente/dashboard-feirao-lead.html" },
+    { "source": "/agente", "destination": "/feirao/agente/dashboard-agente.html" }
+  ]
+}

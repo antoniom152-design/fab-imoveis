@@ -368,9 +368,57 @@ tbody tr:last-child td{border-bottom:none;}
 .mono{font-variant-numeric:tabular-nums;}
 .compare-row{margin-bottom:16px;}
 .compare-row .compare-lbl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px;}
+
+/* ═══════════════ PIN GATE (mockup — sem backend por construtora ainda) ═══════════════ */
+body.wal-locked > *:not(#pinGate){display:none !important;}
+.pin-gate{
+  position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(circle at 30% 20%, var(--navy-700), var(--navy-950) 70%);
+}
+.pin-box{width:100%;max-width:380px;background:var(--paper);border-radius:16px;padding:32px 28px;box-shadow:0 20px 60px rgba(0,0,0,.45);}
+.pin-brand{text-align:center;margin-bottom:22px;}
+.pin-brand .mark{font-weight:800;letter-spacing:1px;color:var(--navy-900);font-size:18px;}
+.pin-brand .sub{color:var(--muted);font-size:12.5px;margin-top:4px;}
+.pin-role-tabs{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;}
+.pin-role-tabs button{border:1.5px solid var(--line);background:var(--cream);border-radius:10px;padding:10px 12px;
+  text-align:left;font-size:13.5px;font-weight:600;color:var(--ink);cursor:pointer;transition:.15s;}
+.pin-role-tabs button.active{border-color:var(--gold-500);background:var(--gold-100);color:var(--navy-900);}
+.pin-field{margin-bottom:6px;}
+.pin-field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;}
+.pin-field input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:10px;
+  font-size:22px;letter-spacing:8px;text-align:center;font-weight:700;color:var(--navy-900);}
+.pin-field input:focus{outline:none;border-color:var(--gold-500);}
+.pin-error{display:none;color:var(--danger);font-size:12px;margin-top:10px;text-align:center;}
+.pin-error.show{display:block;}
+.pin-btn{width:100%;margin-top:16px;background:var(--navy-900);color:var(--gold-100);border:none;border-radius:10px;
+  padding:13px;font-size:14px;font-weight:700;cursor:pointer;}
+.pin-btn:hover{background:var(--navy-800);}
+.pin-note{margin-top:16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5;}
 </style>
 </head>
 <body>
+
+<!-- ================= PIN GATE (mockup — sem backend por construtora ainda) ================= -->
+<div id="pinGate" class="pin-gate">
+  <div class="pin-box">
+    <div class="pin-brand">
+      <div class="mark">WAL IMÓVEIS</div>
+      <div class="sub">Feirão Online · Acesso da Construtora</div>
+    </div>
+    <div class="pin-role-tabs" id="pinRoleTabs">
+      <button type="button" data-role="viabilizador" class="active">👷 Viabilizador/Ger Imob</button>
+      <button type="button" data-role="superintendente">🧭 Superintendente</button>
+      <button type="button" data-role="diretor">🗂️ Diretor</button>
+    </div>
+    <div class="pin-field">
+      <label for="pinInput">PIN de acesso</label>
+      <input type="password" id="pinInput" inputmode="numeric" maxlength="6" placeholder="••••" autocomplete="off">
+    </div>
+    <div class="pin-error" id="pinError">PIN inválido para este perfil.</div>
+    <button type="button" class="pin-btn" id="pinSubmit">Entrar</button>
+    <div class="pin-note">Cada construtora recebe 3 PINs — um por perfil (Viabilizador/Ger Imob, Superintendente, Diretor). Em caso de dúvida, fale com a equipe WAL.</div>
+  </div>
+</div>
 
 <!-- ================= SIDEBAR ================= -->
 <aside class="sidebar">
@@ -1761,6 +1809,42 @@ function renderAll(){
 }
 renderAll();
 setRole(currentRole);
+</script>
+
+<!-- ================= PIN GATE — script (mockup, sem validação por construtora ainda) ================= -->
+<script>
+/* PINs fixos só pra demo/reunião com os viabilizadores. Quando o
+   modelo de PIN por construtora for definido, trocar por uma
+   checagem real (ex: consultando a planilha/CRM da construtora). */
+const PIN_POR_PERFIL = {
+  viabilizador: '1111',
+  superintendente: '2222',
+  diretor: '3333'
+};
+let pinRoleSelecionado = 'viabilizador';
+
+document.body.classList.add('wal-locked');
+
+document.getElementById('pinRoleTabs').addEventListener('click', function(e){
+  const btn = e.target.closest('button[data-role]');
+  if(!btn) return;
+  pinRoleSelecionado = btn.dataset.role;
+  document.querySelectorAll('#pinRoleTabs button').forEach(function(b){ b.classList.toggle('active', b===btn); });
+  document.getElementById('pinError').classList.remove('show');
+});
+
+function walTentarEntrarPin(){
+  const valor = document.getElementById('pinInput').value.trim();
+  if(valor && valor === PIN_POR_PERFIL[pinRoleSelecionado]){
+    document.body.classList.remove('wal-locked');
+    document.getElementById('pinGate').style.display = 'none';
+    setRole(pinRoleSelecionado);
+  } else {
+    document.getElementById('pinError').classList.add('show');
+  }
+}
+document.getElementById('pinSubmit').addEventListener('click', walTentarEntrarPin);
+document.getElementById('pinInput').addEventListener('keydown', function(e){ if(e.key==='Enter') walTentarEntrarPin(); });
 </script>
 </body>
 </html>

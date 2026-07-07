@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estrutura de URLs — Feirão Online WAL Imóveis</title>
+<style>
+  :root{
+    --bg:#050c18; --panel:#0F1E33; --panel2:#0A1628; --bdr:#2A3B55;
+    --gold:#C9A84C; --txt:#E7ECF3; --muted:#8A97AB;
+    --ok:#2ECC71; --pend:#E05252;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;padding:32px 20px 60px}
+  .wrap{max-width:1500px;margin:0 auto}
+  header{margin-bottom:28px}
+  h1{color:var(--gold);font-size:24px;margin:0 0 6px}
+  .sub{color:var(--muted);font-size:14px;margin:0}
+  .base-row{display:flex;align-items:center;gap:10px;margin-top:16px;background:var(--panel2);
+    border:1px solid var(--bdr);border-radius:10px;padding:10px 14px;flex-wrap:wrap}
+  .base-row span.lbl{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .base-row code{color:var(--gold);font-size:14px}
+
+  .group{background:var(--panel);border:1px solid var(--bdr);border-radius:12px;margin-bottom:18px;overflow:hidden}
+  .group-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;
+    background:var(--panel2);border-bottom:1px solid var(--bdr)}
+  .group-head h2{margin:0;font-size:15px;color:var(--txt)}
+  .group-head .dir{color:var(--gold);font-family:Consolas,monospace;font-size:13px}
+
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  th{text-align:left;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;
+    padding:10px 18px;border-bottom:1px solid var(--bdr)}
+  td{padding:12px 18px;border-bottom:1px solid #16233a;font-size:13px;vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  .arquivo{color:var(--txt);font-family:Consolas,monospace}
+  .url-cell{display:flex;align-items:center;gap:10px;max-width:100%}
+  .url-txt{flex:1;min-width:0;color:#B9C4D6;font-family:Consolas,monospace;font-size:12px;
+    white-space:nowrap;overflow-x:auto;overflow-y:hidden}
+  .status{display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+  .status.online{background:rgba(46,204,113,.15);color:var(--ok)}
+  .status.pendente{background:rgba(224,82,82,.15);color:var(--pend)}
+  .url-limpa-cell{display:flex;align-items:center;gap:10px}
+  .url-limpa-txt{flex:1;color:var(--gold);font-family:Consolas,monospace;font-size:13px;font-weight:700}
+  .url-limpa-vazio{color:var(--muted);font-size:12px;font-style:italic}
+  .copy-btn.destaque{background:var(--gold);color:var(--panel2);border-color:var(--gold)}
+  .copy-btn.destaque:hover{background:#dab949}
+  .copy-btn{flex-shrink:0;background:var(--panel2);border:1px solid var(--bdr);color:var(--gold);
+    border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;font-weight:600;
+    display:flex;align-items:center;gap:6px;transition:.15s}
+  .copy-btn:hover{background:#152436;border-color:var(--gold)}
+  .copy-btn.copied{background:var(--gold);color:var(--panel2);border-color:var(--gold)}
+  .obs{color:var(--muted);font-size:12px}
+  footer{margin-top:24px;color:var(--muted);font-size:12px;text-align:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🎪 Estrutura de URLs — Feirão Online WAL Imóveis</h1>
+    <p class="sub">Mapa de todos os caminhos do <code>/feirao</code>, agrupados por subdiretório/perfil. A coluna <b style="color:var(--gold)">URL Limpa</b> é a que deve ser compartilhada externamente (esconde o caminho real do arquivo); a URL completa é só para uso interno/dev.</p>
+    <div class="base-row">
+      <span class="lbl">Domínio base</span>
+      <code>https://www.walservidor.com.br</code>
+    </div>
+  </header>
+
+  <div id="grupos"></div>
+
+  <footer>Gerado a partir da estrutura real do repositório <code>fab-imoveis</code> — pasta <code>feirao/</code>.</footer>
+</div>
+
+<script>
+const BASE = 'https://www.walservidor.com.br';
+
+const GRUPOS = [
+  {
+    perfil: 'Pré-Cadastro',
+    dir: 'feirao/pre_cadastro/',
+    itens: [
+      { arquivo: 'pre-cadastro-feirao.html', status: 'online', obs: 'Página pública de pré-cadastro do feirão, sem login', urlLimpa: '/pre_cadastro' }
+    ]
+  },
+  {
+    perfil: 'Viabilizador',
+    dir: 'feirao/viabilizador/',
+    itens: [
+      { arquivo: 'dashboard-viabilizador-wal.html', status: 'online', obs: 'Dashboard para viabilizadores e diretores das construtoras parceiras — protegido por PIN (3 níveis)', urlLimpa: '/viabilizador' }
+    ]
+  },
+  {
+    perfil: 'Consultor / Atendente',
+    dir: 'feirao/consultor/',
+    itens: [
+      { arquivo: 'dashboard-feirao-atendente.html', status: 'online', obs: 'Dashboard do atendente — inclui painel Consultor IA', urlLimpa: '/consultor' }
+    ]
+  },
+  {
+    perfil: 'Cliente / Lead',
+    dir: 'feirao/cliente/',
+    itens: [
+      { arquivo: 'dashboard-feirao-lead.html', status: 'online', obs: 'Dashboard do lead/cliente participante do feirão', urlLimpa: '/cliente' }
+    ]
+  },
+  {
+    perfil: 'Agente Parceiro',
+    dir: 'feirao/agente/',
+    itens: [
+      { arquivo: 'dashboard-agente.html', status: 'online', obs: 'Dashboard de agentes parceiros / indicação', urlLimpa: '/agente' }
+    ]
+  },
+  {
+    perfil: 'Diretoria',
+    dir: 'feirao/diretoria/',
+    itens: [
+      { arquivo: '(nenhum arquivo ainda)', status: 'pendente', obs: 'Pasta reservada — página da diretoria ainda não foi criada', semArquivo: true }
+    ]
+  },
+  {
+    perfil: 'Materiais de Apoio',
+    dir: 'feirao/materiais/',
+    itens: [
+      { arquivo: 'Book_Executivo_Cliente_Feirao_WAL.pdf', status: 'online', obs: 'Book executivo para clientes (PDF)' },
+      { arquivo: 'Book_Executivo_Cliente_Feirao_WAL_1.pptx', status: 'online', obs: 'Book executivo para clientes (PPTX)' },
+      { arquivo: 'Book_Executivo_Feirao_WAL.pdf', status: 'online', obs: 'Book executivo geral do feirão (PDF)' },
+      { arquivo: 'Book_Executivo_Feirao_WAL.pptx', status: 'online', obs: 'Book executivo geral do feirão (PPTX)' },
+      { arquivo: 'Roteiro Video para Pre Cadastro.pdf', status: 'online', obs: 'Roteiro do vídeo usado no pré-cadastro' },
+      { arquivo: 'feirao-plano-operacional.html', status: 'online', obs: 'Documento interno com o plano operacional' },
+      { arquivo: 'estrutura-urls-feirao.html', status: 'online', obs: 'Esta própria página' }
+    ]
+  },
+  {
+    perfil: 'Recurso Compartilhado',
+    dir: 'feirao/shared/',
+    itens: [
+      { arquivo: 'chat-widget.js', status: 'online', obs: 'Script do widget de chat (não é página) — usado pelos dashboards de cliente e consultor' }
+    ]
+  }
+];
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function montarUrl(dir, arquivo){
+  return BASE + '/' + dir + encodeURIComponent(arquivo).replace(/%20/g,'%20');
+}
+
+const cont = document.getElementById('grupos');
+GRUPOS.forEach((g, gi) => {
+  const grupoEl = document.createElement('div');
+  grupoEl.className = 'group';
+
+  let linhas = '';
+  g.itens.forEach((item, ii) => {
+    const url = item.semArquivo ? BASE + '/' + g.dir : montarUrl(g.dir, item.arquivo);
+    const id = 'copy-' + gi + '-' + ii;
+    const urlLimpaCompleta = item.urlLimpa ? BASE + item.urlLimpa : '';
+    const idLimpa = 'copyLimpa-' + gi + '-' + ii;
+    linhas += `
+      <tr>
+        <td class="arquivo">${escapeHtml(item.arquivo)}</td>
+        <td><span class="status ${item.status}">${item.status === 'online' ? 'Online' : 'Pendente'}</span></td>
+        <td class="obs">${escapeHtml(item.obs)}</td>
+        <td>
+          ${item.urlLimpa ? `
+          <div class="url-limpa-cell">
+            <span class="url-limpa-txt">${escapeHtml(urlLimpaCompleta)}</span>
+            <button class="copy-btn destaque" id="${idLimpa}" onclick="copiar('${idLimpa}', '${urlLimpaCompleta.replace(/'/g,"\\'")}')">📋 Copiar</button>
+          </div>` : `<span class="url-limpa-vazio">— sem URL limpa —</span>`}
+        </td>
+        <td>
+          <div class="url-cell">
+            <span class="url-txt">${escapeHtml(url)}</span>
+            ${item.semArquivo ? '' : `<button class="copy-btn" id="${id}" onclick="copiar('${id}', '${url.replace(/'/g,"\\'")}')">📋 Copiar</button>`}
+          </div>
+        </td>
+      </tr>`;
+  });
+
+  grupoEl.innerHTML = `
+    <div class="group-head">
+      <h2>${escapeHtml(g.perfil)}</h2>
+      <span class="dir">/${escapeHtml(g.dir)}</span>
+    </div>
+    <table>
+      <thead>
+        <tr><th style="width:17%">Arquivo</th><th style="width:7%">Status</th><th style="width:18%">Observação</th><th style="width:24%">URL Limpa (compartilhar)</th><th style="width:34%">URL completa (uso interno)</th></tr>
+      </thead>
+      <tbody>${linhas}</tbody>
+    </table>`;
+  cont.appendChild(grupoEl);
+});
+
+function copiar(btnId, texto){
+  const btn = document.getElementById(btnId);
+  const marcar = () => {
+    const original = btn.textContent;
+    btn.textContent = '✓ Copiado!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(texto).then(marcar).catch(() => fallbackCopiar(texto, marcar));
+  } else {
+    fallbackCopiar(texto, marcar);
+  }
+}
+
+function fallbackCopiar(texto, cb){
+  const ta = document.createElement('textarea');
+  ta.value = texto; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); } catch(e) {}
+  document.body.removeChild(ta);
+  cb();
+}
+</script>
+</body>
+</html>
