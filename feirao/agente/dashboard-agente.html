@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Portal do Agente Parceiro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+  --teal:#0E7490;--teal2:#22D3EE;--teal-dim:rgba(14,116,144,.15);
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.10);
+  --purple:#7C3AED;--purple-dim:rgba(124,58,237,.10);
+  --coral:#EA4C89;--coral-dim:rgba(234,76,137,.10);
+  --surf:#0D1B2E;--surf2:#111F35;--surf3:#152844;
+  --card:#152540;--card2:#1A2E50;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
+  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ══════════════════════════
+   TELA DE CADASTRO / LOGIN
+══════════════════════════ */
+#authScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,var(--navy) 0%,#0a1f3e 100%);
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;overflow-y:auto;
+}
+.auth-wrap{width:100%;max-width:480px}
+.auth-logo-area{text-align:center;margin-bottom:28px}
+.auth-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold)}
+.auth-tagline{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.auth-badge{
+  display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+  background:var(--teal-dim);border:1px solid rgba(34,211,238,.2);
+  color:var(--teal2);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;
+}
+.auth-box{
+  background:var(--card);border:1px solid var(--gold-b);border-radius:14px;
+  overflow:hidden;
+}
+.auth-tabs{display:flex;border-bottom:1px solid var(--bdr)}
+.auth-tab{
+  flex:1;padding:14px;text-align:center;font-size:12px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;
+}
+.auth-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,.05)}
+.auth-panel{display:none;padding:28px}
+.auth-panel.active{display:block}
+.auth-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field-inp,.field-sel,.field-ta{
+  width:100%;padding:10px 13px;background:var(--surf2);border:1px solid var(--bdr2);
+  color:var(--txt);border-radius:8px;font-size:13px;outline:none;transition:border-color .2s;
+}
+.field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--gold)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(255,255,255,.2)}
+.field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field-sel option{background:#152540}
+.field-ta{resize:vertical;min-height:60px;line-height:1.5}
+.field-row{display:grid;gap:12px;margin-bottom:14px}
+.field-2{grid-template-columns:1fr 1fr}
+.field-3{grid-template-columns:1fr 1fr 1fr}
+.f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
+.auth-btn{
+  width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);margin-top:6px;
+  transition:opacity .2s,transform .2s;
+}
+.auth-btn:hover{opacity:.9;transform:translateY(-1px)}
+.auth-err{color:#F87171;font-size:11px;margin-top:8px;display:none;text-align:center}
+.auth-ok{color:#34D399;font-size:12px;margin-top:10px;display:none;text-align:center;background:rgba(5,150,105,.1);border:1px solid rgba(52,211,153,.2);border-radius:7px;padding:10px}
+.upload-area{
+  border:2px dashed var(--bdr2);border-radius:8px;padding:20px;text-align:center;
+  cursor:pointer;transition:border-color .2s;margin-bottom:4px;
+}
+.upload-area:hover{border-color:var(--gold)}
+.upload-area input[type=file]{display:none}
+.upload-lbl{font-size:11px;color:var(--muted);margin-top:6px}
+.upload-name{font-size:11px;color:var(--gold);margin-top:4px}
+.terms-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.terms-check input{accent-color:var(--gold);margin-top:2px;flex-shrink:0}
+.terms-check label{font-size:11px;color:var(--muted);line-height:1.5}
+.terms-check label a{color:var(--gold);text-decoration:underline}
+
+/* ── STATUS PENDENTE ── */
+#pendScreen{
+  position:fixed;inset:0;z-index:9998;
+  background:var(--navy);display:none;align-items:center;justify-content:center;
+}
+.pend-box{
+  width:440px;padding:48px 40px;text-align:center;
+  background:var(--card);border:1px solid var(--gold-b);border-radius:14px;
+}
+.pend-icon{font-size:48px;margin-bottom:16px}
+.pend-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.pend-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.pend-steps{text-align:left;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.pend-step{display:flex;align-items:center;gap:10px;font-size:12px;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr)}
+.pend-step-ico{font-size:16px;flex-shrink:0}
+.pend-step.done{border-color:rgba(52,211,153,.2)}
+.pend-step.curr{border-color:rgba(252,211,77,.3);background:rgba(217,119,6,.08)}
+.pend-step.next{opacity:.45}
+
+/* ══════════════════════════
+   TOAST
+══════════════════════════ */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:5000;
+  background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;
+  padding:12px 18px;font-size:12px;color:var(--txt);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+  border-left:3px solid var(--gold);max-width:320px;
+}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.t-green{border-left-color:var(--green2)}
+#toast.t-red{border-left-color:#F87171}
+#toast.t-amber{border-left-color:#FCD34D}
+
+/* ══════════════════════════
+   APP LAYOUT
+══════════════════════════ */
+.app{display:flex;min-height:100vh;display:none}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:224px;min-height:100vh;background:var(--navy);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
+  border-right:1px solid var(--bdr);
+}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-b)}
+.sb-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.sb-mode{
+  display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  background:var(--teal-dim);border:1px solid rgba(34,211,238,.25);
+  color:var(--teal2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  padding:3px 9px;border-radius:20px;
+}
+.sb-mode-dot{width:5px;height:5px;background:var(--teal2);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.sb-agente{
+  margin:14px 12px 0;padding:12px;
+  background:var(--teal-dim);border:1px solid rgba(34,211,238,.2);border-radius:9px;
+}
+.sba-av{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;
+}
+.sba-name{color:#fff;font-size:13px;font-weight:600}
+.sba-role{color:rgba(255,255,255,.35);font-size:10px;margin-top:1px}
+.sba-pills{display:flex;gap:6px;margin-top:10px}
+.sba-pill{flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:5px 6px;text-align:center}
+.sba-pill-val{font-size:12px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.sba-pill-lbl{font-size:8px;color:var(--muted);margin-top:1px}
+
+.nav-grp{padding:12px 8px 2px}
+.nav-lbl{color:rgba(255,255,255,.2);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 9px 5px;font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.5);
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;
+  margin-bottom:1px;border:1px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--teal-dim);color:var(--teal2);border-color:rgba(34,211,238,.2)}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-bdg{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.nb-t{background:rgba(14,116,144,.25);color:var(--teal2)}
+.nb-g{background:rgba(5,150,105,.2);color:#34D399}
+.nb-a{background:rgba(217,119,6,.2);color:#FCD34D}
+.nb-r{background:rgba(220,38,38,.2);color:#F87171}
+
+.sb-footer{
+  margin-top:auto;padding:14px 12px;border-top:1px solid var(--bdr);
+  display:flex;align-items:center;gap:8px;
+}
+.sf-av2{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sf-out{margin-left:auto;width:28px;height:28px;border-radius:6px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s}
+.sf-out:hover{color:var(--txt);border-color:var(--bdr2)}
+
+/* ── MAIN ── */
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column}
+.topbar{
+  background:var(--navy2);border-bottom:1px solid var(--bdr);
+  padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:50;
+}
+.tb-bread{display:flex;align-items:center;gap:6px;flex:1}
+.tb-sec{color:rgba(255,255,255,.3);font-size:11px;font-weight:500}
+.tb-sep{color:rgba(255,255,255,.15)}
+.tb-page{color:var(--teal2);font-size:12px;font-weight:600}
+.tb-meta{display:flex;align-items:center;gap:12px}
+.tb-notif{position:relative;width:32px;height:32px;border-radius:7px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:#FCD34D;border-radius:50%;border:2px solid var(--navy2)}
+.tb-clock{color:rgba(255,255,255,.3);font-size:10px;font-family:var(--mono)}
+
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.2)}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2);font-weight:700}
+.btn-teal:hover{opacity:.85;transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.9;transform:translateY(-1px)}
+.btn-green{background:rgba(5,150,105,.15);border-color:rgba(52,211,153,.2);color:#34D399}
+.btn-red{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.25);color:#F87171}
+.btn-full{width:100%;justify-content:center;padding:11px}
+
+/* ── KPIs ── */
+.kpi-strip{display:grid;gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s;cursor:default}
+.kpi:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::after{background:var(--green)}
+.kpi.red::after{background:var(--red)}
+.kpi.purple::after{background:var(--purple)}
+.kpi.amber::after{background:var(--amber)}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;line-height:1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-dlt{display:inline-flex;align-items:center;font-size:10px;font-weight:600;margin-top:4px;padding:1px 6px;border-radius:4px}
+.up{background:rgba(5,150,105,.15);color:#34D399}
+.fl{background:rgba(122,144,168,.12);color:var(--muted)}
+.dn{background:rgba(220,38,38,.15);color:#F87171}
+
+/* ── SECTION HEADER ── */
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* ── GRIDS / CARDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.cs2{grid-column:span 2}
+.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.card-b{padding:16px}
+.card-link{font-size:10px;color:var(--teal2);font-weight:600;cursor:pointer}
+.card-link:hover{opacity:.8}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
+.bg{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
+.br{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
+.ba{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
+.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-b)}
+.bt{background:rgba(14,116,144,.2);color:#22D3EE;border:1px solid rgba(34,211,238,.15)}
+.bp{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.15)}
+.bz{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--bdr)}
+.bc{background:rgba(234,76,137,.12);color:#F472B6;border:1px solid rgba(244,114,182,.2)}
+
+/* status funil do lead */
+.sl-agente{background:#0D2A2A;color:#5EEAD4;border:1px solid rgba(94,234,212,.2)}
+.sl-contato{background:#172040;color:#93C5FD;border:1px solid rgba(147,197,253,.2)}
+.sl-proposta{background:#2A1A40;color:#C4B5FD;border:1px solid rgba(196,181,253,.2)}
+.sl-visita{background:#1A2A10;color:#86EFAC;border:1px solid rgba(134,239,172,.2)}
+.sl-fechado{background:#0A2414;color:#6EE7B7;border:1px solid rgba(110,231,183,.2)}
+.sl-perdido{background:#2C0A0A;color:#FCA5A5;border:1px solid rgba(252,165,165,.2)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(0,0,0,.15)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tr.clk{cursor:pointer}
+
+/* ── PROGRESS ── */
+.prog-w{margin-bottom:9px}
+.prog-m{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.prog-bar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px;transition:width .4s ease}
+.pf-teal{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.pf-green{background:var(--green)}
+.pf-purple{background:var(--purple)}
+.pf-amber{background:var(--amber)}
+
+/* ── LEAD CARD ── */
+.lead-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:14px;cursor:pointer;transition:all .15s;margin-bottom:8px}
+.lead-card:hover{border-color:rgba(34,211,238,.2);background:rgba(26,46,80,.7)}
+.lc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.lc-name{font-size:13px;font-weight:600;color:#fff}
+.lc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.lc-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lc-prog{margin-top:10px}
+.lc-prog-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+
+/* ── FUNIL STEPS ── */
+.fstep{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:6px;background:var(--card2);border:1px solid var(--bdr);transition:border-color .15s;cursor:default}
+.fstep:hover{border-color:var(--bdr2)}
+.fstep-n{font-family:var(--mono);font-size:18px;font-weight:500;color:#fff;min-width:34px}
+.fstep-bar{flex:2;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.fstep-fill{height:100%;border-radius:3px}
+.fstep-pct{font-size:10px;color:var(--muted);font-family:var(--mono);min-width:30px;text-align:right}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-ov.show{display:flex}
+.modal-box{width:100%;max-width:720px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);border-top:2px solid var(--teal2)}
+.modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--teal2)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--txt)}
+.modal-body{padding:24px;max-height:70vh;overflow-y:auto}
+.modal-f{padding:16px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── TIMELINE ── */
+.tl-wrap{position:relative;padding-left:24px}
+.tl-line{position:absolute;left:9px;top:0;bottom:0;width:1px;background:var(--bdr)}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-dot{position:absolute;left:-24px;top:3px;width:18px;height:18px;border-radius:50%;border:1px solid var(--bdr2);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:9px}
+.tl-tipo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--teal2);margin-bottom:2px}
+.tl-data{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
+.tl-nota{font-size:12px;color:var(--txt);line-height:1.5}
+
+/* ── MATERIAL CARD ── */
+.mat-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+.mat-card:hover{border-color:rgba(34,211,238,.2)}
+.mat-thumb{height:90px;display:flex;align-items:center;justify-content:center;font-size:36px;background:linear-gradient(135deg,var(--navy3),var(--navy2))}
+.mat-body{padding:12px}
+.mat-nome{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px}
+.mat-meta{font-size:10px;color:var(--muted)}
+.mat-tipo{font-size:9px;margin-top:6px}
+
+/* ── EMP CARD ── */
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.emp-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+.emp-card:hover{border-color:rgba(34,211,238,.2)}
+.emp-img{height:100px;display:flex;align-items:center;justify-content:center;font-size:38px;background:linear-gradient(135deg,var(--navy3),var(--navy2));position:relative}
+.emp-body{padding:12px}
+.emp-nome{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
+.emp-const{font-size:10px;color:var(--muted);margin-bottom:8px}
+.emp-stat-g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.emp-stat-lbl{font-size:9px;color:var(--muted)}
+.emp-stat-val{font-size:12px;font-weight:700;color:var(--txt);font-family:var(--mono)}
+
+/* ── AI CHAT ── */
+.ai-wrap{display:flex;flex-direction:column;height:480px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{display:flex;gap:8px;align-items:flex-start}
+.ai-av{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.av-ai{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}
+.av-u{background:var(--card2);color:var(--muted);border:1px solid var(--bdr)}
+.ai-bubble{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.6}
+.ai-bubble-ai{background:var(--card2);border:1px solid var(--bdr)}
+.ai-bubble-u{background:var(--teal-dim);border:1px solid rgba(34,211,238,.2)}
+.ai-chips{padding:8px 10px 0;display:flex;flex-wrap:wrap;gap:5px}
+.ai-chip{font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;background:var(--card2);border:1px solid var(--bdr2);color:var(--muted);transition:all .15s}
+.ai-chip:hover{border-color:rgba(34,211,238,.3);color:var(--teal2)}
+.ai-inp-row{padding:10px;border-top:1px solid var(--bdr);display:flex;gap:8px}
+.ai-inp{flex:1;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:7px;padding:8px 12px;font-size:12px;outline:none;transition:border-color .2s;resize:none;min-height:36px;max-height:80px;overflow:auto}
+.ai-inp:focus{border-color:var(--teal2)}
+.ai-send{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:#fff;font-weight:700;transition:opacity .2s}
+.ai-send:hover{opacity:.85}
+.ai-send.loading{animation:pulse 1s infinite}
+
+/* ── COMISSÃO CARD ── */
+.comis-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:14px;margin-bottom:8px}
+.comis-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.comis-nome{font-size:12px;font-weight:600;color:#fff}
+.comis-emp{font-size:10px;color:var(--muted);margin-top:2px}
+.comis-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#34D399}
+.comis-status{font-size:10px;color:var(--muted);margin-top:2px;text-align:right}
+
+/* ── MISC ── */
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}
+.c-muted{color:var(--muted)}.c-teal{color:var(--teal2)}.c-gold{color:var(--gold)}
+.c-green{color:#34D399}.c-red{color:#F87171}.c-amber{color:#FCD34D}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.flex-bet{display:flex;align-items:center;justify-content:space-between}
+.flex{display:flex;align-items:center}
+.sp{display:flex;flex-wrap:wrap;gap:6px}
+.alert-box{padding:12px 14px;border-radius:8px;border:1px solid;font-size:12px;line-height:1.5;margin-bottom:12px}
+.alert-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:#FCD34D}
+.alert-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
+.alert-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2)}
+</style>
+</head>
+<body>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     AUTH SCREEN — LOGIN / CADASTRO
+═══════════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-logo-area">
+      <div class="auth-brand">WAL Consultoria</div>
+      <div class="auth-tagline">Imóveis para quem serve ao Brasil</div>
+      <div class="auth-badge">🤝 Portal do Agente Parceiro</div>
+    </div>
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')">Entrar</div>
+        <div class="auth-tab" onclick="switchAuthTab('cadastro')">Quero ser Agente</div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="auth-panel active" id="tabLogin">
+        <div class="auth-title">Bem-vindo de volta</div>
+        <div class="auth-sub">Entre com seus dados para acessar seu painel de agente parceiro.</div>
+        <div class="field-row mb14">
+          <div><div class="field-lbl">E-mail</div><input class="field-inp" type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        </div>
+        <div class="field-row mb14">
+          <div><div class="field-lbl">Senha</div><input class="field-inp" type="password" id="loginSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        </div>
+        <button class="auth-btn" onclick="doLogin()">Entrar no Portal</button>
+        <div class="auth-err" id="loginErr">E-mail ou senha inválidos.</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:16px;text-align:center">
+          Demo aprovado: <strong style="color:var(--teal2)">agente@wal.com.br</strong> / <strong style="color:var(--teal2)">1234</strong><br>
+          Demo pendente: <strong style="color:var(--amber)">novo@wal.com.br</strong> / <strong style="color:var(--amber)">1234</strong>
+        </div>
+      </div>
+
+      <!-- CADASTRO -->
+      <div class="auth-panel" id="tabCadastro">
+        <div class="auth-title">Quero ser Agente WAL</div>
+        <div class="auth-sub">Indique conhecidos que se encaixam no nosso perfil de cliente e ganhe comissões sobre as vendas realizadas. Preencha seus dados para solicitar acesso.</div>
+
+        <div class="f-sec">Dados Pessoais</div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Nome completo *</div><input class="field-inp" id="cadNome" placeholder="João Silva"></div>
+          <div><div class="field-lbl">CPF *</div><input class="field-inp" id="cadCpf" placeholder="000.000.000-00"></div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">E-mail *</div><input class="field-inp" type="email" id="cadEmail" placeholder="joao@email.com"></div>
+          <div><div class="field-lbl">WhatsApp *</div><input class="field-inp" id="cadTel" placeholder="(21) 99999-9999"></div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Data de nascimento</div><input class="field-inp" type="date" id="cadNasc"></div>
+          <div><div class="field-lbl">Profissão / Vínculo</div>
+            <select class="field-sel" id="cadProf">
+              <option value="">Selecione...</option>
+              <option>Militar da Aeronáutica (FAB)</option><option>Militar do Exército</option>
+              <option>Militar da Marinha</option><option>Servidor Civil Federal</option>
+              <option>Servidor Estadual / Municipal</option><option>Pensionista Militar</option>
+              <option>Profissional Liberal</option><option>Outro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="f-sec">Dados Bancários (para receber comissões)</div>
+        <div class="field-row field-3 mb14">
+          <div><div class="field-lbl">Banco</div><input class="field-inp" id="cadBanco" placeholder="Ex: Caixa, Nubank"></div>
+          <div><div class="field-lbl">Agência</div><input class="field-inp" id="cadAgencia" placeholder="0001"></div>
+          <div><div class="field-lbl">Conta</div><input class="field-inp" id="cadConta" placeholder="00000-0"></div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Tipo de conta</div>
+            <select class="field-sel" id="cadTipoConta">
+              <option>Conta Corrente</option><option>Conta Poupança</option><option>Chave Pix (CPF)</option>
+            </select>
+          </div>
+          <div><div class="field-lbl">Chave Pix (opcional)</div><input class="field-inp" id="cadPix" placeholder="CPF, e-mail ou celular"></div>
+        </div>
+
+        <div class="f-sec">Documentos</div>
+        <div class="field-row field-2 mb14">
+          <div>
+            <div class="field-lbl">RG ou CNH (frente) *</div>
+            <div class="upload-area" onclick="document.getElementById('docRg').click()">
+              <input type="file" id="docRg" accept="image/*,.pdf" onchange="handleUpload(this,'docRgNome')">
+              <div style="font-size:24px">📄</div>
+              <div class="upload-lbl">Clique para selecionar</div>
+              <div class="upload-name" id="docRgNome"></div>
+            </div>
+          </div>
+          <div>
+            <div class="field-lbl">Comprovante de residência *</div>
+            <div class="upload-area" onclick="document.getElementById('docRes').click()">
+              <input type="file" id="docRes" accept="image/*,.pdf" onchange="handleUpload(this,'docResNome')">
+              <div style="font-size:24px">🏠</div>
+              <div class="upload-lbl">Clique para selecionar</div>
+              <div class="upload-name" id="docResNome"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="f-sec">Senha de Acesso</div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Senha *</div><input class="field-inp" type="password" id="cadSenha" placeholder="Mínimo 6 caracteres"></div>
+          <div><div class="field-lbl">Confirmar senha *</div><input class="field-inp" type="password" id="cadSenha2" placeholder="Repita a senha"></div>
+        </div>
+
+        <div class="field-row mb14">
+          <div><div class="field-lbl">Como pretende indicar clientes?</div>
+            <textarea class="field-ta" id="cadMotivacao" placeholder="Ex: Sou suboficial da FAB e tenho muitos colegas de quartel que buscam imóvel com financiamento CFIAe..."></textarea>
+          </div>
+        </div>
+
+        <div class="terms-check">
+          <input type="checkbox" id="cadTermos">
+          <label for="cadTermos">Li e aceito os <a href="#">Termos de Parceria</a> e a <a href="#">Política de Privacidade</a> da WAL Consultoria. Entendo que minha participação depende de aprovação pela direção.</label>
+        </div>
+
+        <button class="auth-btn" onclick="doCadastro()">Enviar Solicitação de Cadastro</button>
+        <div class="auth-err" id="cadErr">Preencha todos os campos obrigatórios.</div>
+        <div class="auth-ok" id="cadOk">✅ Solicitação enviada! Aguarde a aprovação da WAL Consultoria. Você receberá um e-mail em até 48 horas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TELA PENDENTE ══ -->
+<div id="pendScreen">
+  <div class="pend-box">
+    <div class="pend-icon">⏳</div>
+    <div class="pend-title">Cadastro em análise</div>
+    <div class="pend-sub">Sua solicitação foi recebida pela WAL Consultoria. Nossa equipe irá analisar seus dados e documentos. Você receberá um e-mail assim que for aprovado.</div>
+    <div class="pend-steps">
+      <div class="pend-step done"><div class="pend-step-ico">✅</div><div><strong>Cadastro enviado</strong><div class="fs10 c-muted">Dados e documentos recebidos</div></div></div>
+      <div class="pend-step curr"><div class="pend-step-ico">🔍</div><div><strong style="color:#FCD34D">Análise da direção</strong><div class="fs10 c-muted">Em análise · prazo de até 48h</div></div></div>
+      <div class="pend-step next"><div class="pend-step-ico">✉️</div><div><strong>E-mail de aprovação</strong><div class="fs10 c-muted">Acesso ao portal liberado</div></div></div>
+    </div>
+    <button class="btn-teal btn" style="width:100%;justify-content:center" onclick="doLogout()">← Voltar ao login</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP — DASHBOARD DO AGENTE
+═══════════════════════════════════════════ -->
+<div class="app" id="appWrap">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">WAL Consultoria</div>
+      <div class="sb-mode"><div class="sb-mode-dot"></div>Agente Parceiro</div>
+    </div>
+
+    <div class="sb-agente">
+      <div class="sba-av" id="sbAv">JA</div>
+      <div class="sba-name" id="sbNome">João Agente</div>
+      <div class="sba-role" id="sbRole">Agente Parceiro · FAB</div>
+      <div class="sba-pills">
+        <div class="sba-pill"><div class="sba-pill-val" id="sbIndicacoes">3</div><div class="sba-pill-lbl">Indicações</div></div>
+        <div class="sba-pill"><div class="sba-pill-val" id="sbConversoes">1</div><div class="sba-pill-lbl">Conversões</div></div>
+        <div class="sba-pill"><div class="sba-pill-val" id="sbComis">R$8k</div><div class="sba-pill-lbl">Comissão</div></div>
+      </div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Principal</div>
+      <div class="nav-item active" onclick="nav(this,'home')"><span class="nav-ico">🏠</span>Meu Painel</div>
+      <div class="nav-item" onclick="nav(this,'indicacoes')">
+        <span class="nav-ico">👥</span>Minhas Indicações
+        <span class="nav-bdg nb-t" id="sbBdgInd">3</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'pipeline')"><span class="nav-ico">📊</span>Pipeline de Vendas</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Ferramentas</div>
+      <div class="nav-item" onclick="nav(this,'empreendimentos')"><span class="nav-ico">🏗️</span>Empreendimentos</div>
+      <div class="nav-item" onclick="nav(this,'materiais')">
+        <span class="nav-ico">📁</span>Materiais de Apoio
+        <span class="nav-bdg nb-g">3 novos</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'ia')"><span class="nav-ico">🤖</span>Assistente IA</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Financeiro</div>
+      <div class="nav-item" onclick="nav(this,'comissoes')"><span class="nav-ico">💰</span>Comissões</div>
+      <div class="nav-item" onclick="nav(this,'perfil')"><span class="nav-ico">👤</span>Meu Perfil</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sf-av2" id="sbAvFoot">JA</div>
+      <div>
+        <div style="color:#fff;font-size:12px;font-weight:600" id="sbNomeFoot">João Agente</div>
+        <div style="color:var(--muted);font-size:10px">Online agora</div>
+      </div>
+      <div class="sf-out" onclick="doLogout()" title="Sair">🚪</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-bread">
+        <span class="tb-sec">WAL Consultoria</span>
+        <span class="tb-sep">›</span>
+        <span class="tb-page" id="topbarTitle">Meu Painel</span>
+      </div>
+      <div class="tb-meta">
+        <div class="tb-notif" onclick="nav(document.querySelector('[onclick*=indicacoes]'),'indicacoes')">
+          🔔<div class="notif-dot" id="notifDot" style="display:none"></div>
+        </div>
+        <div class="tb-clock" id="clock">—</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+    <!-- ══ HOME ══ -->
+    <div class="panel active" id="panel-home">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">👋 Olá, <span id="phNome">João</span>!</div>
+          <div class="ph-title">Seu painel de agente parceiro</div>
+          <div class="ph-sub" id="phData">Carregando...</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-teal btn" onclick="nav(document.querySelector('[onclick*=indicacoes]'),'indicacoes');setTimeout(abrirNovaIndicacao,200)">+ Nova Indicação</button>
+        </div>
+      </div>
+
+      <!-- alerta de boas-vindas -->
+      <div class="alert-box alert-teal mb20" id="homeAlert">
+        🤝 Você tem <strong>3 indicações ativas</strong>. Acompanhe cada uma no pipeline abaixo e use os materiais de marketing para ajudar seus conhecidos a tomar a decisão!
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi teal"><div class="kpi-lbl">Indicações Ativas</div><div class="kpi-val" id="kpiInd">3</div><div class="kpi-dlt fl">→ acompanhe no pipeline</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Em Negociação</div><div class="kpi-val" id="kpiNeg">2</div><div class="kpi-dlt fl">→ 1 com proposta enviada</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Vendas Convertidas</div><div class="kpi-val" id="kpiVend">1</div><div class="kpi-dlt up">▲ parabéns!</div></div>
+        <div class="kpi amber"><div class="kpi-lbl">Comissão a Receber</div><div class="kpi-val" id="kpiComis">R$8k</div><div class="kpi-dlt fl">→ pagamento em Jul/26</div></div>
+      </div>
+
+      <div class="g2 mb20">
+        <!-- Indicações recentes -->
+        <div class="card">
+          <div class="card-h">
+            <div><div class="card-title">👥 Minhas Indicações</div><div class="card-sub">Status em tempo real</div></div>
+            <span class="card-link" onclick="nav(document.querySelector('[onclick*=indicacoes]'),'indicacoes')">Ver todas ›</span>
+          </div>
+          <div class="card-b" style="padding:12px" id="homeIndList"></div>
+        </div>
+
+        <!-- Como funciona -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">💡 Como funciona sua comissão</div></div>
+          <div class="card-b">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+                <span style="font-size:22px;flex-shrink:0">1️⃣</span>
+                <div><div class="fs12 fw6 c-teal">Você indica</div><div class="fs11 c-muted" style="margin-top:2px">Cadastre um conhecido com interesse em comprar imóvel. Apresente os empreendimentos com os materiais de marketing.</div></div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+                <span style="font-size:22px;flex-shrink:0">2️⃣</span>
+                <div><div class="fs12 fw6 c-teal">Corretor fecha</div><div class="fs11 c-muted" style="margin-top:2px">Nosso corretor recebe o lead com status "Agente" e faz o processo de negociação e fechamento.</div></div>
+              </div>
+              <div style="display:flex;gap:12px;align-items:flex-start;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+                <span style="font-size:22px;flex-shrink:0">3️⃣</span>
+                <div><div class="fs12 fw6 c-teal">Você recebe</div><div class="fs11 c-muted" style="margin-top:2px">Após contrato assinado, sua comissão de <strong style="color:var(--gold)">0,5%</strong> sobre o valor do imóvel é creditada na sua conta bancária.</div></div>
+              </div>
+            </div>
+            <div style="margin-top:14px;padding:12px;background:var(--gold-dim);border:1px solid var(--gold-b);border-radius:8px;text-align:center">
+              <div class="fs11 c-gold fw6">Imóvel de R$480k → sua comissão: <span style="font-size:15px">R$2.400</span></div>
+              <div class="fs10 c-muted" style="margin-top:3px">Quanto mais você indica, mais você ganha!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dica da IA -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">🤖 Dica do Assistente IA</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=ia]'),'ia')">Abrir IA ›</span></div>
+        <div class="card-b">
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:14px;font-size:12px;line-height:1.7;color:var(--txt)">
+            💡 <strong style="color:var(--teal2)">Abordagem para o Cap. Henrique:</strong> Você já enviou os materiais do Ilha Mar Beach. Um bom próximo passo é perguntar se ele simulou o valor da parcela — a taxa <strong>8,5% a.a.</strong> pelo CFIAe torna a parcela muito menor do que ele imagina. Use o Assistente IA para calcular e enviar a simulação pronta no WhatsApp!
+          </div>
+          <div class="ai-chips" style="padding:10px 0 0">
+            <div class="ai-chip" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');setTimeout(()=>sendAiChip('Como abordar um amigo militar FAB para falar sobre imóveis sem parecer que estou vendendo algo?'),300)">Como abordar sem parecer vendedor</div>
+            <div class="ai-chip" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');setTimeout(()=>sendAiChip('Qual a melhor forma de apresentar o Ilha Mar Beach a um colega?'),300)">Apresentar Ilha Mar Beach</div>
+            <div class="ai-chip" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');setTimeout(()=>sendAiChip('Meu amigo disse que não é hora certa. O que respondo?'),300)">Objeção: não é hora certa</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ INDICAÇÕES ══ -->
+    <div class="panel" id="panel-indicacoes">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">👥 CRM do Agente</div>
+          <div class="ph-title">Minhas Indicações</div>
+          <div class="ph-sub">Acompanhe cada pessoa que você indicou e seu progresso no funil</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-teal btn" onclick="abrirNovaIndicacao()">+ Nova Indicação</button>
+        </div>
+      </div>
+
+      <!-- stats -->
+      <div id="indStats" class="sp mb20"></div>
+
+      <!-- toolbar -->
+      <div class="flex-bet mb14" style="gap:10px;flex-wrap:wrap">
+        <div class="flex" style="gap:8px">
+          <input class="field-inp" type="text" id="indBusca" placeholder="🔍 Buscar..." style="width:200px" oninput="renderIndicacoes()">
+          <select class="field-sel" id="indFiltStatus" style="width:auto" onchange="renderIndicacoes()">
+            <option value="">Todos os status</option>
+            <option value="agente">Indicado (agente)</option>
+            <option value="contato">Em contato</option>
+            <option value="proposta">Proposta enviada</option>
+            <option value="visita">Visita agendada</option>
+            <option value="fechado">Fechado ✅</option>
+            <option value="perdido">Perdido</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="indLista"></div>
+    </div>
+
+    <!-- ══ PIPELINE ══ -->
+    <div class="panel" id="panel-pipeline">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📊 Funil</div>
+          <div class="ph-title">Pipeline de Vendas</div>
+          <div class="ph-sub">Acompanhe em que etapa cada indicação sua está com o corretor</div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-teal mb20">
+        🔒 <strong>Privacidade:</strong> Você vê apenas as etapas do funil das suas próprias indicações. O corretor conduz a negociação, e o andamento é atualizado automaticamente aqui.
+      </div>
+
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">📉 Funil das Suas Indicações</div></div>
+          <div class="card-b" id="pipelineVisual"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">📋 Status Detalhado</div></div>
+          <div class="card-b" style="padding:0"><div id="pipelineTabela"></div></div>
+        </div>
+      </div>
+
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">📈 Histórico de Progresso</div></div>
+        <div class="card-b" id="pipelineHistorico"></div>
+      </div>
+    </div>
+
+    <!-- ══ EMPREENDIMENTOS ══ -->
+    <div class="panel" id="panel-empreendimentos">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🏗️ Portfólio</div>
+          <div class="ph-title">Empreendimentos Disponíveis</div>
+          <div class="ph-sub">Use estes empreendimentos para apresentar aos seus conhecidos</div>
+        </div>
+        <div class="ph-acts">
+          <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Filtrar..." style="width:180px" oninput="renderEmps()">
+        </div>
+      </div>
+      <div id="empGrid" class="emp-grid mb20"></div>
+    </div>
+
+    <!-- ══ MATERIAIS ══ -->
+    <div class="panel" id="panel-materiais">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📁 Marketing</div>
+          <div class="ph-title">Materiais de Apoio</div>
+          <div class="ph-sub">Folders, posts, scripts e apresentações criados pelo marketing para você compartilhar</div>
+        </div>
+      </div>
+
+      <div class="alert-box alert-teal mb20">
+        ✅ Use estes materiais com seus conhecidos no WhatsApp, Instagram ou pessoalmente. São materiais aprovados e prontos para usar!
+      </div>
+
+      <!-- Filtros por tipo -->
+      <div class="sp mb20" id="matFiltros"></div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px" id="matGrid"></div>
+
+      <!-- Mensagens prontas -->
+      <div class="sec mt20 mb14" style="margin-top:20px">Mensagens Prontas para WhatsApp</div>
+      <div id="waMsgs" style="display:flex;flex-direction:column;gap:8px"></div>
+    </div>
+
+    <!-- ══ ASSISTENTE IA ══ -->
+    <div class="panel" id="panel-ia">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🤖 Inteligência Artificial</div>
+          <div class="ph-title">Assistente IA do Agente</div>
+          <div class="ph-sub">Tire dúvidas, elabore abordagens e simule conversas antes de falar com seu conhecido</div>
+        </div>
+      </div>
+
+      <div class="g2 mb20" style="gap:20px">
+        <!-- Chat -->
+        <div style="grid-column:span 2">
+          <div class="ai-wrap">
+            <div class="card-h" style="border-bottom:1px solid var(--bdr);flex-shrink:0">
+              <div class="card-title">💬 Chat com o Assistente</div>
+              <div class="flex" style="gap:8px">
+                <span class="bdg bg" style="font-size:8px">● Online</span>
+                <button class="btn btn-sm" onclick="limparChat()">Limpar</button>
+              </div>
+            </div>
+            <div class="ai-msgs" id="aiMsgs"></div>
+            <div class="ai-chips" id="aiChipsIa">
+              <div class="ai-chip" onclick="sendAiChip('Como apresento o Orla Recreio Reserva para um amigo militar sem parecer que estou tentando vender algo?')">Como apresentar naturalmente</div>
+              <div class="ai-chip" onclick="sendAiChip('Qual o benefício mais impactante do financiamento CFIAe que devo mencionar primeiro?')">Melhor argumento CFIAe</div>
+              <div class="ai-chip" onclick="sendAiChip('Meu amigo disse que já tem casa. Como mostrar que ter um segundo imóvel como investimento faz sentido?')">Já tem imóvel próprio</div>
+              <div class="ai-chip" onclick="sendAiChip('Me dê um script de mensagem no WhatsApp para enviar para um conhecido que é capitão da FAB, interessado no Ilha Mar Beach')">Script WhatsApp para Capitão</div>
+              <div class="ai-chip" onclick="sendAiChip('Como funciona o financiamento CFIAe para militar? Explique de forma simples que eu possa repassar.')">Explicar CFIAe simplesmente</div>
+              <div class="ai-chip" onclick="sendAiChip('Meu amigo tem medo de se comprometer financeiramente. Como responder essa objeção?')">Medo de endividar</div>
+            </div>
+            <div class="ai-inp-row">
+              <textarea class="ai-inp" id="aiInp" placeholder="Pergunte como abordar, o que responder, como apresentar os imóveis..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg()}"></textarea>
+              <button class="ai-send" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎯 Abordagens por Perfil</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Script de abordagem para Sargento da FAB com renda entre R$6k e R$10k que ainda mora de aluguel')">✈️ Para Sargento / Suboficial</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Script de abordagem para Oficial da FAB (capitão, major) com interesse em imóvel de maior padrão')">🎖️ Para Oficial (Cap, Major)</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como abordar pensionista militar que recebe pensão mas ainda não usou o benefício habitacional')">🏛️ Para Pensionista</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como apresentar os imóveis para familiar (esposa ou filho) de militar que recebe salário de militar')">👨‍👩‍👧 Para Família de Militar</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🔄 Respostas para Objeções</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: não tenho dinheiro para a entrada')">💰 "Não tenho para a entrada"</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: vou esperar os preços caírem')">📉 "Vou esperar preços cair"</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: a parcela vai comprometer meu orçamento')">📋 "Vai pesar no orçamento"</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: preciso pensar mais, volto depois')">🤔 "Preciso pensar mais"</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">💬 Scripts Prontos</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Crie uma mensagem curta de WhatsApp para enviar o folder do Orla Recreio para um amigo sem parecer spam')">📱 Msg WhatsApp · Orla Recreio</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Crie uma mensagem curta de WhatsApp para enviar o folder do Ilha Mar Beach para um amigo')">📱 Msg WhatsApp · Ilha Mar</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como fazer o followup de alguém que demonstrou interesse mas sumiu?')">🔔 Follow-up de sumido</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como apresentar o benefício do FGTS para reduzir a entrada de forma fácil de entender?')">💰 Explicar FGTS na entrada</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ COMISSÕES ══ -->
+    <div class="panel" id="panel-comissoes">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">💰 Financeiro</div>
+          <div class="ph-title">Minhas Comissões</div>
+          <div class="ph-sub">Acompanhe seus ganhos em tempo real</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi green"><div class="kpi-lbl">Ganho Total</div><div class="kpi-val">R$2.400</div><div class="kpi-dlt up">▲ 1 venda convertida</div></div>
+        <div class="kpi amber"><div class="kpi-lbl">A Receber</div><div class="kpi-val">R$8.000</div><div class="kpi-dlt fl">→ 2 em negociação</div></div>
+        <div class="kpi teal"><div class="kpi-lbl">Projeção (3 ind.)</div><div class="kpi-val">R$10.400</div><div class="kpi-dlt fl">→ se todas fecharem</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">% por Venda</div><div class="kpi-val">0,5%</div><div class="kpi-dlt fl">→ do valor do imóvel</div></div>
+      </div>
+
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">💳 Extrato de Comissões</div></div>
+          <div class="card-b" style="padding:0">
+            <div class="comis-card" style="margin:12px">
+              <div class="comis-top">
+                <div><div class="comis-nome">✅ Ten. Marco Pereira</div><div class="comis-emp">Ilha Mar Beach 2 · CURY · R$320k</div></div>
+                <div style="text-align:right"><div class="comis-val">R$1.600</div><div class="comis-status">Recebido em Jan/26</div></div>
+              </div>
+              <div class="sp"><span class="bdg bg">Pago</span><span class="bdg bz">Depósito PIX</span></div>
+            </div>
+            <div class="comis-card" style="margin:0 12px 12px">
+              <div class="comis-top">
+                <div><div class="comis-nome">🔄 Cap. Henrique Santos</div><div class="comis-emp">Ilha Mar Beach · CURY · R$480k</div></div>
+                <div style="text-align:right"><div class="comis-val c-amber">R$2.400</div><div class="comis-status" style="color:#FCD34D">Previsto Jul/26</div></div>
+              </div>
+              <div class="sp"><span class="bdg ba">Aguardando contrato</span></div>
+            </div>
+            <div class="comis-card" style="margin:0 12px 12px">
+              <div class="comis-top">
+                <div><div class="comis-nome">⏳ Sgt. Carlos Alves</div><div class="comis-emp">Orla Recreio Reserva · RIVA · R$520k</div></div>
+                <div style="text-align:right"><div class="comis-val c-muted">R$2.600</div><div class="comis-status">Em negociação · sem previsão</div></div>
+              </div>
+              <div class="sp"><span class="bdg bt">Em negociação</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">📊 Projeção por Indicação</div></div>
+          <div class="card-b">
+            <div class="prog-w"><div class="prog-m"><span class="fw6">Cap. Henrique · Ilha Mar</span><span class="mono fs10 c-amber">R$2.400</span></div><div class="prog-bar"><div class="pf pf-amber" style="width:90%"></div></div></div>
+            <div class="prog-w"><div class="prog-m"><span class="fw6">Sgt. Carlos · Orla Recreio</span><span class="mono fs10 c-muted">R$2.600</span></div><div class="prog-bar"><div class="pf pf-teal" style="width:40%"></div></div></div>
+            <div style="margin-top:14px;padding:12px;background:var(--gold-dim);border:1px solid var(--gold-b);border-radius:8px">
+              <div class="fs11 fw6 c-gold">💡 Quanto mais indicações, mais você ganha</div>
+              <div class="fs10 c-muted" style="margin-top:4px">Para cada R$400k de imóvel vendido → <strong style="color:#fff">R$2.000</strong> para você. Sem limite de indicações!</div>
+            </div>
+            <div style="margin-top:12px">
+              <div class="field-lbl">Dados bancários cadastrados</div>
+              <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:12px;font-size:12px">
+                <div class="flex-bet"><span class="c-muted">Banco</span><span id="perBanco">Caixa Econômica</span></div>
+                <div class="flex-bet" style="margin-top:4px"><span class="c-muted">Conta</span><span id="perConta">AG 0001 · CC 12345-6</span></div>
+                <div class="flex-bet" style="margin-top:4px"><span class="c-muted">Pix</span><span id="perPix">CPF cadastrado</span></div>
+              </div>
+              <button class="btn btn-sm" style="margin-top:8px" onclick="nav(document.querySelector('[onclick*=perfil]'),'perfil')">✏️ Atualizar dados bancários</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PERFIL ══ -->
+    <div class="panel" id="panel-perfil">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">👤 Minha Conta</div>
+          <div class="ph-title">Meu Perfil de Agente</div>
+          <div class="ph-sub">Gerencie seus dados pessoais, documentos e dados bancários</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-teal btn" onclick="salvarPerfil()">💾 Salvar alterações</button>
+        </div>
+      </div>
+
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">👤 Dados Pessoais</div></div>
+          <div class="card-b">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bdr)">
+              <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff" id="perfAvatar">JA</div>
+              <div>
+                <div class="fs14 fw6" id="perfNomeDisplay">João Agente</div>
+                <div class="fs11 c-muted" id="perfEmailDisplay">joao@email.com</div>
+                <div style="margin-top:4px"><span class="bdg bg">✅ Aprovado · Agente Parceiro</span></div>
+              </div>
+            </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Nome completo</div><input class="field-inp" id="perfNome" value="João Agente da Silva"></div>
+              <div><div class="field-lbl">CPF</div><input class="field-inp" id="perfCpf" value="123.456.789-00" readonly style="opacity:.5"></div>
+            </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">E-mail</div><input class="field-inp" id="perfEmail" value="agente@wal.com.br"></div>
+              <div><div class="field-lbl">WhatsApp</div><input class="field-inp" id="perfTel" value="(21) 99999-9999"></div>
+            </div>
+            <div class="field-row mb14">
+              <div><div class="field-lbl">Profissão / Vínculo</div>
+                <select class="field-sel" id="perfProf">
+                  <option selected>Militar da Aeronáutica (FAB)</option>
+                  <option>Militar do Exército</option><option>Militar da Marinha</option>
+                  <option>Servidor Civil Federal</option><option>Pensionista Militar</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row">
+              <div><div class="field-lbl">Nova Senha (deixe em branco para manter)</div><input class="field-inp" type="password" id="perfSenha" placeholder="Nova senha..."></div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card mb14">
+            <div class="card-h"><div class="card-title">💳 Dados Bancários</div></div>
+            <div class="card-b">
+              <div class="field-row field-2 mb14">
+                <div><div class="field-lbl">Banco</div><input class="field-inp" id="perfBancoEdit" value="Caixa Econômica Federal"></div>
+                <div><div class="field-lbl">Agência</div><input class="field-inp" id="perfAgEdit" value="0001"></div>
+              </div>
+              <div class="field-row field-2 mb14">
+                <div><div class="field-lbl">Conta</div><input class="field-inp" id="perfCtEdit" value="12345-6"></div>
+                <div><div class="field-lbl">Tipo</div>
+                  <select class="field-sel" id="perfTipoCtEdit"><option selected>Conta Corrente</option><option>Conta Poupança</option><option>Pix (CPF)</option></select>
+                </div>
+              </div>
+              <div class="field-row">
+                <div><div class="field-lbl">Chave Pix</div><input class="field-inp" id="perfPixEdit" value="123.456.789-00"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div class="card-title">📄 Documentos</div></div>
+            <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
+              <div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                <div class="flex" style="gap:8px"><span style="font-size:18px">📄</span><div><div class="fs12 fw6">RG / CNH</div><div class="fs10 c-muted">Enviado em Jan/26</div></div></div>
+                <span class="bdg bg">Aprovado</span>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                <div class="flex" style="gap:8px"><span style="font-size:18px">🏠</span><div><div class="fs12 fw6">Comprovante de Residência</div><div class="fs10 c-muted">Enviado em Jan/26</div></div></div>
+                <span class="bdg bg">Aprovado</span>
+              </div>
+              <div style="padding:10px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:7px">
+                <div class="fs11 c-amber fw6">📋 Contrato de Parceria</div>
+                <div class="fs10 c-muted" style="margin-top:2px">Assine digitalmente para habilitar o recebimento de comissões</div>
+                <button class="btn-teal btn btn-sm" style="margin-top:8px" onclick="toast('Link de assinatura enviado para seu e-mail!','green')">✍️ Assinar digitalmente</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL INDICAÇÃO -->
+<div class="modal-ov" id="modalInd">
+  <div class="modal-box">
+    <div class="modal-h">
+      <div class="modal-title" id="modalIndTitle">Nova Indicação</div>
+      <button class="modal-close" onclick="fecharModal('modalInd')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-box alert-teal mb14">
+        🤝 <strong>Importante:</strong> Ao cadastrar uma indicação, nosso corretor receberá esse lead com o marcador <strong>"via Agente"</strong> e saberá que você fez a apresentação inicial. Você acompanha o progresso aqui em tempo real.
+      </div>
+      <div class="f-sec mb14">Dados do Indicado</div>
+      <div class="field-row field-2 mb14">
+        <div><div class="field-lbl">Nome completo *</div><input class="field-inp" id="indNome" placeholder="João da Silva"></div>
+        <div><div class="field-lbl">Telefone / WhatsApp *</div><input class="field-inp" id="indTel" placeholder="(21) 99999-9999"></div>
+      </div>
+      <div class="field-row field-2 mb14">
+        <div><div class="field-lbl">E-mail</div><input class="field-inp" id="indEmail" type="email" placeholder="joao@email.com"></div>
+        <div><div class="field-lbl">Posto / Profissão</div>
+          <select class="field-sel" id="indPosto">
+            <option value="">Selecione...</option>
+            <option>Cabo</option><option>Sargento</option><option>Suboficial</option>
+            <option>Aspirante / Tenente</option><option>Capitão</option>
+            <option>Major / Tenente-Coronel</option><option>Coronel</option>
+            <option>Servidor Civil</option><option>Pensionista</option><option>Outro</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row field-2 mb14">
+        <div><div class="field-lbl">Empreendimento de interesse</div>
+          <select class="field-sel" id="indEmp">
+            <option>Orla Recreio Reserva (RIVA · Recreio RJ)</option>
+            <option>Ilha Mar Beach (CURY · Barra RJ)</option>
+            <option>ICONYC by YOO (EMCAMP · Barra RJ)</option>
+            <option>Ilha Mar Beach 2 (CURY · Barra RJ)</option>
+            <option>Em aberto · comparando opções</option>
+          </select>
+        </div>
+        <div><div class="field-lbl">Orçamento estimado</div>
+          <select class="field-sel" id="indOrcamento">
+            <option>Até R$300k</option>
+            <option>R$300k – R$500k</option>
+            <option>R$500k – R$800k</option>
+            <option>Acima de R$800k</option>
+            <option>Não sei ainda</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-sec mb14">Contexto da Indicação</div>
+      <div class="field-row mb14">
+        <div><div class="field-lbl">Qual o grau de interesse demonstrado? *</div>
+          <select class="field-sel" id="indInteresse">
+            <option value="alto">🔥 Alto · perguntou detalhes, quer saber mais</option>
+            <option value="medio">👍 Médio · aberto, mas ainda avaliando</option>
+            <option value="baixo">🤔 Baixo · mencionou que "um dia" quer comprar</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row mb14">
+        <div><div class="field-lbl">O que você já apresentou / conversou com ele?</div>
+          <textarea class="field-ta" id="indObs" placeholder="Ex: Mostrei o folder do Orla Recreio pelo WhatsApp. Ficou interessado no apartamento de 3 quartos. Está morando de aluguel e quer sair no próximo ano..."></textarea>
+        </div>
+      </div>
+      <div class="field-row">
+        <div><div class="field-lbl">Qual material você enviou ou vai enviar?</div>
+          <select class="field-sel" id="indMaterial">
+            <option value="">Nenhum ainda</option>
+            <option>Folder Orla Recreio Reserva</option>
+            <option>Folder Ilha Mar Beach</option>
+            <option>Folder ICONYC by YOO</option>
+            <option>Post Instagram WAL</option>
+            <option>Simulação de financiamento</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-red btn-sm" id="indBtnExcluir" style="display:none;margin-right:auto" onclick="excluirIndicacao()">🗑 Excluir</button>
+      <button class="btn" onclick="fecharModal('modalInd')">Cancelar</button>
+      <button class="btn-teal btn" onclick="salvarIndicacao()">🤝 Enviar Indicação ao Corretor</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE INDICAÇÃO -->
+<div class="modal-ov" id="modalDetInd">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-h">
+      <div class="modal-title" id="detIndTitle">Acompanhamento</div>
+      <button class="modal-close" onclick="fecharModal('modalDetInd')">×</button>
+    </div>
+    <div class="modal-body" id="detIndBody"></div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalDetInd')">Fechar</button>
+      <button class="btn-teal btn" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');fecharModal('modalDetInd')">🤖 Pedir ajuda à IA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MATERIAL -->
+<div class="modal-ov" id="modalMat">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-h">
+      <div class="modal-title" id="matModalTitle">Material</div>
+      <button class="modal-close" onclick="fecharModal('modalMat')">×</button>
+    </div>
+    <div class="modal-body" id="matModalBody"></div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalMat')">Fechar</button>
+      <button class="btn-gold" onclick="toast('📋 Link copiado! Compartilhe com seu indicado.','green');fecharModal('modalMat')">📋 Copiar link para compartilhar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ DATA ═══ */
+const USERS = {
+  'agente@wal.com.br':  { senha:'1234', status:'aprovado',  nome:'João Agente da Silva', iniciais:'JA', prof:'Militar da Aeronáutica (FAB)' },
+  'novo@wal.com.br':    { senha:'1234', status:'pendente',   nome:'Carlos Candidato',     iniciais:'CC', prof:'Servidor Civil Federal' },
+};
+
+let _user = null;
+let _editIndId = null;
+
+let _indicacoes = [
+  { id:'i1', nome:'Cap. Henrique Santos', tel:'(21)98765-4321', email:'henrique@fab.mil.br', posto:'Capitão', emp:'Ilha Mar Beach (CURY · Barra RJ)', orcamento:'R$300k–R$500k', interesse:'alto', obs:'Apresentei o folder do Ilha Mar Beach. Ficou muito interessado. Mora de aluguel, quer sair no próximo ano.', material:'Folder Ilha Mar Beach', status:'proposta', criado:'2026-06-01', historico:[
+    { tipo:'📋', nota:'Proposta enviada pelo corretor. Aguarda decisão.', data:'2026-06-20' },
+    { tipo:'📞', nota:'Corretor ligou e confirmou interesse. Quer ver o apartamento modelo.', data:'2026-06-15' },
+    { tipo:'🤝', nota:'Indicação recebida pelo corretor. Lead marcado como "via Agente".', data:'2026-06-01' },
+  ]},
+  { id:'i2', nome:'Sgt. Carlos Alves', tel:'(21)97654-3210', email:'', posto:'Sargento', emp:'Orla Recreio Reserva (RIVA · Recreio RJ)', orcamento:'R$300k–R$500k', interesse:'medio', obs:'Mandei o post do Instagram. Perguntou sobre o prazo de entrega. Quer imóvel próximo ao quartel.', material:'Post Instagram WAL', status:'contato', criado:'2026-06-10', historico:[
+    { tipo:'📞', nota:'Corretor entrou em contato. Lead confirmou interesse.', data:'2026-06-12' },
+    { tipo:'🤝', nota:'Indicação recebida pelo corretor.', data:'2026-06-10' },
+  ]},
+  { id:'i3', nome:'Ten. Marco Pereira', tel:'(21)96543-2100', email:'marco@fab.mil.br', posto:'Tenente', emp:'Ilha Mar Beach 2 (CURY · Barra RJ)', orcamento:'Até R$300k', interesse:'alto', obs:'Fechou! Primeiro imóvel via CFIAe. Muito satisfeito com o processo.', material:'Simulação de financiamento', status:'fechado', criado:'2026-01-10', historico:[
+    { tipo:'✅', nota:'Contrato assinado! Venda concluída com sucesso.', data:'2026-01-30' },
+    { tipo:'📋', nota:'Proposta aceita. Documentos enviados para a CURY.', data:'2026-01-25' },
+    { tipo:'🏠', nota:'Visita ao imóvel realizada com o corretor.', data:'2026-01-18' },
+    { tipo:'📞', nota:'Corretor apresentou proposta formal.', data:'2026-01-15' },
+    { tipo:'🤝', nota:'Indicação recebida pelo corretor.', data:'2026-01-10' },
+  ]},
+];
+
+const EMPREENDIMENTOS = [
+  { id:'e1', nome:'Orla Recreio Reserva', construtora:'RIVA', cluster:'RJ', bairro:'Recreio dos Bandeirantes', emoji:'🏖️', status:'Lançamento', disponivel:42, entrega:'Dez/2027', ticket:'R$390k–R$620k', destaque:'Vista mar, cobertura duplex', pontos:['Financiamento CFIAe 8,5%a.a.','Localização privilegiada no Recreio','Cobertura duplex disponível','Lazer completo · condomínio fechado'] },
+  { id:'e2', nome:'Ilha Mar Beach & Home', construtora:'CURY', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🌊', status:'Em construção', disponivel:28, entrega:'Jun/2028', ticket:'R$320k–R$520k', destaque:'Frente ao mar, lazer completo', pontos:['Entrada a partir de 10%','A 200m da praia','Studios e apartamentos 2 e 3 quartos','FGTS aceito na entrada'] },
+  { id:'e3', nome:'ICONYC by YOO', construtora:'EMCAMP', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🏙️', status:'Lançamento', disponivel:15, entrega:'Mar/2028', ticket:'R$480k–R$1,2M', destaque:'Assinado YOO Design, studios luxo', pontos:['Design internacional YOO','Localização Barra da Tijuca','Unidades exclusivas em número limitado','Investimento e moradia'] },
+  { id:'e4', nome:'Ilha Mar Beach 2', construtora:'CURY', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🌴', status:'Pré-lançamento', disponivel:35, entrega:'Dez/2028', ticket:'R$280k–R$420k', destaque:'Primeira opção para militares FAB', pontos:['Ticket menor · maior acessibilidade','Ideal para 1º imóvel via CFIAe','Entrega facilitada para FAB','Mesmo padrão CURY Ilha Mar'] },
+];
+
+const MATERIAIS = [
+  { id:'m1', nome:'Folder Orla Recreio Reserva', tipo:'Folder PDF', emoji:'🏖️', emp:'Orla Recreio Reserva', novo:true,  descricao:'Apresentação completa do empreendimento com planta, localização, diferenciais e tabela de preços. Pronto para enviar no WhatsApp.' },
+  { id:'m2', nome:'Folder Ilha Mar Beach & Home', tipo:'Folder PDF', emoji:'🌊', emp:'Ilha Mar Beach',       novo:true,  descricao:'Folder completo do Ilha Mar com fotos, plantas e condições exclusivas para militares FAB. Ideal para primeiro contato.' },
+  { id:'m3', nome:'Folder ICONYC by YOO',         tipo:'Folder PDF', emoji:'🏙️', emp:'ICONYC by YOO',        novo:true,  descricao:'Apresentação luxo do ICONYC com assinatura YOO Design. Para indicados de maior poder aquisitivo.' },
+  { id:'m4', nome:'Post Instagram · Campanha Jul', tipo:'Post Social', emoji:'📸', emp:'Todos',               novo:false, descricao:'Post já formatado para você repostar ou encaminhar no WhatsApp. Fala sobre as condições exclusivas para militares FAB.' },
+  { id:'m5', nome:'Simulador CFIAe · Explicação',  tipo:'Vídeo',      emoji:'🎬', emp:'Todos',               novo:false, descricao:'Vídeo curto explicando como funciona o financiamento CFIAe de forma simples. Perfeito para enviar antes da conversa.' },
+  { id:'m6', nome:'Comparativo dos Empreendimentos',tipo:'Planilha',  emoji:'📊', emp:'Todos',               novo:false, descricao:'Comparativo lado a lado dos 4 empreendimentos com localização, preço, prazo e diferenciais. Ajuda seu indicado a decidir.' },
+];
+
+const WA_MSGS = [
+  { emoji:'🏖️', emp:'Orla Recreio Reserva', msg:'Oi [NOME]! Lembrei de você quando vi isso aqui. A WAL Consultoria tem um lançamento no Recreio que é exclusivo para militares FAB — taxa de financiamento de 8,5%a.a., muito abaixo do mercado. Posso te mandar o folder?' },
+  { emoji:'🌊', emp:'Ilha Mar Beach',       msg:'[NOME], preciso te mostrar uma coisa. Um empreendimento a 200m da praia na Barra com condições especiais de financiamento pelo CFIAe. Com o teu FGTS, a entrada cai bastante. Vale dar uma olhada!' },
+  { emoji:'🏙️', emp:'ICONYC by YOO',       msg:'Ei [NOME], um projeto de luxo na Barra assinado por um designer internacional — e com financiamento exclusivo para militares. Número de unidades bem limitado. Quer que eu te passe os detalhes?' },
+  { emoji:'🤝', emp:'Geral',               msg:'[NOME], sei que você pensa em comprar imóvel. Tem uma consultoria especializada em imóveis para militares FAB que pode te ajudar muito — taxa exclusiva, menos burocracia e consultor especializado. Quer que eu te apresente?' },
+];
+
+const AI_SYSTEM_AGENTE = `Você é o Assistente IA da WAL Consultoria Imobiliária, ajudando AGENTES PARCEIROS — pessoas comuns (não corretores profissionais) que indicam amigos e conhecidos para comprar imóveis.
+
+Seu papel é ajudar o agente a:
+1. Abordar seus conhecidos de forma natural, sem parecer vendedor
+2. Responder dúvidas sobre os empreendimentos e financiamento CFIAe
+3. Superar objeções de forma amigável
+4. Criar mensagens de WhatsApp e conversas persuasivas mas honestas
+
+Empreendimentos: Orla Recreio Reserva (RIVA, Recreio RJ), Ilha Mar Beach (CURY, Barra RJ), ICONYC by YOO (EMCAMP), Ilha Mar Beach 2 (CURY).
+CFIAe FAB: 8,5%a.a.+TR, até 35 anos, até 90% financiado, FGTS aceito.
+
+Seja natural, empático, direto. Dê respostas práticas que o agente possa usar imediatamente. O agente NÃO é corretor — ajude-o a ter uma conversa de amigo para amigo, não de vendedor.`;
+
+let _aiHistory = [];
+
+/* ═══ UTILS ═══ */
+function hoje(d=0){const dt=new Date();dt.setDate(dt.getDate()+d);return dt.toISOString().split('T')[0]}
+function fmtDt(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
+function toast(msg,tipo=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(tipo?' t-'+tipo:'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='',4000);
+}
+function fecharModal(id){document.getElementById(id).classList.remove('show')}
+function abrirModal(id){document.getElementById(id).classList.add('show')}
+
+/* ═══ AUTH ═══ */
+function switchAuthTab(tab){
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='login'?0:1)));
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('tabCadastro').classList.toggle('active',tab==='cadastro');
+}
+function doLogin(){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const senha=document.getElementById('loginSenha').value;
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+  const u=USERS[email];
+  if(!u||u.senha!==senha){err.style.display='block';return}
+  _user={...u,email};
+  localStorage.setItem('wal_agente_sess',JSON.stringify({email,status:u.status}));
+  iniciarApp();
+}
+function doCadastro(){
+  const nome=document.getElementById('cadNome').value.trim();
+  const email=document.getElementById('cadEmail').value.trim();
+  const tel=document.getElementById('cadTel').value.trim();
+  const cpf=document.getElementById('cadCpf').value.trim();
+  const s1=document.getElementById('cadSenha').value;
+  const s2=document.getElementById('cadSenha2').value;
+  const termos=document.getElementById('cadTermos').checked;
+  const err=document.getElementById('cadErr');
+  const ok=document.getElementById('cadOk');
+  err.style.display='none'; ok.style.display='none';
+  if(!nome||!email||!tel||!cpf||!s1||!s2||!termos){err.textContent='Preencha todos os campos obrigatórios e aceite os termos.';err.style.display='block';return}
+  if(s1!==s2){err.textContent='As senhas não coincidem.';err.style.display='block';return}
+  if(s1.length<6){err.textContent='A senha deve ter ao menos 6 caracteres.';err.style.display='block';return}
+  // Simula envio
+  ok.style.display='block';
+  setTimeout(()=>{
+    ['cadNome','cadCpf','cadEmail','cadTel','cadSenha','cadSenha2','cadMotivacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    document.getElementById('cadTermos').checked=false;
+  },2000);
+}
+function handleUpload(input,nomeId){
+  const f=input.files[0];if(!f)return;
+  document.getElementById(nomeId).textContent='✅ '+f.name;
+}
+function doLogout(){
+  localStorage.removeItem('wal_agente_sess');
+  _user=null;
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('pendScreen').style.display='none';
+  document.getElementById('appWrap').style.display='none';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  const s=localStorage.getItem('wal_agente_sess');
+  if(s){try{const d=JSON.parse(s);const u=USERS[d.email];if(u&&u.senha){_user={...u,email:d.email};iniciarApp();return}}catch(e){}}
+});
+
+/* ═══ INIT APP ═══ */
+function iniciarApp(){
+  document.getElementById('authScreen').style.display='none';
+  if(_user.status==='pendente'){
+    document.getElementById('pendScreen').style.display='flex';
+    return;
+  }
+  document.getElementById('appWrap').style.display='flex';
+  // preencher sidebar
+  const primeiroNome=_user.nome.split(' ')[0];
+  const ini=_user.iniciais||(_user.nome.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase());
+  ['sbAv','sbAvFoot','perfAvatar'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ini});
+  document.getElementById('sbNome').textContent=_user.nome;
+  document.getElementById('sbNomeFoot').textContent=_user.nome;
+  document.getElementById('sbRole').textContent='Agente Parceiro · '+_user.prof.split(' ')[0];
+  document.getElementById('phNome').textContent=primeiroNome;
+  document.getElementById('perfNomeDisplay').textContent=_user.nome;
+  document.getElementById('perfEmailDisplay').textContent=_user.email;
+  document.getElementById('perfNome').value=_user.nome;
+  document.getElementById('perfEmail').value=_user.email;
+  // data
+  const d=new Date();
+  const dias=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('phData').textContent=`${dias[d.getDay()]}, ${d.getDate()} de ${['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][d.getMonth()]} de ${d.getFullYear()}`;
+  // clock
+  tick();setInterval(tick,1000);
+  // render
+  renderHomeInd();atualizarPills();
+  renderIndicacoes();indStats();
+  renderPipeline();
+  renderEmps();
+  renderMateriais();
+  renderComissBadge();
+  // IA welcome
+  addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Apresentar os imóveis para seus conhecidos de forma natural\n• Responder objeções como amigo, não como vendedor\n• Criar mensagens de WhatsApp prontas para usar\n• Explicar o financiamento CFIAe de forma simples\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
+}
+function tick(){const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');const el=document.getElementById('clock');if(el)el.textContent=`${h}:${m}:${s} BRT`}
+
+/* ═══ NAV ═══ */
+const TITLES={home:'Meu Painel',indicacoes:'Minhas Indicações',pipeline:'Pipeline de Vendas',empreendimentos:'Empreendimentos',materiais:'Materiais de Apoio',ia:'Assistente IA',comissoes:'Comissões',perfil:'Meu Perfil'};
+function nav(el,id){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el?.classList)el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('panel-'+id);if(t)t.classList.add('active');
+  document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+}
+
+/* ═══ INDICAÇÕES ═══ */
+function atualizarPills(){
+  const ativas=_indicacoes.filter(i=>i.status!=='perdido').length;
+  const conv=_indicacoes.filter(i=>i.status==='fechado').length;
+  const comisTotal=conv*2400;// simulado
+  document.getElementById('sbIndicacoes').textContent=ativas;
+  document.getElementById('sbConversoes').textContent=conv;
+  document.getElementById('sbComis').textContent='R$'+(comisTotal/1000).toFixed(0)+'k';
+  document.getElementById('sbBdgInd').textContent=ativas;
+  document.getElementById('kpiInd').textContent=ativas;
+  document.getElementById('kpiNeg').textContent=_indicacoes.filter(i=>['contato','proposta','visita'].includes(i.status)).length;
+  document.getElementById('kpiVend').textContent=conv;
+  document.getElementById('kpiComis').textContent='R$'+((conv*2400+5600)/1000).toFixed(0)+'k';
+  renderComissBadge();
+}
+function renderComissBadge(){
+  const nd=document.getElementById('notifDot');
+  if(nd) nd.style.display=_indicacoes.filter(i=>i.status==='agente').length?'':'none';
+}
+function renderHomeInd(){
+  const list=_indicacoes.filter(i=>i.status!=='perdido').slice(0,3);
+  document.getElementById('homeIndList').innerHTML=list.map(i=>miniIndCard(i)).join('')||'<div class="fs12 c-muted">Nenhuma indicação ativa.</div>';
+}
+function miniIndCard(i){
+  return`<div class="lead-card" onclick="abrirDetalheInd('${i.id}')">
+    <div class="lc-top">
+      <div><div class="lc-name">${i.nome}</div><div class="lc-sub">${i.posto||''} · ${i.emp.split('(')[0].trim()}</div></div>
+      <span class="bdg ${statusIndBdg(i.status)}">${statusIndLabel(i.status)}</span>
+    </div>
+    <div class="lc-prog">
+      <div class="lc-prog-lbl"><span>Progresso no funil</span><span>${statusIndLabel(i.status)}</span></div>
+      <div class="prog-bar"><div class="pf pf-teal" style="width:${statusIndPct(i.status)}%"></div></div>
+    </div>
+  </div>`;
+}
+function statusIndBdg(s){return{agente:'bt',contato:'bt',proposta:'bp',visita:'bg',fechado:'bg',perdido:'br'}[s]||'bz'}
+function statusIndLabel(s){return{agente:'Enviado ao corretor',contato:'Em contato',proposta:'Proposta enviada',visita:'Visita agendada',fechado:'✅ Venda fechada!',perdido:'Perdido'}[s]||s}
+function statusIndPct(s){return{agente:20,contato:35,proposta:55,visita:75,fechado:100,perdido:0}[s]||10}
+
+function indStats(){
+  const stats=[
+    {label:'Todos',val:_indicacoes.length,fil:''},
+    {label:'Enviados',val:_indicacoes.filter(i=>i.status==='agente').length,fil:'agente'},
+    {label:'Em contato',val:_indicacoes.filter(i=>i.status==='contato').length,fil:'contato'},
+    {label:'Proposta',val:_indicacoes.filter(i=>i.status==='proposta').length,fil:'proposta'},
+    {label:'Fechados',val:_indicacoes.filter(i=>i.status==='fechado').length,fil:'fechado'},
+  ];
+  const cur=document.getElementById('indFiltStatus').value;
+  document.getElementById('indStats').innerHTML=stats.map(s=>`
+    <div style="background:var(--card2);border:1px solid ${s.fil===cur?'var(--teal2)':'var(--bdr)'};border-radius:8px;padding:10px 16px;cursor:pointer;text-align:center;min-width:80px;transition:all .15s" onclick="document.getElementById('indFiltStatus').value='${s.fil}';renderIndicacoes()">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:${s.fil===cur?'var(--teal2)':'#fff'}">${s.val}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">${s.label}</div>
+    </div>`).join('');
+}
+function renderIndicacoes(){
+  indStats();
+  const busca=(document.getElementById('indBusca')?.value||'').toLowerCase();
+  const st=document.getElementById('indFiltStatus')?.value||'';
+  let list=_indicacoes.filter(i=>{
+    if(st&&i.status!==st)return false;
+    if(busca&&!i.nome.toLowerCase().includes(busca)&&!(i.emp||'').toLowerCase().includes(busca))return false;
+    return true;
+  });
+  const el=document.getElementById('indLista');
+  if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma indicação encontrada.</div>`;return}
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Indicado</th><th>Posto</th><th>Empreendimento</th><th>Interesse</th><th>Status</th><th>Cadastro</th><th>Progresso</th><th></th></tr></thead><tbody>${list.map(i=>`<tr class="clk" onclick="abrirDetalheInd('${i.id}')">
+    <td><div class="fw6">${i.nome}</div><div class="fs10 c-muted">${i.tel||''}</div></td>
+    <td><span class="bdg bz fs10">${i.posto||'—'}</span></td>
+    <td class="fs11">${i.emp.split('(')[0].trim()}</td>
+    <td>${interBadge(i.interesse)}</td>
+    <td><span class="bdg ${statusIndBdg(i.status)}">${statusIndLabel(i.status)}</span></td>
+    <td class="mono fs10 c-muted">${fmtDt(i.criado)}</td>
+    <td style="min-width:100px"><div class="prog-bar"><div class="pf pf-teal" style="width:${statusIndPct(i.status)}%"></div></div></td>
+    <td><button class="btn btn-sm btn-teal" onclick="event.stopPropagation();abrirDetalheInd('${i.id}')">Ver ›</button></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+function interBadge(v){return v==='alto'?'<span style="color:#F87171;font-size:10px;font-weight:700">🔥 Alto</span>':v==='medio'?'<span style="color:#FCD34D;font-size:10px;font-weight:700">👍 Médio</span>':'<span style="color:var(--muted);font-size:10px;font-weight:700">🤔 Baixo</span>'}
+
+function abrirNovaIndicacao(){
+  _editIndId=null;
+  document.getElementById('modalIndTitle').textContent='Nova Indicação';
+  document.getElementById('indBtnExcluir').style.display='none';
+  ['indNome','indTel','indEmail','indObs'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  ['indPosto','indEmp','indOrcamento','indInteresse','indMaterial'].forEach(id=>{const e=document.getElementById(id);if(e)e.selectedIndex=0});
+  abrirModal('modalInd');
+}
+function salvarIndicacao(){
+  const nome=document.getElementById('indNome').value.trim();
+  const tel=document.getElementById('indTel').value.trim();
+  if(!nome||!tel){toast('Nome e telefone são obrigatórios.','');return}
+  const dados={nome,tel,email:document.getElementById('indEmail').value,posto:document.getElementById('indPosto').value,emp:document.getElementById('indEmp').value,orcamento:document.getElementById('indOrcamento').value,interesse:document.getElementById('indInteresse').value,obs:document.getElementById('indObs').value,material:document.getElementById('indMaterial').value,status:'agente',criado:hoje(),historico:[{tipo:'🤝',nota:`Indicado por agente. Material enviado: ${document.getElementById('indMaterial').value||'nenhum'}.`,data:hoje()}]};
+  if(_editIndId){
+    const idx=_indicacoes.findIndex(i=>i.id===_editIndId);
+    if(idx>=0)_indicacoes[idx]={..._indicacoes[idx],...dados,status:_indicacoes[idx].status,historico:_indicacoes[idx].historico};
+    toast(`✅ Indicação de "${nome}" atualizada!`,'green');
+  } else {
+    _indicacoes.unshift({id:'i'+Date.now(),...dados});
+    toast(`✅ Indicação de "${nome}" enviada ao corretor!`,'green');
+  }
+  fecharModal('modalInd');renderIndicacoes();renderHomeInd();atualizarPills();renderPipeline();
+}
+function excluirIndicacao(){
+  const i=_indicacoes.find(x=>x.id===_editIndId);if(!i)return;
+  if(!confirm(`Remover indicação de "${i.nome}"?`))return;
+  _indicacoes=_indicacoes.filter(x=>x.id!==_editIndId);
+  fecharModal('modalInd');renderIndicacoes();renderHomeInd();atualizarPills();renderPipeline();
+  toast('Indicação removida.','');
+}
+
+function abrirDetalheInd(id){
+  const i=_indicacoes.find(x=>x.id===id);if(!i)return;
+  _editIndId=id;
+  document.getElementById('detIndTitle').textContent=i.nome;
+  const tl=i.historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo}</div><div><div class="tl-tipo">Atualização</div><div class="tl-data">${fmtDt(h.data)}</div><div class="tl-nota">${h.nota}</div></div></div>`).join('');
+  document.getElementById('detIndBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
+      <div>
+        <div class="flex-bet mb14"><div><div class="fs14 fw6">${i.nome}</div><div class="fs11 c-muted">${i.posto||''} · ${i.tel}</div></div><span class="bdg ${statusIndBdg(i.status)}">${statusIndLabel(i.status)}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Empreendimento</div><div class="fs12 fw6">${i.emp.split('(')[0].trim()}</div></div>
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Orçamento</div><div class="fs12 fw6">${i.orcamento}</div></div>
+        </div>
+        <div class="sec mb14">Contexto da indicação</div>
+        <div style="font-size:12px;line-height:1.7;color:var(--txt);background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:12px;margin-bottom:14px">${i.obs||'Sem observações.'}</div>
+        <div style="font-size:12px;margin-bottom:6px;color:var(--muted)">Progresso no funil</div>
+        <div class="prog-bar" style="height:8px;margin-bottom:4px"><div class="pf pf-teal" style="width:${statusIndPct(i.status)}%"></div></div>
+        <div class="fs10 c-teal">${statusIndLabel(i.status)}</div>
+        ${i.status!=='fechado'&&i.status!=='perdido'?`<button class="btn-teal btn btn-sm" style="margin-top:12px" onclick="fecharModal('modalDetInd');abrirModal('modalInd');_editIndId='${id}';document.getElementById('modalIndTitle').textContent='Editar Indicação';document.getElementById('indBtnExcluir').style.display='';document.getElementById('indNome').value='${i.nome.replace(/'/g,"\\'")}';document.getElementById('indTel').value='${i.tel}';document.getElementById('indEmail').value='${i.email||''}';document.getElementById('indObs').value=\`${(i.obs||'').replace(/`/g,'\\`')}\`">✏️ Editar indicação</button>`:''}
+      </div>
+      <div>
+        <div class="sec mb14">Histórico de atualizações</div>
+        <div class="tl-wrap"><div class="tl-line"></div>${tl}</div>
+        ${i.status==='fechado'?`<div class="alert-box alert-green" style="margin-top:14px">🎉 Venda fechada! Sua comissão está sendo processada.</div>`:''}
+      </div>
+    </div>`;
+  abrirModal('modalDetInd');
+}
+
+/* ═══ PIPELINE ═══ */
+function renderPipeline(){
+  const etapas=[
+    {key:'agente',label:'Enviado ao corretor',cor:'pf-teal'},
+    {key:'contato',label:'Em contato',cor:'pf-teal'},
+    {key:'proposta',label:'Proposta enviada',cor:'pf-gold'},
+    {key:'visita',label:'Visita agendada',cor:'pf-amber'},
+    {key:'fechado',label:'Venda fechada ✅',cor:'pf-green'},
+  ];
+  const total=Math.max(_indicacoes.filter(i=>i.status!=='perdido').length,1);
+  document.getElementById('pipelineVisual').innerHTML=etapas.map(e=>{
+    const n=_indicacoes.filter(i=>i.status===e.key).length;
+    const pct=Math.round(n/total*100);
+    return`<div class="fstep">
+      <div class="fstep-n">${n}</div>
+      <div style="flex:1"><div class="fs12 fw6">${e.label}</div><div class="fs10 c-muted">${n} indicaç${n!==1?'ões':'ão'}</div></div>
+      <div class="fstep-bar"><div class="fstep-fill ${e.cor}" style="width:${pct}%"></div></div>
+      <div class="fstep-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  document.getElementById('pipelineTabela').innerHTML=`<table class="tbl">${_indicacoes.filter(i=>i.status!=='perdido').map(i=>`<tr class="clk" onclick="abrirDetalheInd('${i.id}')"><td class="fw6">${i.nome}</td><td><span class="bdg ${statusIndBdg(i.status)}">${statusIndLabel(i.status)}</span></td><td class="fs11 c-muted">${i.emp.split('(')[0].trim()}</td></tr>`).join('')}</table>`;
+  document.getElementById('pipelineHistorico').innerHTML=`<div style="display:flex;flex-direction:column;gap:8px">${_indicacoes.flatMap(i=>i.historico.map(h=>({...h,lead:i.nome}))).sort((a,b)=>b.data>a.data?1:-1).slice(0,10).map(h=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px"><span style="font-size:16px;flex-shrink:0">${h.tipo}</span><div><div class="fs12 fw6">${h.lead}</div><div class="fs11 c-muted">${h.nota}</div><div class="fs10 c-muted mono">${fmtDt(h.data)}</div></div></div>`).join('')}</div>`;
+}
+
+/* ═══ EMPREENDIMENTOS ═══ */
+function renderEmps(){
+  const busca=(document.getElementById('empBusca')?.value||'').toLowerCase();
+  const list=EMPREENDIMENTOS.filter(e=>!busca||e.nome.toLowerCase().includes(busca)||e.bairro.toLowerCase().includes(busca));
+  document.getElementById('empGrid').innerHTML=list.map(e=>`
+    <div class="emp-card" onclick="toast('Folder de ${e.nome} pronto nos Materiais de Apoio!','')">
+      <div class="emp-img"><span style="font-size:42px;position:relative;z-index:1">${e.emoji}</span></div>
+      <div class="emp-body">
+        <div class="emp-nome">${e.nome}</div>
+        <div class="emp-const">${e.construtora} · ${e.bairro} · ${e.cluster}</div>
+        <div class="sp" style="margin-bottom:10px">
+          <span class="bdg ${e.status==='Lançamento'?'bo':e.status==='Em construção'?'bt':'bc'}">${e.status}</span>
+        </div>
+        <div class="emp-stat-g" style="margin-bottom:10px">
+          <div><div class="emp-stat-lbl">Disponíveis</div><div class="emp-stat-val">${e.disponivel}</div></div>
+          <div><div class="emp-stat-lbl">Entrega</div><div class="emp-stat-val">${e.entrega}</div></div>
+          <div><div class="emp-stat-lbl">Ticket</div><div class="emp-stat-val" style="font-size:10px">${e.ticket}</div></div>
+          <div><div class="emp-stat-lbl">Destaque</div><div class="emp-stat-val" style="font-size:9px;color:var(--muted)">${e.destaque}</div></div>
+        </div>
+        <div class="sec" style="margin-bottom:8px">Argumentos para indicar</div>
+        <div style="display:flex;flex-direction:column;gap:4px">${e.pontos.map(p=>`<div style="font-size:11px;color:var(--txt)">✅ ${p}</div>`).join('')}</div>
+        <button class="btn-teal btn btn-sm btn-full" style="margin-top:12px" onclick="event.stopPropagation();nav(document.querySelector('[onclick*=materiais]'),'materiais')">📁 Ver materiais deste empreendimento</button>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══ MATERIAIS ═══ */
+let _matFiltro='';
+function renderMateriais(){
+  const tipos=[...new Set(MATERIAIS.map(m=>m.tipo))];
+  document.getElementById('matFiltros').innerHTML=
+    `<div class="ai-chip${_matFiltro===''?' active':''}" style="${_matFiltro===''?'border-color:var(--teal2);color:var(--teal2)':''}" onclick="setMatFiltro('')">Todos</div>`+
+    tipos.map(t=>`<div class="ai-chip${_matFiltro===t?' active':''}" style="${_matFiltro===t?'border-color:var(--teal2);color:var(--teal2)':''}" onclick="setMatFiltro('${t}')">${t}</div>`).join('');
+  const list=MATERIAIS.filter(m=>!_matFiltro||m.tipo===_matFiltro);
+  document.getElementById('matGrid').innerHTML=list.map(m=>`
+    <div class="mat-card" onclick="abrirMaterial('${m.id}')">
+      <div class="mat-thumb">${m.emoji}</div>
+      <div class="mat-body">
+        <div class="mat-nome">${m.nome}${m.novo?'<span class="bdg bt" style="margin-left:6px;font-size:8px">Novo</span>':''}</div>
+        <div class="mat-meta">${m.tipo} · ${m.emp}</div>
+        <div class="mat-tipo"><span class="bdg bz">${m.tipo}</span></div>
+      </div>
+    </div>`).join('');
+  document.getElementById('waMsgs').innerHTML=WA_MSGS.map(m=>`
+    <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:14px;cursor:pointer;transition:border-color .15s" onclick="copiarWA('${encodeURIComponent(m.msg)}')" onmouseover="this.style.borderColor='rgba(34,211,238,.25)'" onmouseout="this.style.borderColor='var(--bdr)'">
+      <div style="font-size:12px;font-weight:700;color:var(--teal2);margin-bottom:6px">${m.emoji} ${m.emp}</div>
+      <div style="font-size:12px;color:var(--txt);line-height:1.6">${m.msg}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;display:flex;align-items:center;gap:6px">📋 Clique para copiar · Substitua [NOME] pelo nome do seu contato</div>
+    </div>`).join('');
+}
+function setMatFiltro(t){_matFiltro=t;renderMateriais()}
+function abrirMaterial(id){
+  const m=MATERIAIS.find(x=>x.id===id);if(!m)return;
+  document.getElementById('matModalTitle').textContent=m.nome;
+  document.getElementById('matModalBody').innerHTML=`
+    <div style="text-align:center;font-size:56px;margin-bottom:16px">${m.emoji}</div>
+    <div class="sp mb14" style="justify-content:center"><span class="bdg bt">${m.tipo}</span><span class="bdg bz">${m.emp}</span>${m.novo?'<span class="bdg bg">Novo</span>':''}</div>
+    <div style="font-size:13px;line-height:1.7;color:var(--txt);margin-bottom:16px">${m.descricao}</div>
+    <div class="alert-box alert-teal">
+      💡 <strong>Como usar:</strong> Compartilhe este material com seu indicado antes ou durante a conversa. Ele serve de "gancho" para iniciar o assunto de forma natural. Depois, convide o indicado a falar com nosso corretor para tirar dúvidas.
+    </div>`;
+  abrirModal('modalMat');
+}
+function copiarWA(enc){
+  const txt=decodeURIComponent(enc);
+  navigator.clipboard.writeText(txt).then(()=>toast('✅ Mensagem copiada! Cole no WhatsApp do seu contato.','green')).catch(()=>toast('Copie manualmente: '+txt.substring(0,60)+'...',''));
+}
+
+/* ═══ PERFIL ═══ */
+function salvarPerfil(){
+  if(_user)_user.nome=document.getElementById('perfNome').value;
+  toast('✅ Perfil atualizado!','green');
+}
+
+/* ═══ ASSISTENTE IA ═══ */
+function addAiMsg(role,txt){
+  const el=document.getElementById('aiMsgs');if(!el)return;
+  const isAI=role==='ai';
+  const div=document.createElement('div');
+  div.className='ai-msg';
+  div.innerHTML=`<div class="ai-av ${isAI?'av-ai':'av-u'}">${isAI?'W':'Eu'}</div><div class="ai-bubble ${isAI?'ai-bubble-ai':'ai-bubble-u'}">${txt.replace(/\n/g,'<br>')}</div>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+function sendAiChip(msg){
+  const inp=document.getElementById('aiInp');if(!inp)return;
+  inp.value=msg;sendAiMsg();
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+async function sendAiMsg(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addAiMsg('user',msg);
+  _aiHistory.push({role:'user',content:msg});
+  const btn=document.getElementById('aiSendBtn');
+  if(btn){btn.textContent='⏳';btn.disabled=true;btn.classList.add('loading')}
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYSTEM_AGENTE,messages:_aiHistory})
+    });
+    const data=await resp.json();
+    const reply=data.content?.[0]?.text||'Desculpe, não consegui responder agora.';
+    _aiHistory.push({role:'assistant',content:reply});
+    addAiMsg('ai',reply);
+  }catch(e){addAiMsg('ai','⚠️ Erro de conexão. Verifique sua internet e tente novamente.')}
+  if(btn){btn.textContent='➤';btn.disabled=false;btn.classList.remove('loading')}
+}
+function limparChat(){
+  _aiHistory=[];
+  const el=document.getElementById('aiMsgs');if(el)el.innerHTML='';
+  addAiMsg('ai','Chat reiniciado! Como posso ajudar?');
+}
+</script>
+</body>
+</html>

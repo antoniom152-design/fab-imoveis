@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pré-Cadastro — Feirão Online WAL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0a1f3d;
+    --navy-black:#071026;
+    --gold:#c9a15a;
+    --gold-bright:#e2ba6c;
+    --paper:#f6f3ec;
+    --card:#ffffff;
+    --ink:#1c1e24;
+    --ink-soft:#5a5f6b;
+    --line:#e3ddce;
+    --ok:#3f6b52;
+    --ok-bg:#eef3ee;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Inter',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .wrap{max-width:480px;margin:0 auto;padding:0 22px;}
+
+  /* HERO */
+  header.hero{
+    background:radial-gradient(900px 420px at 20% -15%, #142c53 0%, var(--navy-deep) 55%, var(--navy-black) 100%);
+    color:#f4efe2;padding:44px 0 40px;border-bottom:4px solid var(--gold);
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold-bright);margin-bottom:16px;
+  }
+  h1.title{font-size:30px;font-weight:600;line-height:1.18;}
+  h1.title em{font-style:normal;color:var(--gold-bright);}
+  .subtitle{margin-top:14px;color:#c9d0dd;font-size:14.5px;}
+  .countdown{
+    margin-top:24px;display:inline-flex;gap:10px;
+  }
+  .cd-box{
+    background:rgba(255,255,255,.07);border:1px solid rgba(226,186,108,.35);border-radius:6px;
+    padding:10px 14px;min-width:58px;
+  }
+  .cd-box b{display:block;font-family:'Fraunces',serif;font-size:22px;color:var(--gold-bright);font-weight:600;}
+  .cd-box span{font-size:10px;color:#aeb6c4;text-transform:uppercase;letter-spacing:.06em;}
+  .cta-scroll{
+    display:inline-block;margin-top:26px;background:var(--gold);color:var(--navy-black);
+    font-weight:700;font-size:14.5px;padding:14px 26px;border-radius:5px;text-decoration:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+
+  /* VIDEO */
+  section.video-section{padding:34px 0 6px;}
+  .video-card{
+    background:var(--navy-deep);border-radius:12px;padding:16px;
+    box-shadow:0 12px 28px rgba(10,31,61,.18);
+  }
+  .video-eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold-bright);text-align:center;margin-bottom:12px;
+  }
+  .video-frame{
+    position:relative;width:100%;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#08152c;
+  }
+  .video-frame video, .video-frame iframe{
+    width:100%;height:100%;display:block;border:none;object-fit:cover;
+  }
+  .video-caption{
+    display:flex;align-items:center;gap:10px;margin-top:14px;padding:0 4px;
+  }
+  .video-avatar{
+    flex:0 0 38px;height:38px;border-radius:50%;background:var(--gold);color:var(--navy-black);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+  }
+  .video-caption strong{display:block;font-size:13.5px;color:#f4efe2;}
+  .video-caption span{font-size:12px;color:#aeb6c4;}
+
+  /* BENEFITS */
+  section.benefits{padding:38px 0 8px;}
+  .b-item{
+    display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);
+  }
+  .b-item:last-child{border-bottom:none;}
+  .b-icon{
+    flex:0 0 34px;height:34px;border-radius:50%;background:var(--navy-deep);color:var(--gold-bright);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:15px;
+  }
+  .b-text strong{display:block;font-size:14.5px;color:var(--navy-deep);}
+  .b-text span{font-size:13px;color:var(--ink-soft);}
+
+  /* FORM */
+  section.form-section{padding:20px 0 54px;}
+  .form-card{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;padding:26px 22px;
+    box-shadow:0 10px 30px rgba(10,31,61,.06);
+  }
+  .form-card h2{font-size:20px;color:var(--navy-deep);margin-bottom:6px;}
+  .form-card .lead-in{font-size:13.5px;color:var(--ink-soft);margin-bottom:20px;}
+  label{
+    display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:6px;margin-top:16px;
+  }
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=tel], input[type=email], select{
+    width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:6px;
+    font-family:'Inter',sans-serif;font-size:14.5px;color:var(--ink);background:#fdfcf9;
+    appearance:none;-webkit-appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a5f6b' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
+  }
+  input:focus, select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,161,90,.18);}
+  .consent{
+    display:flex;gap:10px;margin-top:20px;align-items:flex-start;
+  }
+  .consent input{width:16px;height:16px;margin-top:3px;accent-color:var(--gold);flex:0 0 16px;}
+  .consent p{font-size:12.5px;color:var(--ink-soft);margin:0;}
+  .consent a{color:var(--navy-deep);}
+  button.submit{
+    width:100%;margin-top:22px;background:var(--navy-deep);color:#f4efe2;border:none;
+    padding:15px;border-radius:6px;font-size:15.5px;font-weight:700;cursor:pointer;
+    transition:background .15s ease;
+  }
+  button.submit:hover{background:#0e2a52;}
+  button.submit:disabled{opacity:.6;cursor:default;}
+  .fine-print{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:14px;}
+
+  /* SUCCESS STATE */
+  .success{display:none;text-align:center;padding:10px 4px 6px;}
+  .success .check{
+    width:56px;height:56px;border-radius:50%;background:var(--ok-bg);color:var(--ok);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:26px;
+  }
+  .success h2{font-size:20px;color:var(--navy-deep);}
+  .success p{font-size:14px;color:var(--ink-soft);margin-top:8px;}
+  .wa-btn{
+    display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:#25D366;color:#fff;
+    text-decoration:none;padding:13px 22px;border-radius:6px;font-weight:700;font-size:14.5px;
+  }
+
+  footer{padding:30px 0 50px;text-align:center;}
+  footer p{font-size:11.5px;color:var(--ink-soft);}
+  footer b{color:var(--navy-deep);}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">WAL Consultoria Imobiliária</div>
+    <h1 class="title">Garanta seu lugar no <em>Feirão Online</em> antes de todo mundo</h1>
+    <p class="subtitle">Imóveis das melhores construtoras do Rio, com condições especiais para militares, servidores, policiais, bombeiros e pensionistas.</p>
+    <div class="countdown" id="countdown">
+      <div class="cd-box"><b id="cd-days">--</b><span>dias</span></div>
+      <div class="cd-box"><b id="cd-hours">--</b><span>horas</span></div>
+      <div class="cd-box"><b id="cd-mins">--</b><span>min</span></div>
+    </div><br>
+    <a href="#form" class="cta-scroll">Quero garantir minha vaga →</a>
+  </div>
+</header>
+
+<section class="video-section">
+  <div class="wrap">
+    <div class="video-card">
+      <div class="video-eyebrow">Uma palavra do diretor</div>
+      <div class="video-frame">
+        <!-- TROCAR "SEU_ID_DO_VIDEO" pelo ID do vídeo do YouTube antes de publicar -->
+        <iframe src="https://www.youtube.com/embed/SEU_ID_DO_VIDEO" title="Mensagem do Diretor" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+      <div class="video-caption">
+        <div class="video-avatar">A</div>
+        <div>
+          <strong>Antonio — Diretor da WAL Consultoria Imobiliária</strong>
+          <span>CRECI 12261-J · fala direto com você sobre o feirão</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="benefits">
+  <div class="wrap">
+    <div class="b-item">
+      <div class="b-icon">1</div>
+      <div class="b-text"><strong>Prioridade no atendimento</strong><span>Quem se cadastra antes é atendido primeiro nas horas iniciais do feirão, com corretor dedicado.</span></div>
+    </div>
+    <div class="b-item">
+      <div class="b-icon">2</div>
+      <div class="b-text"><strong>Condições reveladas em primeira mão</strong><span>Tabelas e promoções das construtoras chegam para você antes do público geral.</span></div>
+    </div>
+    <div class="b-item">
+      <div class="b-icon">3</div>
+      <div class="b-text"><strong>Canal VIP no WhatsApp</strong><span>Novidades, lembretes e bastidores do feirão direto no seu WhatsApp — sem que outros participantes vejam seu número.</span></div>
+    </div>
+    <div class="b-item">
+      <div class="b-icon">4</div>
+      <div class="b-text"><strong>Simulação personalizada pronta</strong><span>Chegamos ao dia 29/07 já sabendo seu perfil, prontos com a melhor simulação para você.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="form-section" id="form">
+  <div class="wrap">
+    <div class="form-card">
+
+      <div id="formState">
+        <h2>Pré-cadastro gratuito</h2>
+        <p class="lead-in">Leva menos de 1 minuto. Nenhum pagamento é necessário para participar do feirão.</p>
+
+        <form id="preCadastroForm">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" name="nome" required placeholder="Seu nome">
+
+          <label for="whatsapp">WhatsApp (com DDD)</label>
+          <input type="tel" id="whatsapp" name="whatsapp" required placeholder="(21) 90000-0000">
+
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" required placeholder="seuemail@exemplo.com">
+
+          <label for="categoria">Você é...</label>
+          <select id="categoria" name="categoria" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="Militar FAB">Militar da Força Aérea (FAB)</option>
+            <option value="Militar outras Forças">Militar de outra Força (Marinha/Exército)</option>
+            <option value="Servidor Público">Servidor Público Federal/Estadual/Municipal</option>
+            <option value="Policial/Bombeiro">Policial ou Bombeiro</option>
+            <option value="Pensionista">Pensionista</option>
+            <option value="Outro">Outro interessado</option>
+          </select>
+
+          <label for="regiao">Região de interesse</label>
+          <select id="regiao" name="regiao" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="Barra da Tijuca">Barra da Tijuca</option>
+            <option value="Barra Olímpica">Barra Olímpica</option>
+            <option value="Recreio">Recreio</option>
+            <option value="Jacarepaguá">Jacarepaguá</option>
+            <option value="Pechincha">Pechincha</option>
+            <option value="Curicica">Curicica</option>
+            <option value="Porto Maravilha">Porto Maravilha</option>
+            <option value="São Cristóvão">São Cristóvão</option>
+            <option value="Vila Valqueire">Vila Valqueire</option>
+            <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
+            <option value="Campo Grande">Campo Grande</option>
+            <option value="Duque de Caxias">Duque de Caxias</option>
+            <option value="Outra">Outra região / ainda não sei</option>
+          </select>
+
+          <label for="fgts">Já tem FGTS disponível para usar na entrada?</label>
+          <select id="fgts" name="fgts" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+            <option value="Não sei">Não sei ainda</option>
+          </select>
+
+          <div class="consent">
+            <input type="checkbox" id="consent" required>
+            <p>Autorizo a WAL Consultoria Imobiliária a entrar em contato via WhatsApp/e-mail sobre o feirão e concordo com a <a href="#">Política de Privacidade</a>.</p>
+          </div>
+
+          <button type="submit" class="submit" id="submitBtn">Quero garantir minha vaga</button>
+          <p class="fine-print">Você poderá cancelar o recebimento de mensagens a qualquer momento.</p>
+        </form>
+      </div>
+
+      <div class="success" id="successState">
+        <div class="check">✓</div>
+        <h2>Cadastro confirmado!</h2>
+        <p>Você garantiu prioridade no Feirão Online WAL, de 29/07 a 01/08. Você será redirecionado agora para o Canal "Feirão WAL — Grupo VIP" no WhatsApp.</p>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:10px;">É um Canal oficial: os administradores e outros seguidores não têm acesso ao seu número de telefone — sua privacidade fica preservada.</p>
+        <a class="wa-btn" id="waLink" href="#" target="_blank">Entrar no Canal VIP do WhatsApp</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>WAL Consultoria Imobiliária</b> · CRECI 12261-J<br>Feirão Online — 29 de julho a 01 de agosto de 2026</p>
+  </div>
+</footer>
+
+<script>
+  /* ======================================================
+     CONFIGURAÇÃO — ajustar antes de publicar em produção
+     ====================================================== */
+  const APPS_SCRIPT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyvxhM2GC6v66jgnsEPQVxBP7Kh9eJ-TDgH4aEPw9IWzYKEC0JsTvRLC4d1SgwpCeFvmQ/exec"; // mesmo webhook usado no feirao-lead.html
+  const WHATSAPP_CHANNEL_LINK = "https://whatsapp.com/channel/0029VbCtVci1XquQdNHpSq1G"; // Canal "Feirão WAL — Grupo VIP"
+  const EVENT_START = new Date("2026-07-29T09:00:00-03:00");
+
+  /* Countdown */
+  function updateCountdown(){
+    const now = new Date();
+    const diff = EVENT_START - now;
+    if (diff <= 0){
+      document.getElementById('countdown').innerHTML = '<div class="cd-box"><b>É hoje!</b></div>';
+      return;
+    }
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hours = Math.floor((diff / (1000*60*60)) % 24);
+    const mins = Math.floor((diff / (1000*60)) % 60);
+    document.getElementById('cd-days').textContent = days;
+    document.getElementById('cd-hours').textContent = hours;
+    document.getElementById('cd-mins').textContent = mins;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 60000);
+
+  /* Captura de UTM da URL do anúncio/rede social */
+  function getUTMs(){
+    const params = new URLSearchParams(window.location.search);
+    return {
+      utm_source: params.get('utm_source') || 'direto',
+      utm_medium: params.get('utm_medium') || '',
+      utm_campaign: params.get('utm_campaign') || ''
+    };
+  }
+
+  /* Envio do formulário */
+  const form = document.getElementById('preCadastroForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    const payload = {
+      nome: document.getElementById('nome').value,
+      whatsapp: document.getElementById('whatsapp').value,
+      email: document.getElementById('email').value,
+      categoria: document.getElementById('categoria').value,
+      regiao: document.getElementById('regiao').value,
+      fgts: document.getElementById('fgts').value,
+      autorizaContato: document.getElementById('consent').checked,
+      origem: 'pre-cadastro-feirao',
+      dataCadastro: new Date().toISOString(),
+      ...getUTMs()
+    };
+
+    // Backup local (mesmo padrão usado nos outros dashboards)
+    try{
+      const leads = JSON.parse(localStorage.getItem('wal_precadastro_leads') || '[]');
+      leads.push(payload);
+      localStorage.setItem('wal_precadastro_leads', JSON.stringify(leads));
+    }catch(err){ console.warn('Não foi possível salvar backup local', err); }
+
+    // Envio ao Apps Script (Google Sheets)
+    fetch(APPS_SCRIPT_WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .catch(function(err){ console.warn('Erro no envio ao Apps Script', err); })
+    .finally(function(){
+      document.getElementById('formState').style.display = 'none';
+      document.getElementById('successState').style.display = 'block';
+      document.getElementById('waLink').href = WHATSAPP_CHANNEL_LINK;
+
+      // Redireciona automaticamente para o Canal do WhatsApp após uma breve pausa,
+      // dando tempo do usuário ler a confirmação e a nota de privacidade.
+      setTimeout(function(){
+        window.location.href = WHATSAPP_CHANNEL_LINK;
+      }, 1800);
+    });
+  });
+</script>
+
+</body>
+</html>

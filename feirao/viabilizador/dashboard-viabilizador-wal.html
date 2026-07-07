@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL Imóveis · Dashboard do Feirão Online</title>
+<style>
+:root{
+  --navy-950:#081120;
+  --navy-900:#0b1a30;
+  --navy-800:#12274a;
+  --navy-700:#1c3768;
+  --navy-600:#28477f;
+  --gold-500:#c9a227;
+  --gold-400:#dab949;
+  --gold-100:#f6ecc9;
+  --cream:#f6f4ee;
+  --paper:#ffffff;
+  --ink:#1b2434;
+  --muted:#6b7486;
+  --line:#e4e1d6;
+  --success:#2f7d4f;
+  --success-bg:#e7f4ec;
+  --danger:#b03a2e;
+  --danger-bg:#fbe9e6;
+  --warning:#9a6b0a;
+  --warning-bg:#fbf0da;
+  --info:#2f5f9e;
+  --info-bg:#e8eefb;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(10,20,40,.06),0 8px 24px -12px rgba(10,20,40,.18);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:100vh;
+  display:flex;
+}
+h1,h2,h3,h4{font-family:Georgia,'Times New Roman',serif;margin:0;color:var(--navy-900);}
+::selection{background:var(--gold-100);}
+a{color:inherit;}
+
+/* ---------- SIDEBAR ---------- */
+.sidebar{
+  width:270px;
+  min-width:270px;
+  background:linear-gradient(180deg,var(--navy-950),var(--navy-800));
+  color:#dfe6f2;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  position:sticky;
+  top:0;
+}
+.brand{
+  padding:22px 20px 14px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.brand .mark{
+  font-family:Georgia,serif;
+  font-size:20px;
+  letter-spacing:.5px;
+  color:var(--gold-400);
+  font-weight:700;
+}
+.brand .sub{
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:1.2px;
+  color:#93a2bd;
+  margin-top:4px;
+}
+
+.role-switch{
+  margin:14px 20px 0;
+  display:flex;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:9px;
+  padding:3px;
+  gap:3px;
+}
+.role-switch button{
+  flex:1;
+  border:none;
+  background:transparent;
+  color:#9fadc7;
+  font-size:10.5px;
+  font-weight:600;
+  padding:8px 3px;
+  border-radius:7px;
+  cursor:pointer;
+  transition:.15s;
+  line-height:1.3;
+}
+.role-switch button:hover{color:#fff;}
+.role-switch button.active{background:var(--gold-500);color:var(--navy-950);}
+
+.role-badge{
+  margin:12px 20px 0;
+  background:rgba(201,162,39,.14);
+  border:1px solid rgba(201,162,39,.4);
+  color:var(--gold-100);
+  padding:8px 10px;
+  border-radius:8px;
+  font-size:12px;
+  line-height:1.4;
+}
+.role-badge b{color:var(--gold-400);display:block;font-size:12.5px;}
+
+.online-counter{
+  margin:12px 20px 4px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:8px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.pulse-dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#3ddc84;
+  box-shadow:0 0 0 0 rgba(61,220,132,.6);
+  animation:pulse 1.8s infinite;
+  flex-shrink:0;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 0 rgba(61,220,132,.55);}
+  70%{box-shadow:0 0 0 8px rgba(61,220,132,0);}
+  100%{box-shadow:0 0 0 0 rgba(61,220,132,0);}
+}
+.online-counter .num{font-size:20px;font-weight:700;color:#fff;line-height:1;}
+.online-counter .lbl{font-size:10.5px;color:#93a2bd;text-transform:uppercase;letter-spacing:.6px;}
+
+nav.tabs{
+  flex:1;
+  overflow-y:auto;
+  padding:10px 10px 10px;
+}
+.nav-group{margin-bottom:2px;}
+nav.tabs .group-label{
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+  color:#6f7d9c;
+  padding:14px 10px 6px;
+}
+nav.tabs button{
+  width:100%;
+  text-align:left;
+  background:transparent;
+  border:none;
+  color:#c4cede;
+  padding:10px 12px;
+  border-radius:8px;
+  font-size:13.5px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:2px;
+  transition:.15s;
+  position:relative;
+}
+nav.tabs button .ic{width:18px;text-align:center;font-size:14px;opacity:.85;}
+nav.tabs button:hover{background:rgba(255,255,255,.06);color:#fff;}
+nav.tabs button.active{background:var(--gold-500);color:var(--navy-950);font-weight:600;}
+nav.tabs button.active .ic{opacity:1;}
+nav.tabs button .count{
+  margin-left:auto;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-size:10.5px;
+  padding:1px 7px;
+  border-radius:20px;
+  font-weight:700;
+}
+nav.tabs button.active .count{background:var(--navy-950);color:var(--gold-400);}
+
+.sidebar-footer{
+  padding:14px 20px 18px;
+  border-top:1px solid rgba(255,255,255,.08);
+  font-size:11px;
+  color:#6f7d9c;
+}
+
+/* ---------- MAIN ---------- */
+main{
+  flex:1;
+  min-width:0;
+  padding:26px 32px 60px;
+}
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:22px;
+  flex-wrap:wrap;
+  gap:14px;
+}
+.topbar h1{font-size:24px;}
+.topbar p.desc{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:640px;}
+.topbar-actions{display:flex;gap:10px;}
+.btn{
+  border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:600;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;
+}
+.btn-gold{background:var(--gold-500);color:var(--navy-950);}
+.btn-gold:hover{background:var(--gold-400);}
+.btn-outline{background:transparent;border:1px solid var(--line);color:var(--navy-800);}
+.btn-outline:hover{background:#fff;border-color:var(--navy-700);}
+.btn-navy{background:var(--navy-800);color:#fff;}
+.btn-navy:hover{background:var(--navy-700);}
+.btn-success{background:var(--success);color:#fff;}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:6px;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* KPI cards */
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:14px;
+  margin-bottom:24px;
+}
+.kpi-card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:16px 18px;
+  box-shadow:var(--shadow);
+  position:relative;
+  overflow:hidden;
+}
+.kpi-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold-500);
+}
+.kpi-card .lbl{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.kpi-card .val{font-size:24px;font-weight:700;color:var(--navy-900);margin-top:4px;font-family:Georgia,serif;}
+.kpi-card .delta{font-size:11.5px;margin-top:4px;color:var(--success);}
+.kpi-card .delta.warn{color:var(--warning);}
+.kpi-card .delta.bad{color:var(--danger);}
+
+/* Panels */
+.panel{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  margin-bottom:20px;
+  overflow:hidden;
+}
+.panel-head{
+  padding:14px 18px;
+  border-bottom:1px solid var(--line);
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:8px;
+  background:linear-gradient(180deg,#fff,#faf9f5);
+}
+.panel-head h3{font-size:15.5px;}
+.panel-head .hint{font-size:12px;color:var(--muted);margin-top:2px;font-family:inherit;}
+.panel-body{padding:16px 18px;}
+
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{
+  text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+  color:var(--muted);padding:8px 10px;border-bottom:2px solid var(--line);
+  white-space:nowrap;
+}
+tbody td{padding:10px 10px;border-bottom:1px solid var(--line);vertical-align:middle;}
+tbody tr:hover{background:#faf9f4;}
+tbody tr:last-child td{border-bottom:none;}
+
+.badge{
+  display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;
+}
+.badge-success{background:var(--success-bg);color:var(--success);}
+.badge-danger{background:var(--danger-bg);color:var(--danger);}
+.badge-warning{background:var(--warning-bg);color:var(--warning);}
+.badge-info{background:var(--info-bg);color:var(--info);}
+.badge-muted{background:#eee;color:#777;}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+.filters select,.filters input{
+  border:1px solid var(--line);border-radius:7px;padding:7px 10px;font-size:12.5px;background:#fff;color:var(--ink);
+}
+.search-box{flex:1;min-width:180px;}
+
+.empty-state{
+  text-align:center;padding:40px 20px;color:var(--muted);
+}
+.empty-state .ic{font-size:30px;margin-bottom:8px;}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+@media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+.tag-pill{
+  display:inline-flex;align-items:center;gap:6px;background:#f2f0e8;border:1px solid var(--line);
+  padding:4px 10px;border-radius:20px;font-size:11.5px;color:var(--navy-800);font-weight:600;
+}
+
+/* Modal */
+.overlay{
+  position:fixed;inset:0;background:rgba(8,17,32,.55);display:none;align-items:center;justify-content:center;
+  z-index:100;padding:20px;
+}
+.overlay.show{display:flex;}
+.modal{
+  background:#fff;border-radius:12px;max-width:560px;width:100%;max-height:88vh;overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.35);
+}
+.modal-head{
+  padding:16px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;
+  position:sticky;top:0;background:#fff;
+}
+.modal-head h3{font-size:16px;}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);}
+.modal-body{padding:18px 20px;}
+.form-row{margin-bottom:13px;}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--navy-800);margin-bottom:5px;}
+.form-row input,.form-row select,.form-row textarea{
+  width:100%;border:1px solid var(--line);border-radius:7px;padding:8px 10px;font-size:13px;font-family:inherit;background:#fbfaf7;
+}
+.form-row textarea{resize:vertical;min-height:60px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff;}
+.doc-list{display:flex;flex-direction:column;gap:6px;}
+.doc-item{display:flex;align-items:center;gap:8px;font-size:12.5px;background:#f7f5ef;border:1px solid var(--line);padding:6px 10px;border-radius:6px;}
+.doc-item .ic{color:var(--navy-700);}
+
+.timeline{list-style:none;margin:0;padding:0;}
+.timeline li{
+  position:relative;padding:0 0 16px 22px;border-left:2px solid var(--line);margin-left:5px;
+}
+.timeline li:last-child{border-color:transparent;padding-bottom:0;}
+.timeline li::before{
+  content:"";position:absolute;left:-6px;top:2px;width:10px;height:10px;border-radius:50%;background:var(--gold-500);border:2px solid #fff;
+}
+.timeline li.done::before{background:var(--success);}
+.timeline .t-title{font-size:13px;font-weight:600;color:var(--navy-900);}
+.timeline .t-meta{font-size:11.5px;color:var(--muted);}
+
+.progress-track{background:#eee;border-radius:20px;height:7px;overflow:hidden;margin-top:6px;}
+.progress-fill{height:100%;background:var(--gold-500);border-radius:20px;}
+.progress-fill.navy{background:var(--navy-700);}
+.progress-fill.danger{background:var(--danger);}
+
+.toast{
+  position:fixed;bottom:24px;right:24px;background:var(--navy-900);color:#fff;padding:12px 18px;border-radius:8px;
+  font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:200;opacity:0;transform:translateY(10px);
+  transition:.25s;display:flex;align-items:center;gap:8px;
+}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast .dot{width:8px;height:8px;border-radius:50%;background:var(--gold-400);}
+
+.section-note{
+  background:var(--info-bg);border:1px solid #c7d8f5;color:var(--navy-800);border-radius:8px;
+  padding:10px 14px;font-size:12.5px;margin-bottom:14px;
+}
+.small-muted{font-size:11.5px;color:var(--muted);}
+.right{text-align:right;}
+.center{text-align:center;}
+.mono{font-variant-numeric:tabular-nums;}
+.compare-row{margin-bottom:16px;}
+.compare-row .compare-lbl{display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px;}
+</style>
+</head>
+<body>
+
+<!-- ================= SIDEBAR ================= -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="mark">WAL IMÓVEIS</div>
+    <div class="sub">Feirão Online · Construtora</div>
+  </div>
+
+  <div class="role-switch" id="roleSwitch">
+    <button data-role="viabilizador" class="active">👷 Viabilizador/Ger Imob</button>
+    <button data-role="superintendente">🧭 Superintendente</button>
+    <button data-role="diretor">🗂️ Diretor</button>
+  </div>
+
+  <div class="role-badge" id="roleBadge"></div>
+
+  <div class="online-counter">
+    <span class="pulse-dot"></span>
+    <div>
+      <div class="num" id="onlineCount">--</div>
+      <div class="lbl">Clientes online no feirão</div>
+    </div>
+  </div>
+
+  <nav class="tabs" id="navTabs">
+
+    <div class="nav-group" data-role="all">
+      <div class="group-label">Geral</div>
+      <button data-tab="empreendimentos"><span class="ic">🏗️</span> Empreendimentos no Feirão <span class="count" id="cEmp">0</span></button>
+    </div>
+
+    <!-- ===== VIABILIZADOR / GER IMOB ===== -->
+    <div class="nav-group" data-role="viabilizador">
+      <div class="group-label">Visão Geral</div>
+      <button data-tab="overview" class="active"><span class="ic">📊</span> Painel Geral</button>
+      <div class="group-label">Empreendimentos</div>
+      <button data-tab="unidades"><span class="ic">🏢</span> Unidades & Preços <span class="count" id="cUnid">0</span></button>
+      <div class="group-label">Demanda de Clientes</div>
+      <button data-tab="solicitacoes"><span class="ic">📥</span> Solicitações de Unidade <span class="count" id="cSol">0</span></button>
+      <button data-tab="credito"><span class="ic">🧾</span> Análise de Crédito <span class="count" id="cCred">0</span></button>
+      <div class="group-label">Fechamento</div>
+      <button data-tab="reservas"><span class="ic">🔒</span> Reservas & Depósitos <span class="count" id="cRes">0</span></button>
+      <button data-tab="pagamento"><span class="ic">💳</span> Fluxo de Pagamento <span class="count" id="cPag">0</span></button>
+      <button data-tab="contratos"><span class="ic">📄</span> Emissão de Contrato <span class="count" id="cCon">0</span></button>
+      <div class="group-label">Gestão</div>
+      <button data-tab="alertas"><span class="ic">⏰</span> Alertas de Prazo <span class="count" id="cAlert">0</span></button>
+      <button data-tab="super-bloqueios"><span class="ic">📨</span> Solicitação ao Superintendente <span class="count" id="cEscalV">0</span></button>
+    </div>
+
+    <!-- ===== DIRETOR ===== -->
+    <div class="nav-group" data-role="diretor" style="display:none">
+      <div class="group-label">Diretoria</div>
+      <button data-tab="diretor-visao"><span class="ic">📈</span> Painel Executivo</button>
+      <button data-tab="diretor-construtoras"><span class="ic">🏛️</span> Visão por Empreendimento</button>
+      <div class="group-label">Superintendência</div>
+      <button data-tab="super-bloqueios"><span class="ic">🚧</span> Bloqueios & Escalonamento <span class="count" id="cBloqD">0</span></button>
+      <div class="group-label">Diretoria</div>
+      <button data-tab="diretor-risco"><span class="ic">🚨</span> Radar de Risco <span class="count" id="cRisco">0</span></button>
+    </div>
+
+    <!-- ===== SUPERINTENDENTE ===== -->
+    <div class="nav-group" data-role="superintendente" style="display:none">
+      <div class="group-label">Visão Geral</div>
+      <button data-tab="overview"><span class="ic">📊</span> Painel Geral</button>
+      <div class="group-label">Empreendimentos</div>
+      <button data-tab="unidades"><span class="ic">🏢</span> Unidades & Preços <span class="count" id="cUnidS">0</span></button>
+      <div class="group-label">Demanda de Clientes</div>
+      <button data-tab="solicitacoes"><span class="ic">📥</span> Solicitações de Unidade <span class="count" id="cSolS">0</span></button>
+      <button data-tab="credito"><span class="ic">🧾</span> Análise de Crédito <span class="count" id="cCredS">0</span></button>
+      <div class="group-label">Superintendência</div>
+      <button data-tab="super-bloqueios"><span class="ic">🚧</span> Bloqueios & Escalonamento <span class="count" id="cBloqS">0</span></button>
+    </div>
+
+    <div class="nav-group" data-role="all">
+      <div class="group-label">Registro</div>
+      <button data-tab="atividades"><span class="ic">🗂️</span> Log de Atividades</button>
+    </div>
+
+  </nav>
+
+  <div class="sidebar-footer">
+    WAL Imóveis e Consultoria<br>CRECI 12261-J · Rio de Janeiro
+  </div>
+</aside>
+
+<!-- ================= MAIN ================= -->
+<main>
+
+  <!-- ======================= VIABILIZADOR / OVERVIEW COMPARTILHADO ======================= -->
+
+  <section class="tabpanel" id="tab-overview">
+    <div class="topbar">
+      <div>
+        <h1>Painel Geral</h1>
+        <p class="desc">Visão consolidada do Feirão Online WAL — demanda de clientes, unidades disponíveis e etapas de fechamento em andamento.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="exportReport()">⬇️ Exportar relatório</button>
+        <button class="btn btn-gold" onclick="switchTab('solicitacoes')">Ver solicitações pendentes</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid" id="kpiGrid"></div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-head"><h3>Funil do Feirão</h3><span class="hint small-muted">Solicitação → Reserva → Contrato</span></div>
+        <div class="panel-body" id="funilBody"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-head"><h3>Empreendimentos mais procurados</h3><span class="hint small-muted">Por nº de solicitações</span></div>
+        <div class="panel-body" id="rankingBody"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Ações que precisam de atenção agora</h3>
+        <span class="hint small-muted">Prioridade por tempo de espera</span>
+      </div>
+      <div class="panel-body" id="acoesUrgentes"></div>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="tab-empreendimentos" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Empreendimentos Inscritos no Feirão</h1>
+        <p class="desc">Condições comerciais confirmadas pela construtora para o período do Feirão Online WAL.</p>
+      </div>
+      <div class="topbar-actions" id="empActions">
+        <button class="btn btn-gold" onclick="openEmpModal()">+ Inscrever empreendimento</button>
+      </div>
+    </div>
+    <div id="empList" class="grid-2"></div>
+  </section>
+
+  <section class="tabpanel" id="tab-unidades" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Unidades Disponíveis por Empreendimento</h1>
+        <p class="desc">Confirme disponibilidade e valor de cada unidade. Essas informações abastecem o painel de leads e o assistente Sofia em tempo real.</p>
+      </div>
+      <div class="topbar-actions" id="unidActions">
+        <button class="btn btn-gold" onclick="openUnidModal()">+ Adicionar unidade</button>
+      </div>
+    </div>
+    <div class="filters">
+      <select id="fUnidEmp" onchange="renderUnidades()"><option value="">Todos os empreendimentos</option></select>
+      <select id="fUnidStatus" onchange="renderUnidades()">
+        <option value="">Todos os status</option>
+        <option value="disponivel">Disponível</option>
+        <option value="reservada">Reservada</option>
+        <option value="vendida">Vendida</option>
+        <option value="indisponivel">Indisponível</option>
+      </select>
+      <input class="search-box" id="fUnidBusca" placeholder="Buscar unidade..." oninput="renderUnidades()">
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0"><table id="tblUnidades">
+      <thead><tr><th>Empreendimento</th><th>Unidade</th><th>Tipologia</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table></div></div>
+  </section>
+
+  <section class="tabpanel" id="tab-solicitacoes" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Solicitações de Unidade dos Clientes</h1>
+        <p class="desc">Interesses recebidos via corretores, agentes e assistente Sofia. Confirme a disponibilidade e reserve a unidade para o cliente.</p>
+      </div>
+    </div>
+    <div class="section-note">💡 Ao confirmar a reserva aqui, a unidade muda automaticamente para <b>"reservada"</b> na aba Unidades e o cliente entra em <b>Reservas &amp; Depósitos</b>.</div>
+    <div class="filters">
+      <select id="fSolStatus" onchange="renderSolicitacoes()">
+        <option value="">Todos os status</option>
+        <option value="pendente">Pendente</option>
+        <option value="disponivel">Disponível</option>
+        <option value="nao_disponivel">Não disponível</option>
+        <option value="reservado">Reservado</option>
+      </select>
+      <input class="search-box" id="fSolBusca" placeholder="Buscar por cliente ou empreendimento..." oninput="renderSolicitacoes()">
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0"><table>
+      <thead><tr><th>Empreendimento</th><th>Nome do Cliente</th><th>Unidade</th><th>Valor</th><th>Status</th><th>Recebido</th><th></th></tr></thead>
+      <tbody id="tblSolicitacoesBody"></tbody>
+    </table></div></div>
+  </section>
+
+  <section class="tabpanel" id="tab-credito" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Análise de Crédito</h1>
+        <p class="desc">Solicitações enviadas pelas imobiliárias com dados e documentos do cliente. Libere a aprovação, o valor do sinal e o valor financiado.</p>
+      </div>
+    </div>
+    <div class="filters">
+      <select id="fCredStatus" onchange="renderCredito()">
+        <option value="">Todos os status</option>
+        <option value="pendente">Pendente</option>
+        <option value="em_analise">Em análise</option>
+        <option value="aprovado">Aprovado</option>
+        <option value="reprovado">Reprovado</option>
+      </select>
+      <input class="search-box" id="fCredBusca" placeholder="Buscar por cliente..." oninput="renderCredito()">
+    </div>
+    <div id="credList"></div>
+  </section>
+
+  <section class="tabpanel" id="tab-reservas" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Reservas & Depósitos</h1>
+        <p class="desc">Acompanhamento dos clientes que depositaram para garantir a unidade até a assinatura do contrato e pagamento do sinal.</p>
+      </div>
+    </div>
+    <div id="reservasList"></div>
+  </section>
+
+  <section class="tabpanel" id="tab-pagamento" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Confirmação do Fluxo de Pagamento</h1>
+        <p class="desc">Verifique e autorize a forma de pagamento proposta pelo cliente (à vista, financiado, FGTS, parcelamento de sinal, etc.).</p>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0"><table>
+      <thead><tr><th>Cliente</th><th>Empreendimento / Unidade</th><th>Proposta de pagamento</th><th>Status</th><th></th></tr></thead>
+      <tbody id="tblPagamentoBody"></tbody>
+    </table></div></div>
+  </section>
+
+  <section class="tabpanel" id="tab-contratos" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Controle de Emissão de Contrato</h1>
+        <p class="desc">Gerencie a emissão do contrato de compra e venda para assinatura do cliente.</p>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0"><table>
+      <thead><tr><th>Cliente</th><th>Empreendimento / Unidade</th><th>Sinal pago</th><th>Status do Contrato</th><th>Emitido em</th><th></th></tr></thead>
+      <tbody id="tblContratosBody"></tbody>
+    </table></div></div>
+  </section>
+
+  <section class="tabpanel" id="tab-alertas" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Alertas de Prazo</h1>
+        <p class="desc">Reservas e etapas com prazo próximo do vencimento — evite perda automática da unidade.</p>
+      </div>
+    </div>
+    <div id="alertasList"></div>
+  </section>
+
+  <!-- ======================= DIRETOR ======================= -->
+
+  <section class="tabpanel" id="tab-diretor-visao" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Painel Executivo — Feirão Online WAL</h1>
+        <p class="desc">Visão consolidada para decisão estratégica, liberação de orçamento e tratativas com investidores.</p>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline" onclick="exportExecutivo()">⬇️ Resumo executivo</button>
+      </div>
+    </div>
+    <div class="kpi-grid" id="diretorKpiGrid"></div>
+    <div class="panel">
+      <div class="panel-head"><h3>Meta do Feirão</h3><span class="hint small-muted">50–60 unidades até 31/12/2026</span></div>
+      <div class="panel-body" id="metaFeiraoBody"></div>
+    </div>
+  </section>
+
+  <section class="tabpanel" id="tab-diretor-construtoras" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Visão por Empreendimento</h1>
+        <p class="desc">Comparativo de volume, disponibilidade e VGV potencial por empreendimento e construtora parceira.</p>
+      </div>
+    </div>
+    <div class="panel"><div class="panel-body" style="padding:0"><table>
+      <thead><tr><th>Construtora</th><th>Empreendimento</th><th>Unidades</th><th>Disponíveis</th><th>Reservadas</th><th>Vendidas</th><th>VGV Potencial</th></tr></thead>
+      <tbody id="tblConstrutorasBody"></tbody>
+    </table></div></div>
+  </section>
+
+  <section class="tabpanel" id="tab-diretor-risco" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Radar de Risco</h1>
+        <p class="desc">Pontos de atenção que podem impactar o resultado do Feirão — visão executiva.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Como funciona o Radar de Risco</h3></div>
+      <div class="panel-body">
+        <p style="font-size:13px;line-height:1.6;margin:0 0 14px;">
+          Este painel é calculado automaticamente — ninguém precisa alimentar nada aqui. Ele varre, em tempo real, os dados que já circulam nas telas operacionais do Feirão (Crédito, Pagamento, Reservas e Bloqueios & Escalonamento) e lista só os pontos que merecem a atenção da Diretoria agora. Quando não aparece nada, é sinal de que está tudo sob controle — e não uma falha do painel.
+        </p>
+        <div class="small-muted" style="margin-bottom:8px;">O que é monitorado e quando um alerta aparece</div>
+        <table>
+          <thead><tr><th>Origem do dado</th><th>Quando vira um alerta</th><th>Severidade</th></tr></thead>
+          <tbody>
+            <tr><td>Análise de Crédito</td><td>O crédito do cliente foi <b>reprovado</b></td><td><span class="badge badge-danger">Crítico</span></td></tr>
+            <tr><td>Fluxo de Pagamento</td><td>O cliente pediu <b>ajuste</b> na forma de pagamento e ainda não foi resolvido</td><td><span class="badge badge-warning">Atenção</span></td></tr>
+            <tr><td>Reservas & Depósitos</td><td>Faltam <b>menos de 12h</b> para o prazo de depósito ou assinatura de contrato</td><td><span class="badge badge-warning">Atenção</span> · vira <span class="badge badge-danger">Crítico</span> se o prazo já venceu</td></tr>
+            <tr><td>Bloqueios & Escalonamento (orçamento)</td><td>Um pedido de orçamento está <b>pendente há mais de 24h</b> sem decisão</td><td><span class="badge badge-warning">Atenção</span></td></tr>
+            <tr><td>Solicitação ao Superintendente</td><td>A solicitação do Viabilizador/Ger Imob está <b>pendente há mais de 24h</b> sem resposta do Superintendente</td><td><span class="badge badge-warning">Atenção</span></td></tr>
+          </tbody>
+        </table>
+
+        <div class="section-note" style="margin-top:14px;">
+          <b>Exemplo:</b> a Sgt. Patrícia Lima tem uma reserva na Ilha Mar com depósito ainda não confirmado, e faltam 8 horas para o prazo vencer. O Radar mostra automaticamente a linha <i>"Reserva perto do prazo — Sgt. Patrícia Lima — Ilha Mar / Bloco A - Apto 505"</i>, com severidade <b>Atenção</b>. Se ninguém confirmar o depósito e o prazo vencer, o mesmo item passa a aparecer como <b>Crítico</b> — sinal de que a unidade pode voltar a ficar disponível.
+        </div>
+
+        <div class="small-muted" style="margin:14px 0 8px;">Orientação de uso</div>
+        <ul style="font-size:13px;line-height:1.7;margin:0 0 4px 18px;padding:0;">
+          <li><b>Crítico</b> (vermelho): já venceu o prazo ou foi reprovado — pede decisão imediata, normalmente cobrando o Viabilizador/Ger Imob ou o Superintendente.</li>
+          <li><b>Atenção</b> (amarelo): ainda há tempo de agir, mas vale acompanhar nas próximas horas.</li>
+          <li>Este radar não substitui as telas operacionais — ele só resume o que já está lá, para a Diretoria não precisar entrar em cada uma para saber o que está travado.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="small-muted" style="margin:4px 0 8px;">Situação atual (atualizada automaticamente)</div>
+    <div id="riscoList"></div>
+  </section>
+
+  <!-- ======================= BLOQUEIOS & ESCALONAMENTO (compartilhado) ======================= -->
+
+  <section class="tabpanel" id="tab-super-bloqueios" style="display:none">
+    <div class="topbar">
+      <div>
+        <h1>Bloqueios & Escalonamento</h1>
+        <p class="desc" id="bloqueiosDesc"></p>
+      </div>
+    </div>
+
+    <div class="panel" id="painelNovaSolicitacao" style="display:none">
+      <div class="panel-head"><h3>Nova solicitação ao Superintendente</h3></div>
+      <div class="panel-body">
+        <div class="form-grid">
+          <div class="form-row"><label>Empreendimento</label><select id="escalEmp"></select></div>
+          <div class="form-row"><label>Tipo de solicitação</label>
+            <select id="escalTipo">
+              <option value="desconto">Desconto em unidade</option>
+              <option value="premio">Prêmio/vantagem para imobiliária</option>
+              <option value="outro">Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row"><label>Descrição da solicitação</label>
+          <textarea id="escalDescricao" placeholder="Ex: Desconto de 2% na unidade 804 para fechar com o Cb. Marcos Andrade."></textarea>
+        </div>
+        <div class="form-row"><label>Valor envolvido (R$, estimado)</label><input id="escalValor" type="number" placeholder="Ex: 13000"></div>
+        <div class="right"><button class="btn btn-gold" onclick="enviarEscalonamento()">Enviar ao Superintendente</button></div>
+      </div>
+    </div>
+
+    <div id="bloqueiosList"></div>
+  </section>
+
+  <!-- ======================= COMPARTILHADO ======================= -->
+
+  <section class="tabpanel" id="tab-atividades" style="display:none">
+    <div class="topbar">
+      <div><h1>Log de Atividades</h1>
+      <p class="desc">Histórico de decisões — aprovações, reservas confirmadas, contratos emitidos, orçamentos liberados, solicitações ao superintendente.</p></div>
+      <div class="topbar-actions"><button class="btn btn-outline" onclick="clearLog()">Limpar log local</button></div>
+    </div>
+    <div class="panel"><div class="panel-body"><ul class="timeline" id="logList"></ul></div></div>
+  </section>
+
+</main>
+
+<!-- ===== MODAL: Empreendimento ===== -->
+<div class="overlay" id="modalEmp">
+  <div class="modal">
+    <div class="modal-head"><h3>Inscrever empreendimento no Feirão</h3><button class="modal-close" onclick="closeModal('modalEmp')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Nome do empreendimento</label><input id="empNome" placeholder="Ex: Orla Recreio Reserva"></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Construtora</label><input id="empConstrutora" placeholder="Ex: Cury"></div>
+        <div class="form-row"><label>Entrega prevista</label><input id="empEntrega" placeholder="Ex: 12/2027"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Entrada mínima (%)</label><input id="empEntrada" placeholder="Ex: 10%"></div>
+        <div class="form-row"><label>Sinal do feirão</label><input id="empSinal" placeholder="Ex: R$ 5.000"></div>
+      </div>
+      <div class="form-row"><label>Condições comerciais especiais do feirão</label>
+      <textarea id="empCondicoes" placeholder="Ex: Desconto de 3% à vista, isenção de taxa de corretagem para militares FAB, parcelamento do sinal em 3x..."></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalEmp')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveEmp()">Inscrever empreendimento</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Unidade ===== -->
+<div class="overlay" id="modalUnid">
+  <div class="modal">
+    <div class="modal-head"><h3>Adicionar / confirmar unidade</h3><button class="modal-close" onclick="closeModal('modalUnid')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row"><label>Empreendimento</label><select id="unidEmp"></select></div>
+      <div class="form-grid">
+        <div class="form-row"><label>Unidade</label><input id="unidNumero" placeholder="Ex: Torre 2 - Apto 804"></div>
+        <div class="form-row"><label>Tipologia</label><input id="unidTipo" placeholder="Ex: 3 quartos, 1 suíte"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-row"><label>Valor (R$)</label><input id="unidValor" type="number" placeholder="Ex: 650000"></div>
+        <div class="form-row"><label>Status</label>
+          <select id="unidStatus">
+            <option value="disponivel">Disponível</option>
+            <option value="reservada">Reservada</option>
+            <option value="vendida">Vendida</option>
+            <option value="indisponivel">Indisponível</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalUnid')">Cancelar</button>
+      <button class="btn btn-gold" onclick="saveUnid()">Salvar unidade</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Análise de crédito (decisão) ===== -->
+<div class="overlay" id="modalCredito">
+  <div class="modal">
+    <div class="modal-head"><h3>Liberar resultado da análise de crédito</h3><button class="modal-close" onclick="closeModal('modalCredito')">✕</button></div>
+    <div class="modal-body" id="modalCreditoBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalCredito')">Cancelar</button>
+      <button class="btn btn-danger" onclick="decidirCredito('reprovado')">Reprovar</button>
+      <button class="btn btn-success" onclick="decidirCredito('aprovado')">Aprovar crédito</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: Despacho da Diretoria ===== -->
+<div class="overlay" id="modalDespacho">
+  <div class="modal">
+    <div class="modal-head"><h3>Despacho da Diretoria</h3><button class="modal-close" onclick="closeModal('modalDespacho')">✕</button></div>
+    <div class="modal-body" id="modalDespachoBody"></div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modalDespacho')">Cancelar</button>
+      <button class="btn btn-danger" onclick="decidirDespacho('recusado_diretoria')">Recusar</button>
+      <button class="btn btn-success" onclick="decidirDespacho('aprovado_diretoria')">Aprovar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+<script>
+/* =========================================================================
+   WAL IMÓVEIS — DASHBOARD DO FEIRÃO ONLINE
+   Perfis: Viabilizador/Ger Imob, Superintendente, Diretor — mesma base de dados.
+   Armazenamento local (localStorage) — pronto para trocar por Google Sheets
+   / Apps Script (mesmos nomes de campo usados nos outros dashboards WAL).
+   ========================================================================= */
+
+const LS_KEY = 'wal_viabilizador_v1';
+const META_MIN = 50, META_MAX = 60, META_PRAZO = '31/12/2026';
+const COMISSAO_PCT = 0.005; // 0,5% referral, conforme estrutura de agentes WAL
+
+function seedData(){
+  return {
+    empreendimentos: [
+      {id:1, nome:'Orla Recreio Reserva', construtora:'Cury', entrega:'12/2027', entrada:'10%', sinal:'R$ 5.000', condicoes:'Desconto de 3% à vista. Isenção de taxa de corretagem para militares FAB. Parcelamento do sinal em até 3x sem juros durante o Feirão.'},
+      {id:2, nome:'Ilha Mar', construtora:'Riva', entrega:'06/2028', entrada:'15%', sinal:'R$ 3.000', condicoes:'Condição especial CFIAe: entrada facilitada via FGTS. Brinde de mobília no showroom para reservas no Feirão.'},
+      {id:3, nome:'ICONYC by YOO', construtora:'Cyrela', entrega:'03/2029', entrada:'20%', sinal:'R$ 10.000', condicoes:'Unidade decorada com condição diferenciada para servidores públicos e pensionistas. Sinal parcelado em 2x.'}
+    ],
+    unidades: [
+      {id:1, empId:1, unidade:'Torre 2 - Apto 804', tipo:'3 quartos, 1 suíte', valor:650000, status:'disponivel'},
+      {id:2, empId:1, unidade:'Torre 1 - Apto 302', tipo:'2 quartos', valor:480000, status:'disponivel'},
+      {id:3, empId:2, unidade:'Bloco B - Apto 1201', tipo:'3 quartos, 2 suítes', valor:820000, status:'reservada'},
+      {id:4, empId:2, unidade:'Bloco A - Apto 505', tipo:'2 quartos', valor:510000, status:'disponivel'},
+      {id:5, empId:3, unidade:'Cobertura 1801', tipo:'4 suítes', valor:2100000, status:'vendida'},
+      {id:6, empId:3, unidade:'Apto 902', tipo:'3 suítes', valor:1350000, status:'disponivel'}
+    ],
+    solicitacoes: [
+      {id:1, empId:1, cliente:'Cb. Marcos Andrade', unidade:'Torre 2 - Apto 804', valor:650000, status:'pendente', data:hoursAgo(2)},
+      {id:2, empId:2, cliente:'Sgt. Patrícia Lima', unidade:'Bloco A - Apto 505', valor:510000, status:'pendente', data:hoursAgo(5)},
+      {id:3, empId:3, cliente:'Cel. Roberto Nunes', unidade:'Apto 902', valor:1350000, status:'disponivel', data:hoursAgo(20)},
+      {id:4, empId:1, cliente:'Ten. Juliana Prado', unidade:'Torre 1 - Apto 302', valor:480000, status:'reservado', data:hoursAgo(30)}
+    ],
+    creditos: [
+      {id:1, cliente:'Cb. Marcos Andrade', empId:1, unidade:'Torre 2 - Apto 804', valorImovel:650000, renda:9800, docs:['RG/CPF','Contracheque FAB (3 últimos)','Comprovante de residência','Extrato FGTS'], status:'pendente', sinal:null, financiado:null, obs:''},
+      {id:2, cliente:'Sgt. Patrícia Lima', empId:2, unidade:'Bloco A - Apto 505', valorImovel:510000, renda:6200, docs:['RG/CPF','Contracheque','Comprovante residência'], status:'em_analise', sinal:null, financiado:null, obs:''},
+      {id:3, cliente:'Cel. Roberto Nunes', empId:3, unidade:'Apto 902', valorImovel:1350000, renda:22000, docs:['RG/CPF','Contracheque','IR completo','Extrato FGTS'], status:'aprovado', sinal:10000, financiado:1215000, obs:'Aprovado via CFIAe, 8.5% a.a. + TR, SAC.'}
+    ],
+    reservas: [
+      {id:1, cliente:'Ten. Juliana Prado', empId:1, unidade:'Torre 1 - Apto 302', valorSinal:5000, depositoConfirmado:true, prazo:hoursFromNow(40), etapa:'aguardando_contrato'}
+    ],
+    pagamentos: [
+      {id:1, cliente:'Ten. Juliana Prado', empId:1, unidade:'Torre 1 - Apto 302', proposta:'Sinal de R$ 5.000 via PIX + entrada de 10% via FGTS + saldo financiado CFIAe 30 anos (SAC).', status:'pendente'}
+    ],
+    contratos: [
+      {id:1, cliente:'Ten. Juliana Prado', empId:1, unidade:'Torre 1 - Apto 302', sinalPago:true, status:'aguardando_emissao', emitidoEm:null}
+    ],
+    obras: [
+      {empId:1, etapa:'Estrutura', percentConcluido:62, previstoPercent:68},
+      {empId:2, etapa:'Fundação', percentConcluido:28, previstoPercent:25},
+      {empId:3, etapa:'Acabamento', percentConcluido:81, previstoPercent:75}
+    ],
+    orcamentoPedidos: [
+      {id:1, solicitante:'Viabilizador/Ger Imob — Orla Recreio Reserva', empId:1, descricao:'Desconto adicional de 2% para fechamento de 3 unidades em lote.', valor:13000, status:'pendente', data:hoursAgo(6)}
+    ],
+    solicitacoesEscalonamento: [
+      {id:1, empId:3, tipo:'premio', descricao:'Prêmio de R$ 3.000 para a imobiliária parceira que trouxe o Cel. Roberto Nunes, como incentivo adicional de fechamento.', valor:3000, status:'pendente', data:hoursAgo(4)},
+      {id:2, empId:1, tipo:'desconto', descricao:'Desconto de 1,5% na unidade Torre 2 - Apto 804 para viabilizar o fechamento com o Cb. Marcos Andrade.', valor:9750, status:'pendente', data:hoursAgo(1)}
+    ],
+    log: [
+      {data:new Date().toISOString(), acao:'Sessão do dashboard iniciada.'}
+    ]
+  };
+}
+
+function hoursAgo(h){ const d=new Date(); d.setHours(d.getHours()-h); return d.toISOString(); }
+function hoursFromNow(h){ const d=new Date(); d.setHours(d.getHours()+h); return d.toISOString(); }
+function fmtMoney(v){ return v==null ? '—' : Number(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL',maximumFractionDigits:0}); }
+function fmtDateTime(iso){ if(!iso) return '—'; const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function timeSince(iso){
+  const diffMs = Date.now()-new Date(iso).getTime();
+  const h = Math.floor(diffMs/3600000);
+  if(h<1) return Math.floor(diffMs/60000)+' min atrás';
+  if(h<24) return h+'h atrás';
+  return Math.floor(h/24)+'d atrás';
+}
+function timeUntil(iso){
+  const diffMs = new Date(iso).getTime()-Date.now();
+  const h = Math.round(diffMs/3600000);
+  if(h<=0) return 'vencido';
+  if(h<24) return 'em '+h+'h';
+  return 'em '+Math.round(h/24)+'d';
+}
+
+let DB = JSON.parse(localStorage.getItem(LS_KEY) || 'null') || seedData();
+(function migrate(){
+  const seed = seedData();
+  ['obras','orcamentoPedidos','solicitacoesEscalonamento'].forEach(k=>{ if(!DB[k]) DB[k]=seed[k]; });
+})();
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(DB)); renderAll(); }
+
+function empName(id){ const e = DB.empreendimentos.find(x=>x.id===id); return e ? e.nome : '—'; }
+
+function tipoEscalLabel(t){
+  return {desconto:'Desconto em unidade', premio:'Prêmio/vantagem p/ imobiliária', outro:'Outro'}[t] || t;
+}
+function isEscalAberta(s){ return s.status==='pendente' || s.status==='encaminhado'; }
+
+/* ---------------- LOG ---------------- */
+function logAction(msg){
+  DB.log.unshift({data:new Date().toISOString(), acao:msg});
+  DB.log = DB.log.slice(0,100);
+}
+function clearLog(){ DB.log=[]; save(); toast('Log limpo.'); }
+
+/* ---------------- TOAST ---------------- */
+function toast(msg){
+  const t = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------------- ROLE SWITCH ---------------- */
+let currentRole = localStorage.getItem('wal_role') || 'viabilizador';
+const ROLE_DEFAULT_TAB = {viabilizador:'overview', diretor:'diretor-visao', superintendente:'overview'};
+const ROLE_BADGE = {
+  viabilizador: {ic:'👷', title:'Viabilizador/Ger Imob', sub:'Apoio às imobiliárias na efetivação das vendas'},
+  diretor: {ic:'🗂️', title:'Diretor', sub:'Autorização para liberar orçamento e tratativas final'},
+  superintendente: {ic:'🧭', title:'Superintendente', sub:'Elo entre Viabilizador/Ger Imob, Produto e Diretoria'}
+};
+
+document.getElementById('roleSwitch').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-role]');
+  if(!btn) return;
+  setRole(btn.dataset.role);
+});
+
+function setRole(role){
+  currentRole = role;
+  localStorage.setItem('wal_role', role);
+  document.querySelectorAll('#roleSwitch button').forEach(b=>b.classList.toggle('active', b.dataset.role===role));
+  document.querySelectorAll('.nav-group').forEach(g=>{
+    const r = g.dataset.role;
+    g.style.display = (r==='all' || r===role) ? '' : 'none';
+  });
+  updateRoleBadge();
+  switchTab(ROLE_DEFAULT_TAB[role]);
+  renderAll();
+}
+function updateRoleBadge(){
+  const r = ROLE_BADGE[currentRole];
+  document.getElementById('roleBadge').innerHTML = `<b>${r.ic} ${r.title}</b>${r.sub}`;
+}
+
+/* ---------------- NAV ---------------- */
+document.getElementById('navTabs').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-tab]');
+  if(!btn) return;
+  switchTab(btn.dataset.tab);
+});
+function switchTab(tab){
+  document.querySelectorAll('.tabpanel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).style.display='block';
+  document.querySelectorAll(`nav.tabs button[data-tab="${tab}"]`).forEach(b=>b.classList.add('active'));
+  if(tab==='super-bloqueios') renderBloqueios();
+}
+function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+function openModal(id){ document.getElementById(id).classList.add('show'); }
+
+/* ---------------- ONLINE COUNTER (simulado) ---------------- */
+let onlineBase = 34;
+function tickOnline(){
+  onlineBase = Math.max(6, onlineBase + Math.round((Math.random()-0.5)*6));
+  document.getElementById('onlineCount').textContent = onlineBase;
+}
+tickOnline();
+setInterval(tickOnline, 8000);
+
+function statusBadge(status){
+  const map = {
+    disponivel:['badge-success','Disponível'],
+    reservada:['badge-warning','Reservada'],
+    vendida:['badge-muted','Vendida'],
+    indisponivel:['badge-danger','Indisponível'],
+    pendente:['badge-warning','Pendente'],
+    nao_disponivel:['badge-danger','Não disponível'],
+    reservado:['badge-success','Reservado'],
+    em_analise:['badge-info','Em análise'],
+    aprovado:['badge-success','Aprovado'],
+    reprovado:['badge-danger','Reprovado'],
+    aguardando_emissao:['badge-warning','Aguardando emissão'],
+    emitido:['badge-info','Emitido — aguardando assinatura'],
+    assinado:['badge-success','Assinado'],
+    recusado:['badge-danger','Recusado'],
+    encaminhado:['badge-info','Encaminhado à Diretoria'],
+    aprovado_diretoria:['badge-success','Aprovado pela Diretoria'],
+    recusado_diretoria:['badge-danger','Recusado pela Diretoria'],
+  };
+  const [cls,label] = map[status] || ['badge-muted', status];
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+/* ==================== RENDER: OVERVIEW (compartilhado Viabilizador/Superintendente) ==================== */
+function renderOverview(){
+  const totalUnid = DB.unidades.length;
+  const disponiveis = DB.unidades.filter(u=>u.status==='disponivel').length;
+  const reservadas = DB.unidades.filter(u=>u.status==='reservada').length;
+  const vendidas = DB.unidades.filter(u=>u.status==='vendida').length;
+  const solPendentes = DB.solicitacoes.filter(s=>s.status==='pendente').length;
+  const credPendentes = DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').length;
+  const contratosAguardando = DB.contratos.filter(c=>c.status==='aguardando_emissao').length;
+
+  const kpis = [
+    {lbl:'Unidades disponíveis', val:disponiveis+' / '+totalUnid, delta:reservadas+' reservadas · '+vendidas+' vendidas'},
+    {lbl:'Solicitações pendentes', val:solPendentes, delta: solPendentes>0 ? 'Aguardando confirmação' : 'Tudo em dia', cls: solPendentes>0?'warn':''},
+    {lbl:'Análises de crédito em aberto', val:credPendentes, delta: credPendentes>0 ? 'Aguardando decisão' : 'Sem pendências', cls: credPendentes>0?'warn':''},
+    {lbl:'Contratos p/ emitir', val:contratosAguardando, delta:'Após confirmação de sinal', cls: contratosAguardando>0?'warn':''},
+    {lbl:'Reservas ativas', val:DB.reservas.length, delta:'Até assinatura + sinal'},
+  ];
+  document.getElementById('kpiGrid').innerHTML = kpis.map(k=>`
+    <div class="kpi-card">
+      <div class="lbl">${k.lbl}</div>
+      <div class="val">${k.val}</div>
+      <div class="delta ${k.cls||''}">${k.delta}</div>
+    </div>`).join('');
+
+  const funilSteps = [
+    {lbl:'Solicitações recebidas', v: DB.solicitacoes.length},
+    {lbl:'Disponibilidade confirmada', v: DB.solicitacoes.filter(s=>s.status!=='pendente').length},
+    {lbl:'Reservas com depósito', v: DB.reservas.length},
+    {lbl:'Contratos emitidos', v: DB.contratos.filter(c=>c.status!=='aguardando_emissao').length},
+  ];
+  const max = Math.max(1, ...funilSteps.map(f=>f.v));
+  document.getElementById('funilBody').innerHTML = funilSteps.map(f=>`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:4px;">
+        <span>${f.lbl}</span><b>${f.v}</b>
+      </div>
+      <div class="progress-track"><div class="progress-fill" style="width:${(f.v/max*100)}%"></div></div>
+    </div>`).join('');
+
+  const counts = {};
+  DB.solicitacoes.forEach(s=>{ counts[s.empId]=(counts[s.empId]||0)+1; });
+  const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  document.getElementById('rankingBody').innerHTML = ranked.length ? ranked.map(([id,c],i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);">
+      <span class="tag-pill">${i+1}º</span>
+      <span style="flex:1;font-size:13px;">${empName(Number(id))}</span>
+      <b>${c} solicitações</b>
+    </div>`).join('') : '<div class="empty-state">Sem solicitações ainda.</div>';
+
+  let urgentes = [];
+  DB.solicitacoes.filter(s=>s.status==='pendente').forEach(s=>urgentes.push({tipo:'Confirmar disponibilidade', desc:`${s.cliente} — ${empName(s.empId)} / ${s.unidade}`, tab:'solicitacoes', tempo:s.data}));
+  DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').forEach(c=>urgentes.push({tipo:'Liberar análise de crédito', desc:`${c.cliente} — ${empName(c.empId)}`, tab:'credito', tempo:null}));
+  DB.pagamentos.filter(p=>p.status==='pendente').forEach(p=>urgentes.push({tipo:'Confirmar fluxo de pagamento', desc:`${p.cliente} — ${empName(p.empId)}`, tab:'pagamento', tempo:null}));
+  DB.contratos.filter(c=>c.status==='aguardando_emissao').forEach(c=>urgentes.push({tipo:'Emitir contrato', desc:`${c.cliente} — ${empName(c.empId)}`, tab:'contratos', tempo:null}));
+
+  document.getElementById('acoesUrgentes').innerHTML = urgentes.length ? `<table><thead><tr><th>Ação necessária</th><th>Detalhe</th><th>Recebido</th><th></th></tr></thead><tbody>
+    ${urgentes.map(u=>`<tr>
+      <td><span class="badge badge-warning">${u.tipo}</span></td>
+      <td>${u.desc}</td>
+      <td class="small-muted">${u.tempo?timeSince(u.tempo):'—'}</td>
+      <td class="right"><button class="btn btn-sm btn-navy" onclick="switchTab('${u.tab}')">Resolver</button></td>
+    </tr>`).join('')}
+  </tbody></table>` : '<div class="empty-state"><div class="ic">✅</div>Nenhuma ação pendente no momento.</div>';
+}
+
+/* ==================== RENDER: EMPREENDIMENTOS (compartilhado) ==================== */
+function renderEmpreendimentos(){
+  document.getElementById('empActions').style.display = currentRole==='viabilizador' ? '' : 'none';
+  document.getElementById('empList').innerHTML = DB.empreendimentos.map(e=>{
+    const totalU = DB.unidades.filter(u=>u.empId===e.id).length;
+    const dispU = DB.unidades.filter(u=>u.empId===e.id && u.status==='disponivel').length;
+    return `<div class="panel">
+      <div class="panel-head"><h3>${e.nome}</h3><span class="badge badge-info">${e.construtora}</span></div>
+      <div class="panel-body">
+        <div class="grid-3" style="margin-bottom:10px;">
+          <div><div class="small-muted">Entrega</div><b>${e.entrega}</b></div>
+          <div><div class="small-muted">Entrada mínima</div><b>${e.entrada}</b></div>
+          <div><div class="small-muted">Sinal do feirão</div><b>${e.sinal}</b></div>
+        </div>
+        <div class="small-muted" style="margin-bottom:6px;">Condições comerciais do feirão</div>
+        <p style="font-size:13px;line-height:1.5;margin:0 0 10px;">${e.condicoes}</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span class="tag-pill">🏢 ${dispU} / ${totalU} unidades disponíveis</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openEmpModal(){
+  ['empNome','empConstrutora','empEntrega','empEntrada','empSinal','empCondicoes'].forEach(id=>document.getElementById(id).value='');
+  openModal('modalEmp');
+}
+function saveEmp(){
+  const nome = document.getElementById('empNome').value.trim();
+  if(!nome){ toast('Informe o nome do empreendimento.'); return; }
+  const id = Math.max(0,...DB.empreendimentos.map(e=>e.id))+1;
+  DB.empreendimentos.push({
+    id, nome,
+    construtora: document.getElementById('empConstrutora').value.trim()||'—',
+    entrega: document.getElementById('empEntrega').value.trim()||'—',
+    entrada: document.getElementById('empEntrada').value.trim()||'—',
+    sinal: document.getElementById('empSinal').value.trim()||'—',
+    condicoes: document.getElementById('empCondicoes').value.trim()||'—'
+  });
+  logAction(`Empreendimento "${nome}" inscrito no Feirão.`);
+  closeModal('modalEmp');
+  save();
+  toast('Empreendimento inscrito no Feirão.');
+}
+
+/* ==================== RENDER: UNIDADES (compartilhado) ==================== */
+function fillEmpSelects(){
+  const opts = DB.empreendimentos.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');
+  document.getElementById('fUnidEmp').innerHTML = '<option value="">Todos os empreendimentos</option>'+opts;
+  document.getElementById('unidEmp').innerHTML = opts;
+  const escalSel = document.getElementById('escalEmp');
+  if(escalSel) escalSel.innerHTML = opts;
+}
+
+function renderUnidades(){
+  document.getElementById('unidActions').style.display = currentRole==='viabilizador' ? '' : 'none';
+  const fEmp = document.getElementById('fUnidEmp').value;
+  const fStatus = document.getElementById('fUnidStatus').value;
+  const fBusca = document.getElementById('fUnidBusca').value.toLowerCase();
+  const rows = DB.unidades.filter(u=>{
+    if(fEmp && String(u.empId)!==fEmp) return false;
+    if(fStatus && u.status!==fStatus) return false;
+    if(fBusca && !(u.unidade.toLowerCase().includes(fBusca) || empName(u.empId).toLowerCase().includes(fBusca))) return false;
+    return true;
+  });
+  const podeEditar = currentRole==='viabilizador';
+  document.querySelector('#tblUnidades tbody').innerHTML = rows.length ? rows.map(u=>`
+    <tr>
+      <td>${empName(u.empId)}</td>
+      <td><b>${u.unidade}</b><div class="small-muted">${u.tipo}</div></td>
+      <td>${u.tipo}</td>
+      <td class="mono">${fmtMoney(u.valor)}</td>
+      <td>${statusBadge(u.status)}</td>
+      <td class="right">
+        ${podeEditar ? `
+        <select onchange="changeUnidStatus(${u.id}, this.value)" style="font-size:12px;padding:5px 8px;border-radius:6px;border:1px solid var(--line);">
+          <option value="disponivel" ${u.status==='disponivel'?'selected':''}>Disponível</option>
+          <option value="reservada" ${u.status==='reservada'?'selected':''}>Reservada</option>
+          <option value="vendida" ${u.status==='vendida'?'selected':''}>Vendida</option>
+          <option value="indisponivel" ${u.status==='indisponivel'?'selected':''}>Indisponível</option>
+        </select>` : ''}
+      </td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state">Nenhuma unidade encontrada com esse filtro.</div></td></tr>`;
+}
+function changeUnidStatus(id, status){
+  const u = DB.unidades.find(x=>x.id===id);
+  u.status = status;
+  logAction(`Unidade "${u.unidade}" (${empName(u.empId)}) marcada como ${status}.`);
+  save();
+  toast('Status da unidade atualizado.');
+}
+function openUnidModal(){
+  document.getElementById('unidNumero').value='';
+  document.getElementById('unidTipo').value='';
+  document.getElementById('unidValor').value='';
+  document.getElementById('unidStatus').value='disponivel';
+  openModal('modalUnid');
+}
+function saveUnid(){
+  const empId = Number(document.getElementById('unidEmp').value);
+  const unidade = document.getElementById('unidNumero').value.trim();
+  if(!unidade){ toast('Informe o identificador da unidade.'); return; }
+  const id = Math.max(0,...DB.unidades.map(u=>u.id))+1;
+  DB.unidades.push({
+    id, empId, unidade,
+    tipo: document.getElementById('unidTipo').value.trim()||'—',
+    valor: Number(document.getElementById('unidValor').value)||0,
+    status: document.getElementById('unidStatus').value
+  });
+  logAction(`Unidade "${unidade}" adicionada em ${empName(empId)}.`);
+  closeModal('modalUnid');
+  save();
+  toast('Unidade cadastrada.');
+}
+
+/* ==================== RENDER: SOLICITAÇÕES (compartilhado) ==================== */
+function renderSolicitacoes(){
+  const podeAgir = currentRole==='viabilizador';
+  const fStatus = document.getElementById('fSolStatus').value;
+  const fBusca = document.getElementById('fSolBusca').value.toLowerCase();
+  const rows = DB.solicitacoes.filter(s=>{
+    if(fStatus && s.status!==fStatus) return false;
+    if(fBusca && !(s.cliente.toLowerCase().includes(fBusca) || empName(s.empId).toLowerCase().includes(fBusca))) return false;
+    return true;
+  });
+  document.getElementById('tblSolicitacoesBody').innerHTML = rows.length ? rows.map(s=>`
+    <tr>
+      <td>${empName(s.empId)}</td>
+      <td><b>${s.cliente}</b></td>
+      <td>${s.unidade}</td>
+      <td class="mono">${fmtMoney(s.valor)}</td>
+      <td>${statusBadge(s.status)}</td>
+      <td class="small-muted">${timeSince(s.data)}</td>
+      <td class="right">
+        ${!podeAgir ? '' : s.status==='pendente' ? `
+          <button class="btn btn-sm btn-success" onclick="marcarSolicitacao(${s.id},'disponivel')">Disponível</button>
+          <button class="btn btn-sm btn-danger" onclick="marcarSolicitacao(${s.id},'nao_disponivel')">Indisponível</button>
+        ` : s.status==='disponivel' ? `
+          <button class="btn btn-sm btn-gold" onclick="confirmarReserva(${s.id})">Confirmar reserva</button>
+        ` : ''}
+      </td>
+    </tr>`).join('') : `<tr><td colspan="7"><div class="empty-state">Nenhuma solicitação encontrada.</div></td></tr>`;
+}
+function marcarSolicitacao(id, status){
+  const s = DB.solicitacoes.find(x=>x.id===id);
+  s.status = status;
+  logAction(`Solicitação de ${s.cliente} (${s.unidade}) marcada como ${status==='disponivel'?'disponível':'não disponível'}.`);
+  save();
+  toast('Status da solicitação atualizado.');
+}
+function confirmarReserva(id){
+  const s = DB.solicitacoes.find(x=>x.id===id);
+  s.status = 'reservado';
+  const u = DB.unidades.find(u=>u.empId===s.empId && u.unidade===s.unidade);
+  if(u) u.status='reservada';
+  const rid = Math.max(0,...DB.reservas.map(r=>r.id),0)+1;
+  DB.reservas.push({id:rid, cliente:s.cliente, empId:s.empId, unidade:s.unidade, valorSinal:null, depositoConfirmado:false, prazo:hoursFromNow(48), etapa:'aguardando_deposito'});
+  logAction(`Reserva confirmada para ${s.cliente} — ${s.unidade} (${empName(s.empId)}).`);
+  save();
+  toast('Reserva confirmada. Cliente movido para "Reservas & Depósitos".');
+}
+
+/* ==================== RENDER: CRÉDITO (compartilhado) ==================== */
+function renderCredito(){
+  const podeAgir = currentRole==='viabilizador';
+  const fStatus = document.getElementById('fCredStatus').value;
+  const fBusca = document.getElementById('fCredBusca').value.toLowerCase();
+  const rows = DB.creditos.filter(c=>{
+    if(fStatus && c.status!==fStatus) return false;
+    if(fBusca && !c.cliente.toLowerCase().includes(fBusca)) return false;
+    return true;
+  });
+  document.getElementById('credList').innerHTML = rows.length ? rows.map(c=>`
+    <div class="panel">
+      <div class="panel-head">
+        <div><h3>${c.cliente}</h3><span class="hint">${empName(c.empId)} · ${c.unidade}</span></div>
+        ${statusBadge(c.status)}
+      </div>
+      <div class="panel-body">
+        <div class="grid-3" style="margin-bottom:10px;">
+          <div><div class="small-muted">Valor do imóvel</div><b>${fmtMoney(c.valorImovel)}</b></div>
+          <div><div class="small-muted">Renda informada</div><b>${fmtMoney(c.renda)}</b></div>
+          <div><div class="small-muted">Sinal / Financiado</div><b>${c.sinal?fmtMoney(c.sinal)+' / '+fmtMoney(c.financiado):'—'}</b></div>
+        </div>
+        <div class="small-muted" style="margin-bottom:6px;">Documentos recebidos</div>
+        <div class="doc-list" style="margin-bottom:10px;">
+          ${c.docs.map(d=>`<div class="doc-item"><span class="ic">📎</span>${d}</div>`).join('')}
+        </div>
+        ${c.obs ? `<div class="section-note">${c.obs}</div>` : ''}
+        ${podeAgir ? `<div class="right">
+          ${c.status==='pendente' ? `<button class="btn btn-sm btn-navy" onclick="setCreditoEmAnalise(${c.id})">Iniciar análise</button>` : ''}
+          ${c.status==='em_analise' || c.status==='pendente' ? `<button class="btn btn-sm btn-gold" onclick="openDecisaoCredito(${c.id})">Liberar decisão</button>` : ''}
+        </div>` : ''}
+      </div>
+    </div>`).join('') : '<div class="empty-state"><div class="ic">🧾</div>Nenhuma solicitação de análise de crédito encontrada.</div>';
+}
+function setCreditoEmAnalise(id){
+  const c = DB.creditos.find(x=>x.id===id);
+  c.status = 'em_analise';
+  logAction(`Análise de crédito de ${c.cliente} iniciada.`);
+  save();
+  toast('Análise iniciada.');
+}
+let creditoAtualId = null;
+function openDecisaoCredito(id){
+  creditoAtualId = id;
+  const c = DB.creditos.find(x=>x.id===id);
+  document.getElementById('modalCreditoBody').innerHTML = `
+    <p style="font-size:13px;color:var(--muted);margin-top:0;">${c.cliente} — ${empName(c.empId)} / ${c.unidade}</p>
+    <div class="form-grid">
+      <div class="form-row"><label>Valor do sinal (R$)</label><input id="decSinal" type="number" placeholder="Ex: 5000"></div>
+      <div class="form-row"><label>Valor financiado (R$)</label><input id="decFinanciado" type="number" placeholder="Ex: 585000"></div>
+    </div>
+    <div class="form-row"><label>Observações da análise (linha de crédito, taxa, prazo)</label>
+      <textarea id="decObs" placeholder="Ex: Aprovado via CFIAe, 8,5% a.a. + TR, SAC, 35 anos."></textarea>
+    </div>
+  `;
+  openModal('modalCredito');
+}
+function decidirCredito(status){
+  const c = DB.creditos.find(x=>x.id===creditoAtualId);
+  c.status = status;
+  if(status==='aprovado'){
+    c.sinal = Number(document.getElementById('decSinal').value)||0;
+    c.financiado = Number(document.getElementById('decFinanciado').value)||0;
+  } else {
+    c.sinal=null; c.financiado=null;
+  }
+  c.obs = document.getElementById('decObs').value.trim();
+  logAction(`Crédito de ${c.cliente} ${status==='aprovado'?'APROVADO':'REPROVADO'}.`);
+  closeModal('modalCredito');
+  save();
+  toast(status==='aprovado' ? 'Aprovação liberada para a imobiliária.' : 'Reprovação registrada.');
+}
+
+/* ==================== RENDER: RESERVAS ==================== */
+function renderReservas(){
+  document.getElementById('reservasList').innerHTML = DB.reservas.length ? DB.reservas.map(r=>`
+    <div class="panel">
+      <div class="panel-head">
+        <div><h3>${r.cliente}</h3><span class="hint">${empName(r.empId)} · ${r.unidade}</span></div>
+        <span class="badge ${r.depositoConfirmado?'badge-success':'badge-warning'}">${r.depositoConfirmado?'Depósito confirmado':'Aguardando depósito'}</span>
+      </div>
+      <div class="panel-body">
+        <ul class="timeline">
+          <li class="done"><div class="t-title">Unidade reservada</div><div class="t-meta">Reserva registrada pelo viabilizador/ger imob</div></li>
+          <li class="${r.depositoConfirmado?'done':''}"><div class="t-title">Depósito de reserva</div><div class="t-meta">${r.depositoConfirmado ? 'Confirmado — Sinal: '+fmtMoney(r.valorSinal) : 'Pendente de confirmação'}</div></li>
+          <li><div class="t-title">Assinatura do contrato + pagamento do sinal</div><div class="t-meta">Prazo: ${timeUntil(r.prazo)} (${fmtDateTime(r.prazo)})</div></li>
+        </ul>
+        ${!r.depositoConfirmado ? `
+        <div class="form-grid" style="margin-top:10px;">
+          <div class="form-row"><label>Valor do depósito recebido (R$)</label><input id="depVal-${r.id}" type="number" placeholder="Ex: 5000"></div>
+        </div>
+        <div class="right"><button class="btn btn-sm btn-success" onclick="confirmarDeposito(${r.id})">Confirmar depósito</button></div>
+        ` : `<div class="right small-muted">Sinal confirmado em ${fmtMoney(r.valorSinal)}. Aguardando emissão de contrato.</div>`}
+      </div>
+    </div>`).join('') : '<div class="empty-state"><div class="ic">🔒</div>Nenhuma reserva ativa no momento.</div>';
+}
+function confirmarDeposito(id){
+  const r = DB.reservas.find(x=>x.id===id);
+  const val = Number(document.getElementById('depVal-'+id).value);
+  if(!val){ toast('Informe o valor do depósito recebido.'); return; }
+  r.depositoConfirmado = true;
+  r.valorSinal = val;
+  r.etapa = 'aguardando_contrato';
+  if(!DB.contratos.find(c=>c.cliente===r.cliente && c.unidade===r.unidade)){
+    const cid = Math.max(0,...DB.contratos.map(c=>c.id),0)+1;
+    DB.contratos.push({id:cid, cliente:r.cliente, empId:r.empId, unidade:r.unidade, sinalPago:true, status:'aguardando_emissao', emitidoEm:null});
+  }
+  logAction(`Depósito de reserva confirmado para ${r.cliente} (${fmtMoney(val)}).`);
+  save();
+  toast('Depósito confirmado. Cliente pronto para emissão de contrato.');
+}
+
+/* ==================== RENDER: PAGAMENTO ==================== */
+function renderPagamentos(){
+  document.getElementById('tblPagamentoBody').innerHTML = DB.pagamentos.length ? DB.pagamentos.map(p=>`
+    <tr>
+      <td><b>${p.cliente}</b></td>
+      <td>${empName(p.empId)} · ${p.unidade}</td>
+      <td style="max-width:340px;">${p.proposta}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td class="right">
+        ${p.status==='pendente' ? `
+          <button class="btn btn-sm btn-success" onclick="decidirPagamento(${p.id},'aprovado')">Autorizar</button>
+          <button class="btn btn-sm btn-danger" onclick="decidirPagamento(${p.id},'ajustar')">Solicitar ajuste</button>
+        ` : ''}
+      </td>
+    </tr>`).join('') : `<tr><td colspan="5"><div class="empty-state">Nenhum fluxo de pagamento pendente.</div></td></tr>`;
+}
+function decidirPagamento(id, status){
+  const p = DB.pagamentos.find(x=>x.id===id);
+  p.status = status;
+  logAction(`Fluxo de pagamento de ${p.cliente} ${status==='aprovado'?'autorizado':'com ajuste solicitado'}.`);
+  save();
+  toast(status==='aprovado' ? 'Fluxo de pagamento autorizado.' : 'Ajuste solicitado à imobiliária.');
+}
+
+/* ==================== RENDER: CONTRATOS ==================== */
+function renderContratos(){
+  document.getElementById('tblContratosBody').innerHTML = DB.contratos.length ? DB.contratos.map(c=>`
+    <tr>
+      <td><b>${c.cliente}</b></td>
+      <td>${empName(c.empId)} · ${c.unidade}</td>
+      <td>${c.sinalPago ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-warning">Não</span>'}</td>
+      <td>${statusBadge(c.status)}</td>
+      <td class="small-muted">${fmtDateTime(c.emitidoEm)}</td>
+      <td class="right">
+        ${c.status==='aguardando_emissao' ? `<button class="btn btn-sm btn-gold" onclick="emitirContrato(${c.id})">Emitir contrato</button>` : ''}
+        ${c.status==='emitido' ? `<button class="btn btn-sm btn-success" onclick="marcarAssinado(${c.id})">Marcar como assinado</button>` : ''}
+      </td>
+    </tr>`).join('') : `<tr><td colspan="6"><div class="empty-state">Nenhum contrato em andamento.</div></td></tr>`;
+}
+function emitirContrato(id){
+  const c = DB.contratos.find(x=>x.id===id);
+  c.status='emitido';
+  c.emitidoEm = new Date().toISOString();
+  logAction(`Contrato emitido para ${c.cliente} — ${c.unidade}.`);
+  save();
+  toast('Contrato emitido e enviado para assinatura.');
+}
+function marcarAssinado(id){
+  const c = DB.contratos.find(x=>x.id===id);
+  c.status='assinado';
+  const u = DB.unidades.find(u=>u.empId===c.empId && u.unidade===c.unidade);
+  if(u) u.status='vendida';
+  logAction(`Contrato de ${c.cliente} assinado. Venda efetivada.`);
+  save();
+  toast('Contrato assinado — venda efetivada!');
+}
+
+/* ==================== RENDER: ALERTAS ==================== */
+function renderAlertas(){
+  const alertas = DB.reservas.filter(r=>!r.depositoConfirmado || r.etapa==='aguardando_contrato').map(r=>{
+    const horasRestantes = (new Date(r.prazo).getTime()-Date.now())/3600000;
+    return {r, horasRestantes};
+  }).sort((a,b)=>a.horasRestantes-b.horasRestantes);
+
+  document.getElementById('alertasList').innerHTML = alertas.length ? alertas.map(({r,horasRestantes})=>{
+    const critico = horasRestantes < 12;
+    return `<div class="panel">
+      <div class="panel-head">
+        <div><h3>${r.cliente}</h3><span class="hint">${empName(r.empId)} · ${r.unidade}</span></div>
+        <span class="badge ${critico?'badge-danger':'badge-warning'}">${horasRestantes<=0?'Prazo vencido':'Vence '+timeUntil(r.prazo)}</span>
+      </div>
+      <div class="panel-body" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="small-muted">Etapa atual: ${r.depositoConfirmado ? 'Aguardando emissão/assinatura de contrato' : 'Aguardando confirmação de depósito'}</span>
+        <button class="btn btn-sm btn-navy" onclick="switchTab('reservas')">Abrir reserva</button>
+      </div>
+    </div>`;
+  }).join('') : '<div class="empty-state"><div class="ic">✅</div>Nenhum prazo crítico no momento.</div>';
+}
+
+/* ==================== DIRETOR: PAINEL EXECUTIVO ==================== */
+function computeExecutivo(){
+  const unidadesVendidas = DB.unidades.filter(u=>u.status==='vendida');
+  const unidadesReservadas = DB.unidades.filter(u=>u.status==='reservada');
+  const vgvRealizado = unidadesVendidas.reduce((s,u)=>s+u.valor,0);
+  const vgvCarteira = unidadesReservadas.reduce((s,u)=>s+u.valor,0);
+  const totalNegociado = vgvRealizado+vgvCarteira;
+  const qtdNegociado = unidadesVendidas.length+unidadesReservadas.length;
+  const ticketMedio = qtdNegociado ? totalNegociado/qtdNegociado : 0;
+  const comissaoEstimada = totalNegociado*COMISSAO_PCT;
+  return {unidadesVendidas, unidadesReservadas, vgvRealizado, vgvCarteira, totalNegociado, ticketMedio, comissaoEstimada};
+}
+function renderDiretorVisao(){
+  const ex = computeExecutivo();
+  const kpis = [
+    {lbl:'VGV Realizado (assinado)', val:fmtMoney(ex.vgvRealizado), delta:ex.unidadesVendidas.length+' unidades vendidas'},
+    {lbl:'VGV em Carteira (reservado)', val:fmtMoney(ex.vgvCarteira), delta:ex.unidadesReservadas.length+' unidades reservadas'},
+    {lbl:'Ticket médio', val:fmtMoney(ex.ticketMedio), delta:'Vendidas + reservadas'},
+    {lbl:'Comissão estimada (0,5%)', val:fmtMoney(ex.comissaoEstimada), delta:'Sobre VGV negociado'},
+  ];
+  document.getElementById('diretorKpiGrid').innerHTML = kpis.map(k=>`
+    <div class="kpi-card"><div class="lbl">${k.lbl}</div><div class="val">${k.val}</div><div class="delta">${k.delta}</div></div>`).join('');
+
+  const vendidasCount = ex.unidadesVendidas.length;
+  const emAndamentoCount = ex.unidadesReservadas.length;
+  const pctVendidas = Math.min(100, (vendidasCount/META_MIN)*100);
+  const pctComReservas = Math.min(100, ((vendidasCount+emAndamentoCount)/META_MIN)*100);
+  document.getElementById('metaFeiraoBody').innerHTML = `
+    <div class="compare-row">
+      <div class="compare-lbl"><span>Vendas concluídas (contrato assinado)</span><b>${vendidasCount} de ${META_MIN}–${META_MAX}</b></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${pctVendidas}%"></div></div>
+    </div>
+    <div class="compare-row">
+      <div class="compare-lbl"><span>Incluindo reservas em andamento</span><b>${vendidasCount+emAndamentoCount} de ${META_MIN}–${META_MAX}</b></div>
+      <div class="progress-track"><div class="progress-fill navy" style="width:${pctComReservas}%"></div></div>
+    </div>
+    <p class="small-muted" style="margin-top:8px;">Meta: ${META_MIN}–${META_MAX} unidades vendidas até ${META_PRAZO}.</p>
+  `;
+}
+function exportExecutivo(){
+  const ex = computeExecutivo();
+  const linhas = [];
+  linhas.push('WAL IMÓVEIS — RESUMO EXECUTIVO DO FEIRÃO — ' + new Date().toLocaleString('pt-BR'));
+  linhas.push('');
+  linhas.push('META DO FEIRÃO: ' + META_MIN + '–' + META_MAX + ' unidades até ' + META_PRAZO);
+  linhas.push('UNIDADES VENDIDAS (contrato assinado): ' + ex.unidadesVendidas.length);
+  linhas.push('UNIDADES RESERVADAS (em andamento): ' + ex.unidadesReservadas.length);
+  linhas.push('VGV REALIZADO: ' + fmtMoney(ex.vgvRealizado));
+  linhas.push('VGV EM CARTEIRA: ' + fmtMoney(ex.vgvCarteira));
+  linhas.push('TICKET MÉDIO: ' + fmtMoney(ex.ticketMedio));
+  linhas.push('COMISSÃO ESTIMADA (0,5%): ' + fmtMoney(ex.comissaoEstimada));
+  linhas.push('');
+  linhas.push('--- POR CONSTRUTORA ---');
+  DB.empreendimentos.forEach(e=>{
+    const us = DB.unidades.filter(u=>u.empId===e.id);
+    const vgvPot = us.reduce((s,u)=>s+u.valor,0);
+    linhas.push(`${e.construtora} — ${e.nome}: ${us.filter(u=>u.status==='vendida').length} vendidas / ${us.filter(u=>u.status==='reservada').length} reservadas / ${us.filter(u=>u.status==='disponivel').length} disponíveis — VGV potencial ${fmtMoney(vgvPot)}`);
+  });
+  const blob = new Blob([linhas.join('\n')], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'resumo-executivo-feirao-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ==================== DIRETOR: VISÃO POR EMPREENDIMENTO ==================== */
+function renderConstrutoras(){
+  document.getElementById('tblConstrutorasBody').innerHTML = DB.empreendimentos.map(e=>{
+    const us = DB.unidades.filter(u=>u.empId===e.id);
+    const disp = us.filter(u=>u.status==='disponivel').length;
+    const res = us.filter(u=>u.status==='reservada').length;
+    const vend = us.filter(u=>u.status==='vendida').length;
+    const vgvPot = us.reduce((s,u)=>s+u.valor,0);
+    return `<tr>
+      <td><span class="badge badge-info">${e.construtora}</span></td>
+      <td>${e.nome}</td>
+      <td>${us.length}</td>
+      <td>${disp}</td>
+      <td>${res}</td>
+      <td>${vend}</td>
+      <td class="mono">${fmtMoney(vgvPot)}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ==================== RADAR DE RISCO (Diretor) ==================== */
+function computeRiscoItems(){
+  const itens = [];
+  DB.creditos.filter(c=>c.status==='reprovado').forEach(c=>itens.push({sev:'danger', tipo:'Crédito reprovado', desc:`${c.cliente} — ${empName(c.empId)}`}));
+  DB.pagamentos.filter(p=>p.status==='ajustar').forEach(p=>itens.push({sev:'warning', tipo:'Pagamento com ajuste solicitado', desc:`${p.cliente} — ${empName(p.empId)}`}));
+  DB.reservas.forEach(r=>{
+    const h=(new Date(r.prazo).getTime()-Date.now())/3600000;
+    if(h<12) itens.push({sev: h<=0?'danger':'warning', tipo: h<=0?'Prazo de reserva vencido':'Reserva perto do prazo', desc:`${r.cliente} — ${empName(r.empId)} / ${r.unidade}`});
+  });
+  DB.orcamentoPedidos.filter(o=>o.status==='pendente' && (Date.now()-new Date(o.data).getTime())/3600000>24).forEach(o=>itens.push({sev:'warning', tipo:'Orçamento pendente há mais de 24h', desc:`${o.solicitante}`}));
+  DB.solicitacoesEscalonamento.filter(s=>s.status==='pendente' && (Date.now()-new Date(s.data).getTime())/3600000>24).forEach(s=>itens.push({sev:'warning', tipo:'Solicitação ao Superintendente pendente há mais de 24h', desc:`${tipoEscalLabel(s.tipo)} — ${empName(s.empId)}`}));
+  return itens;
+}
+function renderRisco(){
+  const itens = computeRiscoItems();
+  document.getElementById('riscoList').innerHTML = itens.length ? `<div class="panel"><div class="panel-body" style="padding:0"><table>
+    <thead><tr><th>Severidade</th><th>Tipo</th><th>Detalhe</th></tr></thead><tbody>
+    ${itens.map(i=>`<tr><td><span class="badge badge-${i.sev}">${i.sev==='danger'?'Crítico':'Atenção'}</span></td><td>${i.tipo}</td><td>${i.desc}</td></tr>`).join('')}
+    </tbody></table></div></div>` : '<div class="empty-state"><div class="ic">✅</div>Nenhum ponto de risco identificado no momento.</div>';
+}
+
+/* ==================== BLOQUEIOS & ESCALONAMENTO (compartilhado) ==================== */
+function computeBloqueioItems(){
+  // itens "genéricos" em aberto, além das solicitações de escalonamento (mostradas em lista própria)
+  const itens = [];
+  DB.orcamentoPedidos.filter(o=>o.status==='pendente').forEach(o=>itens.push({tipo:'Aguardando aprovação da Diretoria', desc:`${o.solicitante} — ${fmtMoney(o.valor)}`}));
+  DB.creditos.filter(c=>c.status==='reprovado').forEach(c=>itens.push({tipo:'Crédito reprovado — avaliar alternativa', desc:`${c.cliente} — ${empName(c.empId)}`}));
+  return itens;
+}
+function computeBloqueioCountSuperintendente(){
+  return computeBloqueioItems().length + DB.solicitacoesEscalonamento.filter(s=>s.status==='pendente').length;
+}
+function computeBloqueioCountDiretor(){
+  return computeBloqueioItems().length + DB.solicitacoesEscalonamento.filter(s=>s.status==='encaminhado').length;
+}
+function despachoNote(s){
+  return s.despacho ? `<div class="small-muted" style="margin-top:4px;">📋 Despacho da Diretoria: ${s.despacho}</div>` : '';
+}
+function renderBloqueios(){
+  const descByRole = {
+    viabilizador: 'Envie solicitações de desconto ou vantagens comerciais para o Superintendente e acompanhe o retorno.',
+    superintendente: 'Solicitações dos viabilizadores/gerentes imobiliários e itens que dependem de decisão da Diretoria.',
+    diretor: 'Solicitações encaminhadas pelo Superintendente para despacho final da Diretoria.'
+  };
+  document.getElementById('bloqueiosDesc').textContent = descByRole[currentRole] || '';
+  document.getElementById('painelNovaSolicitacao').style.display = currentRole==='viabilizador' ? '' : 'none';
+
+  const escal = DB.solicitacoesEscalonamento;
+
+  if(currentRole==='viabilizador'){
+    document.getElementById('bloqueiosList').innerHTML = escal.length ? `<div class="panel"><div class="panel-head"><h3>Minhas solicitações enviadas</h3></div><div class="panel-body" style="padding:0"><table>
+      <thead><tr><th>Empreendimento</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Status</th><th>Enviado</th></tr></thead><tbody>
+      ${escal.map(s=>`<tr><td>${empName(s.empId)}</td><td>${tipoEscalLabel(s.tipo)}</td><td>${s.descricao}${despachoNote(s)}</td><td class="mono">${fmtMoney(s.valor)}</td><td>${statusBadge(s.status)}</td><td class="small-muted">${timeSince(s.data)}</td></tr>`).join('')}
+      </tbody></table></div></div>` : '<div class="empty-state">Nenhuma solicitação enviada ainda.</div>';
+    return;
+  }
+
+  if(currentRole==='diretor'){
+    const paraDespacho = escal.filter(s=>s.status==='encaminhado');
+    const jaDespachadas = escal.filter(s=>s.status==='aprovado_diretoria'||s.status==='recusado_diretoria');
+    let html = '';
+    html += `<div class="panel"><div class="panel-head"><h3>Solicitações dos Viabilizadores/Ger Imob — encaminhadas pelo Superintendente</h3></div><div class="panel-body" style="padding:0">`;
+    html += paraDespacho.length ? `<table><thead><tr><th>Empreendimento</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>
+      ${paraDespacho.map(s=>`<tr>
+        <td>${empName(s.empId)}</td><td>${tipoEscalLabel(s.tipo)}</td><td>${s.descricao}</td><td class="mono">${fmtMoney(s.valor)}</td><td>${statusBadge(s.status)}</td>
+        <td class="right"><button class="btn btn-sm btn-gold" onclick="openDespacho(${s.id})">Despachar</button></td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty-state">Nenhuma solicitação aguardando despacho no momento.</div>';
+    html += `</div></div>`;
+
+    html += `<div class="panel"><div class="panel-head"><h3>Despachos já realizados</h3></div><div class="panel-body" style="padding:0">`;
+    html += jaDespachadas.length ? `<table><thead><tr><th>Empreendimento</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Status</th></tr></thead><tbody>
+      ${jaDespachadas.map(s=>`<tr><td>${empName(s.empId)}</td><td>${tipoEscalLabel(s.tipo)}</td><td>${s.descricao}${despachoNote(s)}</td><td class="mono">${fmtMoney(s.valor)}</td><td>${statusBadge(s.status)}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-state">Nenhum despacho realizado ainda.</div>';
+    html += `</div></div>`;
+
+    const outros = computeBloqueioItems();
+    html += `<div class="panel"><div class="panel-head"><h3>Outros itens em aberto</h3></div><div class="panel-body" style="padding:0">`;
+    html += outros.length ? `<table><thead><tr><th>Situação</th><th>Detalhe</th></tr></thead><tbody>
+      ${outros.map(i=>`<tr><td><span class="badge badge-warning">${i.tipo}</span></td><td>${i.desc}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-state">Nenhum outro item em aberto.</div>';
+    html += `</div></div>`;
+
+    document.getElementById('bloqueiosList').innerHTML = html;
+    return;
+  }
+
+  // superintendente
+  const outros = computeBloqueioItems();
+  let html = '';
+  html += `<div class="panel"><div class="panel-head"><h3>Solicitações dos Viabilizadores/Ger Imob</h3></div><div class="panel-body" style="padding:0">`;
+  html += escal.length ? `<table><thead><tr><th>Empreendimento</th><th>Tipo</th><th>Descrição</th><th>Valor</th><th>Status</th><th></th></tr></thead><tbody>
+    ${escal.map(s=>`<tr>
+      <td>${empName(s.empId)}</td><td>${tipoEscalLabel(s.tipo)}</td><td>${s.descricao}${despachoNote(s)}</td><td class="mono">${fmtMoney(s.valor)}</td><td>${statusBadge(s.status)}</td>
+      <td class="right">${s.status==='pendente'?`
+        <button class="btn btn-sm btn-success" onclick="decidirEscalonamento(${s.id},'aprovado')">Aprovar</button>
+        <button class="btn btn-sm btn-navy" onclick="encaminharDiretoria(${s.id})">Encaminhar à Diretoria</button>
+        <button class="btn btn-sm btn-danger" onclick="decidirEscalonamento(${s.id},'recusado')">Recusar</button>
+      `:''}</td>
+    </tr>`).join('')}</tbody></table>` : '<div class="empty-state">Nenhuma solicitação recebida.</div>';
+  html += `</div></div>`;
+
+  html += `<div class="panel"><div class="panel-head"><h3>Outros itens em aberto</h3></div><div class="panel-body" style="padding:0">`;
+  html += outros.length ? `<table><thead><tr><th>Situação</th><th>Detalhe</th></tr></thead><tbody>
+    ${outros.map(i=>`<tr><td><span class="badge badge-warning">${i.tipo}</span></td><td>${i.desc}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-state">Nenhum outro item em aberto.</div>';
+  html += `</div></div>`;
+
+  document.getElementById('bloqueiosList').innerHTML = html;
+}
+function enviarEscalonamento(){
+  const empId = Number(document.getElementById('escalEmp').value);
+  const tipo = document.getElementById('escalTipo').value;
+  const descricao = document.getElementById('escalDescricao').value.trim();
+  const valor = Number(document.getElementById('escalValor').value)||0;
+  if(!descricao){ toast('Descreva a solicitação.'); return; }
+  const id = Math.max(0,...DB.solicitacoesEscalonamento.map(s=>s.id),0)+1;
+  DB.solicitacoesEscalonamento.unshift({id, empId, tipo, descricao, valor, status:'pendente', data:new Date().toISOString(), despacho:null});
+  logAction(`Viabilizador/Ger Imob enviou solicitação ao Superintendente: ${tipoEscalLabel(tipo)} — ${empName(empId)}.`);
+  document.getElementById('escalDescricao').value='';
+  document.getElementById('escalValor').value='';
+  save();
+  toast('Solicitação enviada ao Superintendente.');
+}
+function decidirEscalonamento(id, status){
+  const s = DB.solicitacoesEscalonamento.find(x=>x.id===id);
+  s.status = status;
+  logAction(`Solicitação de ${tipoEscalLabel(s.tipo)} (${empName(s.empId)}) ${status==='aprovado'?'APROVADA':'RECUSADA'} pelo Superintendente.`);
+  save();
+  toast(status==='aprovado' ? 'Solicitação aprovada.' : 'Solicitação recusada.');
+}
+function encaminharDiretoria(id){
+  const s = DB.solicitacoesEscalonamento.find(x=>x.id===id);
+  s.status = 'encaminhado';
+  logAction(`Solicitação de ${tipoEscalLabel(s.tipo)} encaminhada à Diretoria para despacho final.`);
+  save();
+  toast('Encaminhado à Diretoria para despacho.');
+}
+let despachoAtualId = null;
+function openDespacho(id){
+  despachoAtualId = id;
+  const s = DB.solicitacoesEscalonamento.find(x=>x.id===id);
+  document.getElementById('modalDespachoBody').innerHTML = `
+    <p style="font-size:13px;color:var(--muted);margin-top:0;">${tipoEscalLabel(s.tipo)} — ${empName(s.empId)}</p>
+    <p style="font-size:13px;margin:0 0 12px;">${s.descricao}</p>
+    <div class="tag-pill" style="margin-bottom:12px;">💰 Valor envolvido: ${fmtMoney(s.valor)}</div>
+    <div class="form-row"><label>Motivo/orientação do despacho</label>
+      <textarea id="despachoMotivo" placeholder="Ex: Aprovado dentro da margem do empreendimento, aplicar apenas para esta unidade."></textarea>
+    </div>
+  `;
+  openModal('modalDespacho');
+}
+function decidirDespacho(status){
+  const s = DB.solicitacoesEscalonamento.find(x=>x.id===despachoAtualId);
+  const motivo = document.getElementById('despachoMotivo').value.trim();
+  if(!motivo){ toast('Informe o motivo/orientação do despacho.'); return; }
+  s.status = status;
+  s.despacho = motivo;
+  s.despachoData = new Date().toISOString();
+  logAction(`Diretoria ${status==='aprovado_diretoria'?'APROVOU':'RECUSOU'} a solicitação de ${tipoEscalLabel(s.tipo)} (${empName(s.empId)}). Motivo: ${motivo}`);
+  closeModal('modalDespacho');
+  save();
+  toast(status==='aprovado_diretoria' ? 'Solicitação aprovada pela Diretoria.' : 'Solicitação recusada pela Diretoria.');
+}
+
+/* ==================== RENDER: LOG ==================== */
+function renderLog(){
+  document.getElementById('logList').innerHTML = DB.log.length ? DB.log.map(l=>`
+    <li class="done"><div class="t-title">${l.acao}</div><div class="t-meta">${fmtDateTime(l.data)}</div></li>
+  `).join('') : '<div class="empty-state">Nenhuma atividade registrada.</div>';
+}
+
+/* ==================== SIDEBAR COUNTS ==================== */
+function renderCounts(){
+  document.getElementById('cEmp').textContent = DB.empreendimentos.length;
+  const disp = DB.unidades.filter(u=>u.status==='disponivel').length;
+  document.getElementById('cUnid').textContent = disp;
+  document.getElementById('cUnidS').textContent = disp;
+  const solPend = DB.solicitacoes.filter(s=>s.status==='pendente').length;
+  document.getElementById('cSol').textContent = solPend;
+  document.getElementById('cSolS').textContent = solPend;
+  const credPend = DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').length;
+  document.getElementById('cCred').textContent = credPend;
+  document.getElementById('cCredS').textContent = credPend;
+  document.getElementById('cRes').textContent = DB.reservas.length;
+  document.getElementById('cPag').textContent = DB.pagamentos.filter(p=>p.status==='pendente').length;
+  document.getElementById('cCon').textContent = DB.contratos.filter(c=>c.status==='aguardando_emissao').length;
+  const alertasCount = DB.reservas.filter(r=>(new Date(r.prazo).getTime()-Date.now())/3600000 < 12).length;
+  document.getElementById('cAlert').textContent = alertasCount;
+  document.getElementById('cRisco').textContent = computeRiscoItems().length;
+  document.getElementById('cEscalV').textContent = DB.solicitacoesEscalonamento.filter(isEscalAberta).length;
+  document.getElementById('cBloqS').textContent = computeBloqueioCountSuperintendente();
+  document.getElementById('cBloqD').textContent = computeBloqueioCountDiretor();
+}
+
+/* ==================== EXPORT (Viabilizador) ==================== */
+function exportReport(){
+  const linhas = [];
+  linhas.push('WAL IMÓVEIS — RELATÓRIO DO VIABILIZADOR/GER IMOB — ' + new Date().toLocaleString('pt-BR'));
+  linhas.push('');
+  linhas.push('UNIDADES DISPONÍVEIS: ' + DB.unidades.filter(u=>u.status==='disponivel').length + ' de ' + DB.unidades.length);
+  linhas.push('SOLICITAÇÕES PENDENTES: ' + DB.solicitacoes.filter(s=>s.status==='pendente').length);
+  linhas.push('ANÁLISES DE CRÉDITO EM ABERTO: ' + DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').length);
+  linhas.push('RESERVAS ATIVAS: ' + DB.reservas.length);
+  linhas.push('CONTRATOS AGUARDANDO EMISSÃO: ' + DB.contratos.filter(c=>c.status==='aguardando_emissao').length);
+  linhas.push('');
+  linhas.push('--- LOG DE ATIVIDADES ---');
+  DB.log.forEach(l=> linhas.push(fmtDateTime(l.data) + ' — ' + l.acao));
+  const blob = new Blob([linhas.join('\n')], {type:'text/plain;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'relatorio-viabilizador-'+new Date().toISOString().slice(0,10)+'.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ==================== INIT ==================== */
+function renderAll(){
+  fillEmpSelects();
+  renderOverview();
+  renderEmpreendimentos();
+  renderUnidades();
+  renderSolicitacoes();
+  renderCredito();
+  renderReservas();
+  renderPagamentos();
+  renderContratos();
+  renderAlertas();
+  renderDiretorVisao();
+  renderConstrutoras();
+  renderRisco();
+  renderBloqueios();
+  renderLog();
+  renderCounts();
+}
+renderAll();
+setRole(currentRole);
+</script>
+</body>
+</html>

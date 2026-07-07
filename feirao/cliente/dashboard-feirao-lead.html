@@ -1,0 +1,2824 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · 1º Feirão de Imóveis FAB & Servidores Públicos</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+  --teal:#0E7490;--teal2:#22D3EE;--teal-dim:rgba(14,116,144,.15);
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.10);
+  --purple:#7C3AED;--purple-dim:rgba(124,58,237,.10);
+  --coral:#EA4C89;--coral-dim:rgba(234,76,137,.10);
+  --surf:#0D1B2E;--surf2:#111F35;--surf3:#152844;
+  --card:#152540;--card2:#1A2E50;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
+  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ══ AUTH / ENTRADA NO FEIRÃO ══ */
+#authScreen{position:fixed;inset:0;z-index:9999;background:linear-gradient(135deg,var(--navy) 0%,#0a1f3e 100%);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+#authScreen::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 20% 20%,rgba(201,168,76,.06),transparent 45%),radial-gradient(circle at 80% 80%,rgba(34,211,238,.05),transparent 45%);pointer-events:none}
+.auth-wrap{width:100%;max-width:480px;position:relative}
+.auth-logo-area{text-align:center;margin-bottom:24px}
+.auth-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold)}
+.auth-tagline{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.auth-badge{display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold2);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px}
+.auth-box{background:var(--card);border:1px solid var(--gold-b);border-radius:14px;overflow:hidden}
+.auth-tabs{display:flex;border-bottom:1px solid var(--bdr)}
+.auth-tab{flex:1;padding:14px;text-align:center;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
+.auth-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,.05)}
+.auth-panel{display:none;padding:28px}
+.auth-panel.active{display:block}
+.auth-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field-inp,.field-sel,.field-ta{width:100%;padding:10px 13px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;font-size:13px;outline:none;transition:border-color .2s}
+.field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--gold)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(255,255,255,.2)}
+.field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field-sel option{background:#152540}
+.field-ta{resize:vertical;min-height:60px;line-height:1.5}
+.field-row{display:grid;gap:12px;margin-bottom:14px}
+.field-2{grid-template-columns:1fr 1fr}
+.field-3{grid-template-columns:1fr 1fr 1fr}
+.f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
+.auth-btn{width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);margin-top:6px;transition:opacity .2s,transform .2s}
+.auth-btn:hover{opacity:.9;transform:translateY(-1px)}
+.auth-err{color:#F87171;font-size:11px;margin-top:8px;display:none;text-align:center}
+.auth-ok{color:#34D399;font-size:12px;margin-top:10px;display:none;text-align:center;background:rgba(5,150,105,.1);border:1px solid rgba(52,211,153,.2);border-radius:7px;padding:10px}
+.terms-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.terms-check input{accent-color:var(--gold);margin-top:2px;flex-shrink:0}
+.terms-check label{font-size:11px;color:var(--muted);line-height:1.5}
+.upload-area{border:2px dashed var(--bdr2);border-radius:8px;padding:18px 10px;text-align:center;cursor:pointer;transition:border-color .2s;margin-bottom:4px}
+.upload-area:hover{border-color:var(--gold)}
+.upload-area.ok{border-color:var(--green2);border-style:solid;background:var(--green-dim)}
+.upload-area input[type=file]{display:none}
+.upload-lbl{font-size:10px;color:var(--muted);margin-top:6px}
+.upload-name{font-size:11px;color:var(--gold2);margin-top:4px;font-weight:600;word-break:break-all}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:24px;right:24px;z-index:5000;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;padding:12px 18px;font-size:12px;color:var(--txt);box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;border-left:3px solid var(--gold);max-width:340px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.t-green{border-left-color:var(--green2)}
+#toast.t-red{border-left-color:#F87171}
+#toast.t-amber{border-left-color:#FCD34D}
+
+/* ══ APP LAYOUT ══ */
+.app{display:flex;min-height:100vh;display:none}
+.sidebar{width:224px;min-height:100vh;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;border-right:1px solid var(--bdr)}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-b)}
+.sb-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.sb-mode{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 9px;border-radius:20px}
+.sb-mode-dot{width:5px;height:5px;background:var(--gold2);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sb-lead{margin:14px 12px 0;padding:12px;background:var(--teal-dim);border:1px solid rgba(34,211,238,.2);border-radius:9px}
+.sba-av{width:36px;height:36px;border-radius:9px;flex-shrink:0;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;margin-bottom:8px}
+.sba-name{color:#fff;font-size:13px;font-weight:600}
+.sba-role{color:rgba(255,255,255,.35);font-size:10px;margin-top:1px}
+.nav-grp{padding:12px 8px 2px}
+.nav-lbl{color:rgba(255,255,255,.2);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 9px 5px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.5);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:1px;border:1px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--teal-dim);color:var(--teal2);border-color:rgba(34,211,238,.2)}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-bdg{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.nb-t{background:rgba(14,116,144,.25);color:var(--teal2)}
+.nb-g{background:rgba(5,150,105,.2);color:#34D399}
+.nb-a{background:rgba(217,119,6,.2);color:#FCD34D}
+.nb-r{background:rgba(220,38,38,.2);color:#F87171}
+.sb-footer{margin-top:auto;padding:14px 12px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.sf-av2{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sf-out{margin-left:auto;width:28px;height:28px;border-radius:6px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s}
+.sf-out:hover{color:var(--txt);border-color:var(--bdr2)}
+
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--navy2);border-bottom:1px solid var(--bdr);padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.tb-bread{display:flex;align-items:center;gap:6px;flex:1}
+.tb-sec{color:rgba(255,255,255,.3);font-size:11px;font-weight:500}
+.tb-sep{color:rgba(255,255,255,.15)}
+.tb-page{color:var(--teal2);font-size:12px;font-weight:600}
+.tb-meta{display:flex;align-items:center;gap:12px}
+.tb-cd{display:flex;align-items:center;gap:6px;background:var(--gold-dim);border:1px solid var(--gold-b);border-radius:7px;padding:5px 11px;font-size:10px;font-family:var(--mono);color:var(--gold2);font-weight:700}
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.2)}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2);font-weight:700}
+.btn-teal:hover{opacity:.85;transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.9;transform:translateY(-1px)}
+.btn-green{background:rgba(5,150,105,.15);border-color:rgba(52,211,153,.2);color:#34D399}
+.btn-red{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.25);color:#F87171}
+.btn-full{width:100%;justify-content:center;padding:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+.kpi-strip{display:grid;gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
+.kpi:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::after{background:var(--green)}
+.kpi.purple::after{background:var(--purple)}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.cs2{grid-column:span 2}
+.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.card-b{padding:16px}
+.card-link{font-size:10px;color:var(--teal2);font-weight:600;cursor:pointer}
+.card-link:hover{opacity:.8}
+
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
+.bg{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
+.br{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
+.ba{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
+.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-b)}
+.bt{background:rgba(14,116,144,.2);color:#22D3EE;border:1px solid rgba(34,211,238,.15)}
+.bp{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.15)}
+.bz{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--bdr)}
+.bc{background:rgba(234,76,137,.12);color:#F472B6;border:1px solid rgba(244,114,182,.2)}
+
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(0,0,0,.15)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.clk{cursor:pointer}
+.tbl tr.clk:hover td{background:rgba(255,255,255,.02)}
+
+.modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-ov.show{display:flex}
+.modal-box{width:100%;max-width:780px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);border-top:2px solid var(--gold)}
+.modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold2)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--txt)}
+.modal-body{padding:24px;max-height:74vh;overflow-y:auto}
+.modal-f{padding:16px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+
+.tl-wrap{position:relative;padding-left:26px}
+.tl-line{position:absolute;left:10px;top:4px;bottom:4px;width:1px;background:var(--bdr)}
+.tl-item{position:relative;margin-bottom:18px}
+.tl-dot{position:absolute;left:-26px;top:2px;width:20px;height:20px;border-radius:50%;border:1px solid var(--bdr2);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:10px}
+.tl-tipo{font-size:11px;font-weight:700;color:#fff;margin-bottom:2px}
+.tl-data{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
+.tl-nota{font-size:12px;color:var(--txt);line-height:1.5}
+
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}.fs14{font-size:14px}.fs16{font-size:16px}
+.c-muted{color:var(--muted)}.c-teal{color:var(--teal2)}.c-gold{color:var(--gold2)}
+.c-green{color:#34D399}.c-red{color:#F87171}.c-amber{color:#FCD34D}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.flex-bet{display:flex;align-items:center;justify-content:space-between}
+.flex{display:flex;align-items:center}
+.sp{display:flex;flex-wrap:wrap;gap:6px}
+.alert-box{padding:12px 14px;border-radius:8px;border:1px solid;font-size:12px;line-height:1.5;margin-bottom:12px}
+.alert-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:#FCD34D}
+.alert-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
+.alert-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2)}
+.alert-gold{background:var(--gold-dim);border-color:var(--gold-b);color:var(--gold2)}
+
+/* ══ HERO FEIRÃO ══ */
+.feirao-hero{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,var(--navy) 0%,#0a2647 55%,#0d3358 100%);border:1px solid var(--gold-b);padding:26px 28px;margin-bottom:22px}
+.feirao-hero::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(-45deg,transparent,transparent 36px,rgba(201,168,76,.05) 36px,rgba(201,168,76,.05) 72px)}
+.fh-row{position:relative;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:18px}
+.fh-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold2);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+.fh-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;line-height:1.15}
+.fh-title em{color:var(--gold2);font-style:italic}
+.fh-sub{color:rgba(255,255,255,.55);font-size:12px;margin-top:6px;max-width:480px;line-height:1.6}
+.fh-cd{display:flex;gap:8px}
+.fh-cd-box{background:rgba(0,0,0,.25);border:1px solid var(--gold-b);border-radius:8px;padding:10px 14px;text-align:center;min-width:64px}
+.fh-cd-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--gold2)}
+.fh-cd-lbl{font-size:8px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4);margin-top:2px}
+
+/* ══ FILTROS ══ */
+.filter-bar{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px;margin-bottom:18px;display:grid;grid-template-columns:repeat(6,1fr) auto;gap:10px;align-items:end}
+.filter-bar-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.data-source-tag{font-size:10px;display:inline-flex;align-items:center;gap:5px}
+
+/* ══ CARDS DE IMÓVEL ══ */
+.prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.prop-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:all .15s;display:flex;flex-direction:column}
+.prop-card:hover{border-color:var(--gold-b);transform:translateY(-3px)}
+.prop-banner{height:130px;position:relative;display:flex;align-items:center;justify-content:center;font-size:46px;overflow:hidden}
+.prop-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(8,25,46,.75) 100%)}
+.prop-banner-badges{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;z-index:1}
+.prop-banner-price{position:absolute;bottom:8px;left:10px;z-index:1;font-family:var(--mono);font-weight:700;color:#fff;font-size:13px}
+.prop-body{padding:13px 14px;flex:1;display:flex;flex-direction:column}
+.prop-nome{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
+.prop-loc{font-size:10.5px;color:var(--muted);margin-bottom:10px}
+.prop-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.prop-vant{font-size:10.5px;color:var(--txt);display:flex;align-items:flex-start;gap:6px;margin-bottom:4px}
+
+/* ══ GALERIA ══ */
+.gallery-main{height:240px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:70px;position:relative;margin-bottom:10px;overflow:hidden}
+.gallery-main::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(8,25,46,.7) 100%)}
+.gallery-thumbs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.g-thumb{height:54px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;border:2px solid transparent;transition:all .15s}
+.g-thumb.active{border-color:var(--gold)}
+.g-thumb.video{position:relative}
+.g-thumb.video::after{content:'▶';position:absolute;font-size:11px;color:#fff;background:rgba(0,0,0,.5);width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+
+/* ══ SIMULADOR (TABS) ══ */
+.simtab-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.simtab{padding:.8rem .9rem;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:all .15s;background:var(--card2)}
+.simtab-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;color:var(--muted)}
+.simtab-val{font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff}
+.simtab-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.simtab.active{border-color:var(--gold)}
+.simtab.active .simtab-lbl{color:var(--gold2)}
+
+.slider-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--bdr2);border-radius:2px;border:none;padding:0;cursor:pointer}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--gold);border-radius:50%;cursor:pointer}
+.slider-val{font-size:12px;font-weight:700;color:var(--gold2);min-width:46px;text-align:right;font-family:var(--mono)}
+
+/* ══ STATUS STEPS ══ */
+.status-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+.status-step{display:flex;align-items:center;gap:10px;font-size:12px;padding:12px 14px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr)}
+.status-step-ico{font-size:18px;flex-shrink:0;width:24px;text-align:center}
+.status-step.done{border-color:rgba(52,211,153,.25)}
+.status-step.curr{border-color:rgba(252,211,77,.35);background:rgba(217,119,6,.08)}
+.status-step.next{opacity:.4}
+
+/* ══ MISC ══ */
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ AI CHAT ══ */
+.ai-wrap{display:flex;flex-direction:column;height:500px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{display:flex;gap:8px;align-items:flex-start}
+.ai-av{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.av-ai{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy)}
+.av-u{background:var(--card2);color:var(--muted);border:1px solid var(--bdr)}
+.ai-bubble{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.6}
+.ai-bubble-ai{background:var(--card2);border:1px solid var(--bdr)}
+.ai-bubble-u{background:var(--teal-dim);border:1px solid rgba(34,211,238,.2)}
+.ai-chips{padding:8px 10px 0;display:flex;flex-wrap:wrap;gap:5px}
+.ai-chip{font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;background:var(--card2);border:1px solid var(--bdr2);color:var(--muted);transition:all .15s}
+.ai-chip:hover{border-color:var(--gold-b);color:var(--gold2)}
+.ai-inp-row{padding:10px;border-top:1px solid var(--bdr);display:flex;gap:8px}
+.ai-inp{flex:1;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:7px;padding:8px 12px;font-size:12px;outline:none;transition:border-color .2s;resize:none;min-height:36px;max-height:80px;overflow:auto}
+.ai-inp:focus{border-color:var(--gold)}
+.ai-send{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold2));border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:var(--navy);font-weight:700;transition:opacity .2s}
+.ai-send:hover{opacity:.85}
+.ai-send.loading{animation:pulse 1s infinite}
+
+/* ══ INTELIGÊNCIA / FEATURES IA ══ */
+.feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.feat-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:13px 14px;display:flex;gap:10px}
+.feat-ico{font-size:18px;flex-shrink:0}
+.feat-name{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
+.feat-desc{font-size:10.5px;color:var(--muted);line-height:1.5}
+
+/* ══ JORNADA DO CLIENTE ══ */
+.jmini{display:flex;gap:4px;margin-top:10px}
+.jmini-dot{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .2s}
+.jmini-dot.done{background:var(--gold2)}
+.jmini-dot.curr{background:var(--teal2);animation:pulse 1.6s infinite}
+.jmini-lbl{font-size:9px;color:var(--muted);margin-top:6px}
+.jstage-card{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:9px;background:var(--card2);border:1px solid var(--bdr);margin-bottom:8px}
+.jstage-card.done{border-color:rgba(52,211,153,.25)}
+.jstage-card.curr{border-color:rgba(34,211,238,.3);background:rgba(14,116,144,.08)}
+.jstage-ico{font-size:18px;width:30px;text-align:center;flex-shrink:0}
+.jstage-name{font-size:12px;font-weight:700;color:#fff}
+.jstage-desc{font-size:10.5px;color:var(--muted);margin-top:1px}
+.jstage-time{margin-left:auto;font-size:9.5px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+
+/* ══ FLUXO DE PAGAMENTO — ETAPAS INTERATIVAS ══ */
+.pay-step{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .15s}
+.pay-step.complete{border-color:rgba(52,211,153,.3);background:rgba(5,150,105,.05)}
+.pay-step-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.pay-step-title{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff}
+.pay-step-num{width:22px;height:22px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0}
+.pay-step.complete .pay-step-num{background:var(--green2);border-color:transparent;color:#06281b}
+.pay-step-val{font-family:var(--mono);font-weight:700;color:var(--gold2);font-size:13px}
+.pay-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
+.pay-check{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--txt);cursor:pointer}
+.pay-check input{accent-color:var(--green2);width:15px;height:15px;cursor:pointer}
+.pay-date{background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 9px;font-size:11px;outline:none}
+.pay-date:focus{border-color:var(--gold)}
+.pay-progress-wrap{margin-bottom:16px}
+.pay-progress-bar{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.pay-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green2));border-radius:4px;transition:width .3s}
+.pay-sub-list{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.pay-sub-row{display:flex;align-items:center;gap:8px;font-size:11px;background:var(--surf2);border-radius:7px;padding:7px 10px}
+
+/* ══ VÍDEO DO AGENTE ══ */
+.af-video-thumb{width:120px;height:78px;border-radius:9px;flex-shrink:0;position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;background:linear-gradient(135deg,var(--teal),var(--teal2))}
+.af-video-thumb::after{content:'';position:absolute;inset:0;background:rgba(8,25,46,.25)}
+.af-video-play{position:relative;z-index:1;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.92);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--navy)}
+.af-video-lbl{position:absolute;bottom:4px;left:6px;z-index:1;font-size:8.5px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.5px}
+
+/* ══ BARRA DE STATUS AO VIVO (SENSAÇÃO DE FEIRÃO ONLINE) ══ */
+.live-bar{display:flex;align-items:center;gap:14px}
+.live-stat{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--txt);background:var(--surf2);border:1px solid var(--bdr2);border-radius:20px;padding:5px 12px}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#34D399;animation:pulse 1.8s infinite}
+.live-dot.gold{background:var(--gold2)}
+.live-bell{position:relative;width:32px;height:32px;border-radius:8px;background:var(--surf2);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;font-size:14px;cursor:default}
+.live-bell.ring{animation:bellring .6s ease}
+@keyframes bellring{0%,100%{transform:rotate(0)}20%{transform:rotate(-15deg)}40%{transform:rotate(13deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
+.live-bell-badge{position:absolute;top:-4px;right:-4px;background:#F87171;color:#fff;font-size:8.5px;font-weight:700;border-radius:8px;padding:1px 5px;min-width:15px;text-align:center}
+
+/* ══ GRADE DE UNIDADES ══ */
+.unit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.unit-card{background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:10px;cursor:pointer;transition:all .15s}
+.unit-card:hover{border-color:var(--gold-b)}
+.unit-card.selecionada{border-color:var(--gold);background:rgba(201,168,76,.08)}
+.unit-card.indisponivel{opacity:.45;cursor:not-allowed}
+.unit-num{font-size:13px;font-weight:700;color:#fff}
+.unit-meta{font-size:9.5px;color:var(--muted);margin:3px 0 6px}
+.unit-val{font-size:11px;font-weight:700;color:var(--gold2);font-family:var(--mono)}
+
+/* ══ QR CODE / PIX ══ */
+.qr-box{background:#fff;border-radius:10px;padding:12px;display:inline-flex;align-items:center;justify-content:center}
+.qr-box img{display:block;width:170px;height:170px}
+.pix-key-row{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--gold2)}
+.copy-mini{font-size:9px;padding:3px 8px;border-radius:5px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--muted);cursor:pointer}
+.copy-mini:hover{color:var(--txt)}
+
+/* ══ FLUXO DE PAGAMENTO — CAMPOS EDITÁVEIS ══ */
+.pay-inp{background:var(--surf2);border:1px solid var(--bdr2);color:var(--gold2);font-family:var(--mono);font-weight:700;border-radius:6px;padding:6px 9px;font-size:12px;outline:none;width:130px}
+.pay-inp:focus{border-color:var(--gold)}
+.pay-warn{font-size:10px;color:#FCD34D;margin-top:4px}
+.pay-intermed-row{display:grid;grid-template-columns:1.6fr 1fr 1fr auto;gap:8px;align-items:center;background:var(--surf2);border-radius:7px;padding:8px 10px;margin-bottom:6px}
+
+/* ══ FOOTER AGENTE ══ */
+.agent-footer{margin-top:30px;background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--teal-dim);border-top:2px solid var(--teal2);border-radius:14px;padding:26px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.agent-footer-left{flex:1;min-width:280px}
+.af-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:6px}
+.af-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#fff;margin-bottom:6px}
+.af-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;max-width:480px}
+.af-bullets{display:flex;flex-wrap:wrap;gap:14px}
+.af-bullet{font-size:11px;color:var(--txt);display:flex;align-items:center;gap:6px}
+
+/* ══ RESPONSIVO ══ */
+@media(max-width:900px){
+  .sidebar{display:none}
+  .main{margin-left:0}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+  .filter-bar{grid-template-columns:1fr 1fr}
+  .jmini{display:none}
+  .live-bar{display:none}
+  .simtab-row{grid-template-columns:1fr 1fr}
+}
+@media print{
+  .sidebar,.topbar,.agent-footer,.ai-wrap,.ph-acts,#toast{display:none!important}
+  body{background:#fff;color:#000}
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     TELA DE ENTRADA — LEAD (E-MAIL OU CPF)
+═══════════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-logo-area">
+      <div class="auth-brand">WAL Imóveis</div>
+      <div class="auth-tagline">Imóveis para quem serve ao Brasil</div>
+      <div class="auth-badge">🎪 1º Feirão de Imóveis · FAB & Servidores Públicos</div>
+    </div>
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <div class="auth-tab active" id="tabBtnEntrar" onclick="switchAuthTab('entrar')">Já sou cadastrado</div>
+        <div class="auth-tab" id="tabBtnNovo" onclick="switchAuthTab('novo')">Primeira vez aqui</div>
+      </div>
+
+      <!-- ENTRAR (e-mail ou CPF) -->
+      <div class="auth-panel active" id="tabEntrar">
+        <div class="auth-title">Acesse o Feirão</div>
+        <div class="auth-sub">Digite seu e-mail <strong>ou</strong> CPF para entrar no seu painel exclusivo do feirão, com simulações e análise de crédito já em andamento.</div>
+        <div class="field-row mb14">
+          <div><div class="field-lbl">E-mail ou CPF</div><input class="field-inp" id="loginChave" placeholder="seu@email.com ou 000.000.000-00" onkeydown="if(event.key==='Enter')doEntrar()"></div>
+        </div>
+        <button class="auth-btn" onclick="doEntrar()">Entrar no Feirão →</button>
+        <div class="auth-err" id="loginErr">Não encontramos esse cadastro. Use a aba "Primeira vez aqui".</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:16px;text-align:center">
+          Demo cadastrado: <strong style="color:var(--gold2)">joao.fab@email.com</strong>
+        </div>
+      </div>
+
+      <!-- NOVO LEAD -->
+      <div class="auth-panel" id="tabNovo">
+        <div class="auth-title">Bem-vindo ao 1º Feirão WAL</div>
+        <div class="auth-sub">Leva menos de 1 minuto. Seus dados ficam salvos para você continuar de onde parou — simulação, documentos e análise de crédito.</div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Nome completo *</div><input class="field-inp" id="novNome" placeholder="Seu nome completo"></div>
+          <div><div class="field-lbl">CPF *</div><input class="field-inp" id="novCpf" placeholder="000.000.000-00"></div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">E-mail *</div><input class="field-inp" type="email" id="novEmail" placeholder="seu@email.com"></div>
+          <div><div class="field-lbl">WhatsApp *</div><input class="field-inp" id="novTel" placeholder="(21) 99999-9999"></div>
+        </div>
+        <div class="field-row mb14">
+          <div><div class="field-lbl">Você é...</div>
+            <select class="field-sel" id="novVinculo">
+              <option>Militar da Aeronáutica (FAB)</option><option>Militar do Exército</option>
+              <option>Militar da Marinha</option><option>Servidor Civil Federal</option>
+              <option>Servidor Estadual / Municipal</option><option>Pensionista Militar</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="terms-check">
+          <input type="checkbox" id="novTermos" checked>
+          <label for="novTermos">Aceito receber simulações, novidades do feirão e contato da WAL Consultoria por e-mail/WhatsApp.</label>
+        </div>
+        <button class="auth-btn" onclick="doCadastroLead()">Entrar no Feirão →</button>
+        <div class="auth-err" id="novErr">Preencha nome, CPF, e-mail e WhatsApp.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP — DASHBOARD DO LEAD NO FEIRÃO
+═══════════════════════════════════════════ -->
+<div class="app" id="appWrap">
+
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">WAL Imóveis</div>
+      <div class="sb-mode"><div class="sb-mode-dot"></div>1º Feirão de Imóveis</div>
+    </div>
+
+    <div class="sb-lead">
+      <div class="sba-av" id="sbAv">LE</div>
+      <div class="sba-name" id="sbNome">Lead</div>
+      <div class="sba-role" id="sbRole">Participante do Feirão</div>
+      <div class="jmini" id="jminiDots"></div>
+      <div class="jmini-lbl" id="jminiLbl">Iniciando sua jornada...</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Feirão</div>
+      <div class="nav-item active" onclick="nav(this,'home')"><span class="nav-ico">🎪</span>Início</div>
+      <div class="nav-item" onclick="nav(this,'vitrine')"><span class="nav-ico">🏘️</span>Vitrine de Imóveis</div>
+      <div class="nav-item" onclick="nav(this,'simulador')"><span class="nav-ico">🧮</span>Simulador</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Minha Jornada</div>
+      <div class="nav-item" onclick="nav(this,'jornada')"><span class="nav-ico">🧭</span>Linha do Tempo</div>
+      <div class="nav-item" onclick="nav(this,'credito')">
+        <span class="nav-ico">📋</span>Análise de Crédito
+        <span class="nav-bdg nb-a" id="sbBdgCredito" style="display:none">1</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'pagamento')"><span class="nav-ico">💳</span>Fluxo de Pagamento</div>
+      <div class="nav-item" onclick="nav(this,'reservapix')"><span class="nav-ico">💰</span>Pagamento da Reserva</div>
+      <div class="nav-item" onclick="nav(this,'agendar')"><span class="nav-ico">📅</span>Agendar Visita</div>
+      <div class="nav-item" onclick="nav(this,'consultor')"><span class="nav-ico">🎧</span>Falar com Consultor</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Inteligência WAL</div>
+      <div class="nav-item" id="navIaItem" onclick="nav(this,'ia')"><span class="nav-ico">🤖</span>Sofia · Consultora IA</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sf-av2">W</div>
+      <div style="font-size:10px;color:var(--muted)">WAL Consultoria<br>CRECI 12261-J</div>
+      <div class="sf-out" onclick="doSair()" title="Sair">⏻</div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-bread">
+        <span class="tb-sec">WAL Imóveis</span><span class="tb-sep">/</span><span class="tb-page" id="tbPage">Início</span>
+      </div>
+      <div class="tb-meta">
+        <div class="live-bar">
+          <div class="live-stat"><div class="live-dot"></div><span id="liveNegocios">— negócios fechados hoje</span></div>
+          <div class="live-stat"><div class="live-dot gold"></div><span id="livePessoas">— navegando agora</span></div>
+          <div class="live-bell" id="liveBell">🔔<span class="live-bell-badge" id="liveBellBadge" style="display:none">0</span></div>
+        </div>
+        <div class="tb-cd" id="tbCountdown">⏳ --:--:--:--</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ═══════════ HOME ═══════════ -->
+      <div class="panel active" id="p-home">
+
+        <div class="alert-box alert-green" id="boasVindasVoltaBox" style="display:none"></div>
+
+        <div class="feirao-hero">
+          <div class="fh-row">
+            <div>
+              <div class="fh-badge">🎪 1º Feirão de Imóveis WAL</div>
+              <div class="fh-title">Condições exclusivas para<br><em>militares FAB e servidores públicos</em></div>
+              <div class="fh-sub">Durante o feirão você acessa taxas reduzidas, isenções de taxas e condições de entrada facilitadas em empreendimentos selecionados no Rio de Janeiro e São Paulo. Evento mensal, sempre com duração de 4 a 7 dias — datas definidas pela Diretoria WAL.</div>
+            </div>
+            <div class="fh-cd" id="heroCd">
+              <div class="fh-cd-box"><div class="fh-cd-val" id="cdDias">00</div><div class="fh-cd-lbl">dias</div></div>
+              <div class="fh-cd-box"><div class="fh-cd-val" id="cdHoras">00</div><div class="fh-cd-lbl">horas</div></div>
+              <div class="fh-cd-box"><div class="fh-cd-val" id="cdMin">00</div><div class="fh-cd-lbl">min</div></div>
+              <div class="fh-cd-box"><div class="fh-cd-val" id="cdSeg">00</div><div class="fh-cd-lbl">seg</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-strip g4">
+          <div class="kpi gold"><div class="kpi-lbl">Empreendimentos</div><div class="kpi-val" id="kpiEmps">6</div><div class="kpi-sub">RJ e SP, prontos para o feirão</div></div>
+          <div class="kpi teal"><div class="kpi-lbl">Unidades disponíveis</div><div class="kpi-val" id="kpiUnid">—</div><div class="kpi-sub">Atualizado em tempo real</div></div>
+          <div class="kpi green"><div class="kpi-lbl">Taxa CFIAe no feirão</div><div class="kpi-val">8,3%<span style="font-size:12px"> a.a.</span></div><div class="kpi-sub">-0,2 p.p. sobre a taxa padrão</div></div>
+          <div class="kpi purple"><div class="kpi-lbl">Sua etapa atual</div><div class="kpi-val" id="kpiEtapa" style="font-size:14px">Explorando</div><div class="kpi-sub" id="kpiEtapaSub">Escolha um imóvel para começar</div></div>
+        </div>
+
+        <div class="g2">
+          <div class="card">
+            <div class="card-h"><div class="card-title">🏆 Vantagens exclusivas do Feirão</div></div>
+            <div class="card-b">
+              <div class="prop-vant">✅ Taxa CFIAe promocional de <strong style="color:#fff">8,3% a.a.</strong> + TR (somente durante o feirão)</div>
+              <div class="prop-vant">✅ Isenção da taxa de avaliação do imóvel (economia média de R$ 1.200)</div>
+              <div class="prop-vant">✅ Entrada parcelada em até 10x sem juros direto com a construtora</div>
+              <div class="prop-vant">✅ Análise de crédito prioritária — resultado em até 24 horas</div>
+              <div class="prop-vant">✅ FGTS aceito como parte da entrada, com simulação automática</div>
+              <div class="prop-vant">✅ Brinde de boas-vindas: kit mudança + 1 ano de seguro residencial</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div class="card-title">🧭 Como funciona o seu Feirão</div></div>
+            <div class="card-b">
+              <div class="tl-wrap"><div class="tl-line"></div>
+                <div class="tl-item"><div class="tl-dot">1</div><div class="tl-tipo">Escolha o imóvel</div><div class="tl-nota">Filtre por UF, cidade, bairro, quartos e faixa de valor na Vitrine.</div></div>
+                <div class="tl-item"><div class="tl-dot">2</div><div class="tl-tipo">Simule o financiamento</div><div class="tl-nota">Compare SAC, Price, CFIAe e POUPEX lado a lado.</div></div>
+                <div class="tl-item"><div class="tl-dot">3</div><div class="tl-tipo">Envie sua documentação</div><div class="tl-nota">Análise de crédito com resultado em até 24h.</div></div>
+                <div class="tl-item"><div class="tl-dot">4</div><div class="tl-tipo">Monte seu fluxo de pagamento</div><div class="tl-nota">Reserva, entrada parcelada e financiamento — tudo em um cronograma.</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">Empreendimentos em destaque</div>
+        <div class="prop-grid" id="homeDestaques"></div>
+
+      </div>
+
+      <!-- ═══════════ JORNADA DO CLIENTE ═══════════ -->
+      <div class="panel" id="p-jornada">
+        <div class="ph">
+          <div><div class="ph-eye">Sua jornada</div><div class="ph-title">Linha do Tempo</div><div class="ph-sub">Acompanhe tudo o que você já fez no feirão — seus dados ficam salvos para a próxima visita</div></div>
+        </div>
+
+        <div class="g2" style="align-items:start">
+          <div class="card">
+            <div class="card-h"><div class="card-title">🧭 Etapas da jornada</div></div>
+            <div class="card-b" id="jornadaEtapas"></div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div class="card-title">🕓 Histórico de ações</div></div>
+            <div class="card-b">
+              <div class="tl-wrap" id="jornadaTimeline"><div class="tl-line"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sec">Resumo das suas escolhas</div>
+        <div class="g3" id="jornadaResumo"></div>
+      </div>
+
+      <!-- ═══════════ VITRINE ═══════════ -->
+      <div class="panel" id="p-vitrine">
+        <div class="ph">
+          <div><div class="ph-eye">Vitrine do Feirão</div><div class="ph-title">Empreendimentos disponíveis</div><div class="ph-sub">Consulta direta ao nosso sistema de imóveis — filtre pelos seus critérios</div></div>
+        </div>
+
+        <div class="filter-bar-meta">
+          <div class="data-source-tag" id="dataSourceTag"><span class="bdg bz">⏳ Conectando ao sistema...</span></div>
+          <button class="btn btn-sm" onclick="recarregarImoveis()">🔄 Atualizar do sistema</button>
+        </div>
+
+        <div class="filter-bar">
+          <div><div class="field-lbl">UF</div><select class="field-sel" id="fUf" onchange="renderVitrine()"><option value="">Todas</option></select></div>
+          <div><div class="field-lbl">Cidade</div><select class="field-sel" id="fCidade" onchange="renderVitrine()"><option value="">Todas</option></select></div>
+          <div><div class="field-lbl">Bairro</div><select class="field-sel" id="fBairro" onchange="renderVitrine()"><option value="">Todos</option></select></div>
+          <div><div class="field-lbl">Quartos</div><select class="field-sel" id="fQuartos" onchange="renderVitrine()">
+            <option value="">Qualquer</option><option value="1">1 quarto</option><option value="2">2 quartos</option><option value="3">3 quartos</option><option value="4">4+ quartos</option>
+          </select></div>
+          <div><div class="field-lbl">Faixa de valor</div><select class="field-sel" id="fValor" onchange="renderVitrine()">
+            <option value="">Qualquer</option><option value="0-300000">Até R$ 300 mil</option><option value="300000-500000">R$ 300–500 mil</option>
+            <option value="500000-800000">R$ 500–800 mil</option><option value="800000-99999999">Acima de R$ 800 mil</option>
+          </select></div>
+          <div><div class="field-lbl">Tipo de imóvel</div><select class="field-sel" id="fTipo" onchange="renderVitrine()">
+            <option value="">Qualquer</option><option value="Lançamento">Lançamento</option><option value="Em construção">Em construção</option>
+            <option value="Novo">Novo (pronto)</option><option value="Usado">Usado</option>
+          </select></div>
+          <button class="btn btn-sm" onclick="limparFiltros()">✕ Limpar</button>
+        </div>
+
+        <div class="prop-grid" id="vitrineGrid"></div>
+      </div>
+
+      <!-- ═══════════ SIMULADOR ═══════════ -->
+      <div class="panel" id="p-simulador">
+        <div class="ph">
+          <div><div class="ph-eye">Financiamento</div><div class="ph-title">Simulador comparativo</div><div class="ph-sub">SAC CEF · PRICE CEF · CFIAe · POUPEX — compare as 4 modalidades lado a lado</div></div>
+          <div class="ph-acts"><button class="btn btn-sm" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button></div>
+        </div>
+
+        <div class="alert-box alert-gold" id="simEmpAlert">Nenhum imóvel selecionado ainda — escolha um na <span class="card-link" onclick="nav(document.querySelector('[onclick*=vitrine]'),'vitrine')">Vitrine</span> para preencher o valor automaticamente, ou simule livremente abaixo.</div>
+
+        <div class="g2" style="align-items:start">
+          <div class="card">
+            <div class="card-h"><div class="card-title">📐 Dados da simulação</div></div>
+            <div class="card-b">
+              <div class="field-row mb14">
+                <div><div class="field-lbl">Imóvel selecionado</div><div class="field-inp" id="simEmpNome" style="background:var(--card2);color:var(--gold2);font-weight:700">Nenhum — simulação livre</div></div>
+              </div>
+              <div class="field-row mb14">
+                <div><div class="field-lbl">Valor do imóvel (R$)</div><input class="field-inp" id="simValor" value="500.000,00" oninput="fmtSimInput(this);simSincEntrada()"></div>
+              </div>
+              <div class="field-row mb14">
+                <div>
+                  <div class="field-lbl">Valor de entrada (R$)</div>
+                  <input class="field-inp" id="simEntrada" value="175.000,00" oninput="fmtSimInput(this);simSincEntrada()">
+                  <div class="slider-row"><input type="range" id="simEntradaPct" min="5" max="80" value="35" oninput="simEntradaPorPct(this.value)"><span class="slider-val" id="simEntradaPctLbl">35%</span></div>
+                  <div class="fs10 c-muted" id="simEntradaHint" style="margin-top:4px"></div>
+                </div>
+              </div>
+              <div class="field-row mb14">
+                <div><div class="field-lbl">Prazo (meses)</div>
+                  <div class="slider-row"><input type="range" id="simPrazoSlider" min="12" max="420" value="300" step="12" oninput="simAtualizaPrazo(this.value)"><input class="field-inp" id="simPrazoInput" value="300" style="width:64px;text-align:center" oninput="simAtualizaPrazo(this.value)"></div>
+                  <div class="fs10 c-muted" id="simPrazoLabel" style="margin-top:4px">300 meses = 25 anos</div>
+                </div>
+              </div>
+              <div class="field-row mb14">
+                <div><div class="field-lbl">Taxa de juros (a.a.)</div>
+                  <div class="slider-row"><input type="range" id="simTaxaSlider" min="3" max="14" value="8.3" step="0.1" oninput="document.getElementById('simTaxaInput').value=parseFloat(this.value).toFixed(1).replace('.',',')"><span class="slider-val" id="simTaxaInput">8,3</span></div>
+                  <div class="fs10 c-gold">Taxa promocional do feirão (CFIAe): 8,3% a.a.</div>
+                </div>
+              </div>
+
+              <div class="f-sec">Titular — renda e data de nascimento</div>
+              <div class="field-row field-2 mb14">
+                <div><div class="field-lbl">Renda bruta 1 (titular)</div><input class="field-inp" id="simRenda1" placeholder="0,00" oninput="fmtSimInput(this)"></div>
+                <div><div class="field-lbl">Data de nascimento 1</div><input class="field-inp" type="date" id="simDataNasc" onchange="simOnDataNasc()"></div>
+              </div>
+
+              <div class="terms-check" style="margin-bottom:10px">
+                <input type="checkbox" id="simTemConjuge" onchange="simToggleConjuge()">
+                <label for="simTemConjuge">Sou casado(a) / união estável e quero considerar a renda do(a) cônjuge</label>
+              </div>
+              <div id="simConjugeFields" style="display:none">
+                <div class="f-sec">Cônjuge — renda e data de nascimento</div>
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">Renda bruta 2 (cônjuge)</div><input class="field-inp" id="simRenda2" placeholder="0,00" oninput="fmtSimInput(this)"></div>
+                  <div><div class="field-lbl">Data de nascimento 2</div><input class="field-inp" type="date" id="simDataNasc2"></div>
+                </div>
+                <div class="terms-check" style="margin-bottom:10px">
+                  <input type="checkbox" id="simJuntarRenda" checked>
+                  <label for="simJuntarRenda">Juntar renda para o cálculo (renda 1 + renda 2)</label>
+                </div>
+              </div>
+
+              <button class="btn btn-gold btn-full" onclick="calcularSimulacao()">▶ Calcular comparativo</button>
+            </div>
+          </div>
+
+          <div>
+            <div id="simRendaBox"></div>
+            <div class="simtab-row" id="simTabRow" style="display:none">
+              <div class="simtab" id="tab-sac" onclick="selecionarSistema('sac')"><div class="simtab-lbl">SAC CEF</div><div class="simtab-val" id="tabValSac">—</div><div class="simtab-sub">1ª parcela</div></div>
+              <div class="simtab" id="tab-price" onclick="selecionarSistema('price')"><div class="simtab-lbl">PRICE CEF</div><div class="simtab-val" id="tabValPrice">—</div><div class="simtab-sub">parcela fixa</div></div>
+              <div class="simtab active" id="tab-cfiae" onclick="selecionarSistema('cfiae')"><div class="simtab-lbl">CFIAe ★</div><div class="simtab-val" id="tabValCfiae">—</div><div class="simtab-sub">1º encargo</div></div>
+              <div class="simtab" id="tab-poupex" onclick="selecionarSistema('poupex')"><div class="simtab-lbl">POUPEX</div><div class="simtab-val" id="tabValPoupex">—</div><div class="simtab-sub">1ª parcela</div></div>
+            </div>
+            <div id="simResultArea">
+              <div class="card"><div class="card-b" style="text-align:center;padding:50px 20px;color:var(--muted)">
+                <div style="font-size:38px;margin-bottom:10px">🧮</div>
+                Preencha os dados e clique em <strong>Calcular comparativo</strong> para ver SAC CEF, PRICE CEF, CFIAe e POUPEX lado a lado.
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ PAGAMENTO DA RESERVA (PIX) ═══════════ -->
+      <div class="panel" id="p-reservapix">
+        <div class="ph">
+          <div><div class="ph-eye">Garanta sua unidade</div><div class="ph-title">Pagamento da Reserva</div><div class="ph-sub">Pague o sinal via PIX e garanta a unidade escolhida durante o feirão</div></div>
+        </div>
+
+        <div id="pixSemImovel" class="alert-box alert-gold">Escolha um imóvel (e, se possível, uma unidade específica) na <span class="card-link" onclick="nav(document.querySelector('[onclick*=vitrine]'),'vitrine')">Vitrine</span> antes de pagar a reserva.</div>
+
+        <div id="pixConteudo" style="display:none">
+          <div class="g2" style="align-items:start">
+            <div class="card">
+              <div class="card-h"><div class="card-title">🏘️ Unidade a reservar</div></div>
+              <div class="card-b">
+                <div class="fs12" style="margin-bottom:10px"><strong id="pixEmpNome">—</strong><br><span class="c-muted" id="pixUnidadeInfo">—</span></div>
+                <div class="field-row mb14">
+                  <div><div class="field-lbl">Valor da reserva / sinal (mínimo 10% do imóvel)</div>
+                    <input class="field-inp" id="pixValor" oninput="fmtSimInput(this)" onchange="onPixValorChange()">
+                    <div class="fs10 c-muted" id="pixValorMinHint" style="margin-top:4px"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><div class="card-title">📲 Pagar via PIX</div></div>
+              <div class="card-b">
+                <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+                  <div class="qr-box"><img id="pixQrImg" src="" alt="QR Code PIX"></div>
+                  <div style="flex:1;min-width:180px">
+                    <div class="field-lbl">Chave PIX (CNPJ)</div>
+                    <div class="pix-key-row" style="margin-bottom:8px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis" id="pixChaveTxt"></span><span class="copy-mini" onclick="copiarPix('pixChaveTxt')">copiar</span></div>
+                    <div class="field-lbl">Valor a pagar</div>
+                    <div class="pix-key-row" id="pixValorTxt" style="margin-bottom:0">R$ 0,00</div>
+                  </div>
+                </div>
+                <div class="fs10 c-muted" style="margin-bottom:12px">⚠️ QR Code e chave ilustrativos para simular o feirão online — configure a integração PIX oficial (banco/PSP) antes de usar em produção.</div>
+                <label class="pay-check" style="margin-bottom:10px"><input type="checkbox" id="pixJaPago" onchange="confirmarPagamentoPix(this.checked)"> Já realizei o pagamento da reserva via PIX (aguardando confirmação da equipe WAL)</label>
+                <div id="pixConfirmadoBox" class="alert-box alert-amber" style="display:none;margin-bottom:0">⏳ Pagamento informado! A equipe WAL vai confirmar o recebimento e garantir sua unidade em breve.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ AGENDAR VISITA ═══════════ -->
+      <div class="panel" id="p-agendar">
+        <div class="ph">
+          <div><div class="ph-eye">Conheça de perto</div><div class="ph-title">Agendar Visita</div><div class="ph-sub">Marque uma visita ao stand do feirão ou ao decorado do empreendimento</div></div>
+        </div>
+
+        <div id="agendarSemPedido">
+          <div class="g2" style="align-items:start">
+            <div class="card">
+              <div class="card-h"><div class="card-title">📅 Dados da visita</div></div>
+              <div class="card-b">
+                <div class="field-row mb14">
+                  <div><div class="field-lbl">Empreendimento</div><div class="field-inp" id="agEmpNome" style="background:var(--card2);color:var(--gold2);font-weight:700">Nenhum imóvel escolhido ainda</div></div>
+                </div>
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">Data preferida</div><input class="field-inp" type="date" id="agData"></div>
+                  <div><div class="field-lbl">Horário preferido</div>
+                    <select class="field-sel" id="agHorario">
+                      <option>09:00 – 10:00</option><option>10:00 – 11:00</option><option>11:00 – 12:00</option>
+                      <option>14:00 – 15:00</option><option>15:00 – 16:00</option><option>16:00 – 17:00</option><option>17:00 – 18:00</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">Quantidade de pessoas</div>
+                    <select class="field-sel" id="agPessoas"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5+</option></select>
+                  </div>
+                  <div><div class="field-lbl">Forma de visita</div>
+                    <select class="field-sel" id="agFormato"><option>Presencial no stand do feirão</option><option>Presencial no decorado/obra</option><option>Visita virtual (videochamada)</option></select>
+                  </div>
+                </div>
+                <div class="field-row mb14">
+                  <div><div class="field-lbl">Observações</div><textarea class="field-ta" id="agObs" placeholder="Ex: prefiro o período da tarde, venho com minha esposa..."></textarea></div>
+                </div>
+                <button class="btn btn-gold btn-full" style="max-width:320px" onclick="confirmarAgendamento()">📅 Confirmar agendamento</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-h"><div class="card-title">ℹ️ Como funciona</div></div>
+              <div class="card-b">
+                <div class="tl-wrap"><div class="tl-line"></div>
+                  <div class="tl-item"><div class="tl-dot">1</div><div class="tl-tipo">Escolha data e horário</div><div class="tl-nota">Sujeito à disponibilidade da equipe WAL durante o feirão.</div></div>
+                  <div class="tl-item"><div class="tl-dot">2</div><div class="tl-tipo">Confirmação por WhatsApp</div><div class="tl-nota">Um consultor confirma o horário e envia a localização.</div></div>
+                  <div class="tl-item"><div class="tl-dot">3</div><div class="tl-tipo">Atendimento no dia</div><div class="tl-nota">Leve um documento com foto para acesso ao stand/decorado.</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="agendarComPedido" style="display:none">
+          <div class="alert-box alert-green">✅ Visita agendada! Um consultor da WAL vai confirmar por WhatsApp em breve.</div>
+          <div class="card">
+            <div class="card-h"><div class="card-title">📅 Sua visita</div></div>
+            <div class="card-b">
+              <div class="g3">
+                <div><div class="fs10 c-muted">Empreendimento</div><div class="fw7" id="agResumoEmp">—</div></div>
+                <div><div class="fs10 c-muted">Data e horário</div><div class="fw7" id="agResumoData">—</div></div>
+                <div><div class="fs10 c-muted">Formato</div><div class="fw7" id="agResumoFormato">—</div></div>
+              </div>
+              <button class="btn btn-sm" style="margin-top:14px" onclick="cancelarAgendamento()">✕ Cancelar e reagendar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ FALAR COM CONSULTOR ═══════════ -->
+      <div class="panel" id="p-consultor">
+        <div class="ph">
+          <div><div class="ph-eye">Atendimento humano</div><div class="ph-title">Falar com Consultor</div><div class="ph-sub">Prefere conversar com uma pessoa? Nossa equipe está pronta para te atender</div></div>
+        </div>
+
+        <div class="g2" style="align-items:start">
+          <div class="card">
+            <div class="card-h"><div class="card-title">🎧 Sua consultora no feirão</div></div>
+            <div class="card-b">
+              <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+                <div class="sba-av" style="width:52px;height:52px;font-size:20px">WC</div>
+                <div>
+                  <div class="fs14 fw7" style="color:#fff">Equipe WAL Consultoria</div>
+                  <div class="fs11 c-muted">CRECI 12261-J · Especialistas em FAB e Servidores Públicos</div>
+                </div>
+              </div>
+              <div class="alert-box alert-teal">💬 Toque em um dos canais ao lado para falar agora com um consultor humano. Se preferir, a Sofia (IA) também pode te ajudar 24h por dia.</div>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
+                <a href="#" id="consultorWhatsapp" target="_blank"><button class="btn btn-teal btn-full">💬 Chamar no WhatsApp</button></a>
+                <a href="#" id="consultorTel"><button class="btn btn-full">📞 Ligar agora</button></a>
+                <a href="#" id="consultorEmail"><button class="btn btn-full">✉️ Enviar e-mail</button></a>
+                <button class="btn btn-full" onclick="nav(document.querySelector('[onclick*=ia]'),'ia')">🤖 Falar com a Sofia (IA)</button>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><div class="card-title">📝 Deixe sua mensagem</div></div>
+            <div class="card-b">
+              <div class="field-row mb14"><div><div class="field-lbl">Assunto</div>
+                <select class="field-sel" id="conAssunto">
+                  <option>Dúvida sobre um empreendimento</option><option>Dúvida sobre financiamento</option>
+                  <option>Andamento da análise de crédito</option><option>Quero negociar condições</option><option>Outro assunto</option>
+                </select>
+              </div></div>
+              <div class="field-row mb14"><div><div class="field-lbl">Mensagem</div><textarea class="field-ta" id="conMensagem" placeholder="Escreva sua dúvida ou pedido..."></textarea></div></div>
+              <button class="btn btn-gold btn-full" onclick="enviarMensagemConsultor()">📤 Enviar mensagem</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ ANÁLISE DE CRÉDITO ═══════════ -->
+      <div class="panel" id="p-credito">
+        <div class="ph">
+          <div><div class="ph-eye">Sua jornada</div><div class="ph-title">Análise de Crédito</div><div class="ph-sub">Envie sua documentação e receba o resultado em até 24 horas</div></div>
+        </div>
+
+        <div class="alert-box alert-amber">⏱️ <strong>Prazo máximo de resposta: até 24 horas</strong> a partir do envio da sua documentação completa. Você será avisado nesta tela e por e-mail assim que o resultado sair.</div>
+
+        <div id="creditoSemPedido">
+          <div class="alert-box alert-gold" id="docsAnterioresBox" style="display:none"></div>
+          <div class="g2" style="align-items:start">
+            <div class="card">
+              <div class="card-h"><div class="card-title">👤 Dados pessoais</div></div>
+              <div class="card-b">
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">Nome completo</div><input class="field-inp" id="crNome"></div>
+                  <div><div class="field-lbl">CPF</div><input class="field-inp" id="crCpf"></div>
+                </div>
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">E-mail</div><input class="field-inp" type="email" id="crEmail"></div>
+                  <div><div class="field-lbl">Telefone</div><input class="field-inp" id="crTel"></div>
+                </div>
+                <div class="field-row mb14">
+                  <div><div class="field-lbl">Estado civil</div>
+                    <select class="field-sel" id="crEstadoCivil" onchange="toggleConjuge()">
+                      <option value="solteiro">Solteiro(a)</option>
+                      <option value="casado">Casado(a) / União Estável</option>
+                    </select>
+                  </div>
+                </div>
+                <div id="conjugeFields" style="display:none">
+                  <div class="f-sec">Dados do(a) cônjuge / companheiro(a)</div>
+                  <div class="field-row mb14"><div><div class="field-lbl">Nome do(a) cônjuge</div><input class="field-inp" id="crConjugeNome" onchange="salvarEstado()"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-h"><div class="card-title">📎 Documentos necessários</div></div>
+              <div class="card-b">
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">Identidade (RG ou CNH) *</div>
+                    <div class="upload-area" onclick="document.getElementById('docId').click()">
+                      <input type="file" id="docId" accept="image/*,.pdf" onchange="handleUpload(this,'docIdNome')">
+                      <div style="font-size:22px">🪪</div><div class="upload-lbl">Clique para selecionar</div><div class="upload-name" id="docIdNome"></div>
+                    </div>
+                  </div>
+                  <div><div class="field-lbl">Imposto de Renda *</div>
+                    <div class="upload-area" onclick="document.getElementById('docIr').click()">
+                      <input type="file" id="docIr" accept="image/*,.pdf" onchange="handleUpload(this,'docIrNome')">
+                      <div style="font-size:22px">📄</div><div class="upload-lbl">Declaração ou isenção</div><div class="upload-name" id="docIrNome"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field-row field-2 mb14">
+                  <div><div class="field-lbl">Comprovante de renda *</div>
+                    <div class="upload-area" onclick="document.getElementById('docRenda').click()">
+                      <input type="file" id="docRenda" accept="image/*,.pdf" onchange="handleUpload(this,'docRendaNome')">
+                      <div style="font-size:22px">💰</div><div class="upload-lbl">Contracheque / holerite</div><div class="upload-name" id="docRendaNome"></div>
+                    </div>
+                  </div>
+                  <div><div class="field-lbl">Comprovante de residência *</div>
+                    <div class="upload-area" onclick="document.getElementById('docResid').click()">
+                      <input type="file" id="docResid" accept="image/*,.pdf" onchange="handleUpload(this,'docResidNome')">
+                      <div style="font-size:22px">🏠</div><div class="upload-lbl">Conta de luz, água ou telefone</div><div class="upload-name" id="docResidNome"></div>
+                    </div>
+                  </div>
+                </div>
+                <div id="conjugeDocs" style="display:none">
+                  <div class="f-sec">Documentos do(a) cônjuge</div>
+                  <div class="field-row field-2 mb14">
+                    <div><div class="field-lbl">RG/CNH do(a) cônjuge</div>
+                      <div class="upload-area" onclick="document.getElementById('docConjId').click()">
+                        <input type="file" id="docConjId" accept="image/*,.pdf" onchange="handleUpload(this,'docConjIdNome')">
+                        <div style="font-size:20px">🪪</div><div class="upload-lbl">Selecionar</div><div class="upload-name" id="docConjIdNome"></div>
+                      </div>
+                    </div>
+                    <div><div class="field-lbl">Comprovante de renda do(a) cônjuge</div>
+                      <div class="upload-area" onclick="document.getElementById('docConjRenda').click()">
+                        <input type="file" id="docConjRenda" accept="image/*,.pdf" onchange="handleUpload(this,'docConjRendaNome')">
+                        <div style="font-size:20px">💰</div><div class="upload-lbl">Selecionar</div><div class="upload-name" id="docConjRendaNome"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="alert-box alert-teal" style="margin-top:6px;margin-bottom:0">🔒 Seus documentos são usados exclusivamente para a análise de crédito do feirão e tratados com confidencialidade.</div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-gold btn-full" style="margin-top:16px;max-width:360px" onclick="enviarAnaliseCredito()">📤 Enviar para Análise de Crédito</button>
+        </div>
+
+        <div id="creditoComPedido" style="display:none">
+          <div class="g2" style="align-items:start">
+            <div class="card">
+              <div class="card-h"><div class="card-title">📋 Protocolo <span class="mono c-gold" id="crProtocoloNum"></span></div></div>
+              <div class="card-b">
+                <div class="status-steps" id="statusStepsBox"></div>
+                <div class="alert-box alert-amber" id="prazoBox" style="margin-bottom:0">⏳ Prazo de resposta: <strong id="prazoTexto">até 24 horas</strong></div>
+              </div>
+            </div>
+
+            <div class="card" id="resultadoCard" style="display:none">
+              <div class="card-h"><div class="card-title">✅ Resultado da Análise</div></div>
+              <div class="card-b">
+                <div class="g2" style="margin-bottom:10px">
+                  <div class="kpi green"><div class="kpi-lbl">Valor de crédito liberado</div><div class="kpi-val" id="creditoValor">R$ 0</div></div>
+                  <div class="kpi gold"><div class="kpi-lbl">Valor de entrada mínima</div><div class="kpi-val" id="creditoEntradaMinima" style="font-size:18px">R$ 0</div></div>
+                </div>
+                <div class="g2" style="margin-bottom:14px">
+                  <div class="kpi teal"><div class="kpi-lbl">Empreendimento selecionado</div><div class="kpi-val" id="creditoEmpreendimento" style="font-size:14px">—</div></div>
+                  <div class="kpi purple"><div class="kpi-lbl">Unidade</div><div class="kpi-val" id="creditoUnidade" style="font-size:14px">—</div></div>
+                </div>
+                <div class="fs11 c-muted">Taxa concedida: <strong class="c-gold" id="creditoTaxa">8,3% a.a.</strong> · Condições válidas durante o período do feirão, sujeito a confirmação documental final.</div>
+                <div class="sec" style="margin:16px 0 10px">Pagar entrada mínima via PIX</div>
+                <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
+                  <div class="qr-box"><img id="creditoQrImg" src="" alt="QR Code PIX"></div>
+                  <div style="flex:1;min-width:180px">
+                    <div class="pix-key-row" style="margin-bottom:8px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis" id="creditoPixChave"></span><span class="copy-mini" onclick="copiarPix('creditoPixChave')">copiar</span></div>
+                    <div class="fs10 c-muted">⚠️ QR ilustrativo para o feirão — configure a integração PIX oficial do seu banco/PSP antes de divulgar para pagamento real.</div>
+                  </div>
+                </div>
+                <button class="btn btn-teal btn-full" style="margin-top:16px" onclick="nav(document.querySelector('[onclick*=pagamento]'),'pagamento')">💳 Montar fluxo de pagamento →</button>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:14px" id="demoLiberarWrap">
+            <button class="btn btn-sm" onclick="demoLiberarResultado()">⚙️ [Demonstração] Liberar resultado agora</button>
+            <span class="fs10 c-muted">— em produção, o resultado chega automaticamente em até 24h por e-mail e nesta tela.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ FLUXO DE PAGAMENTO ═══════════ -->
+      <div class="panel" id="p-pagamento">
+        <div class="ph">
+          <div><div class="ph-eye">Planejamento</div><div class="ph-title">Fluxo de Pagamento</div><div class="ph-sub">Confirme cada etapa do seu cronograma — tudo fica salvo automaticamente</div></div>
+          <div class="ph-acts">
+            <button class="btn btn-sm" onclick="zerarFluxoPagamento()">♻️ Zerar e recomeçar</button>
+            <button class="btn btn-sm" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
+          </div>
+        </div>
+        <div id="pagamentoVazio" class="alert-box alert-gold">Para montar seu fluxo de pagamento, primeiro <span class="card-link" onclick="nav(document.querySelector('[onclick*=vitrine]'),'vitrine')">escolha um imóvel</span> e <span class="card-link" onclick="nav(document.querySelector('[onclick*=simulador]'),'simulador')">calcule a simulação</span>.</div>
+        <div id="pagamentoConteudo" style="display:none">
+          <div class="alert-box alert-teal" id="pgResumoBox"></div>
+
+          <div class="pay-progress-wrap">
+            <div class="flex-bet" style="margin-bottom:6px"><span class="fs11 fw6">Progresso do cronograma</span><span class="fs11 c-gold fw7" id="pgProgressTxt">0%</span></div>
+            <div class="pay-progress-bar"><div class="pay-progress-fill" id="pgProgressFill" style="width:0%"></div></div>
+          </div>
+
+          <div id="pgEtapas"></div>
+
+          <div class="pay-step">
+            <div class="pay-step-h">
+              <div class="pay-step-title"><span class="pay-step-num">+</span>➕ Pagamentos intermediários (avulsos)</div>
+            </div>
+            <div class="fs11 c-muted" style="margin-bottom:8px">Lance aqui reforços, ATOs ou qualquer pagamento fora do cronograma padrão.</div>
+            <div id="pgIntermediarios"></div>
+            <div class="pay-row" style="margin-top:8px">
+              <input class="field-inp" id="pgIntDesc" placeholder="Descrição (ex: reforço de obra)" style="flex:2;min-width:160px">
+              <input class="pay-inp" id="pgIntValor" placeholder="0,00" oninput="fmtSimInput(this)">
+              <input type="date" class="pay-date" id="pgIntData">
+              <button class="btn btn-sm btn-teal" onclick="adicionarPagamentoIntermediario()">+ Lançar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════ SOFIA IA ═══════════ -->
+      <div class="panel" id="p-ia">
+        <div class="ph">
+          <div><div class="ph-eye">Inteligência WAL</div><div class="ph-title">Sofia · Consultora IA do Feirão</div><div class="ph-sub">Tire dúvidas sobre imóveis, financiamento e condições do feirão, 24 horas por dia</div></div>
+        </div>
+        <div class="g2" style="grid-template-columns:1.4fr 1fr;align-items:start">
+          <div class="ai-wrap">
+            <div class="ai-msgs" id="aiMsgs"></div>
+            <div class="ai-chips">
+              <div class="ai-chip" onclick="sendAiChip('Quais empreendimentos têm unidades de 2 quartos até R$ 500 mil?')">2 quartos até R$500k</div>
+              <div class="ai-chip" onclick="sendAiChip('Qual a diferença entre CFIAe e POUPEX?')">CFIAe x POUPEX</div>
+              <div class="ai-chip" onclick="sendAiChip('Como funciona a análise de crédito do feirão?')">Análise de crédito</div>
+              <div class="ai-chip" onclick="sendAiChip('Quero usar meu FGTS, como funciona?')">Usar FGTS</div>
+            </div>
+            <div class="ai-inp-row">
+              <textarea class="ai-inp" id="aiInp" placeholder="Pergunte à Sofia sobre os imóveis, o feirão ou seu financiamento..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg();}"></textarea>
+              <button class="ai-send" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-h"><div class="card-title">✨ Inteligência por trás do Feirão</div></div>
+            <div class="card-b">
+              <div class="sec" style="margin-bottom:10px">Já ativo neste painel</div>
+              <div class="feat-grid mb20">
+                <div class="feat-card"><div class="feat-ico">🤖</div><div><div class="feat-name">Sofia 24/7</div><div class="feat-desc">Consultora de IA que responde sobre imóveis, financiamento e o feirão a qualquer hora.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">🧮</div><div><div class="feat-name">Simulador 4-em-1</div><div class="feat-desc">SAC, Price, CFIAe e POUPEX calculados instantaneamente e comparados lado a lado.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">💬</div><div><div class="feat-name">Mensagens sob medida</div><div class="feat-desc">Sofia ajuda a comparar empreendimentos e explica condições em linguagem simples.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">🖨️</div><div><div class="feat-name">Resumo para impressão</div><div class="feat-desc">Exporte sua simulação e cronograma de pagamento em PDF a qualquer momento.</div></div></div>
+              </div>
+              <div class="sec" style="margin-bottom:10px">Próximos passos do roadmap</div>
+              <div class="feat-grid">
+                <div class="feat-card"><div class="feat-ico">🔍</div><div><div class="feat-name">Busca em tempo real</div><div class="feat-desc">Sofia consulta automaticamente notícias e taxas atualizadas do CFIAe e do mercado FAB.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">🖼️</div><div><div class="feat-name">Vistas aéreas dos imóveis</div><div class="feat-desc">Geração de imagens em perspectiva drone dos empreendimentos para visualização do lead.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">📑</div><div><div class="feat-name">Pré-validação de documentos</div><div class="feat-desc">Leitura automática dos documentos enviados, apontando pendências antes do envio final.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">📊</div><div><div class="feat-name">Lead scoring automático</div><div class="feat-desc">Priorização de atendimento por probabilidade de fechamento, direto para a equipe WAL.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">🗓️</div><div><div class="feat-name">Agendamento de visita</div><div class="feat-desc">Marcação automática de visita ao stand do feirão, integrada à agenda da equipe.</div></div></div>
+                <div class="feat-card"><div class="feat-ico">🌐</div><div><div class="feat-name">Feirões conjuntos</div><div class="feat-desc">Versão multi-força para feirões futuros com Exército e Marinha.</div></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══ RODAPÉ — SEJA UM AGENTE ═══ -->
+      <div class="agent-footer">
+        <a href="#" id="afVideoLink" target="_blank" class="af-video-thumb" title="Assistir vídeo explicativo">
+          <div class="af-video-play">▶</div>
+          <div class="af-video-lbl">Vídeo · 2 min</div>
+        </a>
+        <div class="agent-footer-left">
+          <div class="af-eye">Oportunidade</div>
+          <div class="af-title">Conhece alguém que também busca um imóvel?</div>
+          <div class="af-sub">Torne-se um Agente Parceiro WAL e ganhe comissão indicando colegas, amigos e familiares para os empreendimentos do feirão. Sem necessidade de ser corretor. Assista ao vídeo ao lado e entenda como funciona em 2 minutos.</div>
+          <div class="af-bullets">
+            <div class="af-bullet">💰 Comissão por venda fechada</div>
+            <div class="af-bullet">📁 Materiais prontos para compartilhar</div>
+            <div class="af-bullet">🤖 Assistente IA exclusivo para agentes</div>
+          </div>
+        </div>
+        <a href="../agente/dashboard-agente.html" target="_blank"><button class="btn btn-teal">🤝 Quero ser Agente Parceiro →</button></a>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL — DETALHE DO IMÓVEL ═══ -->
+<div class="modal-ov" id="modalProp">
+  <div class="modal-box" style="max-width:880px">
+    <div class="modal-h">
+      <div class="modal-title" id="propModalTitle">Empreendimento</div>
+      <button class="modal-close" onclick="fecharModal('modalProp')">✕</button>
+    </div>
+    <div class="modal-body" id="propModalBody"></div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalProp')">Fechar</button>
+      <button class="btn btn-teal" id="propBtnSimular">🧮 Simular financiamento</button>
+      <button class="btn btn-gold" id="propBtnCredito">📋 Solicitar análise de crédito</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   INTEGRAÇÃO COM CRM (Google Sheets + Apps Script)
+   Mesmo Web App de CRM já em produção (index.html, reserva.html,
+   simulador.html, chat.html, admin.html) — action 'criarOuAtualizar'.
+   Só é chamado em marcos importantes da jornada (ver MARCOS_CRM
+   abaixo), não a cada clique — evita sobrecarregar o CRM com scans
+   completos da planilha em picos de acesso do feirão.
+═══════════════════════════════════════════════════════════ */
+const CRM_URL_FEIRAO = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+function registrarNoCRM(lead, nota){
+  try{
+    fetch(CRM_URL_FEIRAO,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({
+        action:'criarOuAtualizar',
+        lead:Object.assign({prioridade:'alta',status:'novo',origem:'Feirão'},lead),
+        interacao:{tipo:lead.origem||'Feirão',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}
+      })
+    }).catch(()=>{});
+  }catch(e){}
+}
+
+/* ════════════════════════════════════════════════════════════
+   API DEDICADA DO FEIRÃO (Apps Script + planilha "WAL Feirão —
+   Dados Operacionais", separada do CRM/Reserva de produção).
+   Ver "Apps Script WAL Feirao - Operacional.gs" na raiz do projeto.
+   Escrita = POST no-cors (fire-and-forget, como o resto do
+   ecossistema WAL). Leitura = GET com callback JSONP (dá pra ler
+   a resposta, diferente do POST no-cors).
+═══════════════════════════════════════════════════════════ */
+const FEIRAO_API_URL = 'COLOQUE_AQUI_A_URL_DO_APPS_SCRIPT_WAL_FEIRAO_OPERACIONAL';
+
+function chamarFeiraoApi(action, payload){
+  if(!FEIRAO_API_URL || FEIRAO_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+  try{
+    fetch(FEIRAO_API_URL,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(Object.assign({action},payload))
+    }).catch(()=>{});
+  }catch(e){}
+}
+
+function feiraoApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    if(!FEIRAO_API_URL || FEIRAO_API_URL.indexOf('COLOQUE_AQUI')===0){ resolve(null); return; }
+    const cb = 'feiraoCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 15000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = FEIRAO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+
+/* Marcos da jornada que também disparam upsert do participante +
+   espelho no CRM (raro). Os demais eventos da jornada só geram um
+   registro leve (append-only) na planilha do feirão. */
+const MARCOS_CRM = {cadastro:1, imovel:1, credito_enviado:1, credito_liberado:1, reserva_pix:1};
+
+function upsertParticipanteFeirao(nota){
+  if(!LEAD) return;
+  chamarFeiraoApi('feirao_participante', {
+    cpf:LEAD.cpf, nome:LEAD.nome, email:LEAD.email, whatsapp:LEAD.tel, vinculo:LEAD.vinculo,
+    empSelecionado:_selectedPropId||'', unidadeSelecionada:(_selectedUnidade&&_selectedUnidade.numero)||'',
+    etapaAtual: (JORNADA_DEFS[estagioAtualIndex()]||{}).key||''
+  });
+  registrarNoCRM({nome:LEAD.nome,telefone:LEAD.tel,email:LEAD.email,origem:'Feirão'}, nota||'Atualização no feirão');
+}
+function registrarEventoJornada(eventoKey, detalhe){
+  if(!LEAD) return;
+  chamarFeiraoApi('feirao_evento', {cpf:LEAD.cpf, eventoKey, detalhe:detalhe||''});
+}
+
+/* ════════════════════════════════════════════════════════════
+   CONEXÃO COM O SISTEMA WAL — PLANILHA "WAL Imóveis — Portfólio"
+   Aba "IMOVEISDISPONIVEIS" (mesmo padrão gvizJsonp usado no
+   restante do ecossistema WAL — Lead/Broker/Agent Dashboard).
+═══════════════════════════════════════════════════════════ */
+const SHEET_ID_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+const SHEET_ABA_IMOVEIS = 'IMOVEISDISPONIVEIS';
+
+/* Dados de demonstração — usados enquanto a planilha carrega ou caso a conexão falhe */
+const EMPREENDIMENTOS_DEMO = [
+  { id:'e1', nome:'Orla Recreio Reserva', construtora:'RIVA', uf:'RJ', cidade:'Rio de Janeiro', bairro:'Recreio dos Bandeirantes',
+    quartos:[2,3], precoMin:320000, precoMax:620000, entrega:'Dez/2027', disponivel:42, tipo:'Lançamento',
+    emoji:'🏖️', cor1:'#0E7490', cor2:'#155E75', destaque:'Vista mar · cobertura duplex',
+    galeria:['🏖️','🏊‍♀️','🛋️','🌅','🏢'], video:true,
+    vantagens:['Taxa CFIAe exclusiva do feirão: 8,3% a.a.','Isenção da taxa de avaliação do imóvel','Entrada parcelada em até 10x sem juros','Brinde: kit mudança + 1 ano de seguro residencial'] },
+  { id:'e2', nome:'Ilha Mar Beach & Home', construtora:'CURY', uf:'RJ', cidade:'Rio de Janeiro', bairro:'Barra da Tijuca',
+    quartos:[1,2,3], precoMin:320000, precoMax:520000, entrega:'Jun/2028', disponivel:28, tipo:'Em construção',
+    emoji:'🌊', cor1:'#0369A1', cor2:'#075985', destaque:'A 200m da praia',
+    galeria:['🌊','🏊','🍽️','🌇','🛏️'], video:true,
+    vantagens:['Entrada a partir de 10% com uso do FGTS','Studios e apartamentos de 2 e 3 quartos','Condições facilitadas para o 1º imóvel','Lazer completo no condomínio'] },
+  { id:'e3', nome:'ICONYC by YOO', construtora:'EMCAMP', uf:'RJ', cidade:'Rio de Janeiro', bairro:'Barra da Tijuca',
+    quartos:[1,2], precoMin:480000, precoMax:1200000, entrega:'Mar/2028', disponivel:15, tipo:'Lançamento',
+    emoji:'🏙️', cor1:'#7C3AED', cor2:'#5B21B6', destaque:'Design assinado YOO',
+    galeria:['🏙️','🛋️','🌃','🏊','🍷'], video:true,
+    vantagens:['Design internacional assinado YOO','Unidades exclusivas em número limitado','Ótimo para investimento e moradia','Studios e unidades de alto padrão'] },
+  { id:'e4', nome:'Ilha Mar Beach 2', construtora:'CURY', uf:'RJ', cidade:'Rio de Janeiro', bairro:'Barra da Tijuca',
+    quartos:[2], precoMin:280000, precoMax:420000, entrega:'Dez/2028', disponivel:35, tipo:'Em construção',
+    emoji:'🌴', cor1:'#0D9488', cor2:'#0F766E', destaque:'1º imóvel facilitado',
+    galeria:['🌴','🏠','🛁','🌅'], video:false,
+    vantagens:['Ticket de entrada acessível','Ideal para o 1º imóvel via CFIAe','Mesmo padrão do Ilha Mar original','Entrega facilitada para militares FAB'] },
+  { id:'e5', nome:'Reserva Ilha do Governador', construtora:'CALPER', uf:'RJ', cidade:'Rio de Janeiro', bairro:'Ilha do Governador',
+    quartos:[2,3], precoMin:250000, precoMax:380000, entrega:'Set/2027', disponivel:50, tipo:'Novo',
+    emoji:'🌳', cor1:'#15803D', cor2:'#166534', destaque:'Próximo à Base Aérea do Galeão',
+    galeria:['🌳','🏘️','🛝','🅿️'], video:false,
+    vantagens:['A poucos minutos da Base Aérea do Galeão','Excelente custo-benefício','Área de lazer pensada para famílias','Ideal para início de carreira militar'] },
+  { id:'e6', nome:'Refloresta Jardins', construtora:'REFLORA', uf:'SP', cidade:'São Paulo', bairro:'Zona Sul',
+    quartos:[2,3], precoMin:350000, precoMax:550000, entrega:'Jul/2028', disponivel:31, tipo:'Novo',
+    emoji:'🌿', cor1:'#B45309', cor2:'#92400E', destaque:'Áreas verdes e sustentabilidade',
+    galeria:['🌿','🏞️','🏊','🚲'], video:true,
+    vantagens:['Condições especiais para servidores públicos em SP','Certificação de sustentabilidade','Próximo a órgãos públicos federais','Espaços verdes integrados ao projeto'] },
+  { id:'e7', nome:'Residencial Pontal Usado', construtora:'Proprietário direto', uf:'RJ', cidade:'Rio de Janeiro', bairro:'Recreio dos Bandeirantes',
+    quartos:[3], precoMin:430000, precoMax:430000, entrega:'Imediata', disponivel:1, tipo:'Usado',
+    emoji:'🔑', cor1:'#475569', cor2:'#334155', destaque:'Pronto para morar · repasse',
+    galeria:['🔑','🏠','🛋️'], video:false,
+    vantagens:['Mudança imediata, sem prazo de obra','Aceita financiamento CFIAe na transferência','Condomínio consolidado e tarifa conhecida'] },
+];
+
+/* EMPREENDIMENTOS é a lista em uso pelo dashboard — começa com os dados de
+   demonstração e é substituída pelos dados reais assim que a planilha responde. */
+let EMPREENDIMENTOS = EMPREENDIMENTOS_DEMO;
+let _fonteImoveis = 'demo'; // 'demo' | 'planilha'
+
+function setDataSourceTag(){
+  const el=document.getElementById('dataSourceTag'); if(!el) return;
+  el.innerHTML = _fonteImoveis==='planilha'
+    ? `<span class="bdg bg">🟢 Conectado ao sistema WAL · planilha de portfólio</span>`
+    : `<span class="bdg ba">🟡 Modo demonstração — exibindo catálogo padrão</span>`;
+}
+
+/* Carrega os imóveis disponíveis direto da planilha "WAL Imóveis — Portfólio",
+   aba IMOVEISDISPONIVEIS, usando o padrão gvizJsonp já adotado no restante do
+   ecossistema WAL (Lead/Broker/Agent Dashboard). Faz fallback silencioso para
+   os dados de demonstração caso a planilha esteja indisponível ou com colunas
+   diferentes das esperadas. */
+function carregarImoveisDoSistema(){
+  setTimeout(()=>{ if(_fonteImoveis==='demo') setDataSourceTagTimeout(); },4000);
+  try{
+    window.google = window.google || {};
+    window.google.visualization = window.google.visualization || {};
+    window.google.visualization.Query = window.google.visualization.Query || {};
+    window.google.visualization.Query.setResponse = function(data){
+      try{
+        const lista = processarPlanilhaImoveis(data);
+        if(lista && lista.length){
+          EMPREENDIMENTOS = lista; _fonteImoveis='planilha';
+        }
+      }catch(e){ console.warn('Não foi possível interpretar a planilha, mantendo catálogo demo.', e); }
+      setDataSourceTag();
+      popularFiltros(); renderHomeDestaques(); renderVitrine();
+      const scriptEl=document.getElementById('gvizImoveisScript'); if(scriptEl) scriptEl.remove();
+    };
+    const old=document.getElementById('gvizImoveisScript'); if(old) old.remove();
+    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID_IMOVEIS}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_ABA_IMOVEIS)}&_=${Date.now()}`;
+    const s=document.createElement('script');
+    s.id='gvizImoveisScript'; s.src=url;
+    s.onerror=()=>{ setDataSourceTag(); toast('Não foi possível conectar à planilha agora — exibindo catálogo padrão.',''); };
+    document.body.appendChild(s);
+  }catch(e){ setDataSourceTag(); }
+}
+function setDataSourceTagTimeout(){ setDataSourceTag(); }
+function recarregarImoveis(){
+  toast('🔄 Atualizando catálogo do sistema...','');
+  carregarImoveisDoSistema();
+}
+/* Converte as linhas/colunas do Google Visualization API em objetos de imóvel,
+   tentando reconhecer variações comuns de cabeçalho em português. Ajuste os
+   nomes de coluna abaixo conforme a estrutura real da sua aba IMOVEISDISPONIVEIS. */
+/* Normaliza nomes de coluna (remove acentos, símbolos e espaços) para
+   casar cabeçalhos como "Preço Mín (R$)" com "preco min" sem depender
+   de bater a string exata — a planilha real evolui com o tempo. */
+function normalizarNomeCol_(s){
+  return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .toLowerCase().replace(/[^a-z0-9]/g,'');
+}
+function processarPlanilhaImoveis(data){
+  if(!data || !data.table || !data.table.cols || !data.table.rows) return null;
+  const cols=data.table.cols.map(c=>normalizarNomeCol_(c.label||c.id||''));
+  const idx=names=>{ for(const n of names){ const i=cols.indexOf(normalizarNomeCol_(n)); if(i>-1) return i; } return -1; };
+  const cId=idx(['id','codigo']), cNome=idx(['nome','empreendimento']), cConstr=idx(['construtora']),
+        cUf=idx(['uf','estado']), cCidade=idx(['cidade']), cBairro=idx(['bairro']),
+        cQuartos=idx(['quartos','dormitorios']), cPrecoMin=idx(['precomin','precomínr$','valormin','valorminimo']),
+        cPrecoMax=idx(['precomax','precomáxr$','valormax','valormaximo']),
+        cEntrega=idx(['entrega','entregaprevista']), cDisp=idx(['disponivel','unidades','unidadesdisponiveis','qtdunidadesdisponiveis']),
+        cTipo=idx(['tipo','status']), cFeirao=idx(['feiraoonline','feirao_on_line']);
+  if(cNome<0) return null;
+  const getCell=(row,i)=> i>-1 && row.c[i] ? (row.c[i].f!==undefined&&row.c[i].f!==null?row.c[i].f:row.c[i].v) : null;
+  const cores=[['#0E7490','#155E75'],['#0369A1','#075985'],['#7C3AED','#5B21B6'],['#0D9488','#0F766E'],['#15803D','#166534'],['#B45309','#92400E'],['#475569','#334155']];
+  return data.table.rows.map((row,i)=>{
+    const nome=getCell(row,cNome); if(!nome) return null;
+    // Só entram na Vitrine do Feirão os imóveis marcados Feirao_On_Line=Sim.
+    // Se a coluna ainda não existir na planilha (staff não configurou),
+    // não filtra — evita esconder tudo antes da coluna ser preenchida.
+    if(cFeirao>-1){
+      const val=(getCell(row,cFeirao)||'').toString().trim().toLowerCase();
+      if(val!=='sim') return null;
+    }
+    const quartosRaw=(getCell(row,cQuartos)||'').toString();
+    const quartos=quartosRaw.split(/[,/]/).map(x=>parseInt(x)).filter(x=>!isNaN(x));
+    return {
+      id:'sheet'+i,
+      nome: nome.toString(),
+      construtora: (getCell(row,cConstr)||'WAL Imóveis').toString(),
+      uf: (getCell(row,cUf)||'RJ').toString(),
+      cidade: (getCell(row,cCidade)||'Rio de Janeiro').toString(),
+      bairro: (getCell(row,cBairro)||'—').toString(),
+      quartos: quartos.length?quartos:[2],
+      precoMin: parseFloat(getCell(row,cPrecoMin))||0,
+      precoMax: parseFloat(getCell(row,cPrecoMax))||parseFloat(getCell(row,cPrecoMin))||0,
+      entrega: (getCell(row,cEntrega)||'A combinar').toString(),
+      disponivel: parseInt(getCell(row,cDisp))||1,
+      tipo: (getCell(row,cTipo)||'Novo').toString(),
+      emoji:'🏢', cor1:cores[i%cores.length][0], cor2:cores[i%cores.length][1],
+      destaque:'Direto do sistema WAL', galeria:['🏢','🏠','🛋️'], video:false,
+      vantagens:['Condições especiais do feirão sujeitas a confirmação','Fale com a Sofia para detalhes atualizados deste imóvel'],
+    };
+  }).filter(Boolean);
+}
+
+const LEADS_CADASTRADOS = [
+  { nome:'João Silva', cpf:'123.456.789-00', email:'joao.fab@email.com', tel:'(21) 99999-0000', vinculo:'Militar da Aeronáutica (FAB)' },
+];
+
+/* ════════════ VÍDEO EXPLICATIVO DO PROGRAMA DE AGENTES ════════════ */
+const VIDEO_AGENTE_URL = 'https://youtu.be/SUBSTITUA_PELO_SEU_LINK'; // troque pelo link do YouTube ou Google Drive
+
+/* ════════════ PIX — RESERVA / SINAL / ENTRADA MÍNIMA ════════════
+   ATENÇÃO: a chave e o QR abaixo são ILUSTRATIVOS, apenas para dar a
+   sensação de feirão online. Para uso real, substitua pela integração
+   oficial do seu banco/PSP (Pix Cobrança com QR Code EMV dinâmico). */
+const PIX_KEY_WAL = '12.345.678/0001-90'; // troque pela chave PIX real da WAL Consultoria
+const PIX_BENEFICIARIO = 'WAL Consultoria Imobiliária';
+function gerarQrPixUrl(valor,identificador){
+  const payload = `PIX|Chave:${PIX_KEY_WAL}|Beneficiario:${PIX_BENEFICIARIO}|Valor:${(valor||0).toFixed(2)}|Ref:${identificador||'WAL-FEIRAO'}`;
+  return 'https://api.qrserver.com/v1/create-qr-code/?size=170x170&margin=6&data='+encodeURIComponent(payload);
+}
+function copiarPix(elId){
+  const txt=document.getElementById(elId).textContent;
+  navigator.clipboard?.writeText(txt).then(()=>toast('📋 Copiado!','green')).catch(()=>toast('Copie manualmente: '+txt,''));
+}
+
+/* ════════════ BARRA DE STATUS AO VIVO (SENSAÇÃO DE FEIRÃO ONLINE) ════════════
+   "Negócios fechados hoje" é real — vem de feirao_stats() no Apps Script
+   (conta reservas PIX + análises de crédito aprovadas na planilha do
+   feirão), atualizado a cada ~2min. "Pessoas navegando agora" continua
+   sendo só ambientação estimada — contar presença em tempo real de
+   verdade exigiria um backend dedicado (ex: Firebase Realtime DB), o
+   que não compensa para esse indicador. */
+const NEGOCIOS_FECHADOS_BASE = 17;
+const PESSOAS_ONLINE_MIN = 8, PESSOAS_ONLINE_MAX = 34;
+let _negociosFechados = NEGOCIOS_FECHADOS_BASE;
+let _pessoasOnline = 14;
+let _notificacoesNaoLidas = 0;
+
+/* ════════════ JORNADA DO CLIENTE ════════════ */
+const JORNADA_DEFS = [
+  { key:'cadastro',          ico:'🎪', nome:'Entrou no Feirão',                desc:'Cadastro realizado no 1º Feirão de Imóveis WAL' },
+  { key:'imovel',            ico:'🏘️', nome:'Escolheu um empreendimento',     desc:'Visualizou detalhes de um imóvel do feirão' },
+  { key:'unidade',           ico:'🏠', nome:'Escolheu uma unidade',           desc:'Selecionou o apartamento de interesse na grade de unidades' },
+  { key:'simulacao',         ico:'🧮', nome:'Simulou o financiamento',        desc:'Comparou SAC CEF, PRICE CEF, CFIAe e POUPEX' },
+  { key:'credito_enviado',   ico:'📋', nome:'Enviou documentação',            desc:'Documentos encaminhados para análise de crédito' },
+  { key:'credito_liberado',  ico:'✅', nome:'Recebeu o resultado',            desc:'Análise de crédito concluída' },
+  { key:'pagamento_iniciado',ico:'💳', nome:'Iniciou o fluxo de pagamento',   desc:'Começou a montar o cronograma de pagamento' },
+  { key:'reserva_pix',       ico:'💰', nome:'Pagou a reserva via PIX',        desc:'Sinal pago para garantir a unidade durante o feirão' },
+  { key:'pagamento_completo',ico:'🏁', nome:'Concluiu o cronograma',          desc:'Todas as etapas do fluxo de pagamento confirmadas' },
+];
+
+/* ════════════ ESTADO GLOBAL ════════════ */
+let LEAD = null;
+let _selectedPropId = null;
+let _selectedUnidade = null; // {empId,numero,torre,andar,quartos,area,valor}
+let _galeriaAtual = [];
+let _galeriaIdx = 0;
+let _simResults = null;
+let _simSistemaAtivo = 'cfiae';
+let _creditoState = { enviado:false, protocolo:null, dataLimite:null, liberado:false, valorAprovado:0, entradaMinima:0, documentos:{} };
+let _pagamentoState = null;
+let _pixState = { valor:0, paga:false, data:'' };
+let _aiHistory = [];
+let _jornada = []; // [{key,data}]
+
+/* ════════════ UTILS ════════════ */
+function fmtBRL(n){ return 'R$ '+(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
+function fmtBRL2(n){ return 'R$ '+(n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function parseBR(s){ return parseFloat((s||'0').toString().replace(/\./g,'').replace(',','.'))||0; }
+function toast(msg, cls){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='show'+(cls?(' t-'+cls):'');
+  clearTimeout(window._toastTO);
+  window._toastTO=setTimeout(()=>{t.classList.remove('show')},3400);
+}
+function abrirModal(id){ document.getElementById(id).classList.add('show'); }
+function fecharModal(id){ document.getElementById(id).classList.remove('show'); }
+
+/* ════════════ PERSISTÊNCIA DO LEAD (localStorage) ════════════
+   Guarda os dados e o progresso do lead localmente neste navegador,
+   indexados por CPF (chave principal) e por e-mail (índice de busca).
+   Assim, toda vez que o mesmo lead entrar, recuperamos tudo que ele
+   já fez: imóvel escolhido, simulação, análise de crédito e fluxo
+   de pagamento. Em produção isso também é espelhado no CRM via
+   registrarNoCRM(), então a equipe WAL vê o mesmo histórico. ═══ */
+function chaveStorageFromCpf(cpf){ return 'wal_feirao_lead_'+(cpf||'').toString().replace(/\D/g,''); }
+function chaveIndexEmail(email){ return 'wal_feirao_idx_'+(email||'').toString().toLowerCase().trim(); }
+
+function snapshotEstado(){
+  const map={sac:'dadosSAC',price:'dadosPrice',cfiae:'dadosCFIAe',poupex:'dadosPOUPEX'};
+  return {
+    lead: LEAD,
+    selectedPropId: _selectedPropId,
+    selectedUnidade: _selectedUnidade,
+    simInputs: _simResults ? {vAval:_simResults.vAval,vEnt:_simResults.vEnt,prazo:_simResults.prazo,taxaAno:_simResults.taxaAno,dataNasc:_simResults.dataNasc,sistemaAtivo:_simSistemaAtivo,renda1:_simResults.renda1,renda2:_simResults.renda2,dataNasc2:_simResults.dataNasc2,temConjuge:_simResults.temConjuge,juntarRenda:_simResults.juntarRenda} : null,
+    credito: {
+      enviado:_creditoState.enviado, protocolo:_creditoState.protocolo,
+      dataEnvio:_creditoState.dataEnvio?new Date(_creditoState.dataEnvio).toISOString():null,
+      dataLimite:_creditoState.dataLimite?new Date(_creditoState.dataLimite).toISOString():null,
+      liberado:_creditoState.liberado, valorAprovado:_creditoState.valorAprovado, entradaMinima:_creditoState.entradaMinima||0,
+      documentos:_creditoState.documentos||{},
+      estadoCivil: document.getElementById('crEstadoCivil')?.value || 'solteiro',
+      conjugeNome: document.getElementById('crConjugeNome')?.value || ''
+    },
+    pagamento: _pagamentoState,
+    pix: _pixState,
+    agendamento: _agendamentoState,
+    jornada: _jornada.map(j=>({key:j.key,data:(j.data instanceof Date?j.data:new Date(j.data)).toISOString()})),
+    negociosFechados:_negociosFechados,
+    savedAt: new Date().toISOString()
+  };
+}
+function salvarEstado(){
+  if(!LEAD || !LEAD.cpf) return;
+  try{
+    const snap=snapshotEstado();
+    localStorage.setItem(chaveStorageFromCpf(LEAD.cpf), JSON.stringify(snap));
+    if(LEAD.email) localStorage.setItem(chaveIndexEmail(LEAD.email), LEAD.cpf);
+  }catch(e){ console.warn('Não foi possível salvar o progresso localmente.',e); }
+  agendarSyncPagamentoBackend();
+}
+
+/* O fluxo de pagamento muda a cada checkbox/valor editado — em vez de
+   chamar o backend a cada tecla, agrupa (debounce ~2s) num único envio.
+   flushSyncPagamentoBackend() força o envio imediato (ex: ao sair do
+   painel ou fechar a aba), pra não perder a última edição. */
+let _pagamentoSyncTimer=null;
+function agendarSyncPagamentoBackend(){
+  if(!_pagamentoState || !LEAD) return;
+  clearTimeout(_pagamentoSyncTimer);
+  _pagamentoSyncTimer=setTimeout(flushSyncPagamentoBackend, 2000);
+}
+function flushSyncPagamentoBackend(){
+  clearTimeout(_pagamentoSyncTimer);
+  if(!_pagamentoState || !LEAD) return;
+  const progresso=parseInt((document.getElementById('pgProgressTxt')?.textContent||'0').replace('%',''))||0;
+  chamarFeiraoApi('feirao_pagamento', {
+    cpf:LEAD.cpf, empId:_pagamentoState.empId||'',
+    unidade:(_selectedUnidade&&_selectedUnidade.empId===_pagamentoState.empId)?_selectedUnidade.numero:'',
+    estado:_pagamentoState, progressoPct:progresso
+  });
+}
+window.addEventListener('beforeunload', flushSyncPagamentoBackend);
+function tentarRestaurar(input){
+  try{
+    input=(input||'').toString().trim();
+    let cpfKey=null;
+    if(input.includes('@')) cpfKey=localStorage.getItem(chaveIndexEmail(input));
+    else cpfKey=input.replace(/\D/g,'');
+    if(!cpfKey) return null;
+    const raw=localStorage.getItem(chaveStorageFromCpf(cpfKey));
+    return raw?JSON.parse(raw):null;
+  }catch(e){ return null; }
+}
+function restaurarDeSnapshot(snap){
+  LEAD=snap.lead;
+  _selectedPropId=snap.selectedPropId||null;
+  _selectedUnidade=snap.selectedUnidade||null;
+  _jornada=(snap.jornada||[]).map(j=>({key:j.key,data:new Date(j.data)}));
+  const c=snap.credito||{};
+  _creditoState={
+    enviado:!!c.enviado, protocolo:c.protocolo||null,
+    dataEnvio:c.dataEnvio?new Date(c.dataEnvio):null, dataLimite:c.dataLimite?new Date(c.dataLimite):null,
+    liberado:!!c.liberado, valorAprovado:c.valorAprovado||0, entradaMinima:c.entradaMinima||0, documentos:c.documentos||{}
+  };
+  window._creditoEstadoCivilSalvo=c.estadoCivil||'solteiro';
+  window._creditoConjugeNomeSalvo=c.conjugeNome||'';
+  _pagamentoState=snap.pagamento||null;
+  _pixState=snap.pix||{valor:0,paga:false,data:''};
+  _agendamentoState=snap.agendamento||null;
+  if(typeof snap.negociosFechados==='number') _negociosFechados=snap.negociosFechados;
+  if(snap.simInputs){
+    const {vAval,vEnt,prazo,taxaAno,dataNasc,sistemaAtivo,renda1,renda2,dataNasc2,temConjuge,juntarRenda}=snap.simInputs;
+    const pv=vAval-vEnt, im=taxaAno/100/12, mipTx=0.000512, dfiTx=0.0000804;
+    const rendaConsiderada=(renda1||0)+((juntarRenda?renda2:0)||0);
+    _simResults={vAval,vEnt,pv,prazo,taxaAno,dataNasc,renda1,renda2,dataNasc2,temConjuge,juntarRenda,rendaConsiderada,
+      dadosSAC:calcSAC(pv,prazo,im,mipTx,dfiTx,vAval), dadosPrice:calcPrice(pv,prazo,im,mipTx,dfiTx,vAval),
+      dadosCFIAe:calcCFIAe(pv,prazo,im,dfiTx,0,vAval,dataNasc), dadosPOUPEX:calcPOUPEX(pv,prazo,im,0)};
+    _simSistemaAtivo=sistemaAtivo||'cfiae';
+  } else { _simResults=null; }
+}
+
+/* ════════════ JORNADA DO CLIENTE ════════════ */
+function fmtDataHora(d){ const dt=(d instanceof Date)?d:new Date(d); return dt.toLocaleDateString('pt-BR')+' às '+dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+function estagioAtualIndex(){
+  let idx=-1;
+  JORNADA_DEFS.forEach((d,i)=>{ if(_jornada.find(j=>j.key===d.key)) idx=i; });
+  return idx;
+}
+function registrarJornada(key, detalhe){
+  if(_jornada.find(j=>j.key===key)) { renderJornadaMini(); return; }
+  _jornada.push({key,data:new Date()});
+  renderJornadaMini(); renderJornadaPanel(); atualizarKpiEtapaHome();
+  const nome=(JORNADA_DEFS.find(d=>d.key===key)||{}).nome||key;
+  if(MARCOS_CRM[key]) upsertParticipanteFeirao(detalhe||nome);
+  else registrarEventoJornada(key, detalhe||nome);
+}
+function renderJornadaMini(){
+  const dotsEl=document.getElementById('jminiDots'); if(!dotsEl) return;
+  const idx=estagioAtualIndex();
+  dotsEl.innerHTML=JORNADA_DEFS.map((d,i)=>`<div class="jmini-dot ${i<idx?'done':(i===idx?'curr':'')}" title="${d.nome}"></div>`).join('');
+  const lbl=document.getElementById('jminiLbl');
+  if(lbl) lbl.textContent = idx>=0 ? JORNADA_DEFS[idx].nome : 'Iniciando sua jornada...';
+}
+function renderJornadaPanel(){
+  const idx=estagioAtualIndex();
+  const etapasEl=document.getElementById('jornadaEtapas');
+  if(etapasEl){
+    etapasEl.innerHTML=JORNADA_DEFS.map((d,i)=>{
+      const feito=_jornada.find(j=>j.key===d.key);
+      const cls=feito?(i===idx?'curr':'done'):'';
+      return `<div class="jstage-card ${cls}"><div class="jstage-ico">${feito?'✅':d.ico}</div><div style="flex:1"><div class="jstage-name">${d.nome}</div><div class="jstage-desc">${d.desc}</div></div>${feito?`<div class="jstage-time">${fmtDataHora(feito.data)}</div>`:''}</div>`;
+    }).join('');
+  }
+  const tlEl=document.getElementById('jornadaTimeline');
+  if(tlEl){
+    const ordenado=[..._jornada].sort((a,b)=>new Date(a.data)-new Date(b.data));
+    tlEl.innerHTML='<div class="tl-line"></div>'+(ordenado.length?ordenado.map(j=>{
+      const def=JORNADA_DEFS.find(d=>d.key===j.key)||{ico:'•',nome:j.key,desc:''};
+      return `<div class="tl-item"><div class="tl-dot">${def.ico}</div><div class="tl-tipo">${def.nome}</div><div class="tl-data">${fmtDataHora(j.data)}</div><div class="tl-nota">${def.desc}</div></div>`;
+    }).join(''):'<div class="fs12 c-muted">Nenhuma ação registrada ainda.</div>');
+  }
+  renderJornadaResumo();
+}
+function renderJornadaResumo(){
+  const el=document.getElementById('jornadaResumo'); if(!el) return;
+  const map={sac:'dadosSAC',price:'dadosPrice',cfiae:'dadosCFIAe',poupex:'dadosPOUPEX'};
+  const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+  const simTxt=_simResults?(fmtBRL(_simResults[map[_simSistemaAtivo]].primeiraEnc)+'/mês · '+_simSistemaAtivo.toUpperCase()):'Ainda não simulado';
+  const credTxt=_creditoState.liberado?(fmtBRL(_creditoState.valorAprovado)+' aprovado'):(_creditoState.enviado?'Em análise (até 24h)':'Não iniciada');
+  const pagTxt=_pagamentoState?(document.getElementById('pgProgressTxt')?.textContent||'Em andamento'):'Não iniciado';
+  el.innerHTML=`
+    <div class="card"><div class="card-b"><div class="fs10 c-muted">Imóvel escolhido</div><div class="fw7" style="margin-top:4px">${e?e.nome:'Ainda não escolhido'}</div></div></div>
+    <div class="card"><div class="card-b"><div class="fs10 c-muted">Simulação de financiamento</div><div class="fw7" style="margin-top:4px">${simTxt}</div></div></div>
+    <div class="card"><div class="card-b"><div class="fs10 c-muted">Análise de crédito</div><div class="fw7" style="margin-top:4px">${credTxt}</div></div></div>
+  `;
+}
+function atualizarKpiEtapaHome(){
+  const idx=estagioAtualIndex();
+  const el=document.getElementById('kpiEtapa'), sub=document.getElementById('kpiEtapaSub');
+  if(!el) return;
+  if(idx<0){ el.textContent='Explorando'; sub.textContent='Escolha um imóvel para começar'; return; }
+  el.textContent=JORNADA_DEFS[idx].nome; sub.textContent=JORNADA_DEFS[idx].desc;
+}
+
+/* ════════════ AUTH ════════════ */
+function switchAuthTab(tab){
+  document.getElementById('tabBtnEntrar').classList.toggle('active',tab==='entrar');
+  document.getElementById('tabBtnNovo').classList.toggle('active',tab==='novo');
+  document.getElementById('tabEntrar').classList.toggle('active',tab==='entrar');
+  document.getElementById('tabNovo').classList.toggle('active',tab==='novo');
+}
+async function doEntrar(){
+  const chaveInput=document.getElementById('loginChave').value.trim();
+  const err=document.getElementById('loginErr');
+  if(!chaveInput){err.style.display='block';err.textContent='Digite seu e-mail ou CPF.';return;}
+  const snap=tentarRestaurar(chaveInput);
+  if(snap && snap.lead){
+    err.style.display='none';
+    restaurarDeSnapshot(snap);
+    iniciarApp(true);
+    return;
+  }
+  const chaveNorm=chaveInput.toLowerCase();
+  const found=LEADS_CADASTRADOS.find(l=>l.email.toLowerCase()===chaveNorm||l.cpf.replace(/\D/g,'')===chaveInput.replace(/\D/g,''));
+  if(found){
+    err.style.display='none';
+    LEAD={nome:found.nome,cpf:found.cpf,email:found.email,tel:found.tel,vinculo:found.vinculo};
+    iniciarApp(false);
+    return;
+  }
+  // Não achou local nem na demo — tenta o backend do feirão (outro
+  // dispositivo/navegador já cadastrado, ou pré-cadastro por e-mail).
+  err.style.display='block'; err.textContent='Procurando seu cadastro...';
+  const resp = await feiraoApiJsonp('feirao_login', {chave:chaveInput});
+  if(resp && resp.found && resp.origem==='participante'){
+    err.style.display='none';
+    LEAD={nome:resp.nome,cpf:resp.cpf,email:resp.email,tel:resp.whatsapp,vinculo:resp.vinculo};
+    iniciarApp(true);
+    return;
+  }
+  if(resp && resp.found && resp.origem==='inscrito'){
+    // Achou no pré-cadastro (sem CPF) — pré-preenche a aba "Primeira vez
+    // aqui" para o lead só confirmar CPF e concluir o cadastro completo.
+    err.style.display='none';
+    switchAuthTab('novo');
+    document.getElementById('novNome').value=resp.nome||'';
+    document.getElementById('novEmail').value=resp.email||chaveInput;
+    document.getElementById('novTel').value=resp.whatsapp||'';
+    toast('👋 Encontramos seu pré-cadastro! Confirme seu CPF para continuar.','green');
+    return;
+  }
+  err.style.display='block';
+  err.textContent='Não encontramos esse cadastro. Use a aba "Primeira vez aqui".';
+}
+function doCadastroLead(){
+  const nome=document.getElementById('novNome').value.trim();
+  const cpf=document.getElementById('novCpf').value.trim();
+  const email=document.getElementById('novEmail').value.trim();
+  const tel=document.getElementById('novTel').value.trim();
+  const vinculo=document.getElementById('novVinculo').value;
+  const err=document.getElementById('novErr');
+  if(!nome||!cpf||!email||!tel){err.style.display='block';return;}
+  err.style.display='none';
+  const existente=tentarRestaurar(cpf)||tentarRestaurar(email);
+  if(existente && existente.lead){
+    restaurarDeSnapshot(existente);
+    LEAD.nome=nome; LEAD.email=email; LEAD.tel=tel; LEAD.vinculo=vinculo;
+    toast('👋 Bem-vindo de volta, '+nome.split(' ')[0]+'! Recuperamos seu progresso.','green');
+    iniciarApp(true);
+    return;
+  }
+  LEAD={nome,cpf,email,tel,vinculo};
+  toast('🎉 Bem-vindo(a) ao Feirão, '+nome.split(' ')[0]+'!','green');
+  registrarJornada('cadastro','Entrou no 1º Feirão de Imóveis WAL');
+  iniciarApp(false);
+}
+function doSair(){
+  document.getElementById('appWrap').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+  if(window._creditoTimer) clearInterval(window._creditoTimer);
+  pararPollingCredito();
+  if(window._statsPoll) clearInterval(window._statsPoll);
+  _creditoArquivos={};
+  LEAD=null;
+}
+function iniciarApp(restaurado){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appWrap').style.display='flex';
+  const iniciais=LEAD.nome.split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase();
+  document.getElementById('sbAv').textContent=iniciais||'LE';
+  document.getElementById('sbNome').textContent=LEAD.nome.split(' ').slice(0,2).join(' ');
+  document.getElementById('sbRole').textContent=(LEAD.vinculo||'Participante do Feirão');
+  document.getElementById('crNome').value=LEAD.nome;
+  document.getElementById('crCpf').value=LEAD.cpf;
+  document.getElementById('crEmail').value=LEAD.email;
+  document.getElementById('crTel').value=LEAD.tel;
+  document.getElementById('afVideoLink').href=VIDEO_AGENTE_URL;
+
+  if(!_jornada.find(j=>j.key==='cadastro')) registrarJornada('cadastro');
+
+  setDataSourceTag();
+  popularFiltros();
+  renderHomeDestaques();
+  renderVitrine();
+  carregarImoveisDoSistema();
+  renderLiveBar();
+  atualizarStatsReais();
+
+  if(window._creditoEstadoCivilSalvo){
+    document.getElementById('crEstadoCivil').value=window._creditoEstadoCivilSalvo;
+    document.getElementById('crConjugeNome').value=window._creditoConjugeNomeSalvo||'';
+    toggleConjuge();
+  }
+  restaurarDocumentosUI();
+  restaurarPainelCredito();
+  restaurarPainelSimulador();
+  renderFluxoPagamento();
+  renderPixPanel();
+  renderAgendarPanel();
+  renderConsultorPanel();
+  renderJornadaMini();
+  renderJornadaPanel();
+  atualizarKpiEtapaHome();
+
+  const boasVindas=document.getElementById('boasVindasVoltaBox');
+  if(restaurado){
+    const idx=estagioAtualIndex();
+    boasVindas.style.display='block';
+    boasVindas.innerHTML=`👋 <strong>Bem-vindo de volta, ${LEAD.nome.split(' ')[0]}!</strong> Recuperamos todo o seu progresso — você está na etapa: <strong>${idx>=0?JORNADA_DEFS[idx].nome:'Explorando'}</strong>. Continue de onde parou.`;
+  } else {
+    boasVindas.style.display='none';
+  }
+
+  addAiMsg('ai','Oi, '+LEAD.nome.split(' ')[0]+'! 👋 Eu sou a Sofia, consultora de IA do 1º Feirão de Imóveis da WAL. Posso te ajudar a escolher um empreendimento, explicar o financiamento CFIAe x POUPEX ou tirar dúvidas sobre a análise de crédito. Como posso ajudar?');
+  salvarEstado();
+}
+function restaurarDocumentosUI(){
+  const docs=_creditoState.documentos||{};
+  const labelMap={docId:'docIdNome',docIr:'docIrNome',docRenda:'docRendaNome',docResid:'docResidNome',docConjId:'docConjIdNome',docConjRenda:'docConjRendaNome'};
+  let any=false;
+  Object.keys(labelMap).forEach(inputId=>{
+    if(docs[inputId]){
+      any=true;
+      const lblEl=document.getElementById(labelMap[inputId]);
+      if(lblEl){ lblEl.textContent='✓ '+docs[inputId]+' (enviado anteriormente)'; const area=lblEl.closest('.upload-area'); if(area) area.classList.add('ok'); }
+    }
+  });
+  const box=document.getElementById('docsAnterioresBox');
+  if(box){
+    if(any && !_creditoState.enviado){ box.style.display='block'; box.textContent='📎 Encontramos documentos de uma visita anterior. Reenvie apenas se precisar atualizar algum deles.'; }
+    else box.style.display='none';
+  }
+}
+function restaurarPainelCredito(){
+  if(_creditoState.enviado){
+    document.getElementById('creditoSemPedido').style.display='none';
+    document.getElementById('creditoComPedido').style.display='block';
+    document.getElementById('crProtocoloNum').textContent='#'+_creditoState.protocolo;
+    renderStatusSteps();
+    if(_creditoState.liberado){
+      document.getElementById('resultadoCard').style.display='block';
+      document.getElementById('creditoValor').textContent=fmtBRL(_creditoState.valorAprovado);
+      document.getElementById('creditoEntradaMinima').textContent=fmtBRL(_creditoState.entradaMinima||0);
+      const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+      document.getElementById('creditoEmpreendimento').textContent=e?e.nome:'A definir';
+      document.getElementById('creditoUnidade').textContent=(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'A definir';
+      document.getElementById('creditoPixChave').textContent=PIX_KEY_WAL;
+      document.getElementById('creditoQrImg').src=gerarQrPixUrl(_creditoState.entradaMinima||0,_creditoState.protocolo);
+      document.getElementById('sbBdgCredito').style.display='none';
+    } else {
+      document.getElementById('sbBdgCredito').style.display='inline-flex';
+      document.getElementById('sbBdgCredito').textContent='1';
+      if(window._creditoTimer) clearInterval(window._creditoTimer);
+      window._creditoTimer=setInterval(atualizaPrazoCredito,1000);
+      atualizaPrazoCredito();
+      iniciarPollingCredito();
+    }
+  } else {
+    document.getElementById('creditoSemPedido').style.display='block';
+    document.getElementById('creditoComPedido').style.display='none';
+  }
+}
+function restaurarPainelSimulador(){
+  if(!_simResults) return;
+  document.getElementById('simValor').value=_simResults.vAval.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('simEntrada').value=_simResults.vEnt.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  simSincEntrada();
+  document.getElementById('simDataNasc').value=_simResults.dataNasc||'';
+  simAtualizaPrazo(_simResults.prazo);
+  document.getElementById('simTaxaSlider').value=_simResults.taxaAno;
+  document.getElementById('simTaxaInput').textContent=_simResults.taxaAno.toFixed(1).replace('.',',');
+  if(_simResults.renda1) document.getElementById('simRenda1').value=_simResults.renda1.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  if(_simResults.temConjuge){
+    document.getElementById('simTemConjuge').checked=true;
+    simToggleConjuge();
+    if(_simResults.renda2) document.getElementById('simRenda2').value=_simResults.renda2.toLocaleString('pt-BR',{minimumFractionDigits:2});
+    document.getElementById('simDataNasc2').value=_simResults.dataNasc2||'';
+    document.getElementById('simJuntarRenda').checked=!!_simResults.juntarRenda;
+  }
+  document.getElementById('simTabRow').style.display='grid';
+  document.getElementById('tabValSac').textContent=fmtBRL(_simResults.dadosSAC.primeiraEnc);
+  document.getElementById('tabValPrice').textContent=fmtBRL(_simResults.dadosPrice.primeiraEnc);
+  document.getElementById('tabValCfiae').textContent=fmtBRL(_simResults.dadosCFIAe.primeiraEnc);
+  document.getElementById('tabValPoupex').textContent=fmtBRL(_simResults.dadosPOUPEX.primeiraEnc);
+  renderSimRendaBox();
+  if(_selectedPropId){
+    const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId);
+    if(e){ document.getElementById('simEmpNome').textContent=e.nome+' · '+e.construtora; document.getElementById('simEmpAlert').style.display='none'; }
+  }
+  selecionarSistema(_simSistemaAtivo);
+}
+
+/* ════════════ NAVEGAÇÃO ════════════ */
+function nav(el,panel){
+  flushSyncPagamentoBackend();
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('p-'+panel).classList.add('active');
+  const labels={home:'Início',jornada:'Minha Jornada',vitrine:'Vitrine de Imóveis',simulador:'Simulador',reservapix:'Pagamento da Reserva',credito:'Análise de Crédito',pagamento:'Fluxo de Pagamento',agendar:'Agendar Visita',consultor:'Falar com Consultor',ia:'Sofia · Consultora IA'};
+  document.getElementById('tbPage').textContent=labels[panel]||panel;
+  if(panel==='jornada') renderJornadaPanel();
+  if(panel==='pagamento') renderFluxoPagamento();
+  if(panel==='reservapix') renderPixPanel();
+  if(panel==='agendar') renderAgendarPanel();
+  if(panel==='consultor') renderConsultorPanel();
+  window.scrollTo(0,0);
+}
+
+/* ════════════ CONTAGEM REGRESSIVA DO FEIRÃO ════════════ */
+const FEIRAO_FIM = new Date(Date.now() + 5*24*60*60*1000); // demo: 5 dias a partir de agora — ajuste para a data real definida pela Diretoria
+function tickCountdown(){
+  const diff=FEIRAO_FIM-new Date();
+  if(diff<=0){
+    document.getElementById('tbCountdown').textContent='🔔 Feirão encerrado';
+    ['cdDias','cdHoras','cdMin','cdSeg'].forEach(id=>document.getElementById(id).textContent='00');
+    return;
+  }
+  const d=Math.floor(diff/86400000), h=Math.floor(diff%86400000/3600000), m=Math.floor(diff%3600000/60000), s=Math.floor(diff%60000/1000);
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('cdDias').textContent=pad(d);
+  document.getElementById('cdHoras').textContent=pad(h);
+  document.getElementById('cdMin').textContent=pad(m);
+  document.getElementById('cdSeg').textContent=pad(s);
+  document.getElementById('tbCountdown').textContent=`⏳ Encerra em ${d}d ${pad(h)}h ${pad(m)}m`;
+}
+setInterval(tickCountdown,1000); tickCountdown();
+
+/* ════════════ BARRA DE STATUS AO VIVO ════════════ */
+function renderLiveBar(){
+  const elN=document.getElementById('liveNegocios'), elP=document.getElementById('livePessoas');
+  if(elN) elN.textContent=_negociosFechados+' negócios fechados hoje';
+  if(elP) elP.textContent=_pessoasOnline+' navegando agora';
+}
+function tocarSino(msg){
+  _notificacoesNaoLidas++;
+  const badge=document.getElementById('liveBellBadge'), bell=document.getElementById('liveBell');
+  if(badge){ badge.style.display='flex'; badge.textContent=_notificacoesNaoLidas; }
+  if(bell){ bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring'); }
+  toast('🔔 '+msg,'amber');
+}
+function simularAtividadeFeirao(){
+  // Só a variação de "pessoas navegando agora" é ambientação — o resto
+  // (negócios fechados) vem de dados reais via atualizarStatsReais().
+  _pessoasOnline=Math.min(PESSOAS_ONLINE_MAX,Math.max(PESSOAS_ONLINE_MIN,_pessoasOnline+(Math.floor(Math.random()*5)-2)));
+  renderLiveBar();
+}
+setInterval(simularAtividadeFeirao, 40000+Math.random()*30000);
+
+/* Busca o número real de negócios fechados hoje (feirao_stats no Apps
+   Script do feirão). Se o número subir desde a última checagem, toca o
+   sino — assim o "ao vivo" reflete reservas/aprovações de verdade, não
+   mais um contador fake incrementado no clique do próprio usuário. */
+async function atualizarStatsReais(){
+  const r=await feiraoApiJsonp('feirao_stats', {});
+  if(!r || typeof r.negociosFechados!=='number') return;
+  if(r.negociosFechados>_negociosFechados) tocarSino('Mais uma reserva foi feita no feirão!');
+  _negociosFechados=r.negociosFechados;
+  renderLiveBar();
+}
+setInterval(atualizarStatsReais, 120000);
+
+/* ════════════ VITRINE / FILTROS ════════════ */
+function popularFiltros(){
+  const ufs=[...new Set(EMPREENDIMENTOS.map(e=>e.uf))].sort();
+  const cidades=[...new Set(EMPREENDIMENTOS.map(e=>e.cidade))].sort();
+  const bairros=[...new Set(EMPREENDIMENTOS.map(e=>e.bairro))].sort();
+  document.getElementById('fUf').innerHTML='<option value="">Todas</option>'+ufs.map(u=>`<option value="${u}">${u}</option>`).join('');
+  document.getElementById('fCidade').innerHTML='<option value="">Todas</option>'+cidades.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('fBairro').innerHTML='<option value="">Todos</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
+  document.getElementById('kpiEmps').textContent=EMPREENDIMENTOS.length;
+  document.getElementById('kpiUnid').textContent=EMPREENDIMENTOS.reduce((a,e)=>a+e.disponivel,0);
+}
+function limparFiltros(){
+  ['fUf','fCidade','fBairro','fQuartos','fValor','fTipo'].forEach(id=>document.getElementById(id).value='');
+  renderVitrine();
+}
+function filtrarEmpreendimentos(){
+  const uf=document.getElementById('fUf')?.value||'';
+  const cidade=document.getElementById('fCidade')?.value||'';
+  const bairro=document.getElementById('fBairro')?.value||'';
+  const quartos=document.getElementById('fQuartos')?.value||'';
+  const faixa=document.getElementById('fValor')?.value||'';
+  const tipo=document.getElementById('fTipo')?.value||'';
+  return EMPREENDIMENTOS.filter(e=>{
+    if(uf && e.uf!==uf) return false;
+    if(cidade && e.cidade!==cidade) return false;
+    if(bairro && e.bairro!==bairro) return false;
+    if(quartos){ const q=parseInt(quartos); if(q===4){ if(!e.quartos.some(x=>x>=4)) return false; } else if(!e.quartos.includes(q)) return false; }
+    if(faixa){ const [min,max]=faixa.split('-').map(Number); if(e.precoMax<min || e.precoMin>max) return false; }
+    if(tipo && e.tipo!==tipo) return false;
+    return true;
+  });
+}
+function tipoBadgeClass(tipo){
+  return {'Lançamento':'bo','Em construção':'bt','Novo':'bg','Usado':'bz'}[tipo]||'bz';
+}
+function propCardHtml(e){
+  const quartosTxt=e.quartos.length>1?(Math.min(...e.quartos)+'–'+Math.max(...e.quartos)+' quartos'):(e.quartos[0]+' quarto'+(e.quartos[0]>1?'s':''));
+  return `
+  <div class="prop-card" onclick="abrirPropriedade('${e.id}')">
+    <div class="prop-banner" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})">
+      <div class="prop-banner-badges">
+        <span class="bdg bo">${e.uf} · ${e.bairro}</span>
+        <span class="bdg bg">${e.disponivel} unid.</span>
+      </div>
+      <span style="position:relative;z-index:0">${e.emoji}</span>
+      <div class="prop-banner-price">${fmtBRL(e.precoMin)} – ${fmtBRL(e.precoMax)}</div>
+    </div>
+    <div class="prop-body">
+      <div class="prop-nome">${e.nome}</div>
+      <div class="prop-loc">${e.construtora} · ${e.cidade}/${e.uf} · Entrega ${e.entrega}</div>
+      <div class="prop-tags"><span class="bdg ${tipoBadgeClass(e.tipo)}">${e.tipo}</span><span class="bdg bt">${quartosTxt}</span><span class="bdg bz">${e.destaque}</span></div>
+      <div class="prop-vant">✅ ${e.vantagens[0]}</div>
+      <div class="prop-vant">✅ ${e.vantagens[1]||''}</div>
+      <button class="btn btn-teal btn-sm btn-full" style="margin-top:10px" onclick="event.stopPropagation();abrirPropriedade('${e.id}')">Ver detalhes do feirão →</button>
+    </div>
+  </div>`;
+}
+function renderVitrine(){
+  const list=filtrarEmpreendimentos();
+  const grid=document.getElementById('vitrineGrid');
+  grid.innerHTML = list.length ? list.map(propCardHtml).join('') :
+    `<div class="card" style="grid-column:1/-1"><div class="card-b" style="text-align:center;color:var(--muted);padding:40px">Nenhum empreendimento encontrado com esses filtros. <span class="card-link" onclick="limparFiltros()">Limpar filtros</span></div></div>`;
+}
+function renderHomeDestaques(){
+  const top=[...EMPREENDIMENTOS].sort((a,b)=>b.disponivel-a.disponivel).slice(0,3);
+  document.getElementById('homeDestaques').innerHTML=top.map(propCardHtml).join('');
+}
+
+/* ════════════ DETALHE DO IMÓVEL (MODAL) ════════════ */
+function abrirPropriedade(id){
+  const e=EMPREENDIMENTOS.find(x=>x.id===id); if(!e) return;
+  _selectedPropId=id; _galeriaAtual=e.galeria; _galeriaIdx=0;
+  registrarEventoJornada('imovel_view','Visualizou o empreendimento '+e.nome);
+  document.getElementById('propModalTitle').textContent=e.nome;
+  const quartosTxt=e.quartos.map(q=>q+'q').join(' / ');
+  const unidades=gerarUnidadesDemo(e);
+  document.getElementById('propModalBody').innerHTML=`
+    <div class="gallery-main" id="galMain" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})">${e.galeria[0]}</div>
+    <div class="gallery-thumbs" id="galThumbs">
+      ${e.galeria.map((g,i)=>`<div class="g-thumb${i===0?' active':''}" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})" onclick="trocarFoto(${i})">${g}</div>`).join('')}
+      ${e.video?`<div class="g-thumb video" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})" onclick="toast('🎬 Vídeo institucional disponível nos materiais de apoio do feirão.','')">🎬</div>`:''}
+    </div>
+    <div class="sp mb14" style="margin-top:14px">
+      <span class="bdg ${tipoBadgeClass(e.tipo)}">${e.tipo}</span><span class="bdg bo">${e.construtora}</span><span class="bdg bt">${e.cidade}/${e.uf}</span><span class="bdg bz">${e.bairro}</span><span class="bdg bg">${e.disponivel} unidades disponíveis</span>
+    </div>
+    <div class="g4" style="margin-bottom:16px">
+      <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Faixa de preço</div><div class="fw7" style="font-size:13px">${fmtBRL(e.precoMin)}–${fmtBRL(e.precoMax)}</div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Quartos</div><div class="fw7" style="font-size:13px">${quartosTxt}</div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Entrega</div><div class="fw7" style="font-size:13px">${e.entrega}</div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Destaque</div><div class="fw7" style="font-size:12px">${e.destaque}</div></div></div>
+    </div>
+    <div class="sec">Vantagens exclusivas do feirão</div>
+    <div style="margin-bottom:16px">${e.vantagens.map(v=>`<div class="prop-vant">✅ ${v}</div>`).join('')}</div>
+    <div class="sec">Grade de unidades disponíveis</div>
+    <div class="unit-grid" id="unitGrid">${unidades.map(u=>unitCardHtml(e,u)).join('')}</div>
+  `;
+  document.getElementById('propBtnSimular').onclick=()=>{ fecharModal('modalProp'); irParaSimuladorComImovel(id); };
+  document.getElementById('propBtnCredito').onclick=()=>{ fecharModal('modalProp'); nav(document.querySelector('[onclick*=credito]'),'credito'); toast('Preencha seus documentos para iniciar a análise de crédito.',''); };
+  abrirModal('modalProp');
+  registrarJornada('imovel');
+  salvarEstado();
+}
+
+/* ════════════ GRADE DE UNIDADES (APARTAMENTOS) ════════════ */
+function seedFromString(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return h; }
+function gerarUnidadesDemo(e){
+  const seed=seedFromString(e.id);
+  const total=8;
+  const torres=['A','B'];
+  const units=[];
+  for(let i=0;i<total;i++){
+    const rnd=(seed+i*97)%1000/1000;
+    const quartos=e.quartos[i%e.quartos.length];
+    const andar=2+Math.floor((seed+i*13)%14);
+    const torre=torres[i%torres.length];
+    const numero=torre+String(andar).padStart(2,'0')+String(1+(i%4)).padStart(2,'0');
+    const areaBase=quartos*24+18;
+    const area=areaBase+Math.round(rnd*10);
+    const faixa=e.precoMax-e.precoMin;
+    const valor=Math.round((e.precoMin+faixa*(0.15+rnd*0.8))/1000)*1000;
+    const statusRnd=(seed+i*53)%10;
+    const status = statusRnd<1 ? 'Vendida' : (statusRnd<3 ? 'Reservada' : 'Disponível');
+    units.push({numero,andar,torre,quartos,area,valor,status});
+  }
+  return units;
+}
+function unitCardHtml(e,u){
+  const selecionada=_selectedUnidade && _selectedUnidade.empId===e.id && _selectedUnidade.numero===u.numero;
+  const indisponivel=u.status!=='Disponível';
+  const badgeCls = u.status==='Disponível'?'bg':(u.status==='Reservada'?'ba':'br');
+  return `
+  <div class="unit-card ${selecionada?'selecionada':''} ${indisponivel?'indisponivel':''}" ${indisponivel?'':`onclick="selecionarUnidade('${e.id}','${u.numero}')"`}>
+    <div class="flex-bet"><span class="unit-num">${u.numero}</span><span class="bdg ${badgeCls}" style="font-size:8px">${u.status}</span></div>
+    <div class="unit-meta">Torre ${u.torre} · ${u.andar}º andar · ${u.quartos}q · ${u.area}m²</div>
+    <div class="unit-val">${fmtBRL(u.valor)}</div>
+    ${selecionada?'<div class="fs9 c-gold" style="margin-top:4px">✓ Selecionada</div>':''}
+  </div>`;
+}
+function selecionarUnidade(empId,numero){
+  const e=EMPREENDIMENTOS.find(x=>x.id===empId); if(!e) return;
+  const unidades=gerarUnidadesDemo(e);
+  const u=unidades.find(x=>x.numero===numero); if(!u) return;
+  _selectedUnidade={empId,numero:u.numero,torre:u.torre,andar:u.andar,quartos:u.quartos,area:u.area,valor:u.valor};
+  document.getElementById('unitGrid').innerHTML=unidades.map(x=>unitCardHtml(e,x)).join('');
+  toast('🏠 Unidade '+u.numero+' selecionada!','green');
+  registrarJornada('unidade');
+  salvarEstado();
+}
+function trocarFoto(i){
+  _galeriaIdx=i;
+  document.getElementById('galMain').textContent=_galeriaAtual[i];
+  document.querySelectorAll('#galThumbs .g-thumb').forEach((t,idx)=>t.classList.toggle('active',idx===i));
+}
+
+/* ════════════ SIMULADOR — LÓGICA DE CÁLCULO (SAC / PRICE / CFIAe / POUPEX) ════════════ */
+const MIP_TABELA=[
+  {ate:25,taxa:0.0230},{ate:30,taxa:0.0297},{ate:35,taxa:0.0374},{ate:40,taxa:0.0512},
+  {ate:45,taxa:0.0660},{ate:50,taxa:0.0908},{ate:55,taxa:0.1260},{ate:60,taxa:0.1736},
+  {ate:65,taxa:0.2664},{ate:70,taxa:0.3464},{ate:99,taxa:0.5568}
+];
+function getMIPRate(anos){ for(const f of MIP_TABELA){ if(anos<=f.ate) return f.taxa; } return 0.5568; }
+const MIP_SEGURADORAS={ ALLSEG:[
+  {ate:25,taxa:0.00007600},{ate:30,taxa:0.00008600},{ate:35,taxa:0.00009900},{ate:40,taxa:0.00012500},
+  {ate:45,taxa:0.00019400},{ate:50,taxa:0.00032300},{ate:55,taxa:0.00051200},{ate:60,taxa:0.00077600},
+  {ate:65,taxa:0.00123800},{ate:70,taxa:0.00532500},{ate:75,taxa:0.00703761},{ate:999,taxa:0.00703761} ] };
+function getMIPRateCFIAe(anos){ const t=MIP_SEGURADORAS.ALLSEG; for(const f of t){ if(anos<=f.ate) return f.taxa; } return t[t.length-1].taxa; }
+function calcIdade(dataNasc){
+  if(!dataNasc) return null;
+  const hoje=new Date(), nasc=new Date(dataNasc); if(isNaN(nasc)) return null;
+  let anos=hoje.getFullYear()-nasc.getFullYear(), meses=hoje.getMonth()-nasc.getMonth();
+  if(meses<0||(meses===0&&hoje.getDate()<nasc.getDate())){anos--;meses+=12;}
+  if(hoje.getDate()<nasc.getDate()) meses--; if(meses<0) meses+=12;
+  return {anos,meses};
+}
+function calcIdadeExata(dataNascDate,mesI){
+  const hoje=new Date(); const dataParc=new Date(hoje.getFullYear(),hoje.getMonth()+mesI-1,hoje.getDate());
+  let anos=dataParc.getFullYear()-dataNascDate.getFullYear();
+  const m=dataParc.getMonth()-dataNascDate.getMonth();
+  if(m<0||(m===0&&dataParc.getDate()<dataNascDate.getDate())) anos--;
+  return anos;
+}
+function maxPrazoByAge(anos){ return Math.min(420,Math.max(12,(80*12+6)-anos*12)); }
+
+function calcSAC(pv,n,im,mipTx,dfiTx,vAval){
+  const amort=pv/n, dfiFixo=vAval*dfiTx;
+  let rows=[],totalP=0;
+  for(let i=1;i<=n;i++){
+    const saldo=pv-amort*(i-1), juros=saldo*im, parcela=amort+juros, mip=saldo*mipTx, dfi=dfiFixo, encargo=parcela+mip+dfi;
+    totalP+=encargo; rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo:pv-amort*i});
+  }
+  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,totalP};
+}
+function calcPrice(pv,n,im,mipTx,dfiTx,vAval){
+  const parcela=pv*(im*Math.pow(1+im,n))/(Math.pow(1+im,n)-1), dfiFixo=vAval*dfiTx;
+  let rows=[],saldo=pv;
+  for(let i=1;i<=n;i++){
+    const juros=saldo*im, amort=parcela-juros, mip=saldo*mipTx, dfi=dfiFixo, encargo=parcela+mip+dfi;
+    saldo=Math.max(0,saldo-amort); rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo});
+  }
+  const totalP=rows.reduce((a,r)=>a+r.encargo,0);
+  return {rows,primeiraP:parcela,primeiraEnc:rows[0].encargo,ultimaP:parcela,ultimaEnc:rows[n-1].encargo,totalP};
+}
+function calcCFIAe(pv,n,im,dfiTx,trMensal,vAval,dataNasc){
+  const amortBaseSAC=pv/n;
+  let dataNascDate=dataNasc?new Date(dataNasc):null, idadeBase=36;
+  if(dataNascDate){ const id=calcIdade(dataNasc); if(id) idadeBase=id.anos; }
+  let rows=[],totalP=0,saldo=pv;
+  for(let i=1;i<=n;i++){
+    const idadeAtual=dataNascDate?calcIdadeExata(dataNascDate,i):idadeBase+Math.floor((i-1)/12);
+    const mip=saldo*getMIPRateCFIAe(idadeAtual);
+    const dfi=vAval*dfiTx;
+    const trCorr=saldo*trMensal; saldo+=trCorr;
+    const juros=saldo*im;
+    const amort=(i===n)?saldo:Math.min(amortBaseSAC,saldo);
+    const parcela=amort+juros, encargo=parcela+mip+dfi;
+    saldo=Math.max(0,saldo-amort); totalP+=encargo;
+    rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo});
+  }
+  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,totalP};
+}
+function calcPOUPEX(pv,n,im,idxAnual){
+  const taxaIdxMensal=Math.pow(1+idxAnual/100,1/12)-1, taxaTotal=(1+im)*(1+taxaIdxMensal)-1, amortConst=pv/n;
+  let rows=[],totalP=0,saldo=pv;
+  for(let i=1;i<=n;i++){
+    const juros=saldo*taxaTotal, amort=(i===n)?saldo:Math.min(amortConst,saldo), parcela=amort+juros;
+    saldo=Math.max(0,saldo-amort); totalP+=parcela;
+    rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo});
+  }
+  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].parcela,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].parcela,totalP};
+}
+
+/* ════════════ SIMULADOR — UI ════════════ */
+function irParaSimuladorComImovel(id){
+  const e=EMPREENDIMENTOS.find(x=>x.id===id); if(!e) return;
+  _selectedPropId=id;
+  document.getElementById('simEmpNome').textContent=e.nome+' · '+e.construtora;
+  document.getElementById('simEmpAlert').style.display='none';
+  const valorMedio=Math.round((e.precoMin+e.precoMax)/2);
+  document.getElementById('simValor').value=valorMedio.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  simSincEntrada();
+  nav(document.querySelector('[onclick*=simulador]'),'simulador');
+}
+function fmtSimInput(el){
+  let v=el.value.replace(/\D/g,''); if(!v){el.value='';return;}
+  el.value=(parseInt(v)/100).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function simSincEntrada(){
+  const val=parseBR(document.getElementById('simValor').value)||500000;
+  const ent=parseBR(document.getElementById('simEntrada').value);
+  const pct=Math.min(80,Math.max(5,Math.round(ent/val*100)));
+  document.getElementById('simEntradaPct').value=pct;
+  document.getElementById('simEntradaPctLbl').textContent=pct+'%';
+  document.getElementById('simEntradaHint').textContent=ent>0?`Financiamento: ${fmtBRL(Math.max(0,val-ent))}`:'';
+}
+function simEntradaPorPct(pct){
+  const val=parseBR(document.getElementById('simValor').value)||500000;
+  document.getElementById('simEntrada').value=(val*pct/100).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  document.getElementById('simEntradaPctLbl').textContent=pct+'%';
+  simSincEntrada();
+}
+function simAtualizaPrazo(m){
+  m=Math.min(420,Math.max(12,parseInt(m)||300));
+  document.getElementById('simPrazoSlider').value=m; document.getElementById('simPrazoInput').value=m;
+  const a=Math.floor(m/12), ms=m%12;
+  let t=m+' meses'; if(a>0) t+=' = '+a+' ano'+(a>1?'s':''); if(ms>0) t+=' e '+ms+' mês'+(ms>1?'es':'');
+  document.getElementById('simPrazoLabel').textContent=t;
+}
+function simOnDataNasc(){
+  const val=document.getElementById('simDataNasc').value; if(!val) return;
+  const id=calcIdade(val); if(!id) return;
+  const prazoMax=maxPrazoByAge(id.anos);
+  const prazoAtual=parseInt(document.getElementById('simPrazoInput').value)||300;
+  if(prazoAtual>prazoMax) simAtualizaPrazo(prazoMax);
+}
+function simToggleConjuge(){
+  const tem=document.getElementById('simTemConjuge').checked;
+  document.getElementById('simConjugeFields').style.display=tem?'block':'none';
+}
+function calcularSimulacao(){
+  const vAval=parseBR(document.getElementById('simValor').value);
+  const vEnt=parseBR(document.getElementById('simEntrada').value);
+  const prazo=parseInt(document.getElementById('simPrazoInput').value)||300;
+  const taxaAno=parseFloat(document.getElementById('simTaxaInput').textContent.replace(',','.'))||8.3;
+  const dataNasc=document.getElementById('simDataNasc').value;
+  const renda1=parseBR(document.getElementById('simRenda1').value);
+  const temConjuge=document.getElementById('simTemConjuge').checked;
+  const renda2=temConjuge?parseBR(document.getElementById('simRenda2').value):0;
+  const dataNasc2=temConjuge?document.getElementById('simDataNasc2').value:'';
+  const juntarRenda=temConjuge&&document.getElementById('simJuntarRenda').checked;
+  if(vAval<=0){toast('Informe o valor do imóvel.','red');return;}
+  if(vEnt>=vAval){toast('A entrada deve ser menor que o valor do imóvel.','red');return;}
+  const pv=vAval-vEnt, im=taxaAno/100/12;
+  const mipTx=0.000512, dfiTx=0.0000804;
+  const dadosSAC=calcSAC(pv,prazo,im,mipTx,dfiTx,vAval);
+  const dadosPrice=calcPrice(pv,prazo,im,mipTx,dfiTx,vAval);
+  const dadosCFIAe=calcCFIAe(pv,prazo,im,dfiTx,0,vAval,dataNasc);
+  const dadosPOUPEX=calcPOUPEX(pv,prazo,im,0);
+  const rendaConsiderada=renda1+(juntarRenda?renda2:0);
+  _simResults={vAval,vEnt,pv,prazo,taxaAno,dataNasc,renda1,renda2,dataNasc2,temConjuge,juntarRenda,rendaConsiderada,dadosSAC,dadosPrice,dadosCFIAe,dadosPOUPEX};
+  document.getElementById('simTabRow').style.display='grid';
+  document.getElementById('tabValSac').textContent=fmtBRL(dadosSAC.primeiraEnc);
+  document.getElementById('tabValPrice').textContent=fmtBRL(dadosPrice.primeiraEnc);
+  document.getElementById('tabValCfiae').textContent=fmtBRL(dadosCFIAe.primeiraEnc);
+  document.getElementById('tabValPoupex').textContent=fmtBRL(dadosPOUPEX.primeiraEnc);
+  renderSimRendaBox();
+  chamarFeiraoApi('feirao_simulacao', {
+    cpf:LEAD.cpf, nome:LEAD.nome, email:LEAD.email, empId:_selectedPropId||'',
+    valorImovel:vAval, entrada:vEnt, prazo, taxa:taxaAno, sistemaEscolhido:_simSistemaAtivo,
+    encargoSac:dadosSAC.primeiraEnc, encargoPrice:dadosPrice.primeiraEnc,
+    encargoCfiae:dadosCFIAe.primeiraEnc, encargoPoupex:dadosPOUPEX.primeiraEnc
+  });
+  selecionarSistema('cfiae');
+  registrarJornada('simulacao','Simulou financiamento — imóvel: '+(_selectedPropId?EMPREENDIMENTOS.find(e=>e.id===_selectedPropId).nome:'livre'));
+  salvarEstado();
+}
+function renderSimRendaBox(){
+  const box=document.getElementById('simRendaBox'); if(!box||!_simResults) return;
+  const {renda1,renda2,juntarRenda,rendaConsiderada,dadosCFIAe}=_simResults;
+  if(!rendaConsiderada){ box.innerHTML=''; return; }
+  const limite=rendaConsiderada*0.30;
+  const ok=dadosCFIAe.primeiraEnc<=limite;
+  const pct=((dadosCFIAe.primeiraEnc/rendaConsiderada)*100).toFixed(1);
+  box.innerHTML=`<div class="alert-box ${ok?'alert-green':'alert-amber'}" style="margin-bottom:10px">
+    💰 Renda considerada: <strong>${fmtBRL(rendaConsiderada)}</strong>${juntarRenda?' (renda 1 + renda 2 combinadas)':''} ·
+    Limite de 30% para o encargo: <strong>${fmtBRL(limite)}</strong> ·
+    Encargo CFIAe estimado compromete <strong>${pct}%</strong> da renda —
+    ${ok?'✅ dentro do limite':'⚠️ acima do limite de 30% recomendado'}
+  </div>`;
+}
+function selecionarSistema(sis){
+  _simSistemaAtivo=sis;
+  ['sac','price','cfiae','poupex'].forEach(s=>document.getElementById('tab-'+s).classList.toggle('active',s===sis));
+  renderSimDetalhe();
+}
+function renderSimDetalhe(){
+  if(!_simResults) return;
+  const map={sac:{d:_simResults.dadosSAC,label:'SAC CEF — Amortização Constante',cor:'#34D399'},
+             price:{d:_simResults.dadosPrice,label:'PRICE CEF — Parcela Fixa',cor:'#22D3EE'},
+             cfiae:{d:_simResults.dadosCFIAe,label:'CFIAe — Aeronáutica (taxa do feirão)',cor:'var(--gold2)'},
+             poupex:{d:_simResults.dadosPOUPEX,label:'POUPEX — SAC',cor:'#A78BFA'}};
+  const sel=map[_simSistemaAtivo], d=sel.d;
+  const rows=d.rows.slice(0,6).map(r=>`<tr><td>${r.mes}</td><td>${fmtBRL2(r.amort)}</td><td>${fmtBRL2(r.juros)}</td><td class="fw7" style="color:${sel.cor}">${fmtBRL2(r.encargo)}</td><td>${fmtBRL2(r.saldo)}</td></tr>`).join('');
+  document.getElementById('simResultArea').innerHTML=`
+    <div class="card">
+      <div class="card-h"><div class="card-title" style="color:${sel.cor}">${sel.label}</div></div>
+      <div class="card-b">
+        <div class="kpi-strip g3" style="margin-bottom:14px">
+          <div class="kpi gold"><div class="kpi-lbl">1ª parcela/encargo</div><div class="kpi-val" style="font-size:18px">${fmtBRL(d.primeiraEnc)}</div></div>
+          <div class="kpi teal"><div class="kpi-lbl">Última parcela</div><div class="kpi-val" style="font-size:18px">${fmtBRL(d.ultimaEnc)}</div></div>
+          <div class="kpi purple"><div class="kpi-lbl">Total estimado pago</div><div class="kpi-val" style="font-size:16px">${fmtBRL(d.totalP)}</div></div>
+        </div>
+        <div class="sec" style="margin-bottom:8px">Primeiras parcelas</div>
+        <table class="tbl" style="margin-bottom:14px"><thead><tr><th>Nº</th><th>Amortização</th><th>Juros</th><th>Parcela/Encargo</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table>
+        <button class="btn btn-gold btn-full" onclick="usarSimulacaoNoFluxo()">💳 Usar esta simulação no Fluxo de Pagamento →</button>
+      </div>
+    </div>`;
+}
+function usarSimulacaoNoFluxo(){
+  if(!_simResults) return;
+  const map={sac:{d:_simResults.dadosSAC,label:'SAC CEF'},price:{d:_simResults.dadosPrice,label:'PRICE CEF'},cfiae:{d:_simResults.dadosCFIAe,label:'CFIAe'},poupex:{d:_simResults.dadosPOUPEX,label:'POUPEX'}};
+  const sel=map[_simSistemaAtivo];
+  const mesmoImovel=_pagamentoState && _pagamentoState.empId===_selectedPropId;
+  const minReserva=Math.round(_simResults.vAval*0.10);
+  _pagamentoState={
+    empId:_selectedPropId,
+    valor:_simResults.vAval, entrada:_simResults.vEnt, prazo:_simResults.prazo,
+    sistema:sel.label, sistemaKey:_simSistemaAtivo, parcela:sel.d.primeiraEnc,
+    nParcelasEntrada: (mesmoImovel&&_pagamentoState.nParcelasEntrada)||6,
+    reserva: (mesmoImovel&&_pagamentoState.reserva) || {valor:Math.max(minReserva,Math.min(5000,_simResults.vEnt)),paga:false,data:''},
+    parcelasEntrada: (mesmoImovel&&_pagamentoState.parcelasEntrada) || null,
+    intermediarios: (mesmoImovel&&_pagamentoState.intermediarios) || [],
+    financiamentoConfirmado: mesmoImovel ? !!_pagamentoState.financiamentoConfirmado : false,
+    observacoes: (mesmoImovel&&_pagamentoState.observacoes) || ''
+  };
+  toast('✅ Simulação '+sel.label+' aplicada ao Fluxo de Pagamento!','green');
+  nav(document.querySelector('[onclick*=pagamento]'),'pagamento');
+  renderFluxoPagamento();
+  registrarJornada('pagamento_iniciado');
+  salvarEstado();
+}
+
+/* ════════════ ANÁLISE DE CRÉDITO ════════════ */
+function toggleConjuge(){
+  const casado=document.getElementById('crEstadoCivil').value==='casado';
+  document.getElementById('conjugeFields').style.display=casado?'block':'none';
+  document.getElementById('conjugeDocs').style.display=casado?'block':'none';
+  salvarEstado();
+}
+let _creditoArquivos={}; // File objects em memória (não persistem em localStorage) — só para o envio ao Drive
+function handleUpload(input,labelId){
+  if(!input.files||!input.files[0]) return;
+  document.getElementById(labelId).textContent='✓ '+input.files[0].name;
+  input.closest('.upload-area').classList.add('ok');
+  _creditoState.documentos=_creditoState.documentos||{};
+  _creditoState.documentos[input.id]=input.files[0].name;
+  _creditoArquivos[input.id]=input.files[0];
+  salvarEstado();
+}
+function arquivoParaBase64_(file){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=()=>resolve(String(reader.result).split(',')[1]||'');
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function enviarAnaliseCredito(){
+  const required=['docId','docIr','docRenda','docResid'];
+  const casado=document.getElementById('crEstadoCivil').value==='casado';
+  if(casado) required.push('docConjId','docConjRenda');
+  for(const id of required){
+    const jaTinha=_creditoState.documentos && _creditoState.documentos[id];
+    if(!document.getElementById(id).files.length && !jaTinha){
+      toast('📎 Falta anexar um documento obrigatório.','red'); return;
+    }
+  }
+  if(!document.getElementById('crNome').value.trim()||!document.getElementById('crEmail').value.trim()){
+    toast('Preencha seus dados pessoais.','red'); return;
+  }
+  const idAleatorio=(window.crypto&&crypto.randomUUID)?crypto.randomUUID().slice(0,8):Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36);
+  const protocolo='WAL-'+new Date().getFullYear()+'-'+idAleatorio.toUpperCase();
+  const dataEnvio=new Date();
+  const dataLimite=new Date(dataEnvio.getTime()+24*60*60*1000);
+  _creditoState={enviado:true,protocolo,dataEnvio,dataLimite,liberado:false,valorAprovado:0,documentos:_creditoState.documentos||{}};
+  document.getElementById('creditoSemPedido').style.display='none';
+  document.getElementById('creditoComPedido').style.display='block';
+  document.getElementById('crProtocoloNum').textContent='#'+protocolo;
+  document.getElementById('sbBdgCredito').style.display='inline-flex';
+  document.getElementById('sbBdgCredito').textContent='1';
+  renderStatusSteps();
+  if(window._creditoTimer) clearInterval(window._creditoTimer);
+  window._creditoTimer=setInterval(atualizaPrazoCredito,1000);
+  atualizaPrazoCredito();
+  toast('📤 Documentação enviada! Protocolo '+protocolo,'green');
+  registrarJornada('credito_enviado','Enviou documentação para Análise de Crédito — protocolo '+protocolo);
+  salvarEstado();
+
+  // Documentos vão em base64 para o Apps Script salvar no Drive — não
+  // bloqueia a UI (o protocolo já foi exibido acima).
+  const documentos=[];
+  for(const campo of Object.keys(_creditoArquivos)){
+    try{ documentos.push({campo, nome:_creditoArquivos[campo].name, tipo:_creditoArquivos[campo].type, base64:await arquivoParaBase64_(_creditoArquivos[campo])}); }
+    catch(e){ console.warn('Falha ao ler documento', campo, e); }
+  }
+  chamarFeiraoApi('feirao_credito', {
+    protocolo, cpf:LEAD.cpf, nome:document.getElementById('crNome').value, email:document.getElementById('crEmail').value,
+    telefone:document.getElementById('crTel').value, estadoCivil:document.getElementById('crEstadoCivil').value,
+    conjugeNome:document.getElementById('crConjugeNome')?.value||'', empId:_selectedPropId||'',
+    unidade:(_selectedUnidade&&_selectedUnidade.numero)||'', taxa:(_simResults&&_simResults.taxaAno)||8.3,
+    dataLimite:dataLimite.toISOString(), documentos
+  });
+  iniciarPollingCredito();
+}
+
+/* Poll do resultado real da análise (planilha ANALISES_CREDITO) — só
+   roda enquanto o painel de crédito está pendente. Substitui o botão
+   de demonstração no fluxo real (esse fica só atrás de ?demo=1). */
+function iniciarPollingCredito(){
+  if(window._creditoStatusPoll) clearInterval(window._creditoStatusPoll);
+  if(!_creditoState.enviado || _creditoState.liberado) return;
+  window._creditoStatusPoll=setInterval(verificarStatusCredito, 50000);
+  verificarStatusCredito();
+}
+function pararPollingCredito(){
+  if(window._creditoStatusPoll){ clearInterval(window._creditoStatusPoll); window._creditoStatusPoll=null; }
+}
+async function verificarStatusCredito(){
+  if(!_creditoState.enviado || _creditoState.liberado || !_creditoState.protocolo) { pararPollingCredito(); return; }
+  const r=await feiraoApiJsonp('feirao_status_credito', {protocolo:_creditoState.protocolo});
+  if(r && r.found && r.status==='aprovado'){
+    pararPollingCredito();
+    _creditoState.liberado=true; _creditoState.valorAprovado=r.valorAprovado; _creditoState.entradaMinima=r.entradaMinima;
+    document.getElementById('sbBdgCredito').style.display='none';
+    renderStatusSteps();
+    document.getElementById('resultadoCard').style.display='block';
+    document.getElementById('creditoValor').textContent=fmtBRL(r.valorAprovado);
+    document.getElementById('creditoEntradaMinima').textContent=fmtBRL(r.entradaMinima);
+    const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+    document.getElementById('creditoEmpreendimento').textContent=e?e.nome:'A definir';
+    document.getElementById('creditoUnidade').textContent=(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'A definir';
+    document.getElementById('creditoPixChave').textContent=PIX_KEY_WAL;
+    document.getElementById('creditoQrImg').src=gerarQrPixUrl(r.entradaMinima,_creditoState.protocolo);
+    toast('🎉 Resultado liberado! Crédito aprovado: '+fmtBRL(r.valorAprovado),'green');
+    registrarJornada('credito_liberado','Crédito aprovado: '+fmtBRL(r.valorAprovado)+' · Entrada mínima: '+fmtBRL(r.entradaMinima));
+    salvarEstado();
+  } else if(r && r.found && r.status==='reprovado'){
+    pararPollingCredito();
+  }
+}
+function renderStatusSteps(){
+  const c=_creditoState;
+  document.getElementById('statusStepsBox').innerHTML=`
+    <div class="status-step done"><div class="status-step-ico">✅</div><div><strong>Documentos recebidos</strong><div class="fs10 c-muted">Protocolo ${c.protocolo}</div></div></div>
+    <div class="status-step ${c.liberado?'done':'curr'}"><div class="status-step-ico">${c.liberado?'✅':'🔍'}</div><div><strong style="${c.liberado?'':'color:#FCD34D'}">Análise de crédito</strong><div class="fs10 c-muted">${c.liberado?'Concluída':'Em andamento · prazo de até 24h'}</div></div></div>
+    <div class="status-step ${c.liberado?'done':'next'}"><div class="status-step-ico">${c.liberado?'✅':'✉️'}</div><div><strong>Resultado liberado</strong><div class="fs10 c-muted">${c.liberado?'Confira o valor aprovado abaixo':'Você será avisado nesta tela e por e-mail'}</div></div></div>
+  `;
+}
+function atualizaPrazoCredito(){
+  const c=_creditoState; if(!c.enviado||c.liberado){ if(window._creditoTimer) clearInterval(window._creditoTimer); return; }
+  const diff=c.dataLimite-new Date();
+  if(diff<=0){ document.getElementById('prazoTexto').textContent='resultado a qualquer momento'; return; }
+  const h=Math.floor(diff/3600000), m=Math.floor(diff%3600000/60000), s=Math.floor(diff%60000/1000);
+  document.getElementById('prazoTexto').textContent=`${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s restantes`;
+}
+function demoLiberarResultado(){
+  if(!_creditoState.enviado){ toast('Envie sua documentação primeiro.','red'); return; }
+  pararPollingCredito();
+  let base=400000;
+  if(_selectedPropId){ const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId); if(e) base=(e.precoMin+e.precoMax)/2; }
+  else if(_simResults){ base=_simResults.vAval; }
+  if(_selectedUnidade && _selectedUnidade.empId===_selectedPropId) base=_selectedUnidade.valor;
+  const valorAprovado=Math.round(base*0.85/1000)*1000;
+  const entradaMinima=Math.max(Math.round(base-valorAprovado),Math.round(base*0.10));
+  _creditoState.liberado=true; _creditoState.valorAprovado=valorAprovado; _creditoState.entradaMinima=entradaMinima;
+  document.getElementById('sbBdgCredito').style.display='none';
+  renderStatusSteps();
+  document.getElementById('resultadoCard').style.display='block';
+  document.getElementById('creditoValor').textContent=fmtBRL(valorAprovado);
+  document.getElementById('creditoEntradaMinima').textContent=fmtBRL(entradaMinima);
+  const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+  document.getElementById('creditoEmpreendimento').textContent=e?e.nome:'A definir';
+  document.getElementById('creditoUnidade').textContent=(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'A definir';
+  document.getElementById('creditoPixChave').textContent=PIX_KEY_WAL;
+  document.getElementById('creditoQrImg').src=gerarQrPixUrl(entradaMinima,_creditoState.protocolo);
+  toast('🎉 Resultado liberado! Crédito aprovado: '+fmtBRL(valorAprovado),'green');
+  registrarJornada('credito_liberado','Crédito aprovado: '+fmtBRL(valorAprovado)+' · Entrada mínima: '+fmtBRL(entradaMinima));
+  salvarEstado();
+}
+
+/* ════════════ AGENDAR VISITA ════════════ */
+let _agendamentoState = null; // {empId,data,horario,pessoas,formato,obs,confirmado}
+function renderAgendarPanel(){
+  const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+  const nomeEl=document.getElementById('agEmpNome');
+  if(nomeEl) nomeEl.textContent=e?e.nome+' · '+e.construtora:'Nenhum imóvel escolhido ainda — você também pode agendar uma visita geral ao stand';
+  const semPedido=document.getElementById('agendarSemPedido'), comPedido=document.getElementById('agendarComPedido');
+  if(!semPedido) return;
+  if(_agendamentoState && _agendamentoState.confirmado){
+    semPedido.style.display='none'; comPedido.style.display='block';
+    document.getElementById('agResumoEmp').textContent=_agendamentoState.empNome||'Stand do feirão';
+    document.getElementById('agResumoData').textContent=(_agendamentoState.data?new Date(_agendamentoState.data+'T00:00:00').toLocaleDateString('pt-BR'):'—')+' · '+_agendamentoState.horario;
+    document.getElementById('agResumoFormato').textContent=_agendamentoState.formato;
+  } else {
+    semPedido.style.display='block'; comPedido.style.display='none';
+  }
+}
+function confirmarAgendamento(){
+  const data=document.getElementById('agData').value;
+  if(!data){ toast('Escolha uma data para a visita.','red'); return; }
+  const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+  _agendamentoState={
+    empId:_selectedPropId, empNome:e?e.nome:'Stand do feirão',
+    data, horario:document.getElementById('agHorario').value,
+    pessoas:document.getElementById('agPessoas').value,
+    formato:document.getElementById('agFormato').value,
+    obs:document.getElementById('agObs').value,
+    confirmado:true
+  };
+  chamarFeiraoApi('feirao_agendamento', {
+    acao:'criar', cpf:LEAD.cpf, nome:LEAD.nome, telefone:LEAD.tel,
+    empId:_agendamentoState.empId||'', empNome:_agendamentoState.empNome,
+    data, horario:_agendamentoState.horario, pessoas:_agendamentoState.pessoas,
+    formato:_agendamentoState.formato, observacoes:_agendamentoState.obs
+  });
+  toast('📅 Visita agendada! Aguarde a confirmação por WhatsApp.','green');
+  renderAgendarPanel();
+  salvarEstado();
+}
+function cancelarAgendamento(){
+  chamarFeiraoApi('feirao_agendamento', {acao:'cancelar', cpf:LEAD.cpf});
+  _agendamentoState=null;
+  renderAgendarPanel();
+  salvarEstado();
+}
+
+/* ════════════ FALAR COM CONSULTOR ════════════
+   Troque os dados abaixo pelos contatos reais da equipe WAL. */
+const WAL_WHATSAPP_NUMERO = '5521999990000'; // formato internacional sem símbolos, ex: 55 21 99999-0000
+const WAL_TELEFONE = '+552199990000';
+const WAL_EMAIL_CONTATO = 'contato@walservidor.com.br';
+function renderConsultorPanel(){
+  const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
+  const nomeLead=LEAD?LEAD.nome:'';
+  const msg=`Olá! Sou ${nomeLead}, participante do 1º Feirão de Imóveis WAL${e?(' e tenho interesse no '+e.nome):''}. Gostaria de falar com um consultor.`;
+  const wa=document.getElementById('consultorWhatsapp');
+  if(wa) wa.href='https://wa.me/'+WAL_WHATSAPP_NUMERO+'?text='+encodeURIComponent(msg);
+  const tel=document.getElementById('consultorTel');
+  if(tel) tel.href='tel:'+WAL_TELEFONE;
+  const email=document.getElementById('consultorEmail');
+  if(email) email.href='mailto:'+WAL_EMAIL_CONTATO+'?subject='+encodeURIComponent('Feirão WAL — dúvida de '+nomeLead)+'&body='+encodeURIComponent(msg);
+}
+function enviarMensagemConsultor(){
+  const assunto=document.getElementById('conAssunto').value;
+  const mensagem=document.getElementById('conMensagem').value.trim();
+  if(!mensagem){ toast('Escreva sua mensagem antes de enviar.','red'); return; }
+  chamarFeiraoApi('feirao_mensagem', {cpf:LEAD.cpf, nome:LEAD.nome, telefone:LEAD.tel, email:LEAD.email, assunto, mensagem});
+  toast('📤 Mensagem enviada! Um consultor da WAL vai te responder em breve.','green');
+  document.getElementById('conMensagem').value='';
+}
+
+/* ════════════ PAGAMENTO DA RESERVA VIA PIX ════════════ */
+function valorImovelAtual(){
+  if(_selectedUnidade && _selectedUnidade.empId===_selectedPropId) return _selectedUnidade.valor;
+  if(_selectedPropId){ const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId); if(e) return Math.round((e.precoMin+e.precoMax)/2); }
+  return 0;
+}
+function renderPixPanel(){
+  const semImovel=document.getElementById('pixSemImovel'), conteudo=document.getElementById('pixConteudo');
+  if(!semImovel||!conteudo) return;
+  if(!_selectedPropId){ semImovel.style.display='block'; conteudo.style.display='none'; return; }
+  semImovel.style.display='none'; conteudo.style.display='block';
+  const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId);
+  document.getElementById('pixEmpNome').textContent=e?e.nome:'—';
+  document.getElementById('pixUnidadeInfo').textContent = (_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)
+    ? `Unidade ${_selectedUnidade.numero} · Torre ${_selectedUnidade.torre} · ${_selectedUnidade.andar}º andar · ${fmtBRL(_selectedUnidade.valor)}`
+    : 'Nenhuma unidade específica selecionada ainda — escolha na grade de unidades do imóvel';
+  const valorImovel=valorImovelAtual();
+  const minReserva=Math.round(valorImovel*0.10);
+  if(!_pixState.valor) _pixState.valor=(_pagamentoState&&_pagamentoState.reserva)?_pagamentoState.reserva.valor:Math.max(minReserva,5000);
+  document.getElementById('pixValor').value=fmtBRL2(_pixState.valor).replace('R$ ','');
+  document.getElementById('pixValorMinHint').textContent='Mínimo exigido: '+fmtBRL(minReserva)+' (10% do valor do imóvel)';
+  document.getElementById('pixChaveTxt').textContent=PIX_KEY_WAL;
+  document.getElementById('pixValorTxt').textContent=fmtBRL(_pixState.valor);
+  document.getElementById('pixQrImg').src=gerarQrPixUrl(_pixState.valor, LEAD?LEAD.cpf:'FEIRAO');
+  document.getElementById('pixJaPago').checked=!!_pixState.paga;
+  document.getElementById('pixConfirmadoBox').style.display=_pixState.paga?'block':'none';
+}
+function syncPixBackend(){
+  if(!LEAD || !_selectedPropId) return;
+  const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId);
+  chamarFeiraoApi('feirao_pix', {
+    cpf:LEAD.cpf, nome:LEAD.nome, empId:_selectedPropId, empNome:e?e.nome:'',
+    unidade:(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'',
+    valor:_pixState.valor, paga:!!_pixState.paga, dataPagamento:_pixState.data||''
+  });
+}
+function onPixValorChange(){
+  const min=Math.round(valorImovelAtual()*0.10);
+  let val=parseBR(document.getElementById('pixValor').value);
+  if(val<min){ toast('⚠ Sinal mínimo é '+fmtBRL(min)+' (10% do imóvel). Ajustado.','amber'); val=min; }
+  _pixState.valor=val;
+  renderPixPanel();
+  syncPixBackend();
+  salvarEstado();
+}
+function confirmarPagamentoPix(checked){
+  _pixState.paga=checked;
+  if(checked){
+    _pixState.data=new Date().toISOString().slice(0,10);
+    if(_pagamentoState){ _pagamentoState.reserva.valor=_pixState.valor; _pagamentoState.reserva.paga=true; _pagamentoState.reserva.data=_pixState.data; }
+    registrarJornada('reserva_pix','Pagou reserva via PIX (autodeclarado): '+fmtBRL(_pixState.valor));
+  }
+  syncPixBackend();
+  renderPixPanel();
+  if(_pagamentoState) renderFluxoPagamento();
+  salvarEstado();
+}
+function garantirParcelasEntrada(){
+  const p=_pagamentoState;
+  const reserva=p.reserva.valor;
+  const restante=Math.max(0,p.entrada-reserva);
+  const n=p.nParcelasEntrada;
+  if(!p.parcelasEntrada || p.parcelasEntrada.length!==n){
+    const valor=restante/n;
+    p.parcelasEntrada=Array.from({length:n},(_,i)=>({n:i+1,valor,data:'',paga:false}));
+  }
+  if(!p.intermediarios) p.intermediarios=[];
+}
+function reservaMinima(p){ return Math.round(p.valor*0.10); }
+function renderFluxoPagamento(){
+  if(!_pagamentoState){
+    document.getElementById('pagamentoVazio').style.display='block';
+    document.getElementById('pagamentoConteudo').style.display='none';
+    return;
+  }
+  document.getElementById('pagamentoVazio').style.display='none';
+  document.getElementById('pagamentoConteudo').style.display='block';
+  const p=_pagamentoState;
+  const e=p.empId?EMPREENDIMENTOS.find(x=>x.id===p.empId):null;
+  garantirParcelasEntrada();
+  const minReserva=reservaMinima(p);
+
+  document.getElementById('pgResumoBox').innerHTML=`💡 Imóvel: <strong>${e?e.nome:'Simulação livre'}</strong>${_selectedUnidade&&_selectedUnidade.empId===p.empId?' · Unidade <strong>'+_selectedUnidade.numero+'</strong>':''} · Valor: <strong>${fmtBRL(p.valor)}</strong> · Entrada: <strong>${fmtBRL(p.entrada)}</strong> · Sistema: <strong>${p.sistema}</strong> · Financiamento de <strong>${p.prazo} meses</strong>`;
+
+  // ── ETAPA 1: RESERVA (valor e data editáveis, mínimo 10%) ──
+  const passo1=`
+  <div class="pay-step ${p.reserva.paga?'complete':''}">
+    <div class="pay-step-h">
+      <div class="pay-step-title"><span class="pay-step-num">${p.reserva.paga?'✓':'1'}</span>🏷️ Reserva / sinal da unidade</div>
+      <input class="pay-inp" value="${fmtBRL2(p.reserva.valor).replace('R$ ','')}" onchange="setReservaValor(this.value)" ${p.reserva.paga?'disabled':''}>
+    </div>
+    <div class="fs11 c-muted" style="margin-bottom:4px">Garante a unidade durante o feirão e é abatida da entrada. Sinal mínimo exigido: <strong class="c-gold">${fmtBRL(minReserva)}</strong> (10% do valor do imóvel).</div>
+    ${p.reserva.valor<minReserva?`<div class="pay-warn">⚠ Valor abaixo do mínimo de 10% — ajuste para pelo menos ${fmtBRL(minReserva)}.</div>`:''}
+    <div class="pay-row">
+      <label class="pay-check"><input type="checkbox" ${p.reserva.paga?'checked':''} onchange="toggleReservaPaga(this.checked)"> Já realizei o pagamento da reserva</label>
+      <input type="date" class="pay-date" value="${p.reserva.data||''}" onchange="setReservaData(this.value)">
+      <span class="card-link" onclick="nav(document.querySelector('[onclick*=reservapix]'),'reservapix')">pagar via PIX →</span>
+    </div>
+  </div>`;
+
+  // ── ETAPA 2: ENTRADA PARCELADA (valores e datas editáveis) ──
+  const pagasEntrada=p.parcelasEntrada.filter(pe=>pe.paga).length;
+  const totalParcelasEntrada=p.parcelasEntrada.reduce((a,pe)=>a+pe.valor,0);
+  const entradaRestanteEsperada=Math.max(0,p.entrada-p.reserva.valor);
+  const diffEntrada=totalParcelasEntrada-entradaRestanteEsperada;
+  const passo2Sub=p.parcelasEntrada.map(pe=>`
+    <div class="pay-sub-row">
+      <label class="pay-check" style="flex:1"><input type="checkbox" ${pe.paga?'checked':''} onchange="toggleParcelaEntrada(${pe.n},this.checked)"> Parcela ${pe.n}/${p.parcelasEntrada.length}</label>
+      <input class="pay-inp" style="width:105px" value="${fmtBRL2(pe.valor).replace('R$ ','')}" onchange="setParcelaEntradaValor(${pe.n},this.value)" ${pe.paga?'disabled':''}>
+      <input type="date" class="pay-date" value="${pe.data||''}" onchange="setParcelaEntradaData(${pe.n},this.value)">
+    </div>`).join('');
+  const passo2=`
+  <div class="pay-step ${pagasEntrada===p.parcelasEntrada.length?'complete':''}">
+    <div class="pay-step-h">
+      <div class="pay-step-title"><span class="pay-step-num">${pagasEntrada===p.parcelasEntrada.length?'✓':'2'}</span>💰 Entrada parcelada</div>
+      <div class="pay-step-val">${pagasEntrada}/${p.parcelasEntrada.length} pagas</div>
+    </div>
+    <div class="field-row" style="max-width:240px;margin-bottom:4px">
+      <div><div class="field-lbl">Parcelar entrada em</div>
+        <select class="field-sel" id="pgNParcelasEntrada" onchange="mudarNParcelasEntrada(this.value)">
+          <option value="1" ${p.nParcelasEntrada==1?'selected':''}>À vista (1x)</option>
+          <option value="3" ${p.nParcelasEntrada==3?'selected':''}>3x sem juros</option>
+          <option value="6" ${p.nParcelasEntrada==6?'selected':''}>6x sem juros</option>
+          <option value="10" ${p.nParcelasEntrada==10?'selected':''}>10x sem juros</option>
+        </select>
+      </div>
+      <button class="btn btn-sm" onclick="distribuirEntradaIgualmente()" style="align-self:end">↺ Redistribuir igualmente</button>
+    </div>
+    ${Math.abs(diffEntrada)>1?`<div class="pay-warn">⚠ A soma das parcelas (${fmtBRL(totalParcelasEntrada)}) está ${diffEntrada>0?'acima':'abaixo'} do valor de entrada restante (${fmtBRL(entradaRestanteEsperada)}) em ${fmtBRL(Math.abs(diffEntrada))}.</div>`:''}
+    <div class="pay-sub-list">${passo2Sub}</div>
+  </div>`;
+
+  // ── ETAPA 3: FINANCIAMENTO ──
+  const passo3=`
+  <div class="pay-step ${p.financiamentoConfirmado?'complete':''}">
+    <div class="pay-step-h">
+      <div class="pay-step-title"><span class="pay-step-num">${p.financiamentoConfirmado?'✓':'3'}</span>💳 Financiamento (${p.sistema})</div>
+      <div class="pay-step-val">${fmtBRL2(p.parcela)}/mês</div>
+    </div>
+    <div class="fs11 c-muted" style="margin-bottom:8px">1ª parcela estimada de ${fmtBRL2(p.parcela)}, por até ${p.prazo} meses, a partir da entrega das chaves.</div>
+    <div class="pay-row">
+      ${p.financiamentoConfirmado
+        ? `<span class="bdg bg">✅ Sistema confirmado</span><span class="card-link" onclick="desconfirmarFinanciamento()">alterar</span>`
+        : `<button class="btn btn-teal btn-sm" onclick="confirmarFinanciamento()">✅ Confirmar este sistema de financiamento</button><span class="card-link" onclick="nav(document.querySelector('[onclick*=simulador]'),'simulador')">trocar simulação</span>`}
+    </div>
+  </div>`;
+
+  // ── ETAPA 4: ENTREGA ──
+  const passo4=`
+  <div class="pay-step">
+    <div class="pay-step-h">
+      <div class="pay-step-title"><span class="pay-step-num">4</span>🔑 Entrega das chaves</div>
+      <div class="pay-step-val">${e?e.entrega:'A combinar'}</div>
+    </div>
+    <div class="fs11 c-muted" style="margin-bottom:8px">Vistoria e assinatura final do contrato de financiamento.</div>
+    <div class="field-lbl">Observações para a equipe WAL</div>
+    <textarea class="field-ta" id="pgObservacoes" placeholder="Ex: prefiro receber as chaves após o dia 10, preciso de prazo extra na 2ª parcela..." oninput="salvarObservacoesPagamento(this.value)">${p.observacoes||''}</textarea>
+  </div>`;
+
+  document.getElementById('pgEtapas').innerHTML = passo1+passo2+passo3+passo4;
+  renderPagamentosIntermediarios();
+  atualizarProgressoPagamento();
+}
+function renderPagamentosIntermediarios(){
+  const el=document.getElementById('pgIntermediarios'); if(!el||!_pagamentoState) return;
+  const lista=_pagamentoState.intermediarios||[];
+  if(!lista.length){ el.innerHTML='<div class="fs11 c-muted">Nenhum pagamento intermediário lançado ainda.</div>'; return; }
+  el.innerHTML=lista.map((it,i)=>`
+    <div class="pay-intermed-row">
+      <span class="fs12">${it.desc}</span>
+      <span class="fs12 c-gold fw7">${fmtBRL2(it.valor)}</span>
+      <span class="fs11 c-muted">${it.data?new Date(it.data+'T00:00:00').toLocaleDateString('pt-BR'):'sem data'}</span>
+      <span class="copy-mini" onclick="removerPagamentoIntermediario(${i})">remover</span>
+    </div>`).join('');
+}
+function adicionarPagamentoIntermediario(){
+  const desc=document.getElementById('pgIntDesc').value.trim();
+  const valor=parseBR(document.getElementById('pgIntValor').value);
+  const data=document.getElementById('pgIntData').value;
+  if(!desc||valor<=0){ toast('Informe descrição e valor do lançamento.','red'); return; }
+  _pagamentoState.intermediarios=_pagamentoState.intermediarios||[];
+  _pagamentoState.intermediarios.push({desc,valor,data});
+  document.getElementById('pgIntDesc').value=''; document.getElementById('pgIntValor').value=''; document.getElementById('pgIntData').value='';
+  renderPagamentosIntermediarios();
+  toast('✅ Pagamento intermediário lançado!','green');
+  salvarEstado();
+}
+function removerPagamentoIntermediario(i){
+  _pagamentoState.intermediarios.splice(i,1);
+  renderPagamentosIntermediarios();
+  salvarEstado();
+}
+function atualizarProgressoPagamento(){
+  const p=_pagamentoState; if(!p) return;
+  const totalEtapas = 2 + p.parcelasEntrada.length; // reserva + parcelas + financiamento
+  let feitas = (p.reserva.paga?1:0) + p.parcelasEntrada.filter(pe=>pe.paga).length + (p.financiamentoConfirmado?1:0);
+  const pct = Math.round(feitas/totalEtapas*100);
+  document.getElementById('pgProgressFill').style.width=pct+'%';
+  document.getElementById('pgProgressTxt').textContent=pct+'%';
+  if(pct>=100) registrarJornada('pagamento_completo');
+}
+function setReservaValor(valStr){
+  const p=_pagamentoState; const min=reservaMinima(p);
+  let val=parseBR(valStr);
+  if(val<min){ toast('⚠ O sinal mínimo é de '+fmtBRL(min)+' (10% do imóvel). Ajustado automaticamente.','amber'); val=min; }
+  p.reserva.valor=val;
+  p.parcelasEntrada=null; // recalcula distribuição da entrada restante
+  renderFluxoPagamento(); salvarEstado();
+}
+function toggleReservaPaga(checked){
+  const p=_pagamentoState;
+  if(checked && p.reserva.valor<reservaMinima(p)){ toast('⚠ Ajuste o valor da reserva para o mínimo de 10% antes de confirmar o pagamento.','red'); return; }
+  p.reserva.paga=checked;
+  if(checked){
+    if(!p.reserva.data) p.reserva.data=new Date().toISOString().slice(0,10);
+    registrarJornada('reserva_pix','Pagou reserva via PIX (autodeclarado): '+fmtBRL(p.reserva.valor));
+  }
+  _pixState.valor=p.reserva.valor; _pixState.paga=checked; _pixState.data=p.reserva.data||'';
+  syncPixBackend();
+  renderFluxoPagamento(); salvarEstado();
+}
+function setReservaData(val){ _pagamentoState.reserva.data=val; salvarEstado(); }
+function toggleParcelaEntrada(n,checked){
+  const pe=_pagamentoState.parcelasEntrada.find(x=>x.n===n); if(!pe) return;
+  pe.paga=checked;
+  if(checked && !pe.data) pe.data=new Date().toISOString().slice(0,10);
+  renderFluxoPagamento(); salvarEstado();
+}
+function setParcelaEntradaValor(n,valStr){
+  const pe=_pagamentoState.parcelasEntrada.find(x=>x.n===n); if(!pe) return;
+  pe.valor=parseBR(valStr);
+  renderFluxoPagamento(); salvarEstado();
+}
+function setParcelaEntradaData(n,val){
+  const pe=_pagamentoState.parcelasEntrada.find(x=>x.n===n); if(pe) pe.data=val;
+  salvarEstado();
+}
+function mudarNParcelasEntrada(val){
+  _pagamentoState.nParcelasEntrada=parseInt(val)||1;
+  _pagamentoState.parcelasEntrada=null;
+  renderFluxoPagamento(); salvarEstado();
+}
+function distribuirEntradaIgualmente(){
+  _pagamentoState.parcelasEntrada=null;
+  renderFluxoPagamento(); salvarEstado();
+  toast('↺ Parcelas da entrada redistribuídas igualmente.','');
+}
+function confirmarFinanciamento(){
+  _pagamentoState.financiamentoConfirmado=true;
+  toast('✅ Sistema de financiamento confirmado!','green');
+  renderFluxoPagamento(); salvarEstado();
+}
+function desconfirmarFinanciamento(){
+  _pagamentoState.financiamentoConfirmado=false;
+  renderFluxoPagamento(); salvarEstado();
+}
+function salvarObservacoesPagamento(val){
+  _pagamentoState.observacoes=val;
+  salvarEstado();
+}
+function zerarFluxoPagamento(){
+  if(!_pagamentoState){ toast('Nenhum fluxo de pagamento para zerar.',''); return; }
+  if(!confirm('Tem certeza que deseja zerar todo o fluxo de pagamento e recomeçar? Os pagamentos e datas marcados serão apagados.')) return;
+  const p=_pagamentoState;
+  const minReserva=reservaMinima(p);
+  _pagamentoState={
+    empId:p.empId, valor:p.valor, entrada:p.entrada, prazo:p.prazo,
+    sistema:p.sistema, sistemaKey:p.sistemaKey, parcela:p.parcela,
+    nParcelasEntrada:6,
+    reserva:{valor:Math.max(minReserva,Math.min(5000,p.entrada)),paga:false,data:''},
+    parcelasEntrada:null,
+    intermediarios:[],
+    financiamentoConfirmado:false,
+    observacoes:''
+  };
+  renderFluxoPagamento();
+  toast('♻️ Fluxo de pagamento zerado. Você pode recomeçar do zero.','amber');
+  salvarEstado();
+}
+
+/* ════════════ SOFIA — ASSISTENTE IA ════════════ */
+const AI_SYSTEM_LEAD = `Você é Sofia, consultora de IA do 1º Feirão de Imóveis da WAL Consultoria Imobiliária, falando diretamente com um LEAD (cliente) que é militar da FAB, de outras forças, ou servidor público.
+
+Empreendimentos disponíveis no feirão: Orla Recreio Reserva (RIVA, Recreio dos Bandeirantes/RJ, R$320–620k), Ilha Mar Beach & Home (CURY, Barra da Tijuca/RJ, R$320–520k), ICONYC by YOO (EMCAMP, Barra da Tijuca/RJ, R$480k–1,2M), Ilha Mar Beach 2 (CURY, Barra da Tijuca/RJ, R$280–420k), Reserva Ilha do Governador (CALPER, Ilha do Governador/RJ, R$250–380k), Refloresta Jardins (REFLORA, São Paulo/SP, R$350–550k).
+
+Condições do feirão: taxa CFIAe promocional de 8,3% a.a. + TR, isenção da taxa de avaliação, entrada parcelada em até 10x sem juros, FGTS aceito, análise de crédito com resultado em até 24h. Sistemas de financiamento disponíveis no simulador: SAC, Price, CFIAe (Aeronáutica) e POUPEX.
+
+Seu papel: ajudar o lead a escolher o imóvel certo, explicar de forma simples as diferenças entre os sistemas de financiamento, orientar sobre a análise de crédito e incentivar os próximos passos (simular, enviar documentos). Seja calorosa, direta e honesta — nunca prometa aprovação de crédito ou valores específicos, isso depende da análise oficial. Se não souber algo específico do feirão, oriente a falar com um consultor humano da WAL.`;
+
+function addAiMsg(role,txt){
+  const el=document.getElementById('aiMsgs'); if(!el) return;
+  const isAI=role==='ai';
+  const div=document.createElement('div');
+  div.className='ai-msg';
+  div.innerHTML=`<div class="ai-av ${isAI?'av-ai':'av-u'}">${isAI?'S':'Eu'}</div><div class="ai-bubble ${isAI?'ai-bubble-ai':'ai-bubble-u'}">${txt.replace(/\n/g,'<br>')}</div>`;
+  el.appendChild(div); el.scrollTop=el.scrollHeight;
+}
+function sendAiChip(msg){ document.getElementById('aiInp').value=msg; sendAiMsg(); nav(document.getElementById('navIaItem'),'ia'); }
+async function sendAiMsg(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim(); if(!msg) return;
+  inp.value=''; addAiMsg('user',msg);
+  _aiHistory.push({role:'user',content:msg});
+  const btn=document.getElementById('aiSendBtn');
+  if(btn){btn.innerHTML='<span class="spinner"></span>';btn.disabled=true;btn.classList.add('loading');}
+  try{
+    // Chama o backend (chave da Anthropic nunca fica exposta no front) —
+    // mesmo proxy serverless já usado em chat.html (api/claude.js).
+    const resp=await fetch('/api/claude',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,system:AI_SYSTEM_LEAD,messages:_aiHistory})
+    });
+    if(!resp.ok){
+      const err=await resp.json().catch(()=>({}));
+      addAiMsg('ai','❌ Erro '+resp.status+': '+(err.error||'Tente novamente.'));
+      _aiHistory.pop();
+    } else {
+      const data=await resp.json();
+      const reply=data.content?.[0]?.text||'Desculpe, não consegui responder agora.';
+      _aiHistory.push({role:'assistant',content:reply});
+      addAiMsg('ai',reply);
+    }
+  }catch(e){ addAiMsg('ai','⚠️ Erro de conexão. Verifique sua internet e tente novamente.'); }
+  if(btn){btn.textContent='➤';btn.disabled=false;btn.classList.remove('loading');}
+}
+
+/* ════════════ INICIALIZAÇÃO ════════════ */
+simAtualizaPrazo(300);
+// Botão de demonstração da Análise de Crédito só aparece com ?demo=1 na URL —
+// em produção o resultado real chega via verificarStatusCredito() (poll).
+if(new URLSearchParams(location.search).get('demo')!=='1'){
+  const demoWrap=document.getElementById('demoLiberarWrap');
+  if(demoWrap) demoWrap.style.display='none';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feirão Online WAL — Ordem de Operações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0a1f3d;
+    --navy-black:#071026;
+    --gold:#c9a15a;
+    --gold-bright:#e2ba6c;
+    --paper:#f6f3ec;
+    --card:#ffffff;
+    --ink:#1c1e24;
+    --ink-soft:#5a5f6b;
+    --line:#e3ddce;
+    --pro:#3f6b52;
+    --pro-bg:#eef3ee;
+    --risk:#9c3b34;
+    --risk-bg:#f7ebe9;
+    --todo-bg:#f1ede0;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 28px;}
+  h1,h2,h3,h4{font-family:'Fraunces',serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+
+  /* HERO */
+  header.hero{
+    background:radial-gradient(1100px 480px at 15% -10%, #142c53 0%, var(--navy-deep) 55%, var(--navy-black) 100%);
+    color:#f4efe2;
+    padding:64px 0 46px;
+    border-bottom:5px solid var(--gold);
+    position:relative;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--gold-bright);
+    display:flex;align-items:center;gap:10px;
+    margin-bottom:18px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--gold-bright);display:inline-block;}
+  h1.title{font-size:44px;font-weight:600;line-height:1.08;max-width:820px;}
+  h1.title em{font-style:normal;color:var(--gold-bright);}
+  .subtitle{margin-top:16px;max-width:640px;color:#c9d0dd;font-size:16px;}
+  .hero-meta{
+    margin-top:34px;display:flex;flex-wrap:wrap;gap:14px;
+  }
+  .meta-pill{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(226,186,108,.35);
+    border-radius:3px;
+    padding:11px 16px;
+    font-size:13px;
+  }
+  .meta-pill b{display:block;font-family:'Fraunces',serif;font-size:19px;color:var(--gold-bright);font-weight:600;margin-bottom:2px;}
+  .meta-pill span{color:#aeb6c4;}
+
+  /* SECTIONS shell */
+  section{padding:52px 0;}
+  section.alt{background:#efe9da;}
+  .section-head{margin-bottom:28px;max-width:720px;}
+  .section-head .tag{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--risk);
+  }
+  .section-head h2{font-size:28px;margin-top:6px;color:var(--navy-deep);font-weight:600;}
+  .section-head p{color:var(--ink-soft);margin-top:10px;font-size:15px;}
+
+  /* EXECUTIVE SUMMARY */
+  .summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  @media (max-width:760px){.summary-grid{grid-template-columns:1fr;}}
+  .sum-card{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:22px 24px;}
+  .sum-card h3{font-size:16px;font-family:'IBM Plex Mono',monospace;letter-spacing:.05em;text-transform:uppercase;margin-bottom:12px;}
+  .sum-card.pro h3{color:var(--pro);}
+  .sum-card.risk h3{color:var(--risk);}
+  .sum-card ul{margin:0;padding-left:18px;font-size:14.5px;color:var(--ink);}
+  .sum-card li{margin-bottom:9px;}
+  .sum-card li::marker{color:var(--ink-soft);}
+
+  /* TIMELINE */
+  .timeline{border-left:2px solid var(--gold);margin-left:6px;padding-left:26px;}
+  .tl-item{position:relative;padding-bottom:26px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{
+    content:"";position:absolute;left:-33px;top:4px;width:11px;height:11px;border-radius:50%;
+    background:var(--paper);border:3px solid var(--gold);
+  }
+  .tl-date{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--risk);text-transform:uppercase;letter-spacing:.06em;}
+  .tl-item h4{font-size:17px;margin-top:4px;color:var(--navy-deep);}
+  .tl-item p{margin:6px 0 0;color:var(--ink-soft);font-size:14.5px;max-width:600px;}
+
+  /* SECTOR CARDS */
+  .sector{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:8px;
+    margin-bottom:26px;
+    overflow:hidden;
+  }
+  .sector-head{
+    display:flex;align-items:center;gap:16px;
+    padding:20px 26px;
+    background:var(--navy-deep);
+    color:#f4efe2;
+  }
+  .sector-num{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;color:var(--navy-deep);background:var(--gold-bright);
+    border-radius:3px;padding:5px 9px;font-weight:600;letter-spacing:.04em;
+  }
+  .sector-head h3{font-size:21px;font-weight:600;}
+  .sector-head .sector-sub{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:#b9c2d1;text-transform:uppercase;letter-spacing:.08em;}
+  .sector-body{padding:26px;}
+  .cols3{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:0;}
+  @media (max-width:860px){.cols3{grid-template-columns:1fr;}}
+  .col{padding:4px 20px;border-left:1px solid var(--line);}
+  .col:first-child{border-left:none;padding-left:0;}
+  @media (max-width:860px){.col{border-left:none;border-top:1px solid var(--line);padding:16px 0;}
+    .col:first-child{border-top:none;padding-top:0;}}
+  .col h4{
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.1em;text-transform:uppercase;
+    margin-bottom:12px;
+  }
+  .col.pro h4{color:var(--pro);}
+  .col.risk h4{color:var(--risk);}
+  .col.todo h4{color:var(--navy-deep);}
+  .col ul{list-style:none;margin:0;padding:0;font-size:14px;}
+  .col.pro li, .col.risk li{padding-left:20px;position:relative;margin-bottom:10px;color:var(--ink);}
+  .col.pro li::before{content:"+";position:absolute;left:0;color:var(--pro);font-weight:700;}
+  .col.risk li::before{content:"–";position:absolute;left:0;color:var(--risk);font-weight:700;}
+  .col.todo li{
+    display:flex;gap:9px;margin-bottom:10px;color:var(--ink);
+  }
+  .checkbox{
+    flex:0 0 14px;height:14px;margin-top:3px;border:1.5px solid var(--gold);border-radius:3px;
+  }
+
+  /* PRIORITY RANKING */
+  .priority-list{display:flex;flex-direction:column;gap:10px;}
+  .p-row{
+    display:flex;align-items:center;gap:16px;background:var(--card);
+    border:1px solid var(--line);border-radius:6px;padding:14px 18px;
+  }
+  .p-rank{
+    font-family:'Fraunces',serif;font-size:22px;color:var(--gold);font-weight:600;flex:0 0 34px;
+  }
+  .p-row div.txt strong{display:block;font-size:15px;color:var(--navy-deep);}
+  .p-row div.txt span{font-size:13.5px;color:var(--ink-soft);}
+
+  footer{
+    background:var(--navy-black);color:#8d94a3;padding:30px 0;font-size:13px;
+  }
+  footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  footer b{color:#e2ba6c;}
+
+  @media print{
+    header.hero{background:var(--navy-deep) !important; -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    section.alt{background:#efe9da !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .sector-head{background:var(--navy-deep) !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">WAL Consultoria Imobiliária · Documento Interno de Planejamento</div>
+    <h1 class="title">Feirão Online WAL — <em>Ordem de Operações</em> por Setor</h1>
+    <p class="subtitle">Análise de prós, contras e providências para o 1º Feirão Online de Imóveis das construtoras parceiras, com foco em servidores públicos, militares das Forças Armadas, policiais, bombeiros e pensionistas.</p>
+    <div class="hero-meta">
+      <div class="meta-pill"><b>29 jul – 01 ago 2026</b><span>quarta a sábado · 4 dias de evento</span></div>
+      <div class="meta-pill"><b>27 dias</b><span>restantes até o lançamento (a partir de hoje)</span></div>
+      <div class="meta-pill"><b>8 setores</b><span>operacionais mapeados abaixo</span></div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Visão geral</span>
+      <h2>O conceito do feirão em si</h2>
+      <p>Antes de descer ao operacional por setor, vale avaliar o formato do evento como um todo.</p>
+    </div>
+    <div class="summary-grid">
+      <div class="sum-card pro">
+        <h3>Pontos fortes do conceito</h3>
+        <ul>
+          <li>Nicho muito bem definido (militares/servidores) reduz desperdício de mídia e aumenta taxa de conversão comparado a um feirão genérico.</li>
+          <li>Reúne várias construtoras num único evento — cada uma traz sua própria base de seguidores, ampliando o alcance total sem custo extra de mídia proporcional.</li>
+          <li>Você já chega com stack tecnológico pronto (simulador CFIAe/SAC, Sofia IA, dashboards) — a maioria dos concorrentes monta isso do zero.</li>
+          <li>Janela curta e definida (4 dias) cria senso de urgência real, favorecendo conversão e agendamento de visitas.</li>
+        </ul>
+      </div>
+      <div class="sum-card risk">
+        <h3>Riscos do conceito</h3>
+        <ul>
+          <li>É o primeiro evento do tipo — não há histórico de conversão, volume de leads ou taxa de comparecimento para dimensionar equipe e verba com precisão.</li>
+          <li>Prazo apertado: convite saiu com ~27 dias de antecedência, tempo curto para construtoras aprovarem material, jurídico e orçamento de mídia.</li>
+          <li>Dependência de terceiros (construtoras) para materiais atualizados é o maior ponto de falha fora do seu controle.</li>
+          <li>4 dias corridos incluindo um sábado (01/08) exige decisão clara sobre cobertura de atendimento fora do horário comercial padrão.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Contagem regressiva</span>
+      <h2>Linha do tempo até 29/07</h2>
+      <p>Marcos sugeridos para chegar ao lançamento com tudo validado — não apenas "no ar".</p>
+    </div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-date">Até 08/07</div>
+        <h4>Convite formalizado + prazo de material para as construtoras</h4>
+        <p>Enviar o convite com checklist de material obrigatório e data-limite clara de retorno (sugestão: 18/07).</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">09/07 – 17/07</div>
+        <h4>Configuração técnica final e aquecimento de mídia</h4>
+        <p>Chave PIX, webhook, vídeo institucional, teste de carga da plataforma; início de teasers e contagem regressiva nas redes.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">18/07 – 24/07</div>
+        <h4>Recebimento e validação do material das construtoras</h4>
+        <p>Conferência de tabelas, imagens e condições comerciais; carga dos empreendimentos na planilha/plataforma.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">25/07 – 28/07</div>
+        <h4>Ensaio geral</h4>
+        <p>Simulação de ponta a ponta (lead → simulação → PIX → handoff Sofia → corretor), briefing da equipe e escala de plantão definida.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">29/07 – 01/08</div>
+        <h4>Evento ao vivo</h4>
+        <p>Monitoramento diário de leads por empreendimento/corretor, ajustes de campanha em tempo real.</p>
+      </div>
+      <div class="tl-item">
+        <div class="tl-date">02/08 – 08/08</div>
+        <h4>Pós-evento</h4>
+        <p>Relatório de resultados às construtoras parceiras, início do fluxo de nutrição dos leads que não converteram na hora.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Detalhamento operacional</span>
+      <h2>Providências por setor</h2>
+      <p>Cada setor abaixo lista o que já favorece o feirão, os riscos específicos e as providências concretas antes de 29/07.</p>
+    </div>
+
+    <!-- SETOR 01 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">01</span>
+        <h3>Tecnologia & Plataforma</h3>
+        <span class="sector-sub">feirao-lead.html · dashboards · integrações</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Dashboard do feirão já construído, integrado ao Sheets em tempo real.</li>
+              <li>Simulador SAC/CFIAe e fluxo PIX já desenhados.</li>
+              <li>Domínio walservidor.com.br configurado e ativo.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Constantes de produção ainda pendentes (chave PIX, webhook, URL do vídeo).</li>
+              <li>Google Sheets/Apps Script têm cota diária — pico de acesso nos 4 dias pode estourar o limite.</li>
+              <li>Sem fallback caso o Apps Script fique indisponível.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Configurar e testar chave PIX definitiva de ponta a ponta.</li>
+              <li><span class="checkbox"></span>Publicar webhook do Apps Script em produção e validar retorno.</li>
+              <li><span class="checkbox"></span>Inserir vídeo institucional final.</li>
+              <li><span class="checkbox"></span>Teste de carga simulando acessos simultâneos.</li>
+              <li><span class="checkbox"></span>Backup do Sheets antes do evento; monitorar cota do Apps Script.</li>
+              <li><span class="checkbox"></span>Testar em mobile (maioria do público acessa via WhatsApp).</li>
+              <li><span class="checkbox"></span>Instalar Google Analytics/Meta Pixel para medir conversão.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 02 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">02</span>
+        <h3>Atendimento (Sofia IA + Corretores)</h3>
+        <span class="sector-sub">qualificação · handoff · plantão</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Sofia já tem lógica de pontuação de lead e handoff automático para corretor humano.</li>
+              <li>Autenticação por PIN já existe para o dashboard do corretor.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Sofia pode responder com dados desatualizados se a base não for revisada antes do evento.</li>
+              <li>Sem escala definida, o evento inclui um sábado sem cobertura humana.</li>
+              <li>Corretores podem não estar treinados no dashboard atualizado.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Atualizar a base da Sofia com empreendimentos, tabelas e condições confirmadas.</li>
+              <li><span class="checkbox"></span>Definir escala de plantão humano cobrindo os 4 dias, incluindo o sábado.</li>
+              <li><span class="checkbox"></span>Fixar SLA de resposta (ex.: sub-5-minutos) e testar o handoff automático.</li>
+              <li><span class="checkbox"></span>Briefing rápido com corretores sobre regras de distribuição de leads.</li>
+              <li><span class="checkbox"></span>Preparar roteiro de atendimento por perfil (militar, servidor, pensionista).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 03 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">03</span>
+        <h3>Divulgação & Tráfego em Redes Sociais</h3>
+        <span class="sector-sub">Meta Ads · orgânico · WhatsApp</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Instagram e Linktree da WAL já têm identidade navy/gold consolidada.</li>
+              <li>Calendário de conteúdo e Kanban de campanhas já existem no marketing.html.</li>
+              <li>Público-alvo muito específico facilita segmentação de anúncios.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Apenas ~4 semanas para aquecer campanha paga é prazo curto.</li>
+              <li>Sem orçamento de mídia definido até o momento.</li>
+              <li>Dependência só do orgânico pode não gerar volume suficiente de leads.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Definir orçamento de Meta Ads (aquecimento + os 4 dias do evento).</li>
+              <li><span class="checkbox"></span>Criar calendário específico do feirão: contagem regressiva, teasers, stories diários.</li>
+              <li><span class="checkbox"></span>Segmentar por bases militares, grupos de servidores e comunidades no WhatsApp.</li>
+              <li><span class="checkbox"></span>Preparar kit de divulgação para as construtoras compartilharem.</li>
+              <li><span class="checkbox"></span>Configurar UTM e pixel de conversão para rastrear origem dos leads.</li>
+              <li><span class="checkbox"></span>Planejar live/webinar de abertura (29/07) e encerramento (01/08).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 04 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">04</span>
+        <h3>Construtoras Parceiras</h3>
+        <span class="sector-sub">RIVA · CURY · Cyrela/RJZ · EMCAMP · CALPER · REFLORA</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Relações comerciais já estabelecidas com as principais construtoras.</li>
+              <li>Texto de convite já está pronto e profissional.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Prazo curto para elas reunirem material atualizado e aprovarem participação.</li>
+              <li>Tabela desatualizada gera simulação errada — problema comercial e de credibilidade.</li>
+              <li>Sem acordo formal sobre comissão e uso de imagem, pode haver divergência depois.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Enviar convite com prazo-limite de material (sugestão: até 18/07).</li>
+              <li><span class="checkbox"></span>Checklist obrigatório: tabela atualizada, imagens em alta com direito de uso, condições vigentes, tour virtual (se houver).</li>
+              <li><span class="checkbox"></span>Confirmar por e-mail/contrato simples comissão e regra de atribuição de lead.</li>
+              <li><span class="checkbox"></span>Nomear ponto focal comercial em cada construtora para dúvidas durante o evento.</li>
+              <li><span class="checkbox"></span>Validar cada dado antes de publicar na plataforma.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 05 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">05</span>
+        <h3>Financeiro, Crédito & Pagamentos</h3>
+        <span class="sector-sub">PIX · CFIAe · análise de crédito</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Simulador SAC/CFIAe já reverso-desenhado e validado a partir de planilha oficial.</li>
+              <li>Fluxo de PIX já desenhado dentro do dashboard do lead.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Chave PIX de produção ainda não configurada.</li>
+              <li>Risco de o lead entender o PIX como taxa obrigatória, gerando desconfiança (feirão deve ser gratuito para o cliente).</li>
+              <li>Sem fluxo claro de quem faz a análise de crédito e em quanto tempo.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Deixar explícito no site que qualquer PIX é opcional/simbólico, nunca obrigatório.</li>
+              <li><span class="checkbox"></span>Configurar chave PIX e testar confirmação automática.</li>
+              <li><span class="checkbox"></span>Definir parceiro (Sicoob/Sicredi/Caixa) responsável pela análise de crédito e prazo de resposta.</li>
+              <li><span class="checkbox"></span>Conferir se a taxa 8,5% a.a. + TR usada no simulador segue vigente em julho/2026.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 06 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">06</span>
+        <h3>Jurídico & Conformidade</h3>
+        <span class="sector-sub">LGPD · uso de imagem · CRECI</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>CRECI regularizado (12261-J), dando respaldo institucional ao convite.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Coleta de dados pessoais em volume (nome, renda, dados militares) exige atenção à LGPD.</li>
+              <li>Sem termo de consentimento e política de privacidade visíveis no funil atual.</li>
+              <li>Uso de imagens dos empreendimentos sem autorização formal das construtoras pode gerar problema de direitos autorais.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Inserir termo de consentimento LGPD no formulário de lead.</li>
+              <li><span class="checkbox"></span>Publicar política de privacidade acessível no site.</li>
+              <li><span class="checkbox"></span>Definir prazo e finalidade de retenção dos dados coletados.</li>
+              <li><span class="checkbox"></span>Confirmar por escrito autorização de uso das imagens enviadas pelas construtoras.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 07 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">07</span>
+        <h3>Comercial, CRM & Pós-Evento</h3>
+        <span class="sector-sub">follow-up · nutrição de leads · relatório</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Arquitetura de CRM com pontuação de lead e acesso por papel já construída.</li>
+              <li>Marketing Intelligence Dashboard permite acompanhar leads por empreendimento em tempo real.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Risco de "pico e vácuo": gerar muitos leads em 4 dias e não sustentar o follow-up depois.</li>
+              <li>Sem plano de nutrição definido para quem não fecha negócio na hora.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Preparar fluxo de follow-up automatizado (WhatsApp/e-mail) para 7, 15 e 30 dias após o evento.</li>
+              <li><span class="checkbox"></span>Relatório diário de leads por empreendimento e por corretor durante o evento.</li>
+              <li><span class="checkbox"></span>Reunião de encerramento com as construtoras (até 02 dias após) apresentando resultados.</li>
+              <li><span class="checkbox"></span>Definir metas de sucesso: nº de agendamentos e nº de vendas esperadas.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETOR 08 -->
+    <div class="sector">
+      <div class="sector-head">
+        <span class="sector-num">08</span>
+        <h3>Operação & Suporte Técnico Durante o Evento</h3>
+        <span class="sector-sub">monitoramento · plantão · contingência</span>
+      </div>
+      <div class="sector-body">
+        <div class="cols3">
+          <div class="col pro">
+            <h4>Prós</h4>
+            <ul>
+              <li>Plataforma leve (HTML estático + Sheets), fácil de monitorar e ajustar rapidamente.</li>
+            </ul>
+          </div>
+          <div class="col risk">
+            <h4>Riscos</h4>
+            <ul>
+              <li>Sem plantão técnico definido caso o site fique indisponível durante os 4 dias.</li>
+              <li>01/08 cai num sábado — fora do horário comercial padrão de suporte.</li>
+            </ul>
+          </div>
+          <div class="col todo">
+            <h4>Providências</h4>
+            <ul>
+              <li><span class="checkbox"></span>Definir plantão técnico para os 4 dias, incluindo o sábado.</li>
+              <li><span class="checkbox"></span>Plano B simples caso Sheets/Apps Script fiquem indisponíveis (ex.: formulário alternativo).</li>
+              <li><span class="checkbox"></span>Checar diariamente métricas de erro/latência durante o evento.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="tag">Se o tempo apertar</span>
+      <h2>Prioridade das próximas 2 semanas</h2>
+      <p>Se algo tiver que ficar para depois, esta é a ordem sugerida do que não pode esperar.</p>
+    </div>
+    <div class="priority-list">
+      <div class="p-row">
+        <div class="p-rank">1</div>
+        <div class="txt"><strong>Convite + prazo às construtoras</strong><span>É o item que depende de terceiros — quanto mais cedo sair, menos risco de material incompleto.</span></div>
+      </div>
+      <div class="p-row">
+        <div class="p-rank">2</div>
+        <div class="txt"><strong>Chave PIX, webhook e vídeo em produção</strong><span>São os três pendentes técnicos já identificados no seu próprio build do feirao-lead.html.</span></div>
+      </div>
+      <div class="p-row">
+        <div class="p-rank">3</div>
+        <div class="txt"><strong>Escala de atendimento (humano) para os 4 dias, incluindo o sábado</strong><span>Sofia cobre volume, mas não substitui decisão humana em casos de maior valor.</span></div>
+      </div>
+      <div class="p-row">
+        <div class="p-rank">4</div>
+        <div class="txt"><strong>Orçamento e calendário de mídia paga</strong><span>Aquecimento precisa começar pelo menos 10–14 dias antes do lançamento para gerar tração.</span></div>
+      </div>
+      <div class="p-row">
+        <div class="p-rank">5</div>
+        <div class="txt"><strong>LGPD e política de privacidade no funil</strong><span>Rápido de resolver e protege a operação desde o primeiro lead coletado.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><b>WAL Consultoria Imobiliária</b> · CRECI 12261-J</div>
+    <div>Documento de planejamento interno — Feirão Online 29/07 a 01/08/2026</div>
+  </div>
+</footer>
+
+</body>
+</html>

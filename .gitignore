@@ -1,5 +1,9 @@
-# Chave de API — NUNCA commitar
+# Chave de API e credenciais — NUNCA commitar
 api-key.txt
+API KEY/
+GitHub acesso e token.txt
+Chave PIN de acesso ao ADMIN.HTML.txt
+Acesso ao claude console - plataforama de controle chaves API.txt
 
 # Dependências
 node_modules/
