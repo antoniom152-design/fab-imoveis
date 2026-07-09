@@ -151,9 +151,117 @@
   footer{padding:30px 0 50px;text-align:center;}
   footer p{font-size:11.5px;color:var(--ink-soft);}
   footer b{color:var(--navy-deep);}
+
+  /* ============================================================
+     RESPONSIVO — desktop, notebook, iPad/tablet e celular.
+     Mobile-first: o layout original (coluna única até 480px) é
+     preservado; a partir daqui só ampliamos a coluna central e
+     ajustamos tipografia em telas maiores. Nenhum id, classe
+     estrutural ou comportamento de formulário foi alterado.
+  ============================================================ */
+
+  /* Celulares bem pequenos (<=360px) — pequenos ajustes de folga */
+  @media (max-width:360px){
+    .wrap{padding:0 16px;}
+    h1.title{font-size:26px;}
+    .cd-box{padding:9px 10px;min-width:50px;}
+    .cd-box b{font-size:19px;}
+    .form-card{padding:22px 16px;}
+  }
+
+  /* Tablets em pé (iPad portrait) e celulares grandes em paisagem */
+  @media (min-width:640px){
+    .wrap{max-width:600px;padding:0 28px;}
+    h1.title{font-size:34px;}
+    .subtitle{font-size:15px;}
+  }
+
+  /* iPad landscape / notebooks */
+  @media (min-width:900px){
+    .wrap{max-width:760px;padding:0 32px;}
+    h1.title{font-size:40px;}
+    .subtitle{font-size:16px;max-width:520px;margin-left:auto;margin-right:auto;}
+    header.hero{padding:64px 0 56px;}
+    .video-card{padding:22px;}
+    section.benefits .wrap{display:grid;grid-template-columns:1fr 1fr;column-gap:44px;}
+    .b-item{border-bottom:none;padding:16px 0;}
+    .form-card{max-width:560px;margin:0 auto;padding:34px 40px;}
+  }
+
+  /* Desktops grandes */
+  @media (min-width:1200px){
+    .wrap{max-width:860px;}
+    h1.title{font-size:46px;}
+  }
 </style>
 </head>
 <body>
+
+<!-- ============================================================
+     WAL · CONTROLE REMOTO DO FEIRÃO (Torre de Controle da Diretoria)
+     Não remova nem mova este bloco. Ele verifica, a cada carregamento
+     e a cada 20s, se a Diretoria suspendeu o Feirão inteiro ou este
+     painel especificamente (dashboard-diretor-wal.html) e exibe uma
+     tela de manutenção quando necessário.
+     Chave deste painel: 'precadastro'
+============================================================ -->
+<div id="walOverlayManutencao" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 30% 20%,#15294a 0%,#08192E 65%);display:none;align-items:center;justify-content:center;padding:24px;font-family:'Inter',Arial,sans-serif;color:#E8EDF5;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px">🛠️</div>
+    <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:8px">WAL Imóveis</div>
+    <div id="walOverlayTitulo" style="font-size:15px;font-weight:700;margin-bottom:10px">Estamos em manutenção rápida</div>
+    <div id="walOverlayMsg" style="font-size:13px;color:#9db1c8;line-height:1.6">Volte em instantes. Já estamos de olho e o Feirão retorna em breve.</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var WAL_CONTROLE_KEY = 'precadastro';
+  // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
+  var WAL_CONTROLE_API_URL = 'COLOQUE_AQUI_A_URL_DO_APPS_SCRIPT_WAL_FEIRAO_OPERACIONAL';
+  var LS_KEY = 'wal_diretor_v1';
+
+  function lerLocal(){{
+    try{{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }}catch(e){{ return null; }}
+  }}
+  function aplicarEstado(ctrl){{
+    if(!ctrl) return;
+    var overlay = document.getElementById('walOverlayManutencao');
+    if(!overlay) return;
+    var bloqueado = ctrl.fairStatus==='suspenso' || ctrl.fairStatus==='nao_iniciado' || (ctrl.modulos && ctrl.modulos[WAL_CONTROLE_KEY]===false);
+    if(bloqueado){{
+      document.getElementById('walOverlayTitulo').textContent = ctrl.fairStatus==='nao_iniciado' ? 'O Feirão ainda não começou' : 'Estamos em manutenção rápida';
+      document.getElementById('walOverlayMsg').textContent = ctrl.mensagem || ctrl.mensagemVisitante || 'Volte em instantes. Já estamos de olho e retornamos em breve.';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }} else {{
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }}
+  }}
+  function consultarRemoto(){{
+    if(!WAL_CONTROLE_API_URL || WAL_CONTROLE_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+    var cb = 'walCtrlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var s = document.createElement('script');
+    var timeout = setTimeout(function(){{ limpar(); }}, 10000);
+    function limpar(){{ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }}
+    window[cb] = function(data){{
+      limpar();
+      if(data && data.ok && data.controle){{
+        localStorage.setItem(LS_KEY, JSON.stringify(data.controle));
+        aplicarEstado(data.controle);
+      }}
+    }};
+    s.onerror = limpar;
+    s.src = WAL_CONTROLE_API_URL + '?action=feirao_get_controle&callback=' + cb;
+    document.body.appendChild(s);
+  }}
+  aplicarEstado(lerLocal());
+  consultarRemoto();
+  setInterval(consultarRemoto, 20000);
+}})();
+</script>
+<!-- ===== FIM DO BLOCO DE CONTROLE REMOTO DA DIRETORIA ===== -->
+
 
 <header class="hero">
   <div class="wrap">
@@ -174,8 +282,7 @@
     <div class="video-card">
       <div class="video-eyebrow">Uma palavra do diretor</div>
       <div class="video-frame">
-        <!-- TROCAR "SEU_ID_DO_VIDEO" pelo ID do vídeo do YouTube antes de publicar -->
-        <iframe src="https://www.youtube.com/embed/SEU_ID_DO_VIDEO" title="Mensagem do Diretor" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        <iframe src="https://www.youtube.com/embed/kXG_Vz_PVpU" title="Mensagem do Diretor" allow="autoplay; encrypted-media" allowfullscreen></iframe>
       </div>
       <div class="video-caption">
         <div class="video-avatar">A</div>
@@ -230,12 +337,17 @@
           <label for="categoria">Você é...</label>
           <select id="categoria" name="categoria" required>
             <option value="" disabled selected>Selecione</option>
-            <option value="Militar FAB">Militar da Força Aérea (FAB)</option>
-            <option value="Militar outras Forças">Militar de outra Força (Marinha/Exército)</option>
-            <option value="Servidor Público">Servidor Público Federal/Estadual/Municipal</option>
-            <option value="Policial/Bombeiro">Policial ou Bombeiro</option>
-            <option value="Pensionista">Pensionista</option>
-            <option value="Outro">Outro interessado</option>
+            <option value="FAB">FAB</option>
+            <option value="Marinha">Marinha</option>
+            <option value="Exército">Exército</option>
+            <option value="PM">PM</option>
+            <option value="Bombeiro">Bombeiro</option>
+            <option value="Polícia Civil">Polícia Civil</option>
+            <option value="Funcionário Público Federal">Funcionário Público Federal</option>
+            <option value="Funcionário Público Estadual">Funcionário Público Estadual</option>
+            <option value="Funcionário Público Municipal">Funcionário Público Municipal</option>
+            <option value="Ministério Público">Ministério Público</option>
+            <option value="Outro">Outro</option>
           </select>
 
           <label for="regiao">Região de interesse</label>
