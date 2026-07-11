@@ -151,6 +151,9 @@
   footer{padding:30px 0 50px;text-align:center;}
   footer p{font-size:11.5px;color:var(--ink-soft);}
   footer b{color:var(--navy-deep);}
+  footer .dev-credit{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);opacity:.8;}
+  footer .dev-credit b{font-weight:600;color:var(--ink-soft);}
+  footer .dev-credit span{color:var(--gold);font-weight:700;}
 
   /* ============================================================
      RESPONSIVO — desktop, notebook, iPad/tablet e celular.
@@ -311,7 +314,7 @@
     </div>
     <div class="b-item">
       <div class="b-icon">4</div>
-      <div class="b-text"><strong>Simulação personalizada pronta</strong><span>Chegamos ao dia 29/07 já sabendo seu perfil, prontos com a melhor simulação para você.</span></div>
+      <div class="b-text"><strong>Simulação personalizada pronta</strong><span>Chegamos ao dia 13/08 já sabendo seu perfil, prontos com a melhor simulação para você.</span></div>
     </div>
   </div>
 </section>
@@ -389,7 +392,7 @@
       <div class="success" id="successState">
         <div class="check">✓</div>
         <h2>Cadastro confirmado!</h2>
-        <p>Você garantiu prioridade no Feirão Online WAL, de 29/07 a 01/08. Você será redirecionado agora para o Canal "Feirão WAL — Grupo VIP" no WhatsApp.</p>
+        <p>Você garantiu prioridade no Feirão Online WAL, de 13/08 a 16/08. Você será redirecionado agora para o Canal "Feirão WAL — Grupo VIP" no WhatsApp.</p>
         <p style="font-size:12px;color:var(--ink-soft);margin-top:10px;">É um Canal oficial: os administradores e outros seguidores não têm acesso ao seu número de telefone — sua privacidade fica preservada.</p>
         <a class="wa-btn" id="waLink" href="#" target="_blank">Entrar no Canal VIP do WhatsApp</a>
       </div>
@@ -400,7 +403,8 @@
 
 <footer>
   <div class="wrap">
-    <p><b>WAL Consultoria Imobiliária</b> · CRECI 12261-J<br>Feirão Online — 29 de julho a 01 de agosto de 2026</p>
+    <p><b>WAL Consultoria Imobiliária</b> · CRECI 12261-J<br>Feirão Online — 13 a 16 de agosto de 2026</p>
+    <p class="dev-credit">Desenvolvido por <b>PRO TECH <span>IMOB</span></b></p>
   </div>
 </footer>
 
@@ -410,7 +414,7 @@
      ====================================================== */
   const APPS_SCRIPT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbyvxhM2GC6v66jgnsEPQVxBP7Kh9eJ-TDgH4aEPw9IWzYKEC0JsTvRLC4d1SgwpCeFvmQ/exec"; // mesmo webhook usado no feirao-lead.html
   const WHATSAPP_CHANNEL_LINK = "https://whatsapp.com/channel/0029VbCtVci1XquQdNHpSq1G"; // Canal "Feirão WAL — Grupo VIP"
-  const EVENT_START = new Date("2026-07-29T09:00:00-03:00");
+  const EVENT_START = new Date("2026-08-13T09:00:00-03:00");
 
   /* Countdown */
   function updateCountdown(){
