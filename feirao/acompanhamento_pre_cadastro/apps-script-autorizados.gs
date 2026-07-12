@@ -20,15 +20,22 @@
  *
  * COMO PUBLICAR:
  *   1) Extensões → Apps Script na planilha "Pre Cadastro 1 Feirao WAL"
+ *      (o script usa SpreadsheetApp.openById(PLANILHA_ID), então funciona mesmo
+ *      que o projeto não esteja vinculado a essa planilha especificamente —
+ *      mas a conta que faz "Implantar" precisa ter acesso de edição ao arquivo)
  *   2) Cole este código, salve
  *   3) Implantar → Nova implantação → tipo "App da Web"
  *      Executar como: Eu (wal@walservidor.com.br)
  *      Quem pode acessar: Qualquer pessoa
  *   4) Copie a URL gerada (termina em /exec) e cole em APPS_SCRIPT_URL
  *      no topo do arquivo acompanhamento-pre-cadastro.html
+ *   5) Se já existia uma implantação publicada, editar código sozinho NÃO basta:
+ *      Implantar → Gerenciar implantações → ✏️ editar → Versão "Nova versão" → Implantar
+ *      (senão a URL /exec continua rodando o código antigo)
  */
 
-const ABA_AUTORIZADOS = "AUTORIZADOS";
+const PLANILHA_ID      = "1fSGrDRVBcoZUtz_4WLYWrNQn5-Vg-oafG7uH2ytJtx0"; // "Pre Cadastro 1 Feirao WAL" (conta wal@walservidor.com.br)
+const ABA_AUTORIZADOS  = "AUTORIZADOS";
 
 function doPost(e) {
   const lock = LockService.getScriptLock();
@@ -39,7 +46,7 @@ function doPost(e) {
       return jsonOut({ ok: false, erro: "tipo não suportado" });
     }
 
-    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const ss = SpreadsheetApp.openById(PLANILHA_ID);
     const sheet = ss.getSheetByName(ABA_AUTORIZADOS);
     if (!sheet) return jsonOut({ ok: false, erro: "Aba AUTORIZADOS não encontrada" });
 
