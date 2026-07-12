@@ -1,0 +1,1666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Torre de Controle — Diretoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+  --teal:#0E7490;--teal2:#22D3EE;--teal-dim:rgba(14,116,144,.15);
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red2:#F87171;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber2:#FBBF24;--amber-dim:rgba(217,119,6,.10);
+  --purple:#7C3AED;--purple2:#A78BFA;--purple-dim:rgba(124,58,237,.10);
+  --surf:#0D1B2E;--surf2:#111F35;--surf3:#152844;
+  --card:#152540;--card2:#1A2E50;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
+  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+.hidden{display:none !important}
+
+/* ══════ AUTH ══════ */
+#authScreen{position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 30% 20%,#0d2544 0%,var(--navy) 60%);display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--gold-b);border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.auth-crest{width:56px;height:56px;border-radius:50%;background:var(--gold-dim);border:1.5px solid var(--gold-b);display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
+.auth-brand{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold)}
+.auth-sub{color:var(--muted);font-size:12px;margin-top:4px;letter-spacing:.4px}
+.auth-form{margin-top:24px;text-align:left}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:.3px}
+.field input{width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:11px 13px;color:var(--txt);font-size:15px;letter-spacing:3px;text-align:center;font-family:var(--mono)}
+.field input:focus{outline:none;border-color:var(--gold)}
+.auth-error{color:var(--red2);font-size:11.5px;margin-top:8px;display:none;text-align:center}
+.auth-note{color:var(--light);font-size:10.5px;margin-top:18px;line-height:1.6}
+.btn-primary{width:100%;margin-top:6px;background:linear-gradient(135deg,var(--gold),#B8923C);color:#1a1200;border:none;border-radius:9px;padding:13px;font-weight:700;font-size:13.5px;cursor:pointer;letter-spacing:.3px}
+
+/* ══════ LAYOUT ══════ */
+.app{display:flex;min-height:100vh}
+.sidebar{width:236px;flex-shrink:0;background:var(--navy2);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.sb-top{padding:20px 18px 16px;border-bottom:1px solid var(--bdr)}
+.sb-brand{font-family:'Playfair Display',serif;color:var(--gold);font-size:17px;font-weight:700}
+.sb-brand small{display:block;font-family:'Inter',sans-serif;font-size:10px;color:var(--muted);font-weight:500;letter-spacing:.6px;margin-top:2px}
+.sb-status{margin-top:14px;display:flex;align-items:center;gap:8px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:9px 11px}
+.sb-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.sb-dot.on{background:var(--green2);box-shadow:0 0 0 3px var(--green-dim);animation:pulse 2s infinite}
+.sb-dot.off{background:var(--red2);box-shadow:0 0 0 3px var(--red-dim)}
+.sb-dot.wait{background:var(--amber2);box-shadow:0 0 0 3px var(--amber-dim);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+.sb-status-txt{font-size:11.5px;font-weight:600}
+.sb-status-txt.on{color:var(--green2)}
+.sb-status-txt.off{color:var(--red2)}
+.sb-status-txt.wait{color:var(--amber2)}
+.sb-nav{flex:1;overflow-y:auto;padding:14px 10px}
+.group-label{font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:10px 10px 6px}
+.sb-item{width:100%;text-align:left;background:none;border:none;color:var(--muted);padding:10px 12px;border-radius:8px;font-size:12.5px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:10px;margin-bottom:2px}
+.sb-item .ic{font-size:14px;width:18px;text-align:center}
+.sb-item:hover{background:var(--surf2);color:var(--txt)}
+.sb-item.active{background:var(--gold-dim);color:var(--gold2);font-weight:600}
+.sb-item .count{margin-left:auto;background:var(--red-dim);color:var(--red2);font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px}
+.sb-fair-timer{padding:12px;margin:8px 4px 0;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px}
+.sb-fair-timer .lbl{font-size:10px;color:var(--muted);letter-spacing:.3px}
+.sb-fair-timer .val{font-family:var(--mono);font-size:14px;color:var(--gold2);font-weight:600;margin-top:2px}
+.sb-bottom{padding:12px 14px;border-top:1px solid var(--bdr)}
+.sb-logout{width:100%;background:none;border:1px solid var(--bdr2);color:var(--muted);padding:8px;border-radius:8px;font-size:11.5px;cursor:pointer}
+.sb-logout:hover{border-color:var(--red2);color:var(--red2)}
+
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+
+/* ══════ TOP RIBBON — control tower signature ══════ */
+.ribbon{position:sticky;top:0;z-index:200;background:linear-gradient(90deg,var(--navy2),var(--navy3));border-bottom:1px solid var(--bdr);padding:12px 26px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ribbon.suspenso{background:linear-gradient(90deg,#2E0B0B,#3A0F0F);border-bottom:1px solid rgba(220,38,38,.35)}
+.ribbon-pulse{display:flex;align-items:center;gap:9px;font-weight:700;font-size:13px}
+.ribbon-pulse .ring{width:11px;height:11px;border-radius:50%;position:relative;flex-shrink:0}
+.ribbon-pulse .ring.on{background:var(--green2)}
+.ribbon-pulse .ring.on::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--green2);animation:ringpulse 1.8s infinite}
+.ribbon-pulse .ring.off{background:var(--red2)}
+.ribbon-pulse .ring.off::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--red2);animation:ringpulse 1.8s infinite}
+.ribbon-pulse .ring.wait{background:var(--amber2)}
+.ribbon-pulse .ring.wait::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--amber2);animation:ringpulse 1.8s infinite}
+.ribbon.aguardando{background:linear-gradient(90deg,#2E2308,#3A2C0B);border-bottom:1px solid rgba(217,119,6,.35)}
+.btn-start{background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;color:#04222b;font-weight:700;font-size:12px;padding:9px 16px;border-radius:8px;cursor:pointer;box-shadow:0 4px 14px rgba(14,116,144,.35)}
+@keyframes ringpulse{0%{transform:scale(.6);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+.ribbon-sep{width:1px;height:22px;background:var(--bdr2)}
+.ribbon-mini{display:flex;flex-direction:column;gap:1px}
+.ribbon-mini .n{font-family:var(--mono);font-weight:700;font-size:15px;color:var(--gold2)}
+.ribbon-mini .l{font-size:9.5px;color:var(--muted);letter-spacing:.3px}
+.ribbon-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.ribbon-src{font-size:10.5px;color:var(--muted);padding:5px 10px;border:1px solid var(--bdr2);border-radius:20px}
+.btn-kill{background:linear-gradient(135deg,var(--red),#8f1c1c);border:none;color:#fff;font-weight:700;font-size:12px;padding:9px 16px;border-radius:8px;cursor:pointer;letter-spacing:.2px;box-shadow:0 4px 14px rgba(220,38,38,.35)}
+.btn-kill:hover{filter:brightness(1.1)}
+.btn-restore{background:linear-gradient(135deg,var(--green),#046a4b);border:none;color:#fff;font-weight:700;font-size:12px;padding:9px 16px;border-radius:8px;cursor:pointer;box-shadow:0 4px 14px rgba(5,150,105,.35)}
+
+.content{padding:24px 28px 60px;max-width:1440px;width:100%;margin:0 auto}
+.tabpanel{animation:fadein .2s}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.pg-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px;gap:16px;flex-wrap:wrap}
+.pg-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--txt)}
+.pg-sub{color:var(--muted);font-size:12px;margin-top:3px;max-width:640px}
+.pg-actions{display:flex;gap:8px}
+
+.btn{background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:var(--gold-b);background:var(--gold-dim)}
+.btn.gold{background:linear-gradient(135deg,var(--gold),#B8923C);color:#1a1200;border:none}
+.btn.danger{background:var(--red-dim);border-color:rgba(220,38,38,.35);color:var(--red2)}
+.btn.danger:hover{background:rgba(220,38,38,.2)}
+.btn.sm{padding:6px 11px;font-size:11px}
+
+/* KPI grid */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:12px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 16px 14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--bdr2)}
+.kpi.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::before{background:linear-gradient(90deg,var(--green),var(--green2))}
+.kpi.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
+.kpi.amber::before{background:linear-gradient(90deg,var(--amber),var(--amber2))}
+.kpi .lbl{font-size:10.5px;color:var(--muted);letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+.kpi .val{font-family:var(--mono);font-size:26px;font-weight:700;margin-top:8px;color:var(--txt)}
+.kpi.gold .val{color:var(--gold2)}
+.kpi.teal .val{color:var(--teal2)}
+.kpi.green .val{color:var(--green2)}
+.kpi.purple .val{color:var(--purple2)}
+.kpi.amber .val{color:var(--amber2)}
+.kpi .delta{font-size:10.5px;margin-top:5px;color:var(--light)}
+.kpi .delta.up{color:var(--green2)}
+.kpi .delta.down{color:var(--red2)}
+
+.grid-2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:1100px){.grid-2,.grid-3{grid-template-columns:1fr}}
+
+.panel{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:18px 20px}
+.panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.panel-h h3{font-size:13.5px;font-weight:700;color:var(--txt)}
+.panel-h .sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+
+/* Funnel */
+.funnel{display:flex;flex-direction:column;gap:8px}
+.f-row{display:grid;grid-template-columns:150px 1fr 60px 70px;align-items:center;gap:10px}
+.f-lbl{font-size:11.5px;color:var(--muted)}
+.f-bar-bg{background:var(--surf2);border-radius:6px;height:20px;overflow:hidden}
+.f-bar{height:100%;background:linear-gradient(90deg,var(--teal),var(--teal2));border-radius:6px;transition:width .5s}
+.f-n{font-family:var(--mono);font-weight:700;font-size:12.5px;text-align:right}
+.f-pct{font-size:10.5px;color:var(--light);text-align:right}
+
+/* Feed */
+.feed{display:flex;flex-direction:column;gap:0;max-height:420px;overflow-y:auto}
+.feed-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)}
+.feed-item:last-child{border-bottom:none}
+.feed-ic{width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:13px}
+.feed-ic.venda{background:var(--green-dim);color:var(--green2)}
+.feed-ic.reserva{background:var(--gold-dim);color:var(--gold2)}
+.feed-ic.cadastro{background:var(--teal-dim);color:var(--teal2)}
+.feed-ic.credito{background:var(--purple-dim);color:var(--purple2)}
+.feed-ic.alerta{background:var(--red-dim);color:var(--red2)}
+.feed-ic.atendimento{background:rgba(255,255,255,.06);color:var(--muted)}
+.feed-body{flex:1;min-width:0}
+.feed-txt{font-size:12px;color:var(--txt)}
+.feed-txt b{color:var(--gold2);font-weight:600}
+.feed-time{font-size:10px;color:var(--light);margin-top:2px;font-family:var(--mono)}
+
+/* Tables */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10.5px;color:var(--muted);letter-spacing:.3px;padding:8px 10px;border-bottom:1px solid var(--bdr2);white-space:nowrap}
+td{padding:10px 10px;border-bottom:1px solid var(--bdr);font-size:12px}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.constr-cell{display:flex;align-items:center;gap:8px;font-weight:600}
+.constr-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mono{font-family:var(--mono)}
+.tright{text-align:right}
+
+.badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:10.5px;font-weight:600}
+.badge.b-ok{background:var(--green-dim);color:var(--green2)}
+.badge.b-warn{background:var(--amber-dim);color:var(--amber2)}
+.badge.b-danger{background:var(--red-dim);color:var(--red2)}
+.badge.b-info{background:var(--teal-dim);color:var(--teal2)}
+.badge.b-muted{background:rgba(255,255,255,.06);color:var(--muted)}
+
+/* Alerts / risk radar */
+.alert-card{display:flex;gap:12px;padding:13px 14px;border-radius:9px;border:1px solid;margin-bottom:10px}
+.alert-card.high{background:var(--red-dim);border-color:rgba(220,38,38,.3)}
+.alert-card.med{background:var(--amber-dim);border-color:rgba(217,119,6,.3)}
+.alert-card.low{background:var(--teal-dim);border-color:rgba(14,116,144,.3)}
+.alert-ic{font-size:17px;flex-shrink:0}
+.alert-title{font-weight:700;font-size:12.5px}
+.alert-desc{font-size:11.5px;color:var(--muted);margin-top:3px}
+.alert-actions{margin-top:8px;display:flex;gap:8px}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .ic{font-size:32px;margin-bottom:10px}
+.empty-state .t{font-weight:600;color:var(--txt);font-size:13px}
+.empty-state .s{font-size:11.5px;margin-top:4px}
+
+/* Attendance / atendimento */
+.att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+.att-card{background:var(--surf2);border:1px solid var(--bdr2);border-radius:9px;padding:12px}
+.att-top{display:flex;align-items:center;gap:8px}
+.att-ava{width:30px;height:30px;border-radius:50%;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--gold2)}
+.att-name{font-weight:600;font-size:12px}
+.att-status{font-size:10px;margin-left:auto}
+.att-metrics{display:flex;gap:14px;margin-top:10px}
+.att-metrics div{font-size:10.5px;color:var(--muted)}
+.att-metrics b{display:block;font-family:var(--mono);font-size:14px;color:var(--txt);font-weight:700}
+
+/* Timeline (days) */
+.day-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+@media(max-width:900px){.day-grid{grid-template-columns:repeat(2,1fr)}}
+.day-card{background:var(--surf2);border:1px solid var(--bdr2);border-radius:10px;padding:14px}
+.day-card.today{border-color:var(--gold-b);background:var(--gold-dim)}
+.day-num{font-size:10px;color:var(--muted);letter-spacing:.3px}
+.day-date{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;margin-top:2px}
+.day-stats{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.day-stat{display:flex;justify-content:space-between;font-size:11px}
+.day-stat b{font-family:var(--mono);color:var(--gold2)}
+
+/* Controls tab */
+.ctrl-master{background:linear-gradient(135deg,var(--navy3),var(--navy2));border:1px solid var(--gold-b);border-radius:14px;padding:24px;margin-bottom:20px;display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.ctrl-master-ic{width:56px;height:56px;border-radius:14px;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0}
+.ctrl-master-body{flex:1;min-width:220px}
+.ctrl-master-body h3{font-size:15px;font-weight:700}
+.ctrl-master-body p{font-size:11.5px;color:var(--muted);margin-top:4px;max-width:520px}
+
+.module-list{display:flex;flex-direction:column;gap:0}
+.module-row{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--bdr)}
+.module-row:last-child{border-bottom:none}
+.module-ic{width:34px;height:34px;border-radius:9px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.module-body{flex:1;min-width:0}
+.module-name{font-weight:600;font-size:12.5px}
+.module-desc{font-size:11px;color:var(--muted);margin-top:2px}
+.switch{position:relative;width:44px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .slider{position:absolute;inset:0;background:var(--surf2);border:1px solid var(--bdr2);border-radius:24px;cursor:pointer;transition:.2s}
+.switch .slider::before{content:'';position:absolute;width:18px;height:18px;left:2px;top:2px;background:var(--muted);border-radius:50%;transition:.2s}
+.switch input:checked + .slider{background:var(--green-dim);border-color:rgba(52,211,153,.4)}
+.switch input:checked + .slider::before{transform:translateX(20px);background:var(--green2)}
+
+.audit-log{display:flex;flex-direction:column;gap:0;max-height:340px;overflow-y:auto}
+.audit-item{padding:10px 0;border-bottom:1px solid var(--bdr);font-size:11.5px}
+.audit-item:last-child{border-bottom:none}
+.audit-item .a-txt{color:var(--txt)}
+.audit-item .a-meta{color:var(--light);font-size:10px;margin-top:2px;font-family:var(--mono)}
+
+/* Consulta inteligente — Pré-Cadastro */
+.filtro-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-top:2px}
+.field-f label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:6px;letter-spacing:.3px}
+.field-f input,.field-f select{width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:9px 11px;color:var(--txt);font-size:12.5px;font-family:'Inter',sans-serif}
+.field-f input::placeholder{color:var(--light)}
+.field-f input:focus,.field-f select:focus{outline:none;border-color:var(--gold)}
+.field-f select{cursor:pointer}
+.print-only{display:none}
+.print-hint{font-size:10.5px;color:var(--light);margin-top:8px}
+
+/* Impressão — isola apenas o painel de Pré-Cadastro e força alto contraste em papel */
+@media print{
+  body *{visibility:hidden}
+  #tab-precadastro, #tab-precadastro *{visibility:visible}
+  #tab-precadastro{position:absolute;left:0;top:0;width:100%;padding:14px;background:#fff}
+  body{background:#fff}
+  .pg-actions, #painelFiltrosPreCadastro, .print-hint{display:none !important}
+  .print-only{display:block !important}
+  #tab-precadastro *{color:#111 !important;background:transparent !important;border-color:#ccc !important;box-shadow:none !important}
+  #tab-precadastro table{width:100%}
+  #tab-precadastro th{background:#f2f2f2 !important}
+  #tab-precadastro th,#tab-precadastro td{border-bottom:1px solid #ddd !important}
+}
+
+/* Modal */
+.modal-ov{position:fixed;inset:0;background:rgba(4,10,20,.72);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:900;padding:20px}
+.modal-ov.show{display:flex}
+.modal-box{background:var(--card2);border:1px solid var(--bdr2);border-radius:14px;max-width:460px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.55)}
+.modal-box.wide{max-width:640px}
+.modal-h{padding:18px 20px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-h h3{font-size:14.5px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer}
+.modal-body{padding:20px;max-height:60vh;overflow-y:auto}
+.modal-body p{font-size:12.5px;color:var(--muted);line-height:1.6}
+.modal-f{padding:14px 20px;border-top:1px solid var(--bdr);display:flex;justify-content:flex-end;gap:10px}
+.confirm-input{width:100%;margin-top:14px;background:var(--surf2);border:1px solid var(--red2);border-radius:8px;padding:11px 13px;color:var(--txt);font-family:var(--mono);letter-spacing:2px;text-align:center;font-size:14px}
+.confirm-input:focus{outline:none}
+
+/* Toast */
+#toastHost{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:8px;align-items:flex-end}
+.toast{background:var(--card2);border:1px solid var(--gold-b);border-left:3px solid var(--gold);padding:12px 16px;border-radius:8px;font-size:12.5px;box-shadow:0 8px 24px rgba(0,0,0,.4);min-width:240px;animation:slidein .25s}
+.toast.danger{border-color:rgba(220,38,38,.4);border-left-color:var(--red)}
+.toast.success{border-color:rgba(52,211,153,.4);border-left-color:var(--green)}
+@keyframes slidein{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateY(0)}}
+
+#mobileToggle{display:none;position:fixed;top:14px;left:14px;z-index:590;width:38px;height:38px;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;align-items:center;justify-content:center;color:var(--gold);font-size:16px;cursor:pointer}
+@media(max-width:880px){
+  #mobileToggle{display:flex}
+  .sidebar{position:fixed;left:-236px;top:0;bottom:0;z-index:600;transition:.25s;box-shadow:0 0 40px rgba(0,0,0,.5)}
+  .sidebar.open{left:0}
+  .content{padding:20px 14px 60px}
+  .ribbon{padding:10px 14px 10px 60px}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .pg-title{font-size:19px}
+  .pg-head{gap:10px}
+  .kpi .val{font-size:22px}
+  .day-grid{grid-template-columns:repeat(2,1fr)}
+  .ribbon{gap:10px 14px}
+  .ribbon-mini .n{font-size:13px}
+  .att-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+}
+@media(max-width:460px){
+  .day-grid{grid-template-columns:1fr}
+  .f-row{grid-template-columns:1fr;row-gap:4px}
+  .f-n,.f-pct{text-align:left}
+  .ctrl-master{flex-direction:column;align-items:stretch;text-align:center;padding:18px}
+  .ctrl-master-ic{margin:0 auto}
+  .ctrl-master-body p{max-width:none}
+  .ctrl-master-actions{width:100%}
+  .ctrl-master-actions button{flex:1;min-width:120px;justify-content:center}
+  .modal-body{padding:16px}
+  .modal-h,.modal-f{padding:12px 16px;flex-wrap:wrap}
+  .modal-f{justify-content:stretch}
+  .modal-f button{flex:1}
+  .btn-kill,.btn-restore,.btn-start{padding:8px 12px;font-size:11px}
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .module-row{flex-wrap:wrap}
+  .module-body{min-width:160px}
+  table{font-size:11px}
+  th,td{padding:8px 6px}
+}
+@media(max-width:360px){
+  .kpi-grid{grid-template-columns:1fr}
+  .ribbon-right{width:100%;justify-content:space-between}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= PIN GATE ================= -->
+<div id="authScreen">
+  <div class="auth-box">
+    <div class="auth-crest">🗝️</div>
+    <div class="auth-brand">WAL Imóveis</div>
+    <div class="auth-sub">TORRE DE CONTROLE · FEIRÃO ONLINE 2026</div>
+    <div class="auth-form">
+      <div class="field">
+        <label for="pinInput">PIN da Diretoria</label>
+        <input type="password" id="pinInput" maxlength="6" inputmode="numeric" placeholder="••••" autocomplete="off">
+      </div>
+      <div class="auth-error" id="pinError">PIN inválido. Tente novamente.</div>
+      <button class="btn-primary" onclick="tentarEntrar()">Entrar</button>
+    </div>
+    <div class="auth-note">Acesso restrito à Diretoria da WAL. Este painel permite pausar ou suspender módulos do Feirão Online em tempo real.</div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div class="app hidden" id="appRoot">
+  <button id="mobileToggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
+
+  <aside class="sidebar">
+    <div class="sb-top">
+      <div class="sb-brand">WAL Imóveis<small>Torre de Controle</small></div>
+      <div class="sb-status">
+        <span class="sb-dot" id="sbDot"></span>
+        <span class="sb-status-txt" id="sbStatusTxt">—</span>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="group-label">Painel</div>
+      <button class="sb-item active" data-tab="visao" onclick="irPara('visao')"><span class="ic">📈</span> Visão Geral</button>
+      <button class="sb-item" data-tab="precadastro" onclick="irPara('precadastro')"><span class="ic">📝</span> Pré-Cadastro</button>
+      <button class="sb-item" data-tab="vendas" onclick="irPara('vendas')"><span class="ic">🏗️</span> Vendas &amp; Reservas</button>
+      <button class="sb-item" data-tab="atendimento" onclick="irPara('atendimento')"><span class="ic">🎧</span> Atendimento</button>
+      <button class="sb-item" data-tab="alertas" onclick="irPara('alertas')"><span class="ic">🚨</span> Radar de Risco <span class="count hidden" id="cAlertas">0</span></button>
+      <button class="sb-item" data-tab="linha" onclick="irPara('linha')"><span class="ic">🗓️</span> Linha do Tempo</button>
+      <div class="group-label">Diretoria</div>
+      <button class="sb-item" data-tab="controles" onclick="irPara('controles')"><span class="ic">🛑</span> Controles de Emergência</button>
+      <button class="sb-item" data-tab="auditoria" onclick="irPara('auditoria')"><span class="ic">📋</span> Auditoria de Ações</button>
+    </nav>
+    <div class="sb-fair-timer" id="sbTimer">
+      <div class="lbl">Feirão Online</div>
+      <div class="val" id="sbTimerVal">—</div>
+    </div>
+    <div class="sb-bottom">
+      <button class="sb-logout" onclick="sair()">Sair</button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <!-- Control tower ribbon -->
+    <div class="ribbon" id="ribbon">
+      <div class="ribbon-pulse">
+        <span class="ring" id="ringStatus"></span>
+        <span id="ribbonStatusTxt">Carregando…</span>
+      </div>
+      <div class="ribbon-sep"></div>
+      <div class="ribbon-mini"><span class="n" id="rOnline">—</span><span class="l">ATIVIDADE (5 MIN)</span></div>
+      <div class="ribbon-sep"></div>
+      <div class="ribbon-mini"><span class="n" id="rCadastros">—</span><span class="l">CADASTROS</span></div>
+      <div class="ribbon-sep"></div>
+      <div class="ribbon-mini"><span class="n" id="rReservas">—</span><span class="l">RESERVAS</span></div>
+      <div class="ribbon-sep"></div>
+      <div class="ribbon-mini"><span class="n" id="rVendas">—</span><span class="l">VENDAS</span></div>
+      <div class="ribbon-right">
+        <span class="ribbon-src" id="fonteTag">🟡 Modo demonstração</span>
+        <button class="btn-start hidden" id="btnRibbonIniciar" onclick="abrirModalIniciar()">▶️ Iniciar Feirão</button>
+        <button class="btn-kill hidden" id="btnRibbonKill" onclick="abrirModalSuspender()">🛑 Suspender Feirão</button>
+        <button class="btn-restore hidden" id="btnRibbonRestore" onclick="abrirModalRestaurar()">🔄 Reativar Feirão</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ VISÃO GERAL ============ -->
+      <section class="tabpanel" id="tab-visao">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Visão Geral do Feirão</div>
+            <div class="pg-sub">Acompanhamento em tempo real de cadastros, simulações, crédito, reservas e vendas — 29/jul a 01/ago/2026.</div>
+          </div>
+          <div class="pg-actions">
+            <button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar agora</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGridVisao"></div>
+
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-h">
+              <div>
+                <h3>Funil do Feirão</h3>
+                <div class="sub">Da chegada ao pré-cadastro até a venda confirmada</div>
+              </div>
+            </div>
+            <div class="funnel" id="funnelBody"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-h">
+              <div>
+                <h3>Atividade ao vivo</h3>
+                <div class="sub">Últimos eventos registrados no Feirão</div>
+              </div>
+            </div>
+            <div class="feed" id="feedBody"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PRÉ-CADASTRO ============ -->
+      <section class="tabpanel hidden" id="tab-precadastro">
+        <div class="print-only" id="printSummary">
+          <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700">WAL Imóveis · Feirão Online 2026</div>
+          <div style="font-size:13px;margin-top:2px">Relatório de Pré-Cadastro</div>
+          <div style="font-size:11px;margin-top:10px">Gerado em: <span id="printData"></span></div>
+          <div style="font-size:11px;margin-top:2px">Filtros aplicados: <span id="printFiltros"></span></div>
+          <div style="font-size:11px;margin-top:2px">Total de registros neste relatório: <span id="printTotal"></span></div>
+          <hr style="margin:12px 0;border:none;border-top:1px solid #ccc">
+        </div>
+
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Pré-Cadastro do Feirão</div>
+            <div class="pg-sub">Todas as pessoas que se pré-cadastraram, com consulta inteligente por WhatsApp, e-mail, categoria e região de interesse.</div>
+          </div>
+          <div class="pg-actions">
+            <button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar</button>
+            <button class="btn sm" onclick="imprimirPreCadastro('impressora')">🖨️ Imprimir</button>
+            <button class="btn sm gold" onclick="imprimirPreCadastro('pdf')">📄 Salvar em PDF</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGridPreCadastro"></div>
+
+        <div class="panel" style="margin-bottom:16px" id="painelFiltrosPreCadastro">
+          <div class="panel-h">
+            <div><h3>Consulta inteligente</h3><div class="sub">Combine qualquer critério abaixo para localizar um ou mais inscritos</div></div>
+            <button class="btn sm" onclick="limparFiltrosPreCadastro()">✕ Limpar filtros</button>
+          </div>
+          <div class="filtro-grid">
+            <div class="field-f">
+              <label for="fBusca">Busca geral (nome, WhatsApp ou e-mail)</label>
+              <input type="text" id="fBusca" placeholder="Digite para buscar…" oninput="renderInscritos()">
+            </div>
+            <div class="field-f">
+              <label for="fWhats">WhatsApp</label>
+              <input type="text" id="fWhats" placeholder="Ex: 21 99999-9999" oninput="renderInscritos()">
+            </div>
+            <div class="field-f">
+              <label for="fEmail">E-mail</label>
+              <input type="text" id="fEmail" placeholder="Ex: nome@email.com" oninput="renderInscritos()">
+            </div>
+            <div class="field-f">
+              <label for="fCategoria">Você é</label>
+              <select id="fCategoria" onchange="renderInscritos()"><option value="">Todos</option></select>
+            </div>
+            <div class="field-f">
+              <label for="fRegiao">Região de interesse</label>
+              <select id="fRegiao" onchange="renderInscritos()"><option value="">Todas</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="painelListaPreCadastro">
+          <div class="panel-h">
+            <div><h3>Inscritos <span id="totalFiltradoPreCadastro" style="color:var(--muted);font-weight:500"></span></h3><div class="sub">Lista completa de pré-cadastros do Feirão, mais recentes primeiro</div></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="tabelaPreCadastro">
+              <thead><tr><th>ID</th><th>Data</th><th>Nome</th><th>WhatsApp</th><th>E-mail</th><th>Você é</th><th>Região de interesse</th><th>FGTS</th><th>Autoriza contato</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <div class="print-hint">💡 Ao clicar em "Imprimir" ou "Salvar em PDF", o navegador abre a janela padrão de impressão — escolha sua impressora física, ou o destino "Salvar como PDF" para gerar o arquivo. O relatório respeita os filtros aplicados acima.</div>
+        </div>
+      </section>
+
+      <!-- ============ VENDAS & RESERVAS ============ -->
+      <section class="tabpanel hidden" id="tab-vendas">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Vendas &amp; Reservas por Construtora</div>
+            <div class="pg-sub">Ranking de desempenho dos parceiros durante o Feirão Online.</div>
+          </div>
+          <div class="pg-actions"><button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar</button></div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGridVendas"></div>
+
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-h"><div><h3>Desempenho por construtora</h3><div class="sub">Leads, reservas e vendas — ordenado por vendas confirmadas</div></div></div>
+          <div style="overflow-x:auto">
+            <table id="tabelaConstrutoras">
+              <thead><tr><th>Construtora</th><th class="tright">Leads</th><th class="tright">Simulações</th><th class="tright">Reservas</th><th class="tright">Vendas</th><th class="tright">Valor vendido</th><th>Conversão</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h"><div><h3>Top 5 empreendimentos</h3><div class="sub">Mais procurados no Feirão</div></div></div>
+          <div style="overflow-x:auto">
+            <table id="tabelaEmpreendimentos">
+              <thead><tr><th>Empreendimento</th><th>Construtora</th><th class="tright">Visualizações</th><th class="tright">Reservas</th><th class="tright">Vendas</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ATENDIMENTO ============ -->
+      <section class="tabpanel hidden" id="tab-atendimento">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Atendimento ao Vivo</div>
+            <div class="pg-sub">Atendentes conectados, fila de espera e tempo médio de resposta.</div>
+          </div>
+          <div class="pg-actions"><button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar</button></div>
+        </div>
+        <div class="kpi-grid" id="kpiGridAtend"></div>
+        <div class="panel">
+          <div class="panel-h"><div><h3>Atendentes conectados</h3><div class="sub">PIN de gerente e até 20 atendentes simultâneos</div></div></div>
+          <div class="att-grid" id="attGrid"></div>
+        </div>
+      </section>
+
+      <!-- ============ ALERTAS / RADAR DE RISCO ============ -->
+      <section class="tabpanel hidden" id="tab-alertas">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Radar de Risco</div>
+            <div class="pg-sub">Pontos que merecem atenção da Diretoria agora — calculado automaticamente a partir da atividade do Feirão.</div>
+          </div>
+          <div class="pg-actions"><button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar</button></div>
+        </div>
+        <div id="alertasBody"></div>
+      </section>
+
+      <!-- ============ LINHA DO TEMPO ============ -->
+      <section class="tabpanel hidden" id="tab-linha">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Linha do Tempo do Evento</div>
+            <div class="pg-sub">Desempenho dia a dia — 29/jul a 01/ago/2026.</div>
+          </div>
+        </div>
+        <div class="day-grid" id="dayGrid"></div>
+      </section>
+
+      <!-- ============ CONTROLES DE EMERGÊNCIA ============ -->
+      <section class="tabpanel hidden" id="tab-controles">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Controles de Emergência</div>
+            <div class="pg-sub">Suspenda o Feirão inteiro ou apenas funcionalidades específicas. Toda ação fica registrada na Auditoria.</div>
+          </div>
+        </div>
+
+        <div class="ctrl-master">
+          <div class="ctrl-master-ic">🛑</div>
+          <div class="ctrl-master-body">
+            <h3 id="ctrlMasterTitle">Feirão ativo</h3>
+            <p id="ctrlMasterDesc">Todas as funcionalidades estão liberadas para os visitantes e atendentes. Use o botão ao lado apenas em caso de motivo sério (falha de pagamento, incidente de segurança, erro grave de preço, etc.).</p>
+          </div>
+          <div class="ctrl-master-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn-start hidden" id="btnCtrlIniciar" onclick="abrirModalIniciar()">▶️ Iniciar Feirão</button>
+            <button class="btn-kill hidden" id="btnCtrlKill" onclick="abrirModalSuspender()">🛑 Suspender Feirão</button>
+            <button class="btn-restore hidden" id="btnCtrlRestore" onclick="abrirModalRestaurar()">🔄 Reativar Feirão</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h">
+            <div><h3>Dashboards individuais</h3><div class="sub">Ative ou desative cada painel do Feirão separadamente, sem suspender os demais</div></div>
+          </div>
+          <div class="module-list" id="moduleList"></div>
+        </div>
+      </section>
+
+      <!-- ============ AUDITORIA ============ -->
+      <section class="tabpanel hidden" id="tab-auditoria">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Auditoria de Ações</div>
+            <div class="pg-sub">Histórico de todas as intervenções da Diretoria neste painel.</div>
+          </div>
+          <div class="pg-actions"><button class="btn sm danger" onclick="exportarAuditoria()">⬇️ Exportar CSV</button></div>
+        </div>
+        <div class="panel">
+          <div class="audit-log" id="auditLogBody"></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: INICIAR FEIRÃO ================= -->
+<div class="modal-ov" id="modalIniciar">
+  <div class="modal-box">
+    <div class="modal-h"><h3>▶️ Iniciar o Feirão Online</h3><button class="modal-close" onclick="fecharModal('modalIniciar')">✕</button></div>
+    <div class="modal-body">
+      <p>Isso libera pré-cadastro, vitrine, simulador, análise de crédito, reservas e atendimento para todos os visitantes, e passa o Feirão para o status <b>ativo</b>. Todos os módulos individuais voltam a ficar ligados.</p>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalIniciar')">Cancelar</button>
+      <button class="btn gold" onclick="confirmarInicio()">Iniciar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: SUSPENDER FEIRÃO ================= -->
+<div class="modal-ov" id="modalSuspender">
+  <div class="modal-box">
+    <div class="modal-h"><h3>🛑 Suspender o Feirão Online</h3><button class="modal-close" onclick="fecharModal('modalSuspender')">✕</button></div>
+    <div class="modal-body">
+      <p>Isso vai exibir uma mensagem de manutenção para todos os visitantes e bloquear novos cadastros, simulações, análises de crédito e reservas até que a Diretoria reative o Feirão. Atendentes continuam podendo consultar dados já registrados.</p>
+      <div class="field" style="margin-top:14px">
+        <label for="motivoSuspensao">Motivo (fica registrado na auditoria)</label>
+        <input type="text" id="motivoSuspensao" placeholder="Ex: instabilidade no pagamento via PIX" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+      <div class="field" style="margin-top:10px">
+        <label for="msgVisitante">Mensagem exibida ao visitante (opcional)</label>
+        <input type="text" id="msgVisitante" placeholder="Ex: Estamos em manutenção rápida, voltamos em instantes." style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+      <p style="margin-top:14px;font-weight:600;color:var(--red2)">Para confirmar, digite SUSPENDER abaixo:</p>
+      <input type="text" class="confirm-input" id="confirmSuspender" placeholder="SUSPENDER">
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalSuspender')">Cancelar</button>
+      <button class="btn danger" onclick="confirmarSuspensao()">Confirmar suspensão</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: REATIVAR FEIRÃO ================= -->
+<div class="modal-ov" id="modalRestaurar">
+  <div class="modal-box">
+    <div class="modal-h"><h3>▶️ Reativar o Feirão Online</h3><button class="modal-close" onclick="fecharModal('modalRestaurar')">✕</button></div>
+    <div class="modal-body">
+      <p>Isso libera novamente todas as funcionalidades para visitantes e atendentes.</p>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalRestaurar')">Cancelar</button>
+      <button class="btn gold" onclick="confirmarRestauracao()">Reativar agora</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: SUSPENDER MÓDULO ================= -->
+<div class="modal-ov" id="modalModulo">
+  <div class="modal-box">
+    <div class="modal-h"><h3 id="moduloModalTitulo">Suspender módulo</h3><button class="modal-close" onclick="fecharModal('modalModulo')">✕</button></div>
+    <div class="modal-body">
+      <p id="moduloModalDesc"></p>
+      <div class="field" style="margin-top:14px">
+        <label for="motivoModulo">Motivo (fica registrado na auditoria)</label>
+        <input type="text" id="motivoModulo" placeholder="Ex: instabilidade pontual" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalModulo')">Cancelar</button>
+      <button class="btn danger" id="btnConfirmarModulo">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastHost"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   CONFIGURAÇÃO — ajustar antes de publicar em produção
+   Reaproveita o mesmo padrão do restante do ecossistema WAL:
+   leitura de planilhas via gviz (JSONP, público/somente leitura) e
+   escrita/controle via Apps Script (POST no-cors, fire-and-forget).
+
+   Este painel foi construído para funcionar em "Modo demonstração"
+   agora mesmo (dados simulados, mas realistas) e passar a exibir
+   dados reais assim que os campos abaixo forem preenchidos e o
+   Apps Script operacional (ver arquivo
+   "apps-script-feirao-operacional.gs" — entregue junto) estiver publicado.
+═══════════════════════════════════════════════════════════════ */
+
+// PIN de acesso da Diretoria (troque antes de compartilhar o link)
+const PIN_DIRETORIA = '2026';
+
+// Mesma planilha "WAL Imóveis — Portfólio", aba IMOVEISDISPONIVEIS
+const SHEET_ID_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+
+// Apps Script "WAL Feirão — Dados Operacionais" (o mesmo mencionado em
+// dashboard-feirao-lead.html / pre-cadastro-feirao.html). Preencha a URL
+// assim que publicar o Web App com as ações deste painel (ver .gs anexo):
+//   - feirao_resumo        (GET, JSONP)  -> agregados de cadastro/venda/reserva
+//   - feirao_get_controle  (GET, JSONP)  -> estado atual de suspensão/módulos
+//   - feirao_set_controle  (POST, no-cors) -> grava decisão da Diretoria
+//   - feirao_lista_participantes (GET, JSONP) -> lista completa de pré-cadastros
+//     (aba INSCRITOS / Participantes), usada na tela "Pré-Cadastro" deste painel.
+//     Retorno esperado: {ok:true, participantes:[{id,dataCadastro,nome,whatsapp,
+//     email,categoria,regiao,fgts,autorizaContato}, ...]}. Enquanto esta ação não
+//     existir no Apps Script, a tela funciona normalmente em modo demonstração.
+const FEIRAO_API_URL = 'COLOQUE_AQUI_A_URL_DO_APPS_SCRIPT_WAL_FEIRAO_OPERACIONAL';
+
+const EVENT_START = new Date('2026-07-29T09:00:00-03:00');
+const EVENT_END   = new Date('2026-08-01T20:00:00-03:00');
+const EVENT_DAYS  = ['2026-07-29','2026-07-30','2026-07-31','2026-08-01'];
+
+const CONSTRUTORAS = ['RIVA','Cury','Cyrela/RJZ','Emccamp','Calper','BRZ','Tegra','Even','Luving','Domma'];
+const CONSTR_CORES = {RIVA:'#0E7490',Cury:'#0369A1','Cyrela/RJZ':'#7C3AED',Emccamp:'#B45309',Calper:'#15803D',BRZ:'#DC2626',Tegra:'#D97706',Even:'#0D9488',Luving:'#7C3AED',Domma:'#475569'};
+
+// Mesmas opções usadas no formulário de pré-cadastro (pre-cadastro-feirao.html)
+const CATEGORIAS_PRECADASTRO = ['FAB','Marinha','Exército','PM','Bombeiro','Polícia Civil','Funcionário Público Federal','Funcionário Público Estadual','Funcionário Público Municipal','Ministério Público','Outro'];
+const REGIOES_PRECADASTRO = ['Barra da Tijuca','Barra Olímpica','Recreio','Jacarepaguá','Pechincha','Curicica','Porto Maravilha','São Cristóvão','Vila Valqueire','São Pedro da Aldeia','Campo Grande','Duque de Caxias','Outra região / ainda não sei'];
+
+const MODULOS = [
+  {key:'precadastro',   ic:'📝', nome:'Pré-cadastro',           arquivo:'pre-cadastro-feirao.html',        desc:'Landing page de captação de leads antes do evento'},
+  {key:'lead',          ic:'🏘️', nome:'Dashboard do Lead',       arquivo:'dashboard-feirao-lead.html',      desc:'Vitrine, simulador, crédito, reservas e Sofia IA para o comprador'},
+  {key:'atendente',     ic:'🎧', nome:'Dashboard do Atendente',  arquivo:'dashboard-feirao-atendente.html', desc:'Atendimento humano, CRUD de leads e simulador para a equipe WAL'},
+  {key:'viabilizador',  ic:'🏛️', nome:'Dashboard do Viabilizador', arquivo:'dashboard-viabilizador-wal.html', desc:'Painel das construtoras parceiras (Viabilizador, Superintendente, Diretor)'},
+  {key:'agente',        ic:'🤝', nome:'Dashboard do Agente',     arquivo:'dashboard-agente.html',           desc:'Painel dos agentes parceiros que indicam leads'},
+];
+
+/* ════════════════════════════════════════════════════════════════
+   ESTADO — persistido em localStorage (funciona offline / modo demo)
+   e espelhado no Apps Script quando FEIRAO_API_URL estiver configurada,
+   para que a suspensão valha em todos os dispositivos e dashboards.
+═══════════════════════════════════════════════════════════════ */
+const LS_KEY = 'wal_diretor_v1';
+
+function estadoPadrao(){
+  const mod = {};
+  MODULOS.forEach(m => mod[m.key] = true);
+  return {
+    fairStatus: 'nao_iniciado', // 'nao_iniciado' | 'ativo' | 'suspenso'
+    motivoSuspensao: '',
+    mensagemVisitante: '',
+    modulos: mod,
+    auditLog: []
+  };
+}
+
+let CTRL = JSON.parse(localStorage.getItem(LS_KEY) || 'null') || estadoPadrao();
+function salvarCtrl(){ localStorage.setItem(LS_KEY, JSON.stringify(CTRL)); }
+
+let _fonte = 'demo'; // 'demo' | 'planilha'
+
+/* ════════════════════════════════════════════════════════════════
+   INTEGRAÇÃO — Apps Script (WAL Feirão Operacional)
+═══════════════════════════════════════════════════════════════ */
+function feiraoConfigured(){ return FEIRAO_API_URL && FEIRAO_API_URL.indexOf('COLOQUE_AQUI') !== 0; }
+
+function chamarFeiraoApi(action, payload){
+  if(!feiraoConfigured()) return;
+  try{
+    fetch(FEIRAO_API_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(Object.assign({action}, payload))
+    }).catch(()=>{});
+  }catch(e){}
+}
+
+function feiraoApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    if(!feiraoConfigured()){ resolve(null); return; }
+    const cb = 'feiraoCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = FEIRAO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+
+/* Envia o estado de controle atual para o Apps Script, para que os demais
+   dashboards (lead, atendente, pré-cadastro) possam consultar e respeitar
+   a decisão da Diretoria, mesmo em outro dispositivo/aba. */
+function publicarControleRemoto(){
+  chamarFeiraoApi('feirao_set_controle', {
+    fairStatus: CTRL.fairStatus,
+    motivo: CTRL.motivoSuspensao,
+    mensagem: CTRL.mensagemVisitante,
+    modulos: CTRL.modulos,
+    autor: 'Diretoria WAL',
+    ts: new Date().toISOString()
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DADOS DE DEMONSTRAÇÃO — usados enquanto o Apps Script não está
+   publicado, ou como piso mínimo caso a chamada falhe. Evoluem sozinhos
+   a cada ciclo para simular atividade real do Feirão.
+═══════════════════════════════════════════════════════════════ */
+function seedDemo(){
+  const construtoraStats = {};
+  CONSTRUTORAS.forEach((c,i)=>{
+    const base = 60 - i*4;
+    construtoraStats[c] = {
+      leads: Math.max(6, Math.round(base*1.8 + Math.random()*10)),
+      simulacoes: Math.max(3, Math.round(base*1.1 + Math.random()*8)),
+      reservas: Math.max(0, Math.round(base*0.14 + Math.random()*3)),
+      vendas: Math.max(0, Math.round(base*0.06 + Math.random()*2)),
+      valorVendido: 0
+    };
+    construtoraStats[c].valorVendido = construtoraStats[c].vendas * (320000 + Math.random()*280000);
+  });
+
+  const empreendimentos = [
+    {nome:'Orla Recreio Reserva', construtora:'RIVA', views:0, reservas:0, vendas:0},
+    {nome:'Ilha Mar Beach & Home', construtora:'Cury', views:0, reservas:0, vendas:0},
+    {nome:'ICONYC by YOO', construtora:'Cyrela/RJZ', views:0, reservas:0, vendas:0},
+    {nome:'Ilha Mar Beach 2', construtora:'Cury', views:0, reservas:0, vendas:0},
+    {nome:'Reserva Ilha do Governador', construtora:'Calper', views:0, reservas:0, vendas:0},
+  ].map(e=>{
+    e.views = 80 + Math.round(Math.random()*260);
+    e.reservas = Math.round(e.views*0.03 + Math.random()*4);
+    e.vendas = Math.round(e.reservas*0.35 + Math.random()*1.4);
+    return e;
+  });
+
+  const atendentes = ['Ana P.','Bruno S.','Carla M.','Diego F.','Elaine R.','Felipe T.'].map((nome,i)=>({
+    nome, status: i<4?'online':'ausente',
+    leadsAtivos: Math.round(2+Math.random()*7),
+    tempoMedioResp: Math.round(40+Math.random()*160),
+    fechados: Math.round(Math.random()*5)
+  }));
+
+  const feed = [];
+  const tipos = [
+    {t:'cadastro', txt:n=>`Novo pré-cadastro de <b>${n}</b>`},
+    {t:'reserva', txt:n=>`<b>${n}</b> reservou uma unidade`},
+    {t:'venda', txt:n=>`Venda confirmada — <b>${n}</b>`},
+    {t:'credito', txt:n=>`Análise de crédito enviada para <b>${n}</b>`},
+    {t:'atendimento', txt:n=>`Atendente assumiu conversa com <b>${n}</b>`},
+  ];
+  const nomes = ['Cb. Ricardo Alves','Sgt. Mariana Costa','Ten. Paulo Ferreira','Cb. Juliana Souza','Maj. André Lima','Sgt. Fernanda Dias','Cb. Bruno Martins','Sd. Camila Rocha'];
+  const agora = Date.now();
+  for(let i=0;i<14;i++){
+    const tp = tipos[Math.floor(Math.random()*tipos.length)];
+    const nm = nomes[Math.floor(Math.random()*nomes.length)];
+    feed.push({tipo:tp.t, html:tp.txt(nm), ts: agora - i*Math.round(40000+Math.random()*220000)});
+  }
+  feed.sort((a,b)=>b.ts-a.ts);
+
+  return {
+    precadastros: 640 + Math.round(Math.random()*40),
+    inscritosFeira: 210 + Math.round(Math.random()*30),
+    atividade5min: 12 + Math.round(Math.random()*28),
+    simulacoes: 340 + Math.round(Math.random()*30),
+    creditoEnviado: 96 + Math.round(Math.random()*10),
+    creditoAprovado: 58 + Math.round(Math.random()*8),
+    reservas: 34 + Math.round(Math.random()*6),
+    vendas: 14 + Math.round(Math.random()*4),
+    valorVendido: 0,
+    valorReservado: 0,
+    construtoraStats, empreendimentos, atendentes, feed
+  };
+}
+
+/* ════════════════════════════════════════════════════════════════
+   DEMO — lista individual de inscritos no Pré-Cadastro (tela "Pré-Cadastro")
+═══════════════════════════════════════════════════════════════ */
+const _NOMES_DEMO = ['Ricardo Alves','Mariana Costa','Paulo Ferreira','Juliana Souza','André Lima','Fernanda Dias','Bruno Martins','Camila Rocha','Eduardo Nunes','Patrícia Lima','Rafael Gomes','Beatriz Nascimento','Thiago Barros','Larissa Mendes','Marcelo Teixeira','Vanessa Cardoso','Diego Farias','Renata Pires','Gustavo Ramos','Aline Correia','Leonardo Azevedo','Priscila Monteiro','Fábio Cavalcante','Simone Araújo'];
+const _PATENTES_DEMO = ['Cb.','Sgt.','Ten.','Cap.','Maj.','Sd.','Sub Ten.','1º Ten.','2º Ten.',''];
+
+function _semAcento(s){ return s.normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+
+let _seqInscritoDemo = 0;
+function gerarInscritoDemo(dataCadastro){
+  _seqInscritoDemo++;
+  const patente = _PATENTES_DEMO[Math.floor(Math.random()*_PATENTES_DEMO.length)];
+  const nomeBase = _NOMES_DEMO[Math.floor(Math.random()*_NOMES_DEMO.length)];
+  const nome = (patente+' '+nomeBase).trim();
+  const whatsapp = `21 9${String(6000+Math.floor(Math.random()*3999)).padStart(4,'0')}-${String(1000+Math.floor(Math.random()*8999)).padStart(4,'0')}`;
+  const email = `${_semAcento(nomeBase).toLowerCase().replace(/[^a-z]+/g,'.')}${_seqInscritoDemo}@gmail.com`;
+  return {
+    id: 'PC'+String(_seqInscritoDemo).padStart(4,'0'),
+    dataCadastro: (dataCadastro || new Date()).toISOString(),
+    nome,
+    whatsapp,
+    email,
+    categoria: CATEGORIAS_PRECADASTRO[Math.floor(Math.random()*CATEGORIAS_PRECADASTRO.length)],
+    regiao: REGIOES_PRECADASTRO[Math.floor(Math.random()*REGIOES_PRECADASTRO.length)],
+    fgts: Math.random()<0.55 ? 'Sim' : 'Não',
+    autorizaContato: Math.random()<0.9 ? 'Sim' : 'Não'
+  };
+}
+
+function seedInscritosDemo(qtd){
+  const lista = [];
+  const agora = Date.now();
+  for(let i=0;i<qtd;i++){
+    const diasAtras = Math.random()*45; // espalhados nos últimos ~45 dias
+    lista.push(gerarInscritoDemo(new Date(agora - diasAtras*86400000)));
+  }
+  return lista;
+}
+
+let DEMO = seedDemo();
+DEMO.valorVendido = DEMO.vendas * 410000;
+DEMO.valorReservado = DEMO.reservas * 395000;
+DEMO.inscritos = seedInscritosDemo(DEMO.precadastros);
+montarFiltrosPreCadastro();
+
+function tickDemo(){
+  const novosPrecadastros = Math.random()<0.6 ? Math.round(Math.random()*3) : 0;
+  if(novosPrecadastros>0){
+    DEMO.precadastros += novosPrecadastros;
+    for(let i=0;i<novosPrecadastros;i++) DEMO.inscritos.unshift(gerarInscritoDemo(new Date()));
+  }
+  DEMO.inscritosFeira += Math.random()<0.5 ? Math.round(Math.random()*2) : 0;
+  DEMO.atividade5min = Math.max(3, Math.round(DEMO.atividade5min + (Math.random()-0.5)*8));
+  DEMO.simulacoes += Math.random()<0.4 ? 1 : 0;
+  if(Math.random()<0.25) DEMO.creditoEnviado += 1;
+  if(Math.random()<0.15) DEMO.creditoAprovado += 1;
+  if(Math.random()<0.12){ DEMO.reservas += 1; DEMO.valorReservado += 350000+Math.random()*250000; }
+  if(Math.random()<0.06){ DEMO.vendas += 1; DEMO.valorVendido += 380000+Math.random()*280000; }
+
+  if(Math.random()<0.35){
+    const tipos = [
+      {t:'cadastro', txt:n=>`Novo pré-cadastro de <b>${n}</b>`},
+      {t:'reserva', txt:n=>`<b>${n}</b> reservou uma unidade`},
+      {t:'venda', txt:n=>`Venda confirmada — <b>${n}</b>`},
+      {t:'credito', txt:n=>`Análise de crédito enviada para <b>${n}</b>`},
+      {t:'atendimento', txt:n=>`Atendente assumiu conversa com <b>${n}</b>`},
+    ];
+    const nomes = ['Cb. Ricardo Alves','Sgt. Mariana Costa','Ten. Paulo Ferreira','Cb. Juliana Souza','Maj. André Lima','Sgt. Fernanda Dias'];
+    const tp = tipos[Math.floor(Math.random()*tipos.length)];
+    const nm = nomes[Math.floor(Math.random()*nomes.length)];
+    DEMO.feed.unshift({tipo:tp.t, html:tp.txt(nm), ts: Date.now()});
+    DEMO.feed = DEMO.feed.slice(0,30);
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CARREGAMENTO DE DADOS REAIS (quando FEIRAO_API_URL configurada)
+   com fallback silencioso para os dados de demonstração.
+═══════════════════════════════════════════════════════════════ */
+let LIVE = null;
+let LIVE_INSCRITOS = null;
+
+async function carregarDadosReais(){
+  if(!feiraoConfigured()) { _fonte='demo'; return; }
+  const resp = await feiraoApiJsonp('feirao_resumo', {});
+  if(resp && resp.ok){ LIVE = resp.dados; _fonte='planilha'; }
+  else { _fonte='demo'; }
+}
+
+/* Lista individual de pré-cadastros para a tela "Pré-Cadastro". Requer a ação
+   feirao_lista_participantes no Apps Script (ver comentário de configuração
+   acima). Falha silenciosamente para os dados de demonstração enquanto essa
+   ação não estiver publicada. */
+async function carregarInscritosReais(){
+  if(!feiraoConfigured()){ LIVE_INSCRITOS = null; return; }
+  const resp = await feiraoApiJsonp('feirao_lista_participantes', {});
+  if(resp && resp.ok && Array.isArray(resp.participantes)) LIVE_INSCRITOS = resp.participantes;
+  else LIVE_INSCRITOS = null;
+}
+
+function inscritosAtuais(){
+  return (_fonte==='planilha' && Array.isArray(LIVE_INSCRITOS)) ? LIVE_INSCRITOS : DEMO.inscritos;
+}
+
+async function carregarControleRemoto(){
+  if(!feiraoConfigured()) return;
+  const resp = await feiraoApiJsonp('feirao_get_controle', {});
+  if(resp && resp.ok && resp.controle){
+    // Estado remoto é a fonte da verdade quando existe (permite suspender
+    // de um dispositivo e refletir aqui em qualquer outro).
+    CTRL.fairStatus = resp.controle.fairStatus || CTRL.fairStatus;
+    CTRL.motivoSuspensao = resp.controle.motivo || '';
+    CTRL.mensagemVisitante = resp.controle.mensagem || '';
+    if(resp.controle.modulos) CTRL.modulos = resp.controle.modulos;
+    salvarCtrl();
+  }
+}
+
+function dados(){ return _fonte==='planilha' && LIVE ? LIVE : DEMO; }
+
+/* ════════════════════════════════════════════════════════════════
+   RENDERIZAÇÃO
+═══════════════════════════════════════════════════════════════ */
+function fmtMoney(v){ return 'R$ '+ (v||0).toLocaleString('pt-BR',{maximumFractionDigits:0}); }
+function fmtNum(v){ return (v||0).toLocaleString('pt-BR'); }
+function fmtPct(a,b){ return b>0 ? Math.round(a/b*100)+'%' : '—'; }
+function timeAgo(ts){
+  const s = Math.round((Date.now()-ts)/1000);
+  if(s<60) return 'agora mesmo';
+  if(s<3600) return Math.floor(s/60)+' min atrás';
+  return Math.floor(s/3600)+'h atrás';
+}
+
+function renderFonteTag(){
+  const el = document.getElementById('fonteTag');
+  el.textContent = _fonte==='planilha' ? '🟢 Conectado ao Apps Script' : '🟡 Modo demonstração';
+}
+
+function renderRibbonStatus(){
+  const ribbon = document.getElementById('ribbon');
+  const ring = document.getElementById('ringStatus');
+  const txt = document.getElementById('ribbonStatusTxt');
+  const sbDot = document.getElementById('sbDot');
+  const sbTxt = document.getElementById('sbStatusTxt');
+  const iniciarBtn = document.getElementById('btnRibbonIniciar');
+  const killBtn = document.getElementById('btnRibbonKill');
+  const restoreBtn = document.getElementById('btnRibbonRestore');
+  const ctrlIniciarBtn = document.getElementById('btnCtrlIniciar');
+  const ctrlKillBtn = document.getElementById('btnCtrlKill');
+  const ctrlRestoreBtn = document.getElementById('btnCtrlRestore');
+  const ctrlTitle = document.getElementById('ctrlMasterTitle');
+  const ctrlDesc = document.getElementById('ctrlMasterDesc');
+
+  const status = CTRL.fairStatus; // 'nao_iniciado' | 'ativo' | 'suspenso'
+  const ringClass = status==='ativo' ? 'on' : status==='suspenso' ? 'off' : 'wait';
+  const ribbonClass = status==='suspenso' ? 'suspenso' : status==='nao_iniciado' ? 'aguardando' : '';
+
+  ribbon.classList.remove('suspenso','aguardando');
+  if(ribbonClass) ribbon.classList.add(ribbonClass);
+  ring.className = 'ring ' + ringClass;
+  txt.textContent = status==='ativo' ? 'FEIRÃO ATIVO' : status==='suspenso' ? 'FEIRÃO SUSPENSO' : 'FEIRÃO AINDA NÃO INICIADO';
+  sbDot.className = 'sb-dot ' + ringClass;
+  sbTxt.className = 'sb-status-txt ' + ringClass;
+  sbTxt.textContent = status==='ativo' ? 'Ativo' : status==='suspenso' ? 'Suspenso' : 'Aguardando início';
+
+  iniciarBtn.classList.toggle('hidden', status!=='nao_iniciado');
+  killBtn.classList.toggle('hidden', status!=='ativo');
+  restoreBtn.classList.toggle('hidden', status!=='suspenso');
+  ctrlIniciarBtn.classList.toggle('hidden', status!=='nao_iniciado');
+  ctrlKillBtn.classList.toggle('hidden', status!=='ativo');
+  ctrlRestoreBtn.classList.toggle('hidden', status!=='suspenso');
+
+  if(status==='ativo'){
+    ctrlTitle.textContent = 'Feirão ativo';
+    ctrlDesc.textContent = 'Todas as funcionalidades estão liberadas para os visitantes e atendentes. Use "Suspender Feirão" apenas em caso de motivo sério (falha de pagamento, incidente de segurança, erro grave de preço, etc.).';
+  } else if(status==='suspenso'){
+    ctrlTitle.textContent = 'Feirão suspenso';
+    ctrlDesc.textContent = `Suspenso por: "${CTRL.motivoSuspensao||'—'}". Visitantes veem uma mensagem de manutenção e não conseguem se cadastrar, simular, solicitar crédito ou reservar.`;
+  } else {
+    ctrlTitle.textContent = 'Feirão ainda não iniciado';
+    ctrlDesc.textContent = 'Nenhum visitante consegue usar o Feirão até você clicar em "Iniciar Feirão". Use esse momento para conferir os módulos abaixo antes da abertura.';
+  }
+}
+
+function renderTimer(){
+  const now = new Date();
+  const el = document.getElementById('sbTimerVal');
+  if(now < EVENT_START){
+    const diff = EVENT_START-now;
+    const d = Math.floor(diff/86400000), h = Math.floor(diff/3600000)%24, m = Math.floor(diff/60000)%60;
+    el.textContent = `Começa em ${d}d ${h}h ${m}m`;
+  } else if(now <= EVENT_END){
+    const dia = Math.min(4, Math.floor((now-EVENT_START)/86400000)+1);
+    el.textContent = `Dia ${dia} de 4 — em andamento`;
+  } else {
+    el.textContent = 'Feirão encerrado';
+  }
+}
+
+function renderKpisVisao(){
+  const d = dados();
+  const html = `
+    <div class="kpi teal"><div class="lbl">📝 Pré-cadastros</div><div class="val">${fmtNum(d.precadastros)}</div><div class="delta">antes do evento</div></div>
+    <div class="kpi gold"><div class="lbl">🎟️ Inscritos na feira</div><div class="val">${fmtNum(d.inscritosFeira)}</div><div class="delta">confirmaram presença</div></div>
+    <div class="kpi green"><div class="lbl">🟢 Atividade recente</div><div class="val">${fmtNum(d.atividade5min)}</div><div class="delta">eventos nos últimos 5 min · proxy de "online"</div></div>
+    <div class="kpi purple"><div class="lbl">🧮 Simulações</div><div class="val">${fmtNum(d.simulacoes)}</div><div class="delta">financiamentos simulados</div></div>
+    <div class="kpi"><div class="lbl">📋 Crédito enviado</div><div class="val">${fmtNum(d.creditoEnviado)}</div><div class="delta">${fmtNum(d.creditoAprovado)} aprovados</div></div>
+    <div class="kpi gold"><div class="lbl">💳 Reservas</div><div class="val">${fmtNum(d.reservas)}</div><div class="delta">${fmtMoney(d.valorReservado)}</div></div>
+    <div class="kpi green"><div class="lbl">🏆 Vendas confirmadas</div><div class="val">${fmtNum(d.vendas)}</div><div class="delta up">${fmtMoney(d.valorVendido)}</div></div>
+    <div class="kpi"><div class="lbl">📈 Conversão cadastro → venda</div><div class="val">${fmtPct(d.vendas, d.precadastros)}</div><div class="delta">meta: 50–60 unidades até dez/2026</div></div>
+  `;
+  document.getElementById('kpiGridVisao').innerHTML = html;
+}
+
+function renderFunnel(){
+  const d = dados();
+  const etapas = [
+    {lbl:'Pré-cadastro', n:d.precadastros},
+    {lbl:'Inscrito na feira', n:d.inscritosFeira},
+    {lbl:'Simulou financiamento', n:d.simulacoes},
+    {lbl:'Enviou crédito', n:d.creditoEnviado},
+    {lbl:'Crédito aprovado', n:d.creditoAprovado},
+    {lbl:'Reservou', n:d.reservas},
+    {lbl:'Comprou', n:d.vendas},
+  ];
+  const max = etapas[0].n || 1;
+  document.getElementById('funnelBody').innerHTML = etapas.map(e=>`
+    <div class="f-row">
+      <div class="f-lbl">${e.lbl}</div>
+      <div class="f-bar-bg"><div class="f-bar" style="width:${Math.max(4,Math.round(e.n/max*100))}%"></div></div>
+      <div class="f-n">${fmtNum(e.n)}</div>
+      <div class="f-pct">${fmtPct(e.n,max)}</div>
+    </div>`).join('');
+}
+
+const FEED_ICONS = {cadastro:'📝', reserva:'💳', venda:'🏆', credito:'📋', atendimento:'🎧', alerta:'🚨'};
+function renderFeed(){
+  const d = dados();
+  const el = document.getElementById('feedBody');
+  if(!d.feed || !d.feed.length){
+    el.innerHTML = `<div class="empty-state"><div class="ic">🕊️</div><div class="t">Sem atividade recente</div><div class="s">Os eventos do Feirão aparecerão aqui em tempo real.</div></div>`;
+    return;
+  }
+  el.innerHTML = d.feed.slice(0,20).map(f=>`
+    <div class="feed-item">
+      <div class="feed-ic ${f.tipo}">${FEED_ICONS[f.tipo]||'•'}</div>
+      <div class="feed-body">
+        <div class="feed-txt">${f.html}</div>
+        <div class="feed-time">${timeAgo(f.ts)}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   PRÉ-CADASTRO — consulta inteligente sobre a lista de inscritos
+═══════════════════════════════════════════════════════════════ */
+function montarFiltrosPreCadastro(){
+  const selCat = document.getElementById('fCategoria');
+  const selReg = document.getElementById('fRegiao');
+  CATEGORIAS_PRECADASTRO.forEach(c=>{
+    const o = document.createElement('option'); o.value = c; o.textContent = c; selCat.appendChild(o);
+  });
+  REGIOES_PRECADASTRO.forEach(r=>{
+    const o = document.createElement('option'); o.value = r; o.textContent = r; selReg.appendChild(o);
+  });
+}
+
+function fmtDataCurta(d){
+  const dt = new Date(d);
+  if(isNaN(dt)) return '—';
+  return dt.toLocaleDateString('pt-BR');
+}
+
+function listaInscritos(){
+  return inscritosAtuais().slice().sort((a,b)=> new Date(b.dataCadastro) - new Date(a.dataCadastro));
+}
+
+function obterFiltrosPreCadastro(){
+  return {
+    busca: (document.getElementById('fBusca').value||'').trim().toLowerCase(),
+    whats: (document.getElementById('fWhats').value||'').replace(/\D/g,''),
+    email: (document.getElementById('fEmail').value||'').trim().toLowerCase(),
+    categoria: document.getElementById('fCategoria').value||'',
+    regiao: document.getElementById('fRegiao').value||''
+  };
+}
+
+function filtrarInscritos(){
+  const f = obterFiltrosPreCadastro();
+  return listaInscritos().filter(p=>{
+    if(f.busca){
+      const alvo = `${p.nome||''} ${p.whatsapp||''} ${p.email||''}`.toLowerCase();
+      if(!alvo.includes(f.busca)) return false;
+    }
+    if(f.whats){
+      const num = String(p.whatsapp||'').replace(/\D/g,'');
+      if(!num.includes(f.whats)) return false;
+    }
+    if(f.email && !String(p.email||'').toLowerCase().includes(f.email)) return false;
+    if(f.categoria && p.categoria !== f.categoria) return false;
+    if(f.regiao && p.regiao !== f.regiao) return false;
+    return true;
+  });
+}
+
+function descreverFiltrosPreCadastro(){
+  const f = obterFiltrosPreCadastro();
+  const partes = [];
+  if(f.busca) partes.push(`busca "${f.busca}"`);
+  if(f.whats) partes.push(`WhatsApp contém "${document.getElementById('fWhats').value}"`);
+  if(f.email) partes.push(`e-mail contém "${f.email}"`);
+  if(f.categoria) partes.push(`Você é: ${f.categoria}`);
+  if(f.regiao) partes.push(`Região: ${f.regiao}`);
+  return partes.length ? partes.join(' · ') : 'nenhum filtro aplicado (lista completa)';
+}
+
+function renderKpisPreCadastro(){
+  const todos = listaInscritos();
+  const filtrados = filtrarInscritos();
+  const hojeStr = new Date().toDateString();
+  const novosHoje = todos.filter(p=> new Date(p.dataCadastro).toDateString()===hojeStr).length;
+  const autorizam = todos.filter(p=> p.autorizaContato==='Sim').length;
+  document.getElementById('kpiGridPreCadastro').innerHTML = `
+    <div class="kpi teal"><div class="lbl">📝 Total de pré-cadastros</div><div class="val">${fmtNum(todos.length)}</div><div class="delta">desde a abertura do link</div></div>
+    <div class="kpi gold"><div class="lbl">🔎 Resultado do filtro</div><div class="val">${fmtNum(filtrados.length)}</div><div class="delta">de ${fmtNum(todos.length)} no total</div></div>
+    <div class="kpi green"><div class="lbl">🗓️ Novos hoje</div><div class="val">${fmtNum(novosHoje)}</div><div class="delta">cadastrados nas últimas 24h</div></div>
+    <div class="kpi purple"><div class="lbl">✅ Autorizam contato</div><div class="val">${fmtNum(autorizam)}</div><div class="delta">${fmtPct(autorizam, todos.length)} do total</div></div>
+  `;
+}
+
+function renderTabelaPreCadastro(){
+  const filtrados = filtrarInscritos();
+  const tbody = document.querySelector('#tabelaPreCadastro tbody');
+  document.getElementById('totalFiltradoPreCadastro').textContent = `(${fmtNum(filtrados.length)})`;
+  if(!filtrados.length){
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--muted);padding:26px 10px">Nenhum inscrito encontrado com os filtros atuais.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtrados.map(p=>`
+    <tr>
+      <td>${p.id||'—'}</td>
+      <td>${fmtDataCurta(p.dataCadastro)}</td>
+      <td>${p.nome||'—'}</td>
+      <td>${p.whatsapp||'—'}</td>
+      <td>${p.email||'—'}</td>
+      <td>${p.categoria||'—'}</td>
+      <td>${p.regiao||'—'}</td>
+      <td>${p.fgts||'—'}</td>
+      <td>${p.autorizaContato==='Sim' ? '✅ Sim' : '❌ Não'}</td>
+    </tr>`).join('');
+}
+
+function renderInscritos(){
+  renderKpisPreCadastro();
+  renderTabelaPreCadastro();
+}
+
+function limparFiltrosPreCadastro(){
+  ['fBusca','fWhats','fEmail'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fCategoria').value='';
+  document.getElementById('fRegiao').value='';
+  renderInscritos();
+}
+
+function atualizarResumoImpressao(){
+  document.getElementById('printData').textContent = new Date().toLocaleString('pt-BR');
+  document.getElementById('printFiltros').textContent = descreverFiltrosPreCadastro();
+  document.getElementById('printTotal').textContent = fmtNum(filtrarInscritos().length);
+}
+
+function imprimirPreCadastro(destino){
+  atualizarResumoImpressao();
+  toast(destino==='pdf' ? 'Na janela que abrir, escolha "Salvar como PDF" em Destino.' : 'Na janela que abrir, escolha sua impressora em Destino.', 'success');
+  setTimeout(()=>window.print(), 250);
+}
+
+function renderKpisVendas(){
+  const d = dados();
+  const totalLeads = Object.values(d.construtoraStats).reduce((a,c)=>a+c.leads,0);
+  document.getElementById('kpiGridVendas').innerHTML = `
+    <div class="kpi teal"><div class="lbl">👥 Leads no Feirão</div><div class="val">${fmtNum(totalLeads)}</div></div>
+    <div class="kpi gold"><div class="lbl">💳 Reservas</div><div class="val">${fmtNum(d.reservas)}</div><div class="delta">${fmtMoney(d.valorReservado)}</div></div>
+    <div class="kpi green"><div class="lbl">🏆 Vendas</div><div class="val">${fmtNum(d.vendas)}</div><div class="delta up">${fmtMoney(d.valorVendido)}</div></div>
+    <div class="kpi"><div class="lbl">🎯 Meta do Feirão</div><div class="val">50–60</div><div class="delta">unidades até dez/2026</div></div>
+  `;
+}
+
+function renderTabelaConstrutoras(){
+  const d = dados();
+  const linhas = Object.entries(d.construtoraStats).sort((a,b)=>b[1].vendas-a[1].vendas);
+  document.querySelector('#tabelaConstrutoras tbody').innerHTML = linhas.map(([nome,s])=>`
+    <tr>
+      <td><div class="constr-cell"><span class="constr-dot" style="background:${CONSTR_CORES[nome]||'#666'}"></span>${nome}</div></td>
+      <td class="tright mono">${fmtNum(s.leads)}</td>
+      <td class="tright mono">${fmtNum(s.simulacoes)}</td>
+      <td class="tright mono">${fmtNum(s.reservas)}</td>
+      <td class="tright mono">${fmtNum(s.vendas)}</td>
+      <td class="tright mono">${fmtMoney(s.valorVendido)}</td>
+      <td><span class="badge b-info">${fmtPct(s.vendas,s.leads)}</span></td>
+    </tr>`).join('');
+}
+
+function renderTabelaEmpreendimentos(){
+  const d = dados();
+  const linhas = [...d.empreendimentos].sort((a,b)=>b.vendas-a.vendas).slice(0,5);
+  document.querySelector('#tabelaEmpreendimentos tbody').innerHTML = linhas.map(e=>`
+    <tr>
+      <td style="font-weight:600">${e.nome}</td>
+      <td>${e.construtora}</td>
+      <td class="tright mono">${fmtNum(e.views)}</td>
+      <td class="tright mono">${fmtNum(e.reservas)}</td>
+      <td class="tright mono">${fmtNum(e.vendas)}</td>
+    </tr>`).join('');
+}
+
+function renderKpisAtend(){
+  const d = dados();
+  const online = d.atendentes.filter(a=>a.status==='online').length;
+  const leadsAtivos = d.atendentes.reduce((a,x)=>a+x.leadsAtivos,0);
+  const tempoMedio = Math.round(d.atendentes.reduce((a,x)=>a+x.tempoMedioResp,0)/d.atendentes.length);
+  document.getElementById('kpiGridAtend').innerHTML = `
+    <div class="kpi green"><div class="lbl">🎧 Atendentes online</div><div class="val">${online}/${d.atendentes.length}</div></div>
+    <div class="kpi teal"><div class="lbl">👥 Leads em atendimento</div><div class="val">${fmtNum(leadsAtivos)}</div></div>
+    <div class="kpi"><div class="lbl">⏱️ Tempo médio de resposta</div><div class="val">${tempoMedio}s</div></div>
+    <div class="kpi gold"><div class="lbl">✅ Fechamentos hoje</div><div class="val">${fmtNum(d.atendentes.reduce((a,x)=>a+x.fechados,0))}</div></div>
+  `;
+}
+
+function renderAtendentes(){
+  const d = dados();
+  document.getElementById('attGrid').innerHTML = d.atendentes.map(a=>`
+    <div class="att-card">
+      <div class="att-top">
+        <div class="att-ava">${a.nome.split(' ').map(p=>p[0]).join('').slice(0,2)}</div>
+        <div class="att-name">${a.nome}</div>
+        <span class="att-status">${a.status==='online'?'<span class="badge b-ok">online</span>':'<span class="badge b-muted">ausente</span>'}</span>
+      </div>
+      <div class="att-metrics">
+        <div>Leads<b>${a.leadsAtivos}</b></div>
+        <div>Resp. média<b>${a.tempoMedioResp}s</b></div>
+        <div>Fechados<b>${a.fechados}</b></div>
+      </div>
+    </div>`).join('');
+}
+
+function calcularAlertas(){
+  const d = dados();
+  const alertas = [];
+  if(CTRL.fairStatus==='suspenso'){
+    alertas.push({nivel:'high', ic:'🛑', titulo:'Feirão suspenso pela Diretoria', desc:`Motivo: ${CTRL.motivoSuspensao||'—'}. Reative assim que o problema for resolvido.`});
+  }
+  if(CTRL.fairStatus==='nao_iniciado' && new Date() >= EVENT_START){
+    alertas.push({nivel:'high', ic:'⏰', titulo:'Feirão ainda não foi iniciado', desc:'A data/hora prevista de abertura já chegou, mas o Feirão continua com status "não iniciado". Clique em "Iniciar Feirão" quando estiver pronto.'});
+  }
+  Object.entries(CTRL.modulos).forEach(([k,ativo])=>{
+    if(!ativo){
+      const m = MODULOS.find(x=>x.key===k);
+      alertas.push({nivel:'med', ic:'⏸️', titulo:`Módulo suspenso: ${m?m.nome:k}`, desc:'Suspenso manualmente pela Diretoria. Visitantes não conseguem usar esta funcionalidade agora.'});
+    }
+  });
+  const online = d.atendentes.filter(a=>a.status==='online').length;
+  const leadsAtivos = d.atendentes.reduce((a,x)=>a+x.leadsAtivos,0);
+  if(online>0 && leadsAtivos/online > 8){
+    alertas.push({nivel:'med', ic:'⏳', titulo:'Fila de atendimento alta', desc:`Média de ${(leadsAtivos/online).toFixed(1)} leads por atendente online. Considere chamar reforço.`});
+  }
+  const credPct = d.creditoEnviado>0 ? d.creditoAprovado/d.creditoEnviado : 1;
+  if(credPct < 0.5){
+    alertas.push({nivel:'med', ic:'📋', titulo:'Taxa de aprovação de crédito baixa', desc:`Apenas ${Math.round(credPct*100)}% das análises enviadas foram aprovadas até agora.`});
+  }
+  const conv = d.precadastros>0 ? d.vendas/d.precadastros : 0;
+  if(conv < 0.01 && d.precadastros>100){
+    alertas.push({nivel:'low', ic:'📉', titulo:'Conversão cadastro → venda abaixo do esperado', desc:'Considere reforçar o acompanhamento de leads pré-cadastrados que ainda não entraram na feira.'});
+  }
+  return alertas;
+}
+
+function renderAlertas(){
+  const alertas = calcularAlertas();
+  const el = document.getElementById('alertasBody');
+  const badge = document.getElementById('cAlertas');
+  if(alertas.length){ badge.classList.remove('hidden'); badge.textContent = alertas.length; }
+  else badge.classList.add('hidden');
+
+  if(!alertas.length){
+    el.innerHTML = `<div class="panel"><div class="empty-state"><div class="ic">✅</div><div class="t">Tudo sob controle</div><div class="s">Nenhum ponto crítico identificado no momento. Este radar varre a atividade do Feirão automaticamente.</div></div></div>`;
+    return;
+  }
+  el.innerHTML = alertas.map(a=>`
+    <div class="alert-card ${a.nivel}">
+      <div class="alert-ic">${a.ic}</div>
+      <div>
+        <div class="alert-title">${a.titulo}</div>
+        <div class="alert-desc">${a.desc}</div>
+      </div>
+    </div>`).join('');
+}
+
+function renderLinhaDoTempo(){
+  const hoje = new Date().toISOString().slice(0,10);
+  const labels = ['Ter · Dia 1','Qua · Dia 2','Qui · Dia 3','Sex · Dia 4'];
+  const d = dados();
+  document.getElementById('dayGrid').innerHTML = EVENT_DAYS.map((dt,i)=>{
+    const isToday = dt===hoje;
+    const fator = (i+1)/4;
+    const cadastros = Math.round(d.precadastros*0.06*(1+Math.random()*0.4));
+    const reservas = Math.round(d.reservas*fator*0.3*(1+Math.random()*0.3));
+    const vendas = Math.round(d.vendas*fator*0.3*(1+Math.random()*0.3));
+    return `<div class="day-card ${isToday?'today':''}">
+      <div class="day-num">${labels[i]}</div>
+      <div class="day-date">${dt.split('-').reverse().slice(0,2).join('/')}</div>
+      <div class="day-stats">
+        <div class="day-stat"><span>Cadastros</span><b>${fmtNum(cadastros)}</b></div>
+        <div class="day-stat"><span>Reservas</span><b>${fmtNum(reservas)}</b></div>
+        <div class="day-stat"><span>Vendas</span><b>${fmtNum(vendas)}</b></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderModulos(){
+  document.getElementById('moduleList').innerHTML = MODULOS.map(m=>{
+    const ativo = CTRL.modulos[m.key];
+    return `<div class="module-row">
+      <div class="module-ic">${m.ic}</div>
+      <div class="module-body">
+        <div class="module-name">${m.nome}</div>
+        <div class="module-desc">${m.desc}<br><span class="mono" style="color:var(--light)">${m.arquivo}</span></div>
+      </div>
+      <label class="switch">
+        <input type="checkbox" ${ativo?'checked':''} onchange="onToggleModulo('${m.key}', this.checked)">
+        <span class="slider"></span>
+      </label>
+    </div>`;
+  }).join('');
+}
+
+function renderAuditLog(){
+  const el = document.getElementById('auditLogBody');
+  if(!CTRL.auditLog.length){
+    el.innerHTML = `<div class="empty-state"><div class="ic">📋</div><div class="t">Nenhuma ação registrada ainda</div><div class="s">Suspensões e reativações aparecerão aqui.</div></div>`;
+    return;
+  }
+  el.innerHTML = [...CTRL.auditLog].reverse().map(a=>`
+    <div class="audit-item">
+      <div class="a-txt">${a.acao}${a.motivo?` — <i>${a.motivo}</i>`:''}</div>
+      <div class="a-meta">${new Date(a.ts).toLocaleString('pt-BR')} · ${a.autor}</div>
+    </div>`).join('');
+}
+
+function renderRibbonMini(){
+  const d = dados();
+  document.getElementById('rOnline').textContent = fmtNum(d.atividade5min);
+  document.getElementById('rCadastros').textContent = fmtNum(d.precadastros);
+  document.getElementById('rReservas').textContent = fmtNum(d.reservas);
+  document.getElementById('rVendas').textContent = fmtNum(d.vendas);
+}
+
+function renderAll(){
+  renderFonteTag();
+  renderRibbonStatus();
+  renderTimer();
+  renderRibbonMini();
+  renderKpisVisao();
+  renderFunnel();
+  renderFeed();
+  renderInscritos();
+  renderKpisVendas();
+  renderTabelaConstrutoras();
+  renderTabelaEmpreendimentos();
+  renderKpisAtend();
+  renderAtendentes();
+  renderAlertas();
+  renderLinhaDoTempo();
+  renderModulos();
+  renderAuditLog();
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AÇÕES DA DIRETORIA
+═══════════════════════════════════════════════════════════════ */
+function logAudit(acao, motivo){
+  CTRL.auditLog.push({acao, motivo:motivo||'', autor:'Diretoria WAL', ts:Date.now()});
+  salvarCtrl();
+}
+
+function abrirModalIniciar(){ document.getElementById('modalIniciar').classList.add('show'); }
+function confirmarInicio(){
+  CTRL.fairStatus = 'ativo';
+  CTRL.motivoSuspensao = '';
+  CTRL.mensagemVisitante = '';
+  MODULOS.forEach(m => CTRL.modulos[m.key] = true);
+  salvarCtrl();
+  logAudit('🟢 Feirão INICIADO', '');
+  publicarControleRemoto();
+  fecharModal('modalIniciar');
+  renderAll();
+  toast('Feirão iniciado! Todas as funcionalidades estão liberadas.', 'success');
+}
+
+function abrirModalSuspender(){
+  document.getElementById('motivoSuspensao').value='';
+  document.getElementById('msgVisitante').value='';
+  document.getElementById('confirmSuspender').value='';
+  document.getElementById('modalSuspender').classList.add('show');
+}
+function abrirModalRestaurar(){ document.getElementById('modalRestaurar').classList.add('show'); }
+function fecharModal(id){ document.getElementById(id).classList.remove('show'); }
+
+function confirmarSuspensao(){
+  const conf = document.getElementById('confirmSuspender').value.trim().toUpperCase();
+  if(conf !== 'SUSPENDER'){
+    toast('Digite SUSPENDER para confirmar.', 'danger');
+    return;
+  }
+  const motivo = document.getElementById('motivoSuspensao').value.trim();
+  const msg = document.getElementById('msgVisitante').value.trim();
+  CTRL.fairStatus = 'suspenso';
+  CTRL.motivoSuspensao = motivo || 'Não informado';
+  CTRL.mensagemVisitante = msg || 'Estamos em manutenção rápida. Volte em instantes.';
+  salvarCtrl();
+  logAudit('🛑 Feirão SUSPENSO', motivo);
+  publicarControleRemoto();
+  fecharModal('modalSuspender');
+  renderAll();
+  toast('Feirão suspenso. Visitantes verão a mensagem de manutenção.', 'danger');
+}
+
+function confirmarRestauracao(){
+  CTRL.fairStatus = 'ativo';
+  CTRL.motivoSuspensao = '';
+  CTRL.mensagemVisitante = '';
+  salvarCtrl();
+  logAudit('▶️ Feirão REATIVADO', '');
+  publicarControleRemoto();
+  fecharModal('modalRestaurar');
+  renderAll();
+  toast('Feirão reativado com sucesso.', 'success');
+}
+
+let _moduloAlvo = null;
+function onToggleModulo(key, ligado){
+  if(ligado){
+    CTRL.modulos[key] = true;
+    salvarCtrl();
+    const m = MODULOS.find(x=>x.key===key);
+    logAudit(`✅ Módulo reativado: ${m.nome}`, '');
+    publicarControleRemoto();
+    renderAll();
+    toast(`${m.nome} reativado.`, 'success');
+  } else {
+    _moduloAlvo = key;
+    const m = MODULOS.find(x=>x.key===key);
+    document.getElementById('moduloModalTitulo').textContent = `Suspender: ${m.nome}`;
+    document.getElementById('moduloModalDesc').textContent = `Visitantes não conseguirão mais usar "${m.nome}" até que a Diretoria reative este módulo.`;
+    document.getElementById('motivoModulo').value='';
+    document.getElementById('modalModulo').classList.add('show');
+    renderModulos(); // reverte visualmente até confirmar
+  }
+}
+document.getElementById('btnConfirmarModulo').addEventListener('click', ()=>{
+  if(!_moduloAlvo) return;
+  const motivo = document.getElementById('motivoModulo').value.trim();
+  CTRL.modulos[_moduloAlvo] = false;
+  salvarCtrl();
+  const m = MODULOS.find(x=>x.key===_moduloAlvo);
+  logAudit(`⏸️ Módulo suspenso: ${m.nome}`, motivo);
+  publicarControleRemoto();
+  fecharModal('modalModulo');
+  _moduloAlvo = null;
+  renderAll();
+  toast(`${m.nome} suspenso.`, 'danger');
+});
+
+function exportarAuditoria(){
+  const linhas = [['Data/Hora','Ação','Motivo','Autor']];
+  CTRL.auditLog.forEach(a=> linhas.push([new Date(a.ts).toLocaleString('pt-BR'), a.acao.replace(/[🛑▶️✅⏸️]/g,'').trim(), a.motivo||'', a.autor]));
+  const csv = linhas.map(l=>l.map(c=>`"${(c+'').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'auditoria-diretoria-wal.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TOASTS
+═══════════════════════════════════════════════════════════════ */
+function toast(msg, tipo){
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast' + (tipo?(' '+tipo):'');
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='.3s'; setTimeout(()=>el.remove(),300); }, 4200);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   NAVEGAÇÃO
+═══════════════════════════════════════════════════════════════ */
+function irPara(tab){
+  document.querySelectorAll('.sb-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('tab-'+tab).classList.remove('hidden');
+  document.querySelector('.sidebar').classList.remove('open');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   ATUALIZAÇÃO / POLLING
+═══════════════════════════════════════════════════════════════ */
+async function atualizarTudo(manual){
+  await carregarControleRemoto();
+  await carregarDadosReais();
+  await carregarInscritosReais();
+  if(_fonte==='demo') tickDemo();
+  renderAll();
+  if(manual) toast('Dados atualizados.', 'success');
+}
+
+let _pollTimer = null;
+function iniciarPolling(){
+  atualizarTudo(false);
+  _pollTimer = setInterval(()=>atualizarTudo(false), 20000);
+  setInterval(renderTimer, 30000);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   AUTENTICAÇÃO
+═══════════════════════════════════════════════════════════════ */
+function tentarEntrar(){
+  const val = document.getElementById('pinInput').value.trim();
+  if(val === PIN_DIRETORIA){
+    document.getElementById('authScreen').classList.add('hidden');
+    document.getElementById('appRoot').classList.remove('hidden');
+    sessionStorage.setItem('wal_diretor_auth','1');
+    iniciarPolling();
+  } else {
+    document.getElementById('pinError').style.display='block';
+  }
+}
+document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tentarEntrar(); });
+
+function sair(){
+  sessionStorage.removeItem('wal_diretor_auth');
+  clearInterval(_pollTimer);
+  document.getElementById('appRoot').classList.add('hidden');
+  document.getElementById('authScreen').classList.remove('hidden');
+  document.getElementById('pinInput').value='';
+}
+
+/* Sessão já autenticada nesta aba (evita pedir PIN de novo ao trocar de tab) */
+if(sessionStorage.getItem('wal_diretor_auth')==='1'){
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('appRoot').classList.remove('hidden');
+  iniciarPolling();
+}
+</script>
+</body>
+</html>
