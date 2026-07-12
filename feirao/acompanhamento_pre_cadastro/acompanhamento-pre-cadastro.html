@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL Imóveis · Acompanhamento de Pré-Cadastro · Feirão Online 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy-950:#081120;
+  --navy-900:#0b1a30;
+  --navy-800:#12274a;
+  --navy-700:#1c3768;
+  --navy-600:#28477f;
+  --gold-500:#c9a227;
+  --gold-400:#dab949;
+  --gold-100:#f6ecc9;
+  --cream:#f6f4ee;
+  --paper:#ffffff;
+  --ink:#1b2434;
+  --muted:#6b7486;
+  --line:#e4e1d6;
+  --success:#2f7d4f;   --success-bg:#e7f4ec;
+  --danger:#b03a2e;    --danger-bg:#fbe9e6;
+  --warning:#9a6b0a;   --warning-bg:#fbf0da;
+  --info:#2f5f9e;      --info-bg:#e8eefb;
+  --teal:#0e7490;      --teal-bg:#e4f2f5;
+  --purple:#6d4fa0;    --purple-bg:#efe9f7;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(10,20,40,.06),0 8px 24px -12px rgba(10,20,40,.18);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:100vh;
+  font-size:13.5px;
+  line-height:1.5;
+}
+h1,h2,h3,h4{font-family:Georgia,'Playfair Display',serif;margin:0;color:var(--navy-900);}
+::selection{background:var(--gold-100);}
+a{color:inherit;}
+button,input,select,textarea{font-family:'Inter',sans-serif;}
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:#d9d4c6;border-radius:8px;}
+
+/* ══════════════════ TELA DE ACESSO (PIN) ══════════════════ */
+#authScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:radial-gradient(1100px 650px at 12% -10%, rgba(201,162,39,.10), transparent 55%),
+             linear-gradient(150deg,var(--navy-950) 0%, var(--navy-800) 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+}
+.auth-wrap{width:100%;max-width:420px;}
+.auth-brand{text-align:center;margin-bottom:26px;}
+.auth-mark{font-family:Georgia,'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold-400);}
+.auth-tag{font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:#93a2bd;margin-top:6px;}
+.auth-title{font-size:15px;color:#dfe6f2;margin-top:16px;font-weight:600;}
+.auth-sub{font-size:12px;color:#93a2bd;margin-top:4px;line-height:1.5;}
+.pin-box{
+  background:var(--paper);border-radius:14px;padding:28px 26px;margin-top:22px;
+  box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+.pin-label{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
+.pin-field input{
+  width:100%;border:1.5px solid var(--line);border-radius:9px;padding:14px 16px;
+  font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:7px;text-align:center;
+  color:var(--navy-900);background:#fbfaf7;
+}
+.pin-field input:focus{outline:none;border-color:var(--gold-500);}
+#authError{
+  display:none;margin-top:12px;background:var(--danger-bg);color:var(--danger);
+  border-radius:8px;padding:9px 12px;font-size:12px;font-weight:600;
+}
+.pin-submit{
+  margin-top:16px;width:100%;background:var(--gold-500);color:var(--navy-950);border:none;
+  border-radius:9px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;
+}
+.pin-submit:hover{background:var(--gold-400);}
+.auth-levels{margin-top:18px;font-size:11px;color:var(--muted);text-align:center;line-height:1.7;}
+.auth-status{margin-top:16px;text-align:center;font-size:11px;color:#6f7d9c;}
+.auth-status .dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;background:var(--warning);}
+.auth-status .dot.on{background:var(--success);}
+.auth-status .dot.off{background:var(--danger);}
+
+/* ══════════════════ LAYOUT PRINCIPAL ══════════════════ */
+.app{display:none;min-height:100vh;}
+.app.show{display:flex;}
+
+.sidebar{
+  width:258px;min-width:258px;
+  background:linear-gradient(180deg,var(--navy-950),var(--navy-800));
+  color:#dfe6f2;display:flex;flex-direction:column;height:100vh;position:sticky;top:0;
+}
+.brand{padding:22px 20px 16px;border-bottom:1px solid rgba(255,255,255,.08);}
+.brand .mark{font-family:Georgia,serif;font-size:19px;letter-spacing:.3px;color:var(--gold-400);font-weight:700;}
+.brand .sub{font-size:10.5px;text-transform:uppercase;letter-spacing:1.3px;color:#93a2bd;margin-top:4px;}
+.user-card{margin:16px 18px 6px;padding:12px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:10px;}
+.user-card .nm{font-size:13px;font-weight:700;color:#fff;}
+.user-card .cg{font-size:11px;color:var(--gold-100);margin-top:2px;}
+.user-card .lv{
+  display:inline-block;margin-top:8px;font-size:9.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;
+  padding:3px 8px;border-radius:20px;background:rgba(219,185,73,.16);color:var(--gold-400);
+}
+nav.side-nav{padding:14px 12px;flex:1;overflow-y:auto;}
+nav.side-nav .grp-label{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:#5e6c89;padding:10px 10px 6px;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;margin-bottom:3px;
+  background:transparent;border:none;color:#c3cee2;border-radius:8px;font-size:13px;font-weight:500;
+  cursor:pointer;text-align:left;transition:.12s;
+}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#fff;}
+.nav-item.active{background:rgba(219,185,73,.13);color:var(--gold-400);font-weight:700;}
+.nav-item .ic{font-size:15px;width:18px;text-align:center;}
+.sidebar-footer{padding:14px 18px 18px;border-top:1px solid rgba(255,255,255,.08);}
+.btn-logout{
+  width:100%;background:rgba(176,58,46,.16);color:#f0a89e;border:1px solid rgba(176,58,46,.3);
+  border-radius:8px;padding:9px;font-size:12px;font-weight:600;cursor:pointer;
+}
+.btn-logout:hover{background:rgba(176,58,46,.26);}
+.sidebar-footer .conn{margin-top:10px;font-size:10.5px;color:#6f7d9c;display:flex;align-items:center;gap:5px;}
+.sidebar-footer .conn .dot{width:6px;height:6px;border-radius:50%;background:var(--warning);}
+.sidebar-footer .conn .dot.on{background:var(--success);}
+
+main{flex:1;min-width:0;padding:26px 32px 60px;}
+
+.pg-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.pg-title{font-size:23px;font-weight:700;color:var(--navy-900);}
+.pg-sub{color:var(--muted);font-size:12.5px;margin-top:4px;max-width:640px;}
+.pg-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+.btn{
+  border:none;border-radius:8px;padding:9px 15px;font-size:12.5px;font-weight:600;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap;
+}
+.btn.sm{padding:7px 12px;font-size:12px;}
+.btn.outline{background:transparent;border:1px solid var(--line);color:var(--navy-800);}
+.btn.outline:hover{background:#fff;border-color:var(--navy-700);}
+.btn.gold{background:var(--gold-500);color:var(--navy-950);}
+.btn.gold:hover{background:var(--gold-400);}
+.btn.navy{background:var(--navy-800);color:#fff;}
+.btn.navy:hover{background:var(--navy-700);}
+.btn.danger{background:var(--danger);color:#fff;}
+.btn.danger:hover{background:#94301f;}
+.btn.success{background:var(--success);color:#fff;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+
+/* KPI — mantidas idênticas ao painel Pré-Cadastro do dashboard-diretor-wal.html */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;margin-bottom:22px;}
+.kpi{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--gold-500);}
+.kpi.teal::before{background:var(--teal);}
+.kpi.gold::before{background:var(--gold-500);}
+.kpi.green::before{background:var(--success);}
+.kpi.purple::before{background:var(--purple);}
+.kpi .lbl{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.kpi .val{font-family:Georgia,serif;font-size:25px;font-weight:700;color:var(--navy-900);margin-top:5px;}
+.kpi .delta{font-size:11px;margin-top:5px;color:var(--muted);}
+
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:18px;}
+.panel-h{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:10px;}
+.panel-h h3{font-size:15px;}
+.panel-h .sub{font-size:11.5px;color:var(--muted);margin-top:2px;font-family:'Inter',sans-serif;}
+.panel-body{padding:16px 18px;overflow-x:auto;}
+
+.filter-grid{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end;}
+.field{display:flex;flex-direction:column;gap:5px;}
+.field label{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);}
+.field input,.field select{
+  border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;color:var(--ink);background:#fff;
+}
+.field input:focus,.field select:focus{outline:none;border-color:var(--gold-500);}
+
+table{width:100%;border-collapse:collapse;font-size:12.8px;}
+thead th{
+  text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);
+  padding:9px 12px;border-bottom:2px solid var(--line);white-space:nowrap;background:#fcfbf8;
+}
+tbody td{padding:10px 12px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle;}
+tbody tr:hover{background:#fbfaf5;}
+tbody tr:last-child td{border-bottom:none;}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.badge.on{background:var(--success-bg);color:var(--success);}
+.badge.off{background:var(--danger-bg);color:var(--danger);}
+.mono{font-family:'JetBrains Mono',monospace;}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--muted);flex-wrap:wrap;gap:8px;}
+.pager .btns{display:flex;gap:6px;}
+.pager button{
+  border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 11px;font-size:12px;cursor:pointer;color:var(--navy-800);
+}
+.pager button:disabled{opacity:.35;cursor:not-allowed;}
+
+.empty-hint{text-align:center;color:var(--muted);padding:30px 10px;font-size:12.5px;}
+
+/* Autorizados - só nível 1 e 2 */
+.cargo-tag{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--info-bg);color:var(--info);}
+.nivel-tag{font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:var(--gold-100);color:#8a6d10;text-transform:uppercase;}
+
+/* Modais */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(8,17,32,.55);z-index:800;
+  align-items:center;justify-content:center;padding:16px;
+}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:480px;box-shadow:0 30px 60px rgba(0,0,0,.35);max-height:92vh;display:flex;flex-direction:column;}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;}
+.modal-head h3{font-size:16px;}
+.modal-close{background:none;border:none;font-size:18px;cursor:pointer;color:var(--muted);}
+.modal-body{padding:20px;overflow-y:auto;}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-grid .full{grid-column:1/-1;}
+.pin-gen{display:flex;gap:8px;}
+.pin-gen input{flex:1;}
+
+/* Toast */
+#toastBox{position:fixed;bottom:20px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;}
+.toast{background:var(--navy-900);color:#fff;padding:11px 16px;border-radius:8px;font-size:12.5px;box-shadow:0 10px 25px rgba(0,0,0,.3);max-width:320px;animation:slideIn .2s ease;}
+.toast.green{background:var(--success);}
+.toast.red{background:var(--danger);}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0;}to{transform:translateX(0);opacity:1;}}
+
+.tabpanel{display:none;}
+.tabpanel.active{display:block;}
+
+/* Impressão */
+.print-only{display:none;}
+@media print{
+  .sidebar,#mobileNavToggle,.pg-actions,.filter-grid,.panel-h .btn,.pager{display:none !important;}
+  .print-only{display:block;}
+  main{padding:0;}
+  .panel{box-shadow:none;border:none;}
+}
+
+/* ══════════════════ RESPONSIVO ══════════════════ */
+#mobileNavToggle{display:none;position:fixed;top:14px;left:14px;z-index:610;width:38px;height:38px;background:var(--navy-900);border:1px solid rgba(255,255,255,.15);border-radius:8px;align-items:center;justify-content:center;color:var(--gold-400);font-size:16px;cursor:pointer;}
+#sidebarBackdrop{display:none;position:fixed;inset:0;background:rgba(6,12,24,.55);z-index:590;}
+#sidebarBackdrop.show{display:block;}
+@media(max-width:900px){
+  #mobileNavToggle{display:flex;}
+  .sidebar{position:fixed;top:0;left:-258px;z-index:600;transition:left .22s ease;box-shadow:10px 0 30px rgba(0,0,0,.35);}
+  .sidebar.open{left:0;}
+  main{padding:64px 18px 50px;}
+  .filter-grid{grid-template-columns:1fr 1fr;}
+  .form-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  main{padding:60px 14px 46px;}
+  .kpi .val{font-size:21px;}
+  .panel-h,.panel-body{padding:13px 14px;}
+  .filter-grid{grid-template-columns:1fr;}
+  .pg-title{font-size:19px;}
+}
+@media(max-width:380px){
+  .pin-box{padding:22px 18px;}
+  .pin-field input{font-size:19px;letter-spacing:5px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ TELA DE ACESSO ══════════════ -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="auth-mark">WAL Imóveis</div>
+      <div class="auth-tag">Feirão Online 2026 · Rio de Janeiro</div>
+      <div class="auth-title">Acompanhamento de Pré-Cadastro</div>
+      <div class="auth-sub">Monitor de acompanhamento — visualização somente leitura do período de pré-cadastro para o 1º Feirão Online.</div>
+    </div>
+    <div class="pin-box">
+      <div class="pin-label">Digite seu PIN de acesso</div>
+      <div class="pin-field">
+        <input type="password" id="pinInput" inputmode="numeric" maxlength="8" placeholder="••••" autocomplete="off">
+      </div>
+      <div id="authError"></div>
+      <button class="pin-submit" onclick="tentarLogin()">Entrar</button>
+      <div class="auth-levels">
+        Nível 1 · Desenvolvedor &nbsp;·&nbsp; Nível 2 · Gerente Comercial WAL<br>
+        Nível 3 · Viabilizadores, Superintendentes e Diretores das Construtoras
+      </div>
+    </div>
+    <div class="auth-status"><span class="dot" id="connDotAuth"></span><span id="connTxtAuth">Conectando à planilha de autorizados...</span></div>
+  </div>
+</div>
+
+<!-- Botão mobile -->
+<div id="mobileNavToggle" onclick="toggleMobileNav()">☰</div>
+<div id="sidebarBackdrop" onclick="toggleMobileNav()"></div>
+
+<!-- ══════════════ APP ══════════════ -->
+<div class="app" id="appRoot">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="mark">WAL Imóveis</div>
+      <div class="sub">Feirão Online 2026</div>
+    </div>
+    <div class="user-card">
+      <div class="nm" id="ucNome">—</div>
+      <div class="cg" id="ucCargo">—</div>
+      <div class="lv" id="ucNivel">—</div>
+    </div>
+    <nav class="side-nav" id="sideNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="sair()">Sair</button>
+      <div class="conn"><span class="dot" id="connDotApp"></span><span id="connTxtApp">planilha offline</span></div>
+    </div>
+  </aside>
+
+  <main>
+    <!-- ============ PAINEL DE ACOMPANHAMENTO ============ -->
+    <section class="tabpanel active" id="tab-painel">
+      <div class="print-only" id="printSummary">
+        <div style="font-family:Georgia,serif;font-size:20px;font-weight:700">WAL Imóveis · Feirão Online 2026</div>
+        <div style="font-size:13px;margin-top:2px">Acompanhamento de Pré-Cadastro</div>
+        <div style="font-size:11px;margin-top:10px">Gerado em: <span id="printData"></span></div>
+        <div style="font-size:11px;margin-top:2px">Filtros aplicados: <span id="printFiltros"></span></div>
+        <div style="font-size:11px;margin-top:2px">Total de registros neste relatório: <span id="printTotal"></span></div>
+        <hr style="margin:12px 0;border:none;border-top:1px solid #ccc">
+      </div>
+
+      <div class="pg-head">
+        <div>
+          <div class="pg-title">Pré-Cadastro do Feirão</div>
+          <div class="pg-sub">Acompanhamento em tempo real de todas as pessoas pré-cadastradas — apenas visualização, sem edição de dados.</div>
+        </div>
+        <div class="pg-actions">
+          <button class="btn sm outline" onclick="carregarInscritos(true)">🔄 Atualizar</button>
+          <button class="btn sm outline" onclick="exportarCsv()">⬇️ Exportar CSV</button>
+          <button class="btn sm gold" onclick="imprimir()">🖨️ Imprimir / PDF</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="kpiGrid"></div>
+
+      <div class="panel">
+        <div class="panel-h">
+          <div><h3>Consulta inteligente</h3><div class="sub">Combine os critérios abaixo para localizar um ou mais inscritos</div></div>
+          <button class="btn sm outline" onclick="limparFiltros()">Limpar filtros</button>
+        </div>
+        <div class="panel-body">
+          <div class="filter-grid">
+            <div class="field">
+              <label>Buscar por nome</label>
+              <input type="text" id="fBusca" placeholder="Digite um nome..." oninput="aplicarFiltros()">
+            </div>
+            <div class="field">
+              <label>Você é</label>
+              <select id="fCategoria" onchange="aplicarFiltros()"><option value="">Todos</option></select>
+            </div>
+            <div class="field">
+              <label>Região de interesse</label>
+              <select id="fRegiao" onchange="aplicarFiltros()"><option value="">Todas</option></select>
+            </div>
+            <div class="field">
+              <button class="btn navy" style="width:100%" onclick="aplicarFiltros()">Consultar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h">
+          <div><h3>Inscritos <span id="totalFiltrado" style="color:var(--muted);font-weight:400"></span></h3><div class="sub">Data, nome, categoria e região de interesse de cada pré-cadastro</div></div>
+        </div>
+        <div class="panel-body">
+          <table id="tabelaInscritos">
+            <thead><tr><th>Data</th><th>Nome</th><th>Você é</th><th>Região de interesse</th></tr></thead>
+            <tbody><tr><td colspan="4" class="empty-hint">⏳ Carregando pré-cadastros...</td></tr></tbody>
+          </table>
+          <div class="pager">
+            <div id="pagerInfo">—</div>
+            <div class="btns">
+              <button id="btnPrev" onclick="mudarPagina(-1)">← Anterior</button>
+              <button id="btnNext" onclick="mudarPagina(1)">Próxima →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ AUTORIZADOS (somente nível 1 e 2) ============ -->
+    <section class="tabpanel" id="tab-autorizados">
+      <div class="pg-head">
+        <div>
+          <div class="pg-title">Gestão de Acessos — Autorizados</div>
+          <div class="pg-sub">Cadastre, desabilite ou remova viabilizadores, superintendentes e diretores das construtoras/incorporadoras parceiras.</div>
+        </div>
+        <div class="pg-actions">
+          <button class="btn sm outline" onclick="carregarAutorizados(true)">🔄 Atualizar</button>
+          <button class="btn sm gold" onclick="abrirModalNovo()">➕ Novo autorizado</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid" id="kpiGridAutorizados"></div>
+
+      <div class="panel">
+        <div class="panel-h">
+          <div><h3>Autorizados cadastrados</h3><div class="sub">PIN individual por pessoa — nível de acesso 3 (monitor)</div></div>
+        </div>
+        <div class="panel-body">
+          <table id="tabelaAutorizados">
+            <thead><tr><th>Nome</th><th>Cargo</th><th>Construtora</th><th>PIN</th><th>Incluído em</th><th>Último acesso</th><th>Status</th><th></th></tr></thead>
+            <tbody><tr><td colspan="8" class="empty-hint">⏳ Carregando autorizados...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal: novo autorizado -->
+<div class="modal-overlay" id="modalNovo">
+  <div class="modal">
+    <div class="modal-head"><h3>Novo autorizado</h3><button class="modal-close" onclick="fecharModal('modalNovo')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="field full">
+          <label>Nome completo</label>
+          <input type="text" id="nNome" placeholder="Ex.: João Almeida">
+        </div>
+        <div class="field">
+          <label>Cargo</label>
+          <select id="nCargo">
+            <option value="Viabilizador/Ger. Imob.">Viabilizador / Ger. Imob.</option>
+            <option value="Superintendente">Superintendente</option>
+            <option value="Diretor">Diretor</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Construtora / Incorporadora</label>
+          <select id="nConstrutora"></select>
+        </div>
+        <div class="field full">
+          <label>PIN de acesso (4 a 6 dígitos)</label>
+          <div class="pin-gen">
+            <input type="text" id="nPin" maxlength="6" placeholder="0000" class="mono">
+            <button class="btn outline" onclick="gerarPin()">🎲 Gerar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn outline" onclick="fecharModal('modalNovo')">Cancelar</button>
+      <button class="btn gold" onclick="salvarNovoAutorizado()">Salvar autorizado</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: confirmar exclusão -->
+<div class="modal-overlay" id="modalExcluir">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-head"><h3>Excluir autorizado</h3><button class="modal-close" onclick="fecharModal('modalExcluir')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--ink)">Tem certeza que deseja excluir <strong id="excluirNomeAlvo">—</strong>? Esta ação remove o acesso definitivamente e não pode ser desfeita. Se preferir apenas bloquear o acesso temporariamente, use "Desabilitar" em vez de excluir.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn outline" onclick="fecharModal('modalExcluir')">Cancelar</button>
+      <button class="btn danger" onclick="confirmarExclusao()">Excluir definitivamente</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastBox"></div>
+
+<script>
+/* ══════════════════════════════════════════════════
+   CONFIGURAÇÃO — ajuste estes valores conforme seu ambiente
+══════════════════════════════════════════════════ */
+const PLANILHA_ID          = "1fSGrDRVBcoZUtz_4WLYWrNQn5-Vg-oafG7uH2ytJtx0"; // planilha "Pre Cadastro 1 Feirao WAL" (conta wal@walservidor.com.br)
+const ABA_INSCRITOS        = "INSCRITOS";
+const ABA_AUTORIZADOS      = "AUTORIZADOS";
+const APPS_SCRIPT_URL      = "COLE_AQUI_A_URL_DO_APPS_SCRIPT_AUTORIZADOS"; // Web App do arquivo apps-script-autorizados.gs (doPost)
+
+const PIN_DESENVOLVEDOR    = "199019"; // PIN fixo do Nível 1 — troque por um valor só seu
+const PIN_GERENTE_COMERCIAL= "500500"; // PIN fixo do Nível 2 — troque quando definir o PIN real do Gerente Comercial
+
+const CONSTRUTORAS = ["RIVA","Cury","Cyrela/RJZ","Emccamp","Calper","BRZ","Tegra","Even","Luving","Domma"];
+
+/* ══════════════════════════════════════════════════
+   ESTADO
+══════════════════════════════════════════════════ */
+let _inscritos = [];
+let _autorizados = [];
+let _session = null;       // {nivel, nome, cargo, construtora, pin}
+let _pagina = 1;
+const POR_PAGINA = 50;
+let _excluirAlvoId = null;
+let _sheetOnline = false;
+
+/* ══════════════════════════════════════════════════
+   LEITURA DA PLANILHA — padrão gvizJsonp (somente leitura, sem CORS)
+══════════════════════════════════════════════════ */
+function gvizJsonp(id, sheet){
+  return new Promise((resolve, reject) => {
+    if(!id || id.indexOf("COLE_AQUI") === 0){ reject(new Error("Planilha não configurada")); return; }
+    const cbName = "gviz_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+    const script = document.createElement("script");
+    const timer = setTimeout(() => { cleanup(); reject(new Error("Tempo esgotado ao consultar a planilha")); }, 12000);
+    function cleanup(){ clearTimeout(timer); delete window[cbName]; script.parentNode && script.parentNode.removeChild(script); }
+    window[cbName] = data => { cleanup(); resolve(data); };
+    script.src = "https://docs.google.com/spreadsheets/d/" + id + "/gviz/tq?tqx=out:json;responseHandler:" + cbName + "&sheet=" + encodeURIComponent(sheet) + "&_=" + Date.now();
+    script.onerror = () => { cleanup(); reject(new Error("Erro ao carregar a planilha")); };
+    document.head.appendChild(script);
+  });
+}
+
+function celula(row, i){
+  const c = row.c && row.c[i];
+  if(!c) return "";
+  if(c.f) return c.f;
+  return c.v === null || c.v === undefined ? "" : c.v;
+}
+
+function parseDataCelula(v){
+  if(!v) return null;
+  if(typeof v === "string" && v.indexOf("Date(") === 0){
+    const nums = v.replace("Date(","").replace(")","").split(",").map(Number);
+    return new Date(nums[0], nums[1], nums[2], nums[3]||0, nums[4]||0, nums[5]||0);
+  }
+  const d = new Date(v);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/* ══════════════════════════════════════════════════
+   AUTORIZADOS — parse + carregamento
+══════════════════════════════════════════════════ */
+function parseAutorizados(table){
+  if(!table || !table.rows) return [];
+  return table.rows.map(row => ({
+    id:            celula(row,0),
+    nome:          celula(row,1),
+    cargo:         celula(row,2),
+    construtora:   celula(row,3),
+    pin:           String(celula(row,4)||"").trim(),
+    dataInclusao:  parseDataCelula(celula(row,5)),
+    dataUltimoAcesso: parseDataCelula(celula(row,6)),
+    status:        (celula(row,7) || "Ativo")
+  })).filter(a => a.id);
+}
+
+async function carregarAutorizados(manual){
+  try{
+    const json = await gvizJsonp(PLANILHA_ID, ABA_AUTORIZADOS);
+    _autorizados = parseAutorizados(json.table);
+    _sheetOnline = true;
+    setConn(true);
+    if(manual) toast("✅ Lista de autorizados atualizada", "green");
+  }catch(e){
+    _sheetOnline = false;
+    setConn(false);
+    if(manual) toast("❌ " + e.message, "red");
+  }
+  if(_session && (_session.nivel===1 || _session.nivel===2)) renderAutorizados();
+}
+
+function setConn(online){
+  const dots = [document.getElementById("connDotAuth"), document.getElementById("connDotApp")];
+  const txts = [document.getElementById("connTxtAuth"), document.getElementById("connTxtApp")];
+  dots.forEach(d => d && (d.className = "dot " + (online ? "on" : "off")));
+  if(txts[0]) txts[0].textContent = online ? "Planilha de autorizados conectada" : "Planilha de autorizados offline";
+  if(txts[1]) txts[1].textContent = online ? "planilha conectada" : "planilha offline";
+}
+
+/* ══════════════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════════════ */
+async function tentarLogin(){
+  const pin = document.getElementById("pinInput").value.trim();
+  const errEl = document.getElementById("authError");
+  errEl.style.display = "none";
+  if(!pin){ mostrarErroLogin("Digite seu PIN para continuar."); return; }
+
+  if(pin === PIN_DESENVOLVEDOR){
+    iniciarSessao({nivel:1, nome:"Antonio", cargo:"Desenvolvedor / Diretor WAL", construtora:"WAL Imóveis", pin});
+    return;
+  }
+  if(pin === PIN_GERENTE_COMERCIAL){
+    iniciarSessao({nivel:2, nome:"Gerente Comercial", cargo:"Gerente Comercial WAL", construtora:"WAL Imóveis", pin});
+    return;
+  }
+
+  // Nível 3 — procurar na lista de autorizados carregada da planilha
+  if(!_autorizados.length){
+    try{ await carregarAutorizados(false); }catch(e){}
+  }
+  const achado = _autorizados.find(a => a.pin === pin);
+  if(!achado){
+    mostrarErroLogin("PIN inválido. Verifique o número ou fale com a WAL Imóveis.");
+    return;
+  }
+  if(String(achado.status).toLowerCase().indexOf("desab") === 0){
+    mostrarErroLogin("Este acesso foi desabilitado. Fale com a WAL Imóveis para reativação.");
+    return;
+  }
+  iniciarSessao({nivel:3, nome:achado.nome, cargo:achado.cargo, construtora:achado.construtora, pin, id:achado.id});
+  registrarAcesso(pin);
+}
+
+function mostrarErroLogin(msg){
+  const errEl = document.getElementById("authError");
+  errEl.textContent = msg;
+  errEl.style.display = "block";
+}
+
+function iniciarSessao(session){
+  _session = session;
+  sessionStorage.setItem("wal_acompanhamento_session", JSON.stringify(session));
+  entrarNoApp();
+}
+
+function entrarNoApp(){
+  document.getElementById("authScreen").style.display = "none";
+  document.getElementById("appRoot").classList.add("show");
+  document.getElementById("ucNome").textContent = _session.nome;
+  document.getElementById("ucCargo").textContent = _session.cargo + (_session.construtora && _session.construtora!=="WAL Imóveis" ? " · " + _session.construtora : "");
+  document.getElementById("ucNivel").textContent = "Nível " + _session.nivel;
+  montarMenu();
+  carregarInscritos(false);
+  if(_session.nivel === 1 || _session.nivel === 2) carregarAutorizados(false);
+}
+
+function montarMenu(){
+  const nav = document.getElementById("sideNav");
+  let html = '<button class="nav-item active" data-tab="painel" onclick="mudarTab(\'painel\')"><span class="ic">📊</span> Painel de Pré-Cadastro</button>';
+  if(_session.nivel === 1 || _session.nivel === 2){
+    html += '<button class="nav-item" data-tab="autorizados" onclick="mudarTab(\'autorizados\')"><span class="ic">🔑</span> Autorizados</button>';
+  }
+  nav.innerHTML = html;
+}
+
+function mudarTab(tab){
+  document.querySelectorAll(".tabpanel").forEach(t => t.classList.remove("active"));
+  document.getElementById("tab-" + tab).classList.add("active");
+  document.querySelectorAll(".nav-item").forEach(b => b.classList.toggle("active", b.dataset.tab === tab));
+  if(window.innerWidth <= 900) toggleMobileNav(true);
+}
+
+function sair(){
+  sessionStorage.removeItem("wal_acompanhamento_session");
+  location.reload();
+}
+
+/* ══════════════════════════════════════════════════
+   INSCRITOS — parse + carregamento + KPIs + filtros + tabela
+══════════════════════════════════════════════════ */
+function parseInscritos(table){
+  if(!table || !table.rows) return [];
+  // Colunas da aba INSCRITOS: ID, DATA_INCLUSAO, NOME, WHATSAPP, EMAIL, INSTITUICAO, REGIAO_INTERESSE, TEM_FGTS, AUTORIZA_CONTATO
+  return table.rows.map(row => ({
+    id: celula(row,0),
+    data: parseDataCelula(celula(row,1)),
+    nome: celula(row,2),
+    categoria: celula(row,5),   // "Você é" = INSTITUICAO
+    regiao: celula(row,6),
+    autorizaContato: celula(row,8)
+  })).filter(p => p.id || p.nome);
+}
+
+async function carregarInscritos(manual){
+  const tbody = document.querySelector("#tabelaInscritos tbody");
+  if(manual) tbody.innerHTML = '<tr><td colspan="4" class="empty-hint">⏳ Atualizando...</td></tr>';
+  try{
+    const json = await gvizJsonp(PLANILHA_ID, ABA_INSCRITOS);
+    _inscritos = parseInscritos(json.table);
+    _sheetOnline = true;
+    setConn(true);
+    popularFiltros();
+    _pagina = 1;
+    renderKpis();
+    renderTabela();
+    if(manual) toast("✅ Pré-cadastros atualizados: " + _inscritos.length, "green");
+  }catch(e){
+    _sheetOnline = false;
+    setConn(false);
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-hint">❌ ' + e.message + '<br><span style="color:var(--muted)">Verifique a configuração da planilha (PLANILHA_ID) no topo do arquivo.</span></td></tr>';
+    document.getElementById("kpiGrid").innerHTML = "";
+    if(manual) toast("❌ " + e.message, "red");
+  }
+}
+
+function popularFiltros(){
+  const categorias = [...new Set(_inscritos.map(p => p.categoria).filter(Boolean))].sort();
+  const regioes = [...new Set(_inscritos.map(p => p.regiao).filter(Boolean))].sort();
+  const selCat = document.getElementById("fCategoria");
+  const selReg = document.getElementById("fRegiao");
+  const valCat = selCat.value, valReg = selReg.value;
+  selCat.innerHTML = '<option value="">Todos</option>' + categorias.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+  selReg.innerHTML = '<option value="">Todas</option>' + regioes.map(r => `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`).join("");
+  selCat.value = valCat; selReg.value = valReg;
+}
+
+function filtrarInscritos(){
+  const busca = (document.getElementById("fBusca").value||"").toLowerCase().trim();
+  const cat = document.getElementById("fCategoria").value;
+  const reg = document.getElementById("fRegiao").value;
+  return _inscritos.filter(p => {
+    if(busca && !(p.nome||"").toLowerCase().includes(busca)) return false;
+    if(cat && p.categoria !== cat) return false;
+    if(reg && p.regiao !== reg) return false;
+    return true;
+  }).sort((a,b) => (b.data?b.data.getTime():0) - (a.data?a.data.getTime():0));
+}
+
+function renderKpis(){
+  const todos = _inscritos;
+  const filtrados = filtrarInscritos();
+  const hojeStr = new Date().toDateString();
+  const novosHoje = todos.filter(p => p.data && p.data.toDateString() === hojeStr).length;
+  const autorizam = todos.filter(p => String(p.autorizaContato).toLowerCase() === "sim").length;
+  document.getElementById("kpiGrid").innerHTML = `
+    <div class="kpi teal"><div class="lbl">📝 Total de pré-cadastros</div><div class="val">${fmtNum(todos.length)}</div><div class="delta">desde a abertura do link</div></div>
+    <div class="kpi gold"><div class="lbl">🔎 Resultado do filtro</div><div class="val">${fmtNum(filtrados.length)}</div><div class="delta">de ${fmtNum(todos.length)} no total</div></div>
+    <div class="kpi green"><div class="lbl">🗓️ Novos hoje</div><div class="val">${fmtNum(novosHoje)}</div><div class="delta">cadastrados nas últimas 24h</div></div>
+    <div class="kpi purple"><div class="lbl">✅ Autorizam contato</div><div class="val">${fmtNum(autorizam)}</div><div class="delta">${fmtPct(autorizam, todos.length)} do total</div></div>
+  `;
+}
+
+function renderTabela(){
+  const filtrados = filtrarInscritos();
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+  if(_pagina > totalPaginas) _pagina = totalPaginas;
+  const inicio = (_pagina-1)*POR_PAGINA;
+  const pagina = filtrados.slice(inicio, inicio+POR_PAGINA);
+
+  document.getElementById("totalFiltrado").textContent = "(" + fmtNum(filtrados.length) + ")";
+  const tbody = document.querySelector("#tabelaInscritos tbody");
+  if(!filtrados.length){
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-hint">Nenhum inscrito encontrado com os filtros atuais.</td></tr>';
+  }else{
+    tbody.innerHTML = pagina.map(p => `
+      <tr>
+        <td>${fmtDataCurta(p.data)}</td>
+        <td>${escapeHtml(p.nome||"—")}</td>
+        <td>${escapeHtml(p.categoria||"—")}</td>
+        <td>${escapeHtml(p.regiao||"—")}</td>
+      </tr>`).join("");
+  }
+  document.getElementById("pagerInfo").textContent = filtrados.length
+    ? `Mostrando ${inicio+1}–${Math.min(inicio+POR_PAGINA, filtrados.length)} de ${fmtNum(filtrados.length)}`
+    : "—";
+  document.getElementById("btnPrev").disabled = _pagina <= 1;
+  document.getElementById("btnNext").disabled = _pagina >= totalPaginas;
+}
+
+function mudarPagina(delta){
+  _pagina += delta;
+  renderTabela();
+}
+
+function aplicarFiltros(){
+  _pagina = 1;
+  renderKpis();
+  renderTabela();
+}
+
+function limparFiltros(){
+  document.getElementById("fBusca").value = "";
+  document.getElementById("fCategoria").value = "";
+  document.getElementById("fRegiao").value = "";
+  aplicarFiltros();
+}
+
+function descreverFiltros(){
+  const busca = document.getElementById("fBusca").value;
+  const cat = document.getElementById("fCategoria").value;
+  const reg = document.getElementById("fRegiao").value;
+  const partes = [];
+  if(busca) partes.push("nome contém \"" + busca + "\"");
+  if(cat) partes.push("você é = " + cat);
+  if(reg) partes.push("região = " + reg);
+  return partes.length ? partes.join(" · ") : "nenhum filtro aplicado (lista completa)";
+}
+
+function imprimir(){
+  document.getElementById("printData").textContent = new Date().toLocaleString("pt-BR");
+  document.getElementById("printFiltros").textContent = descreverFiltros();
+  document.getElementById("printTotal").textContent = fmtNum(filtrarInscritos().length);
+  window.print();
+}
+
+function exportarCsv(){
+  const filtrados = filtrarInscritos();
+  const linhas = [["Data","Nome","Você é","Região de interesse"]];
+  filtrados.forEach(p => linhas.push([fmtDataCurta(p.data), p.nome||"", p.categoria||"", p.regiao||""]));
+  const csv = linhas.map(l => l.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(";")).join("\n");
+  const blob = new Blob(["\uFEFF" + csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = "pre-cadastro-feirao-" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+  toast("⬇️ CSV exportado", "green");
+}
+
+/* ══════════════════════════════════════════════════
+   AUTORIZADOS — render + CRUD (níveis 1 e 2)
+══════════════════════════════════════════════════ */
+function renderAutorizados(){
+  const ativos = _autorizados.filter(a => String(a.status).toLowerCase().indexOf("desab")!==0);
+  const desabilitados = _autorizados.length - ativos.length;
+  document.getElementById("kpiGridAutorizados").innerHTML = `
+    <div class="kpi teal"><div class="lbl">🔑 Total de autorizados</div><div class="val">${fmtNum(_autorizados.length)}</div><div class="delta">cadastrados até agora</div></div>
+    <div class="kpi green"><div class="lbl">✅ Acessos ativos</div><div class="val">${fmtNum(ativos.length)}</div><div class="delta">podem acessar o monitor</div></div>
+    <div class="kpi gold"><div class="lbl">🚫 Desabilitados</div><div class="val">${fmtNum(desabilitados)}</div><div class="delta">acesso bloqueado</div></div>
+  `;
+
+  const tbody = document.querySelector("#tabelaAutorizados tbody");
+  if(!_autorizados.length){
+    tbody.innerHTML = '<tr><td colspan="8" class="empty-hint">Nenhum autorizado cadastrado ainda. Clique em "Novo autorizado" para começar.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = _autorizados.map(a => {
+    const ativo = String(a.status).toLowerCase().indexOf("desab") !== 0;
+    return `<tr>
+      <td>${escapeHtml(a.nome||"—")}</td>
+      <td><span class="cargo-tag">${escapeHtml(a.cargo||"—")}</span></td>
+      <td>${escapeHtml(a.construtora||"—")}</td>
+      <td class="mono">${escapeHtml(a.pin||"—")}</td>
+      <td>${fmtDataCurta(a.dataInclusao)}</td>
+      <td>${a.dataUltimoAcesso ? fmtDataHora(a.dataUltimoAcesso) : "nunca acessou"}</td>
+      <td><span class="badge ${ativo?"on":"off"}">${ativo?"● Ativo":"● Desabilitado"}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn sm outline" onclick="toggleStatus('${a.id}', ${ativo})">${ativo?"Desabilitar":"Habilitar"}</button>
+        <button class="btn sm danger" onclick="abrirModalExcluir('${a.id}','${escapeHtml(a.nome||"")}')">Excluir</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+function abrirModalNovo(){
+  document.getElementById("nNome").value = "";
+  document.getElementById("nCargo").value = "Viabilizador/Ger. Imob.";
+  const selC = document.getElementById("nConstrutora");
+  selC.innerHTML = CONSTRUTORAS.map(c => `<option value="${c}">${c}</option>`).join("");
+  document.getElementById("nPin").value = "";
+  document.getElementById("modalNovo").classList.add("show");
+}
+
+function gerarPin(){
+  const pin = String(Math.floor(1000 + Math.random()*9000));
+  document.getElementById("nPin").value = pin;
+}
+
+function fecharModal(id){
+  document.getElementById(id).classList.remove("show");
+}
+
+async function salvarNovoAutorizado(){
+  const nome = document.getElementById("nNome").value.trim();
+  const cargo = document.getElementById("nCargo").value;
+  const construtora = document.getElementById("nConstrutora").value;
+  const pin = document.getElementById("nPin").value.trim();
+
+  if(!nome){ toast("⚠️ Informe o nome do autorizado", "red"); return; }
+  if(!/^[0-9]{4,6}$/.test(pin)){ toast("⚠️ O PIN deve ter de 4 a 6 dígitos numéricos", "red"); return; }
+  if(_autorizados.some(a => a.pin === pin) || pin===PIN_DESENVOLVEDOR || pin===PIN_GERENTE_COMERCIAL){
+    toast("⚠️ Este PIN já está em uso. Gere outro.", "red"); return;
+  }
+
+  const payload = {
+    tipo: "autorizado", operacao: "criar",
+    nome, cargo, construtora, pin,
+    solicitante: _session.nome
+  };
+
+  try{
+    await enviarAppsScript(payload);
+    toast("✅ Autorizado cadastrado. Pode levar alguns segundos para aparecer na lista.", "green");
+    fecharModal("modalNovo");
+    setTimeout(() => carregarAutorizados(true), 2500);
+  }catch(e){
+    toast("❌ " + e.message, "red");
+  }
+}
+
+async function toggleStatus(id, estaAtivo){
+  const payload = { tipo:"autorizado", operacao: estaAtivo ? "desabilitar" : "habilitar", id, solicitante:_session.nome };
+  try{
+    await enviarAppsScript(payload);
+    toast(estaAtivo ? "🚫 Acesso desabilitado" : "✅ Acesso reativado", "green");
+    // Reflete otimisticamente na tela enquanto a planilha não é reconsultada
+    const item = _autorizados.find(a => a.id === id);
+    if(item) item.status = estaAtivo ? "Desabilitado" : "Ativo";
+    renderAutorizados();
+    setTimeout(() => carregarAutorizados(false), 2500);
+  }catch(e){
+    toast("❌ " + e.message, "red");
+  }
+}
+
+function abrirModalExcluir(id, nome){
+  _excluirAlvoId = id;
+  document.getElementById("excluirNomeAlvo").textContent = nome || "este autorizado";
+  document.getElementById("modalExcluir").classList.add("show");
+}
+
+async function confirmarExclusao(){
+  if(!_excluirAlvoId) return;
+  const payload = { tipo:"autorizado", operacao:"excluir", id:_excluirAlvoId, solicitante:_session.nome };
+  try{
+    await enviarAppsScript(payload);
+    toast("🗑️ Autorizado excluído", "green");
+    _autorizados = _autorizados.filter(a => a.id !== _excluirAlvoId);
+    renderAutorizados();
+    fecharModal("modalExcluir");
+    setTimeout(() => carregarAutorizados(false), 2500);
+  }catch(e){
+    toast("❌ " + e.message, "red");
+  }
+  _excluirAlvoId = null;
+}
+
+function registrarAcesso(pin){
+  // Fire-and-forget: atualiza DATA_ULTIMO_ACESSO na planilha, sem bloquear o login
+  enviarAppsScript({ tipo:"autorizado", operacao:"acesso", pin }).catch(()=>{});
+}
+
+function enviarAppsScript(payload){
+  return new Promise((resolve, reject) => {
+    if(!APPS_SCRIPT_URL || APPS_SCRIPT_URL.indexOf("COLE_AQUI") === 0){
+      reject(new Error("APPS_SCRIPT_URL não configurada — veja apps-script-autorizados.gs"));
+      return;
+    }
+    fetch(APPS_SCRIPT_URL, {
+      method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"},
+      body: JSON.stringify(payload)
+    }).then(() => resolve(true)).catch(reject);
+  });
+}
+
+/* ══════════════════════════════════════════════════
+   UTILITÁRIOS
+══════════════════════════════════════════════════ */
+function fmtNum(n){ return Number(n||0).toLocaleString("pt-BR"); }
+function fmtPct(n, total){ return total ? Math.round(n/total*100) + "%" : "0%"; }
+function fmtDataCurta(d){ return d ? d.toLocaleDateString("pt-BR") : "—"; }
+function fmtDataHora(d){ return d ? d.toLocaleString("pt-BR", {day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}) : "—"; }
+function escapeHtml(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function toast(msg, cls){
+  const box = document.getElementById("toastBox");
+  const t = document.createElement("div");
+  t.className = "toast" + (cls ? " " + cls : "");
+  t.textContent = msg;
+  box.appendChild(t);
+  setTimeout(() => t.remove(), 4200);
+}
+
+function toggleMobileNav(forceClose){
+  const sb = document.getElementById("sidebar");
+  const bd = document.getElementById("sidebarBackdrop");
+  if(forceClose === true){ sb.classList.remove("open"); bd.classList.remove("show"); return; }
+  sb.classList.toggle("open");
+  bd.classList.toggle("show");
+}
+
+document.getElementById("pinInput").addEventListener("keydown", e => { if(e.key === "Enter") tentarLogin(); });
+
+/* ══════════════════════════════════════════════════
+   INICIALIZAÇÃO
+══════════════════════════════════════════════════ */
+(function init(){
+  carregarAutorizados(false); // pré-carrega lista de PINs para validar o login do nível 3
+  const salva = sessionStorage.getItem("wal_acompanhamento_session");
+  if(salva){
+    try{
+      _session = JSON.parse(salva);
+      entrarNoApp();
+    }catch(e){ sessionStorage.removeItem("wal_acompanhamento_session"); }
+  }
+})();
+</script>
+</body>
+</html>

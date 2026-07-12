@@ -5,6 +5,7 @@
     { "source": "/consultor", "destination": "/feirao/consultor/dashboard-feirao-atendente.html" },
     { "source": "/cliente", "destination": "/feirao/cliente/dashboard-feirao-lead.html" },
     { "source": "/agente", "destination": "/feirao/agente/dashboard-agente.html" },
-    { "source": "/diretoria", "destination": "/feirao/diretoria/dashboard-diretor-wal.html" }
+    { "source": "/diretoria", "destination": "/feirao/diretoria/dashboard-diretor-wal.html" },
+    { "source": "/acompanhamento_pre_cadastro", "destination": "/feirao/acompanhamento_pre_cadastro/acompanhamento-pre-cadastro.html" }
   ]
 }
