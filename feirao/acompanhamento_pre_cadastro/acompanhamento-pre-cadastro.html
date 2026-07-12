@@ -540,7 +540,7 @@ function parseAutorizados(table){
     dataInclusao:  parseDataCelula(celula(row,5)),
     dataUltimoAcesso: parseDataCelula(celula(row,6)),
     status:        (celula(row,7) || "Ativo")
-  })).filter(a => a.id);
+  })).filter(a => a.id && a.id !== "ID"); // ignora a linha-fantasma que o gviz devolve quando a aba só tem cabecalho
 }
 
 async function carregarAutorizados(manual){
@@ -658,7 +658,7 @@ function parseInscritos(table){
     categoria: celula(row,5),   // "Você é" = INSTITUICAO
     regiao: celula(row,6),
     autorizaContato: celula(row,8)
-  })).filter(p => p.id || p.nome);
+  })).filter(p => (p.id || p.nome) && p.id !== "ID"); // ignora a linha-fantasma que o gviz devolve quando a aba so tem cabecalho
 }
 
 async function carregarInscritos(manual){
