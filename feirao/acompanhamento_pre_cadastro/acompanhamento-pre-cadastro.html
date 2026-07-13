@@ -650,20 +650,55 @@ function sair(){
 ══════════════════════════════════════════════════ */
 function parseInscritos(table){
   if(!table || !table.rows) return [];
-  // Colunas da aba INSCRITOS: ID, DATA_INCLUSAO, NOME, WHATSAPP, EMAIL, INSTITUICAO, REGIAO_INTERESSE, TEM_FGTS, AUTORIZA_CONTATO
+  // Colunas da aba INSCRITOS: ID, DATA_INCLUSAO, NOME, WHATSAPP, EMAIL, INSTITUICAO, REGIAO_INTERESSE, TEM_FGTS, AUTORIZA_CONTATO, CPF, VOCE_E, CODIGO_AGENTE
   return table.rows.map(row => ({
     id: celula(row,0),
     data: parseDataCelula(celula(row,1)),
     nome: celula(row,2),
+    whatsapp: celula(row,3),
+    email: celula(row,4),
     categoria: celula(row,5),   // "Você é" = INSTITUICAO
     regiao: celula(row,6),
-    autorizaContato: celula(row,8)
+    fgts: celula(row,7),
+    autorizaContato: celula(row,8),
+    codigoAgente: celula(row,11)
   })).filter(p => (p.id || p.nome) && p.id !== "ID"); // ignora a linha-fantasma que o gviz devolve quando a aba so tem cabecalho
+}
+
+/* Colunas visíveis na tabela de Inscritos, conforme o nível de acesso */
+function colunasInscritos(){
+  if(_session && (_session.nivel===1 || _session.nivel===2)){
+    return [
+      {key:"id", label:"ID"},
+      {key:"data", label:"Data", val:p=>fmtDataCurta(p.data)},
+      {key:"nome", label:"Nome"},
+      {key:"whatsapp", label:"WhatsApp"},
+      {key:"email", label:"E-mail"},
+      {key:"categoria", label:"Você é"},
+      {key:"regiao", label:"Região de interesse"},
+      {key:"fgts", label:"Tem FGTS"},
+      {key:"autorizaContato", label:"Autoriza contato"},
+      {key:"codigoAgente", label:"Código do Agente"}
+    ];
+  }
+  return [
+    {key:"data", label:"Data", val:p=>fmtDataCurta(p.data)},
+    {key:"nome", label:"Nome"},
+    {key:"categoria", label:"Você é"},
+    {key:"regiao", label:"Região de interesse"}
+  ];
+}
+
+function renderCabecalhoInscritos(){
+  const cols = colunasInscritos();
+  document.querySelector("#tabelaInscritos thead tr").innerHTML = cols.map(c => `<th>${escapeHtml(c.label)}</th>`).join("");
+  return cols;
 }
 
 async function carregarInscritos(manual){
   const tbody = document.querySelector("#tabelaInscritos tbody");
-  if(manual) tbody.innerHTML = '<tr><td colspan="4" class="empty-hint">⏳ Atualizando...</td></tr>';
+  const colspanAtual = renderCabecalhoInscritos().length;
+  if(manual) tbody.innerHTML = '<tr><td colspan="' + colspanAtual + '" class="empty-hint">⏳ Atualizando...</td></tr>';
   try{
     const json = await gvizJsonp(PLANILHA_ID, ABA_INSCRITOS);
     _inscritos = parseInscritos(json.table);
@@ -677,7 +712,7 @@ async function carregarInscritos(manual){
   }catch(e){
     _sheetOnline = false;
     setConn(false);
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-hint">❌ ' + e.message + '<br><span style="color:var(--muted)">Verifique a configuração da planilha (PLANILHA_ID) no topo do arquivo.</span></td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + colspanAtual + '" class="empty-hint">❌ ' + e.message + '<br><span style="color:var(--muted)">Verifique a configuração da planilha (PLANILHA_ID) no topo do arquivo.</span></td></tr>';
     document.getElementById("kpiGrid").innerHTML = "";
     if(manual) toast("❌ " + e.message, "red");
   }
@@ -721,6 +756,7 @@ function renderKpis(){
 }
 
 function renderTabela(){
+  const cols = renderCabecalhoInscritos();
   const filtrados = filtrarInscritos();
   const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
   if(_pagina > totalPaginas) _pagina = totalPaginas;
@@ -730,14 +766,11 @@ function renderTabela(){
   document.getElementById("totalFiltrado").textContent = "(" + fmtNum(filtrados.length) + ")";
   const tbody = document.querySelector("#tabelaInscritos tbody");
   if(!filtrados.length){
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-hint">Nenhum inscrito encontrado com os filtros atuais.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="' + cols.length + '" class="empty-hint">Nenhum inscrito encontrado com os filtros atuais.</td></tr>';
   }else{
     tbody.innerHTML = pagina.map(p => `
       <tr>
-        <td>${fmtDataCurta(p.data)}</td>
-        <td>${escapeHtml(p.nome||"—")}</td>
-        <td>${escapeHtml(p.categoria||"—")}</td>
-        <td>${escapeHtml(p.regiao||"—")}</td>
+        ${cols.map(c => `<td>${escapeHtml((c.val ? c.val(p) : p[c.key]) || "—")}</td>`).join("")}
       </tr>`).join("");
   }
   document.getElementById("pagerInfo").textContent = filtrados.length
