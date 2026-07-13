@@ -121,7 +121,9 @@ function registrarAcesso(sheet, p) {
   const pins = sheet.getRange(2, 5, last - 1, 1).getValues().flat(); // coluna E = PIN
   const idx = pins.findIndex(v => String(v) === String(p.pin));
   if (idx === -1) return { ok: false, erro: "pin não encontrado" };
-  sheet.getRange(idx + 2, 7).setValue(new Date()); // coluna G = DATA_ULTIMO_ACESSO
+  const celulaAcesso = sheet.getRange(idx + 2, 7); // coluna G = DATA_ULTIMO_ACESSO
+  celulaAcesso.setNumberFormat("dd/MM/yyyy HH:mm:ss"); // garante que a coluna guarde e exiba data E hora
+  celulaAcesso.setValue(new Date());
   return { ok: true };
 }
 

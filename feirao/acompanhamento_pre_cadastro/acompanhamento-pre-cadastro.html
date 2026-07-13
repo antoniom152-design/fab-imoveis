@@ -516,22 +516,23 @@ function celula(row, i){
   return c.v === null || c.v === undefined ? "" : c.v;
 }
 
-// Para colunas de data: usa sempre o valor BRUTO (c.v), nunca o formatado (c.f).
-// c.f vem no formato brasileiro "dd/MM/yyyy", que new Date() não consegue interpretar
-// corretamente (tenta ler como mês/dia americano) — isso fazia parseDataCelula falhar
-// e o dashboard mostrar "nunca acessou" mesmo com a data certa na planilha.
-function celulaData(row, i){
-  const c = row.c && row.c[i];
-  return c ? c.v : null;
-}
-
+// Aceita: formato bruto do gviz "Date(y,m,d,h,mi,s)", texto formatado brasileiro
+// "dd/MM/yyyy" ou "dd/MM/yyyy HH:mm:ss" (o gviz às vezes só preserva a hora no
+// texto formatado, não no valor bruto), ou uma string ISO (usada em INSCRITOS).
+// Não usar o construtor genérico new Date("dd/MM/yyyy...") direto: o JS interpreta
+// como mês/dia americano e falha silenciosamente com dia > 12.
 function parseDataCelula(v){
   if(!v) return null;
-  if(typeof v === "string" && v.indexOf("Date(") === 0){
-    const nums = v.replace("Date(","").replace(")","").split(",").map(Number);
+  const s = String(v).trim();
+  if(s.indexOf("Date(") === 0){
+    const nums = s.replace("Date(","").replace(")","").split(",").map(Number);
     return new Date(nums[0], nums[1], nums[2], nums[3]||0, nums[4]||0, nums[5]||0);
   }
-  const d = new Date(v);
+  const br = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ ,]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);
+  if(br){
+    return new Date(+br[3], +br[2]-1, +br[1], +(br[4]||0), +(br[5]||0), +(br[6]||0));
+  }
+  const d = new Date(s);
   return isNaN(d.getTime()) ? null : d;
 }
 
@@ -546,8 +547,8 @@ function parseAutorizados(table){
     cargo:         celula(row,2),
     construtora:   celula(row,3),
     pin:           String(celula(row,4)||"").trim(),
-    dataInclusao:  parseDataCelula(celulaData(row,5)),
-    dataUltimoAcesso: parseDataCelula(celulaData(row,6)),
+    dataInclusao:  parseDataCelula(celula(row,5)),
+    dataUltimoAcesso: parseDataCelula(celula(row,6)),
     status:        (celula(row,7) || "Ativo")
   })).filter(a => a.id && a.id !== "ID"); // ignora a linha-fantasma que o gviz devolve quando a aba só tem cabecalho
 }
@@ -662,7 +663,7 @@ function parseInscritos(table){
   // Colunas da aba INSCRITOS: ID, DATA_INCLUSAO, NOME, WHATSAPP, EMAIL, INSTITUICAO, REGIAO_INTERESSE, TEM_FGTS, AUTORIZA_CONTATO, CPF, VOCE_E, CODIGO_AGENTE
   return table.rows.map(row => ({
     id: celula(row,0),
-    data: parseDataCelula(celulaData(row,1)),
+    data: parseDataCelula(celula(row,1)),
     nome: celula(row,2),
     whatsapp: celula(row,3),
     email: celula(row,4),
