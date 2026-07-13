@@ -398,6 +398,9 @@ src="https://www.facebook.com/tr?id=408029114553523&ev=PageView&noscript=1"
             <option value="Não sei">Não sei ainda</option>
           </select>
 
+          <label for="codigoAgente">Código do Agente (opcional)</label>
+          <input type="text" id="codigoAgente" name="codigoAgente" placeholder="Ex.: AG0001">
+
           <div class="consent">
             <input type="checkbox" id="consent" required>
             <p>Autorizo a WAL Consultoria Imobiliária a entrar em contato via WhatsApp/e-mail sobre o feirão e concordo com a <a href="#">Política de Privacidade</a>.</p>
@@ -479,6 +482,7 @@ src="https://www.facebook.com/tr?id=408029114553523&ev=PageView&noscript=1"
       categoria: document.getElementById('categoria').value,
       regiao: document.getElementById('regiao').value,
       fgts: document.getElementById('fgts').value,
+      codigoAgente: document.getElementById('codigoAgente').value,
       autorizaContato: document.getElementById('consent').checked,
       origem: 'pre-cadastro-feirao',
       dataCadastro: new Date().toISOString(),
