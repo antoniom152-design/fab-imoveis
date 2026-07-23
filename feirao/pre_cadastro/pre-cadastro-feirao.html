@@ -15,11 +15,11 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '408029114553523');
+fbq('init', '1384662989080982');
 fbq('track', 'PageView');
 </script>
 <noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=408029114553523&ev=PageView&noscript=1"
+src="https://www.facebook.com/tr?id=1384662989080982&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
 
@@ -239,7 +239,7 @@ src="https://www.facebook.com/tr?id=408029114553523&ev=PageView&noscript=1"
 (function(){{
   var WAL_CONTROLE_KEY = 'precadastro';
   // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
-  var WAL_CONTROLE_API_URL = 'COLOQUE_AQUI_A_URL_DO_APPS_SCRIPT_WAL_FEIRAO_OPERACIONAL';
+  var WAL_CONTROLE_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
   var LS_KEY = 'wal_diretor_v1';
 
   function lerLocal(){{
@@ -500,7 +500,7 @@ src="https://www.facebook.com/tr?id=408029114553523&ev=PageView&noscript=1"
     fetch(APPS_SCRIPT_WEBHOOK_URL, {
       method: 'POST',
       mode: 'no-cors',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'text/plain' }, // padrão WAL p/ Web Apps no-cors (application/json é descartado pelo navegador em no-cors)
       body: JSON.stringify(payload)
     })
     .catch(function(err){ console.warn('Erro no envio ao Apps Script', err); })
