@@ -2186,12 +2186,15 @@ async function abrirPropriedade(id){
     : '<span class="bdg ba" style="font-size:8px;margin-left:2px">🟡 demonstração</span>';
 }
 
-/* ════════════ COMPARTILHAR EMPREENDIMENTO ════════════ */
+/* ════════════ COMPARTILHAR EMPREENDIMENTO ════════════
+   Link fixo no domínio público (rota limpa /cliente, ver vercel.json e
+   feirao/materiais/estrutura-urls-feirao.html) — NÃO usa location.href,
+   que reflete de onde a página foi aberta (ex.: file:///... ao testar
+   localmente, ou uma URL de preview), e geraria um link que só abre no
+   computador de quem compartilhou, não em quem recebe. */
+const FEIRAO_SITE_URL = 'https://www.walservidor.com.br/cliente';
 function linkCompartilharImovel_(id){
-  const url=new URL(location.href);
-  url.search=''; url.hash='';
-  url.searchParams.set('imovel', id);
-  return url.toString();
+  return FEIRAO_SITE_URL + '?imovel=' + encodeURIComponent(id);
 }
 function compartilharImovel(id){
   const e=EMPREENDIMENTOS.find(x=>x.id===id); if(!e) return;
