@@ -536,6 +536,7 @@ function doGet(e) {
       case 'feirao_get_controle':        result = { ok: true, controle: lerControle_() }; break;
       case 'feirao_lista_participantes': result = feirao_listaParticipantes_(p); break;
       case 'feirao_login_verificar_codigo': result = feirao_loginVerificarCodigo_(p); break;
+      case 'feirao_compartilhar_email':  result = feirao_compartilharEmail_(p); break;
       case 'feirao_status_credito':      result = feirao_statusCredito_(p.protocolo || ''); break;
       case 'feirao_listar_analises_credito': result = feirao_listarAnalisesCredito_(p); break;
       case 'feirao_listar_mensagens':     result = feirao_listarMensagens_(p); break;
@@ -1215,6 +1216,21 @@ function feirao_mensagemResponder_(data) {
     aba.getRange(achado._row, 7, 1, 3).setValues([['respondida', data.resposta || '', agora_()]]);
     return { status: 'ok' };
   });
+}
+
+/* Compartilhamento de empreendimento por e-mail — botão "Compartilhar"
+   do dashboard do lead. Não usa mailto (que abriria o cliente de e-mail
+   do PRÓPRIO lead); envia de verdade pela fila/Brevo já usada para os
+   códigos OTP, com remetente wal@walservidor.com.br (BREVO_SENDER_EMAIL). */
+function feirao_compartilharEmail_(data) {
+  if (!validarSessaoLead_(data.email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var destinatario = normalizarEmail_(data.destinatario);
+  if (!destinatario) return { status: 'error', message: 'E-mail do destinatário obrigatório.' };
+  enfileirarNotificacao_('compartilhar_imovel', destinatario, {
+    assuntoDireto: data.assunto || 'Confira este imóvel — Feirão Online WAL',
+    corpoDireto: data.corpo || ''
+  });
+  return { status: 'ok' };
 }
 
 /* ══════════════════════ CHAT AO VIVO (polling) ═══════════════════════

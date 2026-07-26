@@ -1282,6 +1282,32 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   </div>
 </div>
 
+<!-- ═══ MODAL — COMPARTILHAR EMPREENDIMENTO ═══ -->
+<div class="modal-ov" id="modalCompartilhar">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-h">
+      <div class="modal-title" id="compartilharModalTitle" style="font-size:15px">Compartilhar</div>
+      <button class="modal-close" onclick="fecharModal('modalCompartilhar')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="compartilharOpcoes" style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn btn-full" style="justify-content:flex-start;gap:10px;padding:12px" onclick="compartilharWhatsApp()">💬 Enviar pelo WhatsApp</button>
+        <button class="btn btn-full" style="justify-content:flex-start;gap:10px;padding:12px" onclick="mostrarFormEmailCompartilhar()">✉️ Enviar por e-mail</button>
+        <button class="btn btn-full" style="justify-content:flex-start;gap:10px;padding:12px" onclick="compartilharCopiarLink()">📋 Copiar link</button>
+      </div>
+      <div id="compartilharFormEmail" style="display:none;flex-direction:column;gap:10px">
+        <div class="field-lbl">E-mail do destinatário</div>
+        <input class="field-inp" type="email" id="compartilharEmailInput" placeholder="amigo@email.com" onkeydown="if(event.key==='Enter'){event.preventDefault();enviarCompartilharEmail();}">
+        <div class="auth-err" id="compartilharEmailErr"></div>
+        <div style="display:flex;gap:8px;margin-top:2px">
+          <button class="btn" onclick="voltarOpcoesCompartilhar()">← Voltar</button>
+          <button class="btn btn-gold" style="flex:1" id="btnEnviarCompartilharEmail" onclick="enviarCompartilharEmail()">Enviar →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ════════════════════════════════════════════════════════════
    INTEGRAÇÃO COM CRM (Google Sheets + Apps Script)
@@ -1437,8 +1463,20 @@ const CORES_EMP_ = [['#0E7490','#155E75'],['#0369A1','#075985'],['#7C3AED','#5B2
 /* Converte os itens retornados por feirao_listar_empreendimentos (ver
    feirao_listarEmpreendimentos_ no apps-script-feirao-operacional.gs) no
    formato de exibição já usado pela vitrine/destaques deste dashboard. */
+/* Vira e frequentemente cola um link de COMPARTILHAMENTO do Drive
+   (.../file/d/ID/view) em URL_da_Imagem, que não funciona como <img>/
+   background direto — precisa do endpoint de conteúdo do Drive. Se não
+   for um link do Drive, devolve a URL como veio (já deve ser direta). */
+function normalizarUrlImagem_(url){
+  if(!url) return '';
+  const m=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if(m) return 'https://drive.google.com/thumbnail?id='+m[1]+'&sz=w1000';
+  const m2=url.match(/[?&]id=([^&]+)/);
+  if(m2 && url.indexOf('drive.google.com')!==-1) return 'https://drive.google.com/thumbnail?id='+m2[1]+'&sz=w1000';
+  return url;
+}
 function mapearEmpreendimentosApi(itens){
-  return itens.filter(e=>e.ativo!==false).map((e,i)=>{
+  return itens.filter(e=>e.ativo!==false && e.id).map((e,i)=>{
     const quartosMatch=(e.tipologia||'').match(/\d+/g);
     const quartos=quartosMatch?quartosMatch.map(Number).filter(n=>n>0&&n<10):[];
     const preco=Number(e.valorAPartirDe)||0;
@@ -1449,9 +1487,8 @@ function mapearEmpreendimentosApi(itens){
       precoMin: preco, precoMax: preco,
       entrega: e.entrega||'A combinar', disponivel: Number(e.qtdUnidades)||1, tipo: e.tipoImovel||'Novo',
       emoji:'🏢', cor1:CORES_EMP_[i%CORES_EMP_.length][0], cor2:CORES_EMP_[i%CORES_EMP_.length][1],
-      destaque: e.descricaoImovel || 'Direto do sistema WAL', urlImagem: e.urlImagem||'',
+      destaque: e.descricaoImovel || 'Direto do sistema WAL', urlImagem: normalizarUrlImagem_(e.urlImagem), linkDrive: e.linkDrive||'',
       destaquePaginaPrincipal: !!e.destaquePaginaPrincipal,
-      galeria:['🏢','🏠','🛋️'], video:false,
       vantagens:[e.condFeirao||'Condições especiais do feirão sujeitas a confirmação','Fale com a Sofia para detalhes atualizados deste imóvel'],
     };
   });
@@ -1469,6 +1506,7 @@ async function carregarImoveisDoSistema(){
   }catch(e){ console.warn('Não foi possível carregar empreendimentos do sistema, mantendo catálogo demo.', e); }
   setDataSourceTag();
   popularFiltros(); renderHomeDestaques(); renderVitrine();
+  abrirImovelDoLinkSeHouver_();
 }
 function recarregarImoveis(){
   toast('🔄 Atualizando catálogo do sistema...','');
@@ -1524,11 +1562,10 @@ const JORNADA_DEFS = [
 /* ════════════ ESTADO GLOBAL ════════════ */
 let LEAD = null;
 let _selectedPropId = null;
+let _compartilharPropId = null;
 let _selectedUnidade = null; // {empId,id,numero,blocoTorre,tipologia,valor} — id é o Id real da aba UNIDADES (ou sintético no fallback demo)
 let _unidadesAtuais = []; // unidades carregadas para o imóvel aberto no momento (feirao_listar_unidades ou fallback demo)
 let _fonteUnidades = 'demo'; // 'demo' | 'planilha'
-let _galeriaAtual = [];
-let _galeriaIdx = 0;
 let _simResults = null;
 let _simSistemaAtivo = 'cfiae';
 let _creditoState = { enviado:false, protocolo:null, dataLimite:null, liberado:false, valorAprovado:0, entradaMinima:0, documentos:{} };
@@ -2085,6 +2122,7 @@ function propCardHtml(e){
       <div class="prop-vant">✅ ${e.vantagens[0]}</div>
       <div class="prop-vant">✅ ${e.vantagens[1]||''}</div>
       <button class="btn btn-teal btn-sm btn-full" style="margin-top:10px" onclick="event.stopPropagation();abrirPropriedade('${e.id}')">Ver detalhes do feirão →</button>
+      <button class="btn btn-sm btn-full" style="margin-top:6px" onclick="event.stopPropagation();compartilharImovel('${e.id}')">🔗 Compartilhar</button>
     </div>
   </div>`;
 }
@@ -2104,15 +2142,18 @@ function renderHomeDestaques(){
 /* ════════════ DETALHE DO IMÓVEL (MODAL) ════════════ */
 async function abrirPropriedade(id){
   const e=EMPREENDIMENTOS.find(x=>x.id===id); if(!e) return;
-  _selectedPropId=id; _galeriaAtual=e.galeria; _galeriaIdx=0;
+  _selectedPropId=id;
   registrarEventoJornada('imovel_view','Visualizou o empreendimento '+e.nome);
   document.getElementById('propModalTitle').textContent=e.nome;
   const quartosTxt=e.quartos.map(q=>q+'q').join(' / ');
+  const heroBg = e.urlImagem
+    ? `background:linear-gradient(180deg,rgba(0,0,0,0),rgba(8,25,46,.4)),url('${e.urlImagem}') center/cover no-repeat`
+    : `background:linear-gradient(135deg,${e.cor1},${e.cor2})`;
   document.getElementById('propModalBody').innerHTML=`
-    <div class="gallery-main" id="galMain" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})">${e.galeria[0]}</div>
-    <div class="gallery-thumbs" id="galThumbs">
-      ${e.galeria.map((g,i)=>`<div class="g-thumb${i===0?' active':''}" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})" onclick="trocarFoto(${i})">${g}</div>`).join('')}
-      ${e.video?`<div class="g-thumb video" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})" onclick="toast('🎬 Vídeo institucional disponível nos materiais de apoio do feirão.','')">🎬</div>`:''}
+    <div class="gallery-main" style="${heroBg}">${e.urlImagem?'':e.emoji}</div>
+    <div class="sp" style="margin-top:10px">
+      ${e.linkDrive?`<a href="${e.linkDrive}" target="_blank" rel="noopener" class="bdg bt" style="text-decoration:none;cursor:pointer">📁 Ver fotos, vídeos e documentos completos deste empreendimento</a>`:''}
+      <button class="btn btn-sm" onclick="compartilharImovel('${e.id}')">🔗 Compartilhar</button>
     </div>
     <div class="sp mb14" style="margin-top:14px">
       <span class="bdg ${tipoBadgeClass(e.tipo)}">${e.tipo}</span><span class="bdg bo">${e.construtora}</span><span class="bdg bt">${e.cidade}/${e.uf}</span><span class="bdg bz">${e.bairro}</span><span class="bdg bg">${e.disponivel} unidades disponíveis</span>
@@ -2143,6 +2184,90 @@ async function abrirPropriedade(id){
   if(tag) tag.outerHTML = _fonteUnidades==='planilha'
     ? '<span class="bdg bg" style="font-size:8px;margin-left:2px">🟢 dados reais</span>'
     : '<span class="bdg ba" style="font-size:8px;margin-left:2px">🟡 demonstração</span>';
+}
+
+/* ════════════ COMPARTILHAR EMPREENDIMENTO ════════════ */
+function linkCompartilharImovel_(id){
+  const url=new URL(location.href);
+  url.search=''; url.hash='';
+  url.searchParams.set('imovel', id);
+  return url.toString();
+}
+function compartilharImovel(id){
+  const e=EMPREENDIMENTOS.find(x=>x.id===id); if(!e) return;
+  _compartilharPropId=id;
+  document.getElementById('compartilharModalTitle').textContent='Compartilhar '+e.nome;
+  voltarOpcoesCompartilhar();
+  abrirModal('modalCompartilhar');
+}
+function compartilharWhatsApp(){
+  const e=EMPREENDIMENTOS.find(x=>x.id===_compartilharPropId); if(!e) return;
+  const precoTxt=e.precoMax>e.precoMin?fmtBRL(e.precoMin)+' – '+fmtBRL(e.precoMax):'A partir de '+fmtBRL(e.precoMin);
+  const texto=`🏠 *${e.nome}* — ${e.construtora}\n${e.bairro}, ${e.cidade}/${e.uf}\n💰 ${precoTxt}\n\nConfira no 1º Feirão de Imóveis WAL:\n${linkCompartilharImovel_(e.id)}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(texto), '_blank');
+  fecharModal('modalCompartilhar');
+}
+/* Envia de verdade pela fila/Brevo (feirao_compartilhar_email no .gs,
+   remetente wal@walservidor.com.br) — não usa mailto porque isso só
+   abriria o cliente de e-mail do próprio lead, não envia nada sozinho.
+   Usa feiraoApiJsonp (GET, lê a resposta de verdade) em vez do POST
+   no-cors fire-and-forget do resto do app: aqui precisamos SABER se
+   deu certo para não mostrar "enviado" quando na verdade falhou (ex.:
+   backend ainda não publicado com esta ação, ou BREVO_API_KEY ausente). */
+function mostrarFormEmailCompartilhar(){
+  document.getElementById('compartilharOpcoes').style.display='none';
+  const form=document.getElementById('compartilharFormEmail');
+  form.style.display='flex';
+  document.getElementById('compartilharEmailErr').style.display='none';
+  const inp=document.getElementById('compartilharEmailInput');
+  inp.value=''; inp.focus();
+}
+function voltarOpcoesCompartilhar(){
+  document.getElementById('compartilharFormEmail').style.display='none';
+  document.getElementById('compartilharOpcoes').style.display='flex';
+}
+async function enviarCompartilharEmail(){
+  const e=EMPREENDIMENTOS.find(x=>x.id===_compartilharPropId); if(!e) return;
+  const inp=document.getElementById('compartilharEmailInput');
+  const destinatario=(inp.value||'').trim();
+  const errEl=document.getElementById('compartilharEmailErr');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinatario)){
+    errEl.textContent='Digite um e-mail válido.'; errEl.style.display='block'; return;
+  }
+  errEl.style.display='none';
+  const btn=document.getElementById('btnEnviarCompartilharEmail');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const assunto='Confira o imóvel '+e.nome+' — Feirão Online WAL';
+  const corpo=`Olá!\n\n${(LEAD&&LEAD.nome)?LEAD.nome+' encontrou':'Encontramos'} este imóvel no 1º Feirão de Imóveis WAL e achou que poderia te interessar:\n\n${e.nome} — ${e.construtora}\n${e.bairro}, ${e.cidade}/${e.uf}\n\nVeja os detalhes e as condições especiais do feirão:\n${linkCompartilharImovel_(e.id)}\n\nEquipe WAL Imóveis`;
+  const resp=await feiraoApiJsonp('feirao_compartilhar_email', {email:LEAD.email, sessionToken:LEAD.sessionToken, destinatario, assunto, corpo});
+  btn.disabled=false; btn.textContent='Enviar →';
+  if(resp && resp.status==='ok'){
+    toast('📧 E-mail enviado para '+destinatario+'!','green');
+    fecharModal('modalCompartilhar');
+  } else {
+    const msg = (resp && resp.message) ? resp.message : 'Não foi possível enviar agora. O backend do Feirão pode ainda não ter esta ação publicada.';
+    errEl.textContent=msg; errEl.style.display='block';
+    toast('❌ '+msg,'red');
+  }
+}
+function compartilharCopiarLink(){
+  if(!_compartilharPropId) return;
+  const link=linkCompartilharImovel_(_compartilharPropId);
+  navigator.clipboard?.writeText(link).then(()=>toast('🔗 Link copiado!','green')).catch(()=>toast('Copie manualmente: '+link,''));
+  fecharModal('modalCompartilhar');
+}
+/* Se o lead chegou por um link compartilhado (?imovel=ID), abre o
+   empreendimento automaticamente assim que o catálogo estiver carregado
+   — real ou demo, o que estiver disponível primeiro. Só roda uma vez. */
+let _deepLinkImovelAberto = false;
+function abrirImovelDoLinkSeHouver_(){
+  if(_deepLinkImovelAberto) return;
+  const idParam=new URLSearchParams(location.search).get('imovel');
+  if(!idParam) return;
+  const alvo=EMPREENDIMENTOS.find(x=>x.id===idParam);
+  if(!alvo) return;
+  _deepLinkImovelAberto=true;
+  abrirPropriedade(idParam);
 }
 
 /* ════════════ GRADE DE UNIDADES (APARTAMENTOS) ════════════
@@ -2221,11 +2346,6 @@ function selecionarUnidade(empId,unidadeId){
   toast('🏠 Unidade '+u.numero+' selecionada!','green');
   registrarJornada('unidade');
   salvarEstado();
-}
-function trocarFoto(i){
-  _galeriaIdx=i;
-  document.getElementById('galMain').textContent=_galeriaAtual[i];
-  document.querySelectorAll('#galThumbs .g-thumb').forEach((t,idx)=>t.classList.toggle('active',idx===i));
 }
 
 /* ════════════ SIMULADOR — LÓGICA DE CÁLCULO (SAC / PRICE / CFIAe / POUPEX) ════════════ */
