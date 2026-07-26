@@ -765,12 +765,22 @@ function feirao_loginVerificarCodigo_(data) {
     var tokenExpira = new Date(Date.now() + 24 * 3600000).toISOString();
     aba.getRange(linha, 4, 1, 3).setValues([[true, token, tokenExpira]]);
 
-    // Garante que o Lead já exista em PARTICIPANTES mesmo no primeiro login.
+    // PARTICIPANTES é a fonte de verdade de quem já é Lead cadastrado — não
+    // o localStorage do navegador do cliente. Sem isto, um Lead que loga de
+    // outro aparelho/navegador (ou limpou os dados do site) era tratado
+    // como "primeiro acesso" e tinha que recadastrar, mesmo já constando
+    // na planilha. Devolve os dados existentes para o cliente reconhecer.
     var abaPart = ss.getSheetByName(ABA_PARTICIPANTES);
-    if (acharLinhaPorChave_(abaPart, 'Email', email) === -1) {
+    var linhaPart = acharLinhaPorChave_(abaPart, 'Email', email);
+    if (linhaPart === -1) {
       abaPart.appendRow([email, data.nome || '', '', '', '', '', '', '', 'novo', agora_(), agora_()]);
+      return { status: 'ok', sessionToken: token, novo: true };
     }
-    return { status: 'ok', sessionToken: token };
+    var p = abaPart.getRange(linhaPart, 1, 1, 5).getValues()[0]; // Email, Nome, CPF, WhatsApp, Vinculo
+    return {
+      status: 'ok', sessionToken: token, novo: false,
+      nome: s_(p[1]), cpf: s_(p[2]), whatsapp: s_(p[3]), vinculo: s_(p[4])
+    };
   });
 }
 
@@ -1145,6 +1155,7 @@ function feirao_agendamento_(data) {
    texto estável antes de devolver ao dashboard. */
 function dataISO_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'yyyy-MM-dd') : s_(v); }
 function horaTexto_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'HH:mm') : s_(v); }
+function dataBR_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'dd/MM/yyyy') : s_(v); }
 
 /* Lista os agendamentos de visita para o painel do Atendente/Gerente —
    inclui as visitas que o próprio lead marcou pelo dashboard dele. */
@@ -1522,7 +1533,7 @@ function feirao_listarEmpreendimentos_(filtro) {
     return {
       id: s_(e.Id), nome: s_(e.Nome), construtoraId: s_(e.Construtora_ID), construtora: s_(e.Construtora),
       bairro: s_(e.Bairro), cidade: s_(e.Cidade), uf: s_(e.UF), tipoImovel: s_(e.Tipo_Imovel),
-      entrega: s_(e.Entrega), entrada: s_(e.Entrada), sinal: s_(e.Sinal), condicoes: s_(e.Condicoes),
+      entrega: dataBR_(e.Entrega), entrada: s_(e.Entrada), sinal: s_(e.Sinal), condicoes: s_(e.Condicoes),
       // Cond_Feirao agora é o TEXTO da condição especial (ex.: "5% de
       // desconto à vista"); linhas antigas com booleano viram texto vazio.
       condFeirao: (e.Cond_Feirao === true || e.Cond_Feirao === false) ? '' : s_(e.Cond_Feirao), criadoEm: e.Criado_em,

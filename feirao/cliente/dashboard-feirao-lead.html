@@ -1810,7 +1810,17 @@ async function doVerificarCodigo(){
     iniciarApp(true);
     return;
   }
-  // Primeiro acesso deste e-mail — pede nome/WhatsApp/vínculo antes de entrar.
+  // E-mail já cadastrado na planilha (PARTICIPANTES é a fonte de verdade,
+  // não o localStorage deste navegador) — acontece quando o cliente loga
+  // de outro aparelho/navegador ou limpou os dados do site. Usa os dados
+  // reais do cadastro em vez de pedir para recadastrar do zero.
+  if(resp.novo===false && resp.nome){
+    LEAD={nome:resp.nome, cpf:resp.cpf||'', email:_loginEmailPendente, tel:resp.whatsapp||'', vinculo:resp.vinculo||'', sessionToken};
+    iniciarApp(true);
+    return;
+  }
+  // Primeiro acesso deste e-mail (ou cadastro existente sem nome salvo) —
+  // pede nome/WhatsApp/vínculo antes de entrar.
   LEAD={nome:'',cpf:'',email:_loginEmailPendente,tel:'',vinculo:'',sessionToken};
   mostrarPassoAuth('stepCompletar');
 }
