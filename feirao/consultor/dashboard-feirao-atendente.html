@@ -521,7 +521,7 @@ async function sincronizarLeadsDoBackend_(){
   });
   await aplicarAgendamentosDoBackend_();
   saveState();
-  if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanel(currentPanel); updateNavBadges(); }
+  if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanelSeguro_(currentPanel); updateNavBadges(); }
 }
 /* Fase 3: puxa a aba AGENDAMENTOS_VISITA e aplica em lead.visita a visita
    confirmada mais recente de cada e-mail — inclusive as que o próprio
@@ -601,7 +601,7 @@ async function sincronizarCatalogoDoBackend_(){
   }
   if(mudou){
     saveState();
-    if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanel(currentPanel); }
+    if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanelSeguro_(currentPanel); }
   }
 }
 
@@ -803,6 +803,26 @@ function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(STATE)); }
 let STATE = loadState();
 let SESSION = null; // {tipo:'gerente'|'atendente', atendenteId, nome}
 let currentPanel = null;
+
+/* ═══════════════════════════════════════════════════════════
+   PROTEÇÃO CONTRA PERDA DE CADASTRO EM ANDAMENTO
+   A sincronização automática com a planilha (a cada 30s) precisa
+   re-renderizar o painel para mostrar dados novos, mas isso troca todo
+   o innerHTML de #mainArea — o que apagaria qualquer formulário aberto
+   (ex.: "Novo Empreendimento") ou preview de importação ainda não salvos.
+   mainAreaDirty vira true a cada digitação/seleção dentro de #mainArea
+   e só volta a false quando o próprio painel é redesenhado (ou seja,
+   quando o formulário já não existe mais para perder dado nenhum).
+   Toda atualização em segundo plano deve passar por renderPanelSeguro_,
+   nunca chamar renderPanel diretamente. */
+let mainAreaDirty = false;
+document.getElementById('mainArea').addEventListener('input', ()=>{ mainAreaDirty = true; });
+document.getElementById('mainArea').addEventListener('change', ()=>{ mainAreaDirty = true; });
+function renderPanelSeguro_(id){
+  if(mainAreaDirty) return false; // há um cadastro/edição em andamento — não sobrescreve
+  renderPanel(id);
+  return true;
+}
 let activeLeadId = null;
 let acompLeadAtendenteId = null;
 let filtroStatusLeads = 'todos';
@@ -915,10 +935,10 @@ function initShell(){
   goTo(nav[0].id);
   updateNavBadges();
   tickCountdown(); setInterval(tickCountdown,1000);
-  setInterval(()=>{ if(currentPanel) renderPanel(currentPanel); updateNavBadges(); }, 30000);
+  setInterval(()=>{ if(currentPanel) renderPanelSeguro_(currentPanel); updateNavBadges(); }, 30000);
   initChatWidgetAtendente();
   // Fases 1 e 2: carrega os dados reais da planilha ao entrar e re-sincroniza a cada 30s
-  sincronizarAtendentesDoBackend_().then(()=>{ if(currentPanel && currentPanel!=='leadDetail') renderPanel(currentPanel); });
+  sincronizarAtendentesDoBackend_().then(()=>{ if(currentPanel && currentPanel!=='leadDetail') renderPanelSeguro_(currentPanel); });
   sincronizarLeadsDoBackend_();
   sincronizarCatalogoDoBackend_();
   setInterval(()=>{ sincronizarLeadsDoBackend_(); sincronizarCatalogoDoBackend_(); }, 30000);
@@ -1053,6 +1073,7 @@ function renderPanel(id){
     leadDetail: renderLeadDetail
   };
   main.innerHTML = renderers[id] ? renderers[id]() : '<div class="empty">Painel não encontrado.</div>';
+  mainAreaDirty = false; // DOM acabou de ser recriado — não há mais nada digitado para perder
 }
 
 /* ═══════════════ GERENTE · VISÃO GERAL ═══════════════ */
@@ -1262,6 +1283,7 @@ function encaminharLead(leadId, atendenteId){
 function verLeadGerente(leadId){
   activeLeadId = leadId; currentPanel='leadDetail';
   document.getElementById('mainArea').innerHTML = renderLeadDetail();
+  mainAreaDirty = false;
   carregarDadosRemotosDoLead_(leadId);
 }
 
@@ -2664,7 +2686,7 @@ function renderMinhaFila(){
   </div>
   `;
 }
-function verLeadAtendente(leadId){ activeLeadId=leadId; currentPanel='leadDetail'; document.getElementById('mainArea').innerHTML = renderLeadDetail(); carregarDadosRemotosDoLead_(leadId); }
+function verLeadAtendente(leadId){ activeLeadId=leadId; currentPanel='leadDetail'; document.getElementById('mainArea').innerHTML = renderLeadDetail(); mainAreaDirty=false; carregarDadosRemotosDoLead_(leadId); }
 
 /* ═══════════════ ATENDENTE · AGENDA DE VISITA ═══════════════ */
 function renderAgendaVisitaAtendente(){
@@ -2773,6 +2795,7 @@ function filtrarUnidadesAtendente(campo, valor){
   filtroUnidadesAtendente[campo] = valor;
   const main = document.getElementById('mainArea');
   if(main) main.innerHTML = renderUnidadesAtendente();
+  mainAreaDirty = false;
 }
 
 /* ═══════════════ ATENDENTE · MEU DESEMPENHO ═══════════════ */
@@ -3351,7 +3374,7 @@ function adicionarNota(leadId){
   addHistorico(lead, 'nota', txt, SESSION.nome);
   saveState(); reopenLead(leadId);
 }
-function reopenLead(leadId){ activeLeadId=leadId; document.getElementById('mainArea').innerHTML = renderLeadDetail(); }
+function reopenLead(leadId){ activeLeadId=leadId; document.getElementById('mainArea').innerHTML = renderLeadDetail(); mainAreaDirty=false; }
 
 </script>
 <script src="../shared/chat-widget.js"></script>
