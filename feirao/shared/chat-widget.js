@@ -2,32 +2,39 @@
    WAL CHAT WIDGET — painel lateral de chat entre atendente e lead,
    embutido no próprio dashboard (substitui WhatsApp Web).
 
-   Backend: Apps Script WAL Feirao - Operacional.gs (ações
+   Backend: feirao/shared/apps-script-feirao-operacional.gs (ações
    feirao_chat_enviar / feirao_chat_buscar / feirao_chat_threads),
    mesma planilha "WAL Feirão — Dados Operacionais" já usada pelo
    resto do ecossistema. Transporte = polling (POST no-cors pra
    escrever, GET com callback JSONP pra ler — mesmo padrão já usado
    em dashboard-feirao-lead.html).
 
+   Thread = e-mail normalizado do lead (identidade unificada do
+   projeto — ver documentacao-tecnica-banco-de-dados.html §"Decisões
+   de design"). Antes era CPF; se você tiver integrações antigas
+   passando CPF em `threadId`, troque para o e-mail do lead.
+
    USO — modo cliente (uma conversa só, com o consultor):
      WalChatWidget.init({
        apiUrl: FEIRAO_API_URL,
        role: 'cliente',
-       threadId: cpfDoParticipante,   // string, só dígitos ou não (é limpo aqui)
-       nome: nomeDoParticipante
+       threadId: emailDoParticipante,   // e-mail do lead (chave única)
+       nome: nomeDoParticipante,
+       sessionToken: tokenDeSessaoOtp   // obtido após feirao_login_verificar_codigo
      });
 
    USO — modo atendente (inbox com várias conversas, uma por lead):
      WalChatWidget.init({
        apiUrl: FEIRAO_API_URL,
        role: 'atendente',
-       nome: nomeDoAtendente
+       nome: nomeDoAtendente,
+       authPin: pinDoAtendenteOuGerente  // exigido no servidor para listar threads/enviar
      });
 ═══════════════════════════════════════════════════════════════ */
 (function (global) {
   'use strict';
 
-  function soDigitos(v) { return String(v == null ? '' : v).replace(/\D/g, ''); }
+  function normalizarEmail(v) { return String(v == null ? '' : v).trim().toLowerCase(); }
 
   function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
@@ -116,7 +123,9 @@
     this.role     = opts.role === 'atendente' ? 'atendente' : 'cliente';
     this.nome     = opts.nome || (this.role === 'atendente' ? 'Consultor WAL' : 'Você');
     this.mode     = this.role === 'atendente' ? 'inbox' : 'single';
-    this.threadId = opts.threadId ? soDigitos(opts.threadId) : '';
+    this.threadId = opts.threadId ? normalizarEmail(opts.threadId) : '';
+    this.sessionToken = opts.sessionToken || ''; // cliente: token OTP verificado
+    this.authPin  = opts.authPin || '';           // atendente/gerente: PIN validado no servidor
     this.pollMs   = opts.pollMs || 5000;
 
     this.activeThread  = this.mode === 'single' ? this.threadId : null;
@@ -179,7 +188,7 @@
 
   WalChatWidget.prototype._carregarThreads = function () {
     var self = this;
-    return jsonp(this.apiUrl, 'feirao_chat_threads', {}).then(function (data) {
+    return jsonp(this.apiUrl, 'feirao_chat_threads', { authPin: this.authPin }).then(function (data) {
       var lista = (data && data.threads) || [];
       var totalNaoLidas = lista.reduce(function (acc, t) { return acc + (t.naoLidas || 0); }, 0);
       self.unread = self.panel.classList.contains('open') ? 0 : totalNaoLidas;
@@ -193,23 +202,23 @@
       }
       box.innerHTML = lista.map(function (t) {
         return '' +
-          '<div class="wal-chat-thread" data-cpf="' + escapeHtml(t.cpf) + '" data-nome="' + escapeHtml(t.nome) + '">' +
+          '<div class="wal-chat-thread" data-email="' + escapeHtml(t.email) + '" data-nome="' + escapeHtml(t.nome) + '">' +
             '<div class="wal-chat-thread-top">' +
-              '<span class="wal-chat-thread-name">' + escapeHtml(t.nome || t.cpf) + '</span>' +
+              '<span class="wal-chat-thread-name">' + escapeHtml(t.nome || t.email) + '</span>' +
               (t.naoLidas ? '<span class="wal-chat-thread-badge">' + t.naoLidas + '</span>' : '') +
             '</div>' +
             '<span class="wal-chat-thread-prev">' + escapeHtml(t.ultimaMensagem || '') + '</span>' +
           '</div>';
       }).join('');
       Array.prototype.forEach.call(box.querySelectorAll('.wal-chat-thread'), function (el) {
-        el.onclick = function () { self._abrirThread(el.getAttribute('data-cpf'), el.getAttribute('data-nome')); };
+        el.onclick = function () { self._abrirThread(el.getAttribute('data-email'), el.getAttribute('data-nome')); };
       });
     });
   };
 
-  WalChatWidget.prototype._abrirThread = function (cpf, nome) {
-    this.activeThread = soDigitos(cpf);
-    this.activeNome = nome || cpf;
+  WalChatWidget.prototype._abrirThread = function (email, nome) {
+    this.activeThread = normalizarEmail(email);
+    this.activeNome = nome || email;
     this.lastTimestamp = null;
     this._renderThreadShell(this.activeNome, true);
     this._poll(true);
@@ -259,7 +268,8 @@
     var self = this;
     this._pintarMensagem({ remetente: this.role, texto: texto, timestamp: new Date().toISOString(), nome: this.nome });
     post(this.apiUrl, 'feirao_chat_enviar', {
-      cpf: this.activeThread, nome: this.nome, remetente: this.role, texto: texto
+      email: this.activeThread, nome: this.nome, remetente: this.role, texto: texto,
+      sessionToken: this.sessionToken, authPin: this.authPin
     }).then(function () { self._poll(false); });
   };
 
@@ -282,7 +292,8 @@
     if (!this.activeThread) return Promise.resolve();
     var self = this;
     return jsonp(this.apiUrl, 'feirao_chat_buscar', {
-      cpf: this.activeThread, since: this.lastTimestamp || '', leitor: this.role
+      email: this.activeThread, since: this.lastTimestamp || '', leitor: this.role,
+      sessionToken: this.sessionToken || '', authPin: this.authPin || ''
     }).then(function (data) {
       var mensagens = (data && data.mensagens) || [];
       if (primeiraCarga) {

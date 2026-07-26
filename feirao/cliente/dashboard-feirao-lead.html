@@ -386,23 +386,150 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .af-bullets{display:flex;flex-wrap:wrap;gap:14px}
 .af-bullet{font-size:11px;color:var(--txt);display:flex;align-items:center;gap:6px}
 
+.mobile-nav-toggle{display:none;background:var(--surf2);border:1px solid var(--bdr2);color:var(--gold2);width:34px;height:34px;border-radius:8px;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0}
+.sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(4,10,20,.62);z-index:150;backdrop-filter:blur(1px)}
+.sidebar-backdrop.show{display:block}
+.card-b{overflow-x:auto}
+
 /* ══ RESPONSIVO ══ */
+/* Tablets em pé (iPad portrait ~768–900px) — a barra lateral vira uma
+   gaveta deslizante em vez de simplesmente sumir, para não perder acesso
+   à navegação. Nenhuma função de nav()/painéis foi alterada. */
 @media(max-width:900px){
-  .sidebar{display:none}
+  .sidebar{position:fixed;left:-224px;top:0;transition:left .25s ease;z-index:200;box-shadow:0 0 40px rgba(0,0,0,.5)}
+  .sidebar.open{left:0}
   .main{margin-left:0}
+  .mobile-nav-toggle{display:flex}
   .g2,.g3,.g4{grid-template-columns:1fr}
   .filter-bar{grid-template-columns:1fr 1fr}
   .jmini{display:none}
   .live-bar{display:none}
   .simtab-row{grid-template-columns:1fr 1fr}
+  .content{padding:20px}
+  .gallery-thumbs{grid-template-columns:repeat(4,1fr)}
 }
+
+/* Tablets pequenos / celulares grandes em paisagem */
+@media(max-width:680px){
+  .fh-title{font-size:22px}
+  .fh-cd{flex-wrap:wrap}
+  .fh-row{gap:14px}
+  .modal-ov{padding:20px 12px}
+  .modal-box[style]{max-width:100%!important}
+}
+
+/* Celulares */
+@media(max-width:600px){
+  .content{padding:16px}
+  .ph-title{font-size:19px}
+  .kpi-val{font-size:19px}
+  .filter-bar{grid-template-columns:1fr}
+  .simtab-row{grid-template-columns:1fr 1fr;gap:6px}
+  .gallery-thumbs{grid-template-columns:repeat(3,1fr)}
+  .prop-grid{grid-template-columns:1fr}
+  .topbar{padding:0 14px;gap:8px}
+  .tb-sec{display:none}
+  .modal-h{padding:16px 18px}
+  .modal-body{padding:18px}
+  .modal-f{padding:14px 18px}
+  .fh-cd-box{min-width:54px;padding:8px 10px}
+  .fh-cd-val{font-size:18px}
+}
+
+/* Celulares pequenos (iPhone SE e similares) */
+@media(max-width:380px){
+  .simtab-row{grid-template-columns:1fr}
+  .gallery-thumbs{grid-template-columns:repeat(3,1fr)}
+  .fh-title{font-size:19px}
+  .auth-panel{padding:20px}
+}
+
 @media print{
-  .sidebar,.topbar,.agent-footer,.ai-wrap,.ph-acts,#toast{display:none!important}
+  .sidebar,.topbar,.agent-footer,.ai-wrap,.ph-acts,#toast,.mobile-nav-toggle,.sidebar-backdrop{display:none!important}
   body{background:#fff;color:#000}
 }
 </style>
 </head>
 <body>
+
+<!-- ============================================================
+     WAL · CONTROLE REMOTO DO FEIRÃO (Torre de Controle da Diretoria)
+     Não remova nem mova este bloco. Ele verifica, a cada carregamento
+     e a cada 20s, se a Diretoria suspendeu o Feirão inteiro ou este
+     painel especificamente (dashboard-diretor-wal.html) e exibe uma
+     tela de manutenção quando necessário.
+     Chave deste painel: 'lead'
+============================================================ -->
+<div id="walOverlayManutencao" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 30% 20%,#15294a 0%,#08192E 65%);display:none;align-items:center;justify-content:center;padding:24px;font-family:'Inter',Arial,sans-serif;color:#E8EDF5;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px">🛠️</div>
+    <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:8px">WAL Imóveis</div>
+    <div id="walOverlayTitulo" style="font-size:15px;font-weight:700;margin-bottom:10px">Estamos em manutenção rápida</div>
+    <div id="walOverlayMsg" style="font-size:13px;color:#9db1c8;line-height:1.6">Volte em instantes. Já estamos de olho e o Feirão retorna em breve.</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var WAL_CONTROLE_KEY = 'lead';
+  // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
+  var WAL_CONTROLE_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+  var LS_KEY = 'wal_diretor_v1';
+
+  // Bypass de visualização: acesse a URL com ?preview=1 para ignorar o bloqueio
+  // remoto/local da Torre de Controle e testar o dashboard normalmente.
+  // Ex.: dashboard-feirao-lead.html?preview=1
+  // Alternativa sem editar a URL: no console do navegador, rode
+  //   localStorage.setItem('wal_preview','1')
+  // e recarregue a página. Para desativar depois:
+  //   localStorage.removeItem('wal_preview')
+  var WAL_PREVIEW = /[?&]preview=1(&|$)/.test(window.location.search) || localStorage.getItem('wal_preview')==='1';
+  if(WAL_PREVIEW) console.log('[WAL] Modo preview ativo — overlay da Torre de Controle ignorado.');
+
+  function lerLocal(){{
+    try{{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }}catch(e){{ return null; }}
+  }}
+  function aplicarEstado(ctrl){{
+    if(WAL_PREVIEW) return;
+    if(!ctrl) return;
+    console.log('[WAL] Estado da Torre de Controle lido:', ctrl);
+    var overlay = document.getElementById('walOverlayManutencao');
+    if(!overlay) return;
+    var bloqueado = ctrl.fairStatus==='suspenso' || ctrl.fairStatus==='nao_iniciado' || (ctrl.modulos && ctrl.modulos[WAL_CONTROLE_KEY]===false);
+    if(bloqueado){{
+      document.getElementById('walOverlayTitulo').textContent = ctrl.fairStatus==='nao_iniciado' ? 'O Feirão ainda não começou' : 'Estamos em manutenção rápida';
+      document.getElementById('walOverlayMsg').textContent = ctrl.mensagem || ctrl.mensagemVisitante || 'Volte em instantes. Já estamos de olho e retornamos em breve.';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }} else {{
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }}
+  }}
+  function consultarRemoto(){{
+    if(WAL_PREVIEW) return;
+    if(!WAL_CONTROLE_API_URL || WAL_CONTROLE_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+    var cb = 'walCtrlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var s = document.createElement('script');
+    var timeout = setTimeout(function(){{ limpar(); }}, 10000);
+    function limpar(){{ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }}
+    window[cb] = function(data){{
+      limpar();
+      if(data && data.ok && data.controle){{
+        localStorage.setItem(LS_KEY, JSON.stringify(data.controle));
+        aplicarEstado(data.controle);
+      }}
+    }};
+    s.onerror = limpar;
+    s.src = WAL_CONTROLE_API_URL + '?action=feirao_get_controle&callback=' + cb;
+    document.body.appendChild(s);
+  }}
+  aplicarEstado(lerLocal());
+  consultarRemoto();
+  setInterval(consultarRemoto, 20000);
+}})();
+</script>
+<!-- ===== FIM DO BLOCO DE CONTROLE REMOTO DA DIRETORIA ===== -->
+
 
 <div id="toast"></div>
 
@@ -417,43 +544,49 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <div class="auth-badge">🎪 1º Feirão de Imóveis · FAB & Servidores Públicos</div>
     </div>
     <div class="auth-box">
-      <div class="auth-tabs">
-        <div class="auth-tab active" id="tabBtnEntrar" onclick="switchAuthTab('entrar')">Já sou cadastrado</div>
-        <div class="auth-tab" id="tabBtnNovo" onclick="switchAuthTab('novo')">Primeira vez aqui</div>
-      </div>
 
-      <!-- ENTRAR (e-mail ou CPF) -->
-      <div class="auth-panel active" id="tabEntrar">
+      <!-- ETAPA 1: e-mail -->
+      <div class="auth-panel active" id="stepEmail">
         <div class="auth-title">Acesse o Feirão</div>
-        <div class="auth-sub">Digite seu e-mail <strong>ou</strong> CPF para entrar no seu painel exclusivo do feirão, com simulações e análise de crédito já em andamento.</div>
+        <div class="auth-sub">Digite seu e-mail — vamos te enviar um código de acesso de 6 dígitos. Não precisa de senha nem de CPF para entrar.</div>
         <div class="field-row mb14">
-          <div><div class="field-lbl">E-mail ou CPF</div><input class="field-inp" id="loginChave" placeholder="seu@email.com ou 000.000.000-00" onkeydown="if(event.key==='Enter')doEntrar()"></div>
+          <div><div class="field-lbl">E-mail</div><input class="field-inp" type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doSolicitarCodigo()"></div>
         </div>
-        <button class="auth-btn" onclick="doEntrar()">Entrar no Feirão →</button>
-        <div class="auth-err" id="loginErr">Não encontramos esse cadastro. Use a aba "Primeira vez aqui".</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:16px;text-align:center">
-          Demo cadastrado: <strong style="color:var(--gold2)">joao.fab@email.com</strong>
+        <button class="auth-btn" id="btnSolicitarCodigo" onclick="doSolicitarCodigo()">Enviar código de acesso →</button>
+        <div class="auth-err" id="emailErr">Digite um e-mail válido.</div>
+      </div>
+
+      <!-- ETAPA 2: código de 6 dígitos -->
+      <div class="auth-panel" id="stepCodigo">
+        <div class="auth-title">Confira seu e-mail</div>
+        <div class="auth-sub">Enviamos um código de 6 dígitos para <strong id="codigoEmailAlvo" style="color:var(--gold2)"></strong>. Ele vale por 10 minutos.</div>
+        <div class="field-row mb14">
+          <div><div class="field-lbl">Código de 6 dígitos</div><input class="field-inp" id="loginCodigo" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')doVerificarCodigo()"></div>
+        </div>
+        <button class="auth-btn" id="btnVerificarCodigo" onclick="doVerificarCodigo()">Confirmar e entrar →</button>
+        <div class="auth-err" id="codigoErr">Código incorreto ou expirado.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:16px;text-align:center">
+          <a href="#" onclick="event.preventDefault();voltarParaEmail()" style="color:var(--gold2);text-decoration:none">Trocar e-mail</a>
+          &nbsp;·&nbsp;
+          <a href="#" onclick="event.preventDefault();doSolicitarCodigo(true)" style="color:var(--gold2);text-decoration:none">Reenviar código</a>
         </div>
       </div>
 
-      <!-- NOVO LEAD -->
-      <div class="auth-panel" id="tabNovo">
-        <div class="auth-title">Bem-vindo ao 1º Feirão WAL</div>
-        <div class="auth-sub">Leva menos de 1 minuto. Seus dados ficam salvos para você continuar de onde parou — simulação, documentos e análise de crédito.</div>
+      <!-- ETAPA 3: completar cadastro (só no primeiro acesso deste e-mail) -->
+      <div class="auth-panel" id="stepCompletar">
+        <div class="auth-title">Só mais um passo</div>
+        <div class="auth-sub">Confirme seus dados para participar do 1º Feirão WAL. Seu CPF só será pedido mais adiante, na análise de crédito.</div>
         <div class="field-row field-2 mb14">
           <div><div class="field-lbl">Nome completo *</div><input class="field-inp" id="novNome" placeholder="Seu nome completo"></div>
-          <div><div class="field-lbl">CPF *</div><input class="field-inp" id="novCpf" placeholder="000.000.000-00"></div>
-        </div>
-        <div class="field-row field-2 mb14">
-          <div><div class="field-lbl">E-mail *</div><input class="field-inp" type="email" id="novEmail" placeholder="seu@email.com"></div>
           <div><div class="field-lbl">WhatsApp *</div><input class="field-inp" id="novTel" placeholder="(21) 99999-9999"></div>
         </div>
         <div class="field-row mb14">
           <div><div class="field-lbl">Você é...</div>
             <select class="field-sel" id="novVinculo">
-              <option>Militar da Aeronáutica (FAB)</option><option>Militar do Exército</option>
-              <option>Militar da Marinha</option><option>Servidor Civil Federal</option>
-              <option>Servidor Estadual / Municipal</option><option>Pensionista Militar</option>
+              <option>FAB</option><option>Marinha</option><option>Exército</option>
+              <option>PM</option><option>Bombeiro</option><option>Polícia Civil</option>
+              <option>Funcionário Público Federal</option><option>Funcionário Público Estadual</option>
+              <option>Funcionário Público Municipal</option><option>Ministério Público</option>
               <option>Outro</option>
             </select>
           </div>
@@ -462,9 +595,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <input type="checkbox" id="novTermos" checked>
           <label for="novTermos">Aceito receber simulações, novidades do feirão e contato da WAL Consultoria por e-mail/WhatsApp.</label>
         </div>
-        <button class="auth-btn" onclick="doCadastroLead()">Entrar no Feirão →</button>
-        <div class="auth-err" id="novErr">Preencha nome, CPF, e-mail e WhatsApp.</div>
+        <button class="auth-btn" onclick="doCompletarCadastro()">Entrar no Feirão →</button>
+        <div class="auth-err" id="novErr">Preencha nome e WhatsApp.</div>
       </div>
+
     </div>
   </div>
 </div>
@@ -520,8 +654,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
     </div>
   </nav>
 
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="fecharSidebarMobile()"></div>
+
   <div class="main">
     <div class="topbar">
+      <button class="mobile-nav-toggle" onclick="toggleSidebarMobile()" aria-label="Abrir menu">☰</button>
       <div class="tb-bread">
         <span class="tb-sec">WAL Imóveis</span><span class="tb-sep">/</span><span class="tb-page" id="tbPage">Início</span>
       </div>
@@ -546,8 +683,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <div class="fh-row">
             <div>
               <div class="fh-badge">🎪 1º Feirão de Imóveis WAL</div>
-              <div class="fh-title">Condições exclusivas para<br><em>militares FAB e servidores públicos</em></div>
-              <div class="fh-sub">Durante o feirão você acessa taxas reduzidas, isenções de taxas e condições de entrada facilitadas em empreendimentos selecionados no Rio de Janeiro e São Paulo. Evento mensal, sempre com duração de 4 a 7 dias — datas definidas pela Diretoria WAL.</div>
+              <div class="fh-title">Condições exclusivas para<br><em>Militares (Marinha, Exército, FAB, PM, Bombeiro) e Servidores Públicos (Federal, Estadual e Municipal) e MP</em></div>
+              <div class="fh-sub">Durante o feirão você acessa condições especiais, como entrada facilitada em empreendimentos selecionados no Rio de Janeiro e outras vantagens disponibilizadas pelas melhores construtoras do Rio de Janeiro e Niterói. Evento com duração de 4 dias — com início às 9h de 13/08 até às 22h de 16/08/2026. Podendo ser prorrogada ou alterada para melhor atender os clientes participantes do Feirão Online da WAL Imóveis.</div>
             </div>
             <div class="fh-cd" id="heroCd">
               <div class="fh-cd-box"><div class="fh-cd-val" id="cdDias">00</div><div class="fh-cd-lbl">dias</div></div>
@@ -559,7 +696,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
         </div>
 
         <div class="kpi-strip g4">
-          <div class="kpi gold"><div class="kpi-lbl">Empreendimentos</div><div class="kpi-val" id="kpiEmps">6</div><div class="kpi-sub">RJ e SP, prontos para o feirão</div></div>
+          <div class="kpi gold"><div class="kpi-lbl">Empreendimentos</div><div class="kpi-val" id="kpiEmps">6</div><div class="kpi-sub">RJ, prontos para o feirão</div></div>
           <div class="kpi teal"><div class="kpi-lbl">Unidades disponíveis</div><div class="kpi-val" id="kpiUnid">—</div><div class="kpi-sub">Atualizado em tempo real</div></div>
           <div class="kpi green"><div class="kpi-lbl">Taxa CFIAe no feirão</div><div class="kpi-val">8,3%<span style="font-size:12px"> a.a.</span></div><div class="kpi-sub">-0,2 p.p. sobre a taxa padrão</div></div>
           <div class="kpi purple"><div class="kpi-lbl">Sua etapa atual</div><div class="kpi-val" id="kpiEtapa" style="font-size:14px">Explorando</div><div class="kpi-sub" id="kpiEtapaSub">Escolha um imóvel para começar</div></div>
@@ -630,15 +767,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
         </div>
 
         <div class="filter-bar">
-          <div><div class="field-lbl">UF</div><select class="field-sel" id="fUf" onchange="renderVitrine()"><option value="">Todas</option></select></div>
-          <div><div class="field-lbl">Cidade</div><select class="field-sel" id="fCidade" onchange="renderVitrine()"><option value="">Todas</option></select></div>
+          <div><div class="field-lbl">UF</div><select class="field-sel" id="fUf" onchange="renderVitrine()"><option value="RJ" selected>RJ</option></select></div>
+          <div><div class="field-lbl">Cidade</div><select class="field-sel" id="fCidade" onchange="renderVitrine()"><option value="">Todas</option><option value="Rio de Janeiro">Rio de Janeiro</option><option value="Niterói">Niterói</option><option value="Nova Iguaçu">Nova Iguaçu</option><option value="Região dos Lagos">Região dos Lagos</option></select></div>
           <div><div class="field-lbl">Bairro</div><select class="field-sel" id="fBairro" onchange="renderVitrine()"><option value="">Todos</option></select></div>
           <div><div class="field-lbl">Quartos</div><select class="field-sel" id="fQuartos" onchange="renderVitrine()">
             <option value="">Qualquer</option><option value="1">1 quarto</option><option value="2">2 quartos</option><option value="3">3 quartos</option><option value="4">4+ quartos</option>
           </select></div>
           <div><div class="field-lbl">Faixa de valor</div><select class="field-sel" id="fValor" onchange="renderVitrine()">
-            <option value="">Qualquer</option><option value="0-300000">Até R$ 300 mil</option><option value="300000-500000">R$ 300–500 mil</option>
-            <option value="500000-800000">R$ 500–800 mil</option><option value="800000-99999999">Acima de R$ 800 mil</option>
+            <option value="">Qualquer Valor</option><option value="0-300000">Até 300 mil</option><option value="0-500000">Até 500 mil</option>
+            <option value="0-700000">Até 700 mil</option><option value="0-850000">Até 850 mil</option><option value="0-990000">Até 990 mil</option>
+            <option value="0-1500000">Até 1.500 mil</option><option value="0-2500000">Até 2.500 mil</option><option value="2500000-99999999">Acima de 2.500 mil</option>
           </select></div>
           <div><div class="field-lbl">Tipo de imóvel</div><select class="field-sel" id="fTipo" onchange="renderVitrine()">
             <option value="">Qualquer</option><option value="Lançamento">Lançamento</option><option value="Em construção">Em construção</option>
@@ -862,8 +1000,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
               </div>
               <div class="alert-box alert-teal">💬 Toque em um dos canais ao lado para falar agora com um consultor humano. Se preferir, a Sofia (IA) também pode te ajudar 24h por dia.</div>
               <div style="display:flex;flex-direction:column;gap:10px;margin-top:6px">
-                <a href="#" id="consultorWhatsapp" target="_blank"><button class="btn btn-teal btn-full">💬 Chamar no WhatsApp</button></a>
-                <a href="#" id="consultorTel"><button class="btn btn-full">📞 Ligar agora</button></a>
+                <a href="#" id="consultorWhatsapp" target="_blank"><button class="btn btn-teal btn-full">💬 Chat</button></a>
                 <a href="#" id="consultorEmail"><button class="btn btn-full">✉️ Enviar e-mail</button></a>
                 <button class="btn btn-full" onclick="nav(document.querySelector('[onclick*=ia]'),'ia')">🤖 Falar com a Sofia (IA)</button>
               </div>
@@ -950,6 +1087,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
                     <div class="upload-area" onclick="document.getElementById('docResid').click()">
                       <input type="file" id="docResid" accept="image/*,.pdf" onchange="handleUpload(this,'docResidNome')">
                       <div style="font-size:22px">🏠</div><div class="upload-lbl">Conta de luz, água ou telefone</div><div class="upload-name" id="docResidNome"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="field-row mb14">
+                  <div><div class="field-lbl">Comprovante de estado civil *</div>
+                    <div class="upload-area" onclick="document.getElementById('docEstadoCivil').click()">
+                      <input type="file" id="docEstadoCivil" accept="image/*,.pdf" onchange="handleUpload(this,'docEstadoCivilNome')">
+                      <div style="font-size:22px">💍</div><div class="upload-lbl">Certidão de casamento, união estável ou nascimento</div><div class="upload-name" id="docEstadoCivilNome"></div>
                     </div>
                   </div>
                 </div>
@@ -1164,12 +1309,12 @@ function registrarNoCRM(lead, nota){
 /* ════════════════════════════════════════════════════════════
    API DEDICADA DO FEIRÃO (Apps Script + planilha "WAL Feirão —
    Dados Operacionais", separada do CRM/Reserva de produção).
-   Ver "Apps Script WAL Feirao - Operacional.gs" na raiz do projeto.
+   Ver "feirao/shared/apps-script-feirao-operacional.gs".
    Escrita = POST no-cors (fire-and-forget, como o resto do
    ecossistema WAL). Leitura = GET com callback JSONP (dá pra ler
    a resposta, diferente do POST no-cors).
 ═══════════════════════════════════════════════════════════ */
-const FEIRAO_API_URL = 'COLOQUE_AQUI_A_URL_DO_APPS_SCRIPT_WAL_FEIRAO_OPERACIONAL';
+const FEIRAO_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
 
 function chamarFeiraoApi(action, payload){
   if(!FEIRAO_API_URL || FEIRAO_API_URL.indexOf('COLOQUE_AQUI')===0) return;
@@ -1205,24 +1350,37 @@ const MARCOS_CRM = {cadastro:1, imovel:1, credito_enviado:1, credito_liberado:1,
 function upsertParticipanteFeirao(nota){
   if(!LEAD) return;
   chamarFeiraoApi('feirao_participante', {
-    cpf:LEAD.cpf, nome:LEAD.nome, email:LEAD.email, whatsapp:LEAD.tel, vinculo:LEAD.vinculo,
+    email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, cpf:LEAD.cpf||'', whatsapp:LEAD.tel, vinculo:LEAD.vinculo,
     empSelecionado:_selectedPropId||'', unidadeSelecionada:(_selectedUnidade&&_selectedUnidade.numero)||'',
-    etapaAtual: (JORNADA_DEFS[estagioAtualIndex()]||{}).key||''
+    etapaFunil: mapearJornadaParaEtapaFunil_(estagioAtualIndex())
   });
   registrarNoCRM({nome:LEAD.nome,telefone:LEAD.tel,email:LEAD.email,origem:'Feirão'}, nota||'Atualização no feirão');
 }
 function registrarEventoJornada(eventoKey, detalhe){
   if(!LEAD) return;
-  chamarFeiraoApi('feirao_evento', {cpf:LEAD.cpf, eventoKey, detalhe:detalhe||''});
+  chamarFeiraoApi('feirao_evento', {email:LEAD.email, sessionToken:LEAD.sessionToken, eventoKey, detalhe:detalhe||''});
+}
+/* Traduz o índice da jornada (11 marcos deste dashboard) para o
+   vocabulário único de status do funil usado no backend e nos demais
+   dashboards — ver documentacao-tecnica-banco-de-dados.html §2. */
+function mapearJornadaParaEtapaFunil_(idx){
+  const chave=(JORNADA_DEFS[idx]||{}).key||'';
+  const mapa={
+    cadastro:'novo', imovel:'novo', unidade:'novo', simulacao:'novo',
+    credito_enviado:'proposta_analise', credito_liberado:'proposta_analise',
+    pagamento_iniciado:'reserva', reserva_pix:'reserva',
+    contrato:'assinatura', assinatura:'assinatura', pagamento_completo:'fechado'
+  };
+  return mapa[chave]||'novo';
 }
 
 /* ════════════════════════════════════════════════════════════
-   CONEXÃO COM O SISTEMA WAL — PLANILHA "WAL Imóveis — Portfólio"
-   Aba "IMOVEISDISPONIVEIS" (mesmo padrão gvizJsonp usado no
-   restante do ecossistema WAL — Lead/Broker/Agent Dashboard).
+   CONEXÃO COM O SISTEMA WAL — planilha "WAL Feirão — Dados
+   Operacionais", aba EMPREENDIMENTOS (mesma fonte usada pelos
+   dashboards do Atendente/Diretor/Viabilizador para cadastro).
+   Leitura via feiraoApiJsonp (action feirao_listar_empreendimentos,
+   ver definição de feiraoApiJsonp mais abaixo neste arquivo).
 ═══════════════════════════════════════════════════════════ */
-const SHEET_ID_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
-const SHEET_ABA_IMOVEIS = 'IMOVEISDISPONIVEIS';
 
 /* Dados de demonstração — usados enquanto a planilha carrega ou caso a conexão falhe */
 const EMPREENDIMENTOS_DEMO = [
@@ -1271,102 +1429,51 @@ let _fonteImoveis = 'demo'; // 'demo' | 'planilha'
 function setDataSourceTag(){
   const el=document.getElementById('dataSourceTag'); if(!el) return;
   el.innerHTML = _fonteImoveis==='planilha'
-    ? `<span class="bdg bg">🟢 Conectado ao sistema WAL · planilha de portfólio</span>`
+    ? `<span class="bdg bg">🟢 Conectado ao sistema WAL · planilha operacional do feirão</span>`
     : `<span class="bdg ba">🟡 Modo demonstração — exibindo catálogo padrão</span>`;
 }
 
-/* Carrega os imóveis disponíveis direto da planilha "WAL Imóveis — Portfólio",
-   aba IMOVEISDISPONIVEIS, usando o padrão gvizJsonp já adotado no restante do
-   ecossistema WAL (Lead/Broker/Agent Dashboard). Faz fallback silencioso para
-   os dados de demonstração caso a planilha esteja indisponível ou com colunas
-   diferentes das esperadas. */
-function carregarImoveisDoSistema(){
-  setTimeout(()=>{ if(_fonteImoveis==='demo') setDataSourceTagTimeout(); },4000);
-  try{
-    window.google = window.google || {};
-    window.google.visualization = window.google.visualization || {};
-    window.google.visualization.Query = window.google.visualization.Query || {};
-    window.google.visualization.Query.setResponse = function(data){
-      try{
-        const lista = processarPlanilhaImoveis(data);
-        if(lista && lista.length){
-          EMPREENDIMENTOS = lista; _fonteImoveis='planilha';
-        }
-      }catch(e){ console.warn('Não foi possível interpretar a planilha, mantendo catálogo demo.', e); }
-      setDataSourceTag();
-      popularFiltros(); renderHomeDestaques(); renderVitrine();
-      const scriptEl=document.getElementById('gvizImoveisScript'); if(scriptEl) scriptEl.remove();
+const CORES_EMP_ = [['#0E7490','#155E75'],['#0369A1','#075985'],['#7C3AED','#5B21B6'],['#0D9488','#0F766E'],['#15803D','#166534'],['#B45309','#92400E'],['#475569','#334155']];
+/* Converte os itens retornados por feirao_listar_empreendimentos (ver
+   feirao_listarEmpreendimentos_ no apps-script-feirao-operacional.gs) no
+   formato de exibição já usado pela vitrine/destaques deste dashboard. */
+function mapearEmpreendimentosApi(itens){
+  return itens.filter(e=>e.ativo!==false).map((e,i)=>{
+    const quartosMatch=(e.tipologia||'').match(/\d+/g);
+    const quartos=quartosMatch?quartosMatch.map(Number).filter(n=>n>0&&n<10):[];
+    const preco=Number(e.valorAPartirDe)||0;
+    return {
+      id: e.id, nome: e.nome, construtora: e.construtora||'WAL Imóveis',
+      uf: e.uf||'RJ', cidade: e.cidade||'Rio de Janeiro', bairro: e.bairro||'—',
+      quartos: quartos.length?quartos:[2],
+      precoMin: preco, precoMax: preco,
+      entrega: e.entrega||'A combinar', disponivel: Number(e.qtdUnidades)||1, tipo: e.tipoImovel||'Novo',
+      emoji:'🏢', cor1:CORES_EMP_[i%CORES_EMP_.length][0], cor2:CORES_EMP_[i%CORES_EMP_.length][1],
+      destaque: e.descricaoImovel || 'Direto do sistema WAL', urlImagem: e.urlImagem||'',
+      destaquePaginaPrincipal: !!e.destaquePaginaPrincipal,
+      galeria:['🏢','🏠','🛋️'], video:false,
+      vantagens:[e.condFeirao||'Condições especiais do feirão sujeitas a confirmação','Fale com a Sofia para detalhes atualizados deste imóvel'],
     };
-    const old=document.getElementById('gvizImoveisScript'); if(old) old.remove();
-    const url=`https://docs.google.com/spreadsheets/d/${SHEET_ID_IMOVEIS}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_ABA_IMOVEIS)}&_=${Date.now()}`;
-    const s=document.createElement('script');
-    s.id='gvizImoveisScript'; s.src=url;
-    s.onerror=()=>{ setDataSourceTag(); toast('Não foi possível conectar à planilha agora — exibindo catálogo padrão.',''); };
-    document.body.appendChild(s);
-  }catch(e){ setDataSourceTag(); }
+  });
 }
-function setDataSourceTagTimeout(){ setDataSourceTag(); }
+/* Carrega os empreendimentos direto da planilha operacional do feirão via
+   feiraoApiJsonp (fire-and-forget se FEIRAO_API_URL não estiver configurada
+   — nesse caso resolve null e o catálogo demo permanece em uso). */
+async function carregarImoveisDoSistema(){
+  try{
+    const data = await feiraoApiJsonp('feirao_listar_empreendimentos', {});
+    if(data && data.ok && Array.isArray(data.itens) && data.itens.length){
+      const lista = mapearEmpreendimentosApi(data.itens);
+      if(lista.length){ EMPREENDIMENTOS = lista; _fonteImoveis='planilha'; }
+    }
+  }catch(e){ console.warn('Não foi possível carregar empreendimentos do sistema, mantendo catálogo demo.', e); }
+  setDataSourceTag();
+  popularFiltros(); renderHomeDestaques(); renderVitrine();
+}
 function recarregarImoveis(){
   toast('🔄 Atualizando catálogo do sistema...','');
   carregarImoveisDoSistema();
 }
-/* Converte as linhas/colunas do Google Visualization API em objetos de imóvel,
-   tentando reconhecer variações comuns de cabeçalho em português. Ajuste os
-   nomes de coluna abaixo conforme a estrutura real da sua aba IMOVEISDISPONIVEIS. */
-/* Normaliza nomes de coluna (remove acentos, símbolos e espaços) para
-   casar cabeçalhos como "Preço Mín (R$)" com "preco min" sem depender
-   de bater a string exata — a planilha real evolui com o tempo. */
-function normalizarNomeCol_(s){
-  return (s||'').toString().normalize('NFD').replace(/[̀-ͯ]/g,'')
-    .toLowerCase().replace(/[^a-z0-9]/g,'');
-}
-function processarPlanilhaImoveis(data){
-  if(!data || !data.table || !data.table.cols || !data.table.rows) return null;
-  const cols=data.table.cols.map(c=>normalizarNomeCol_(c.label||c.id||''));
-  const idx=names=>{ for(const n of names){ const i=cols.indexOf(normalizarNomeCol_(n)); if(i>-1) return i; } return -1; };
-  const cId=idx(['id','codigo']), cNome=idx(['nome','empreendimento']), cConstr=idx(['construtora']),
-        cUf=idx(['uf','estado']), cCidade=idx(['cidade']), cBairro=idx(['bairro']),
-        cQuartos=idx(['quartos','dormitorios']), cPrecoMin=idx(['precomin','precomínr$','valormin','valorminimo']),
-        cPrecoMax=idx(['precomax','precomáxr$','valormax','valormaximo']),
-        cEntrega=idx(['entrega','entregaprevista']), cDisp=idx(['disponivel','unidades','unidadesdisponiveis','qtdunidadesdisponiveis']),
-        cTipo=idx(['tipo','status']), cFeirao=idx(['feiraoonline','feirao_on_line']);
-  if(cNome<0) return null;
-  const getCell=(row,i)=> i>-1 && row.c[i] ? (row.c[i].f!==undefined&&row.c[i].f!==null?row.c[i].f:row.c[i].v) : null;
-  const cores=[['#0E7490','#155E75'],['#0369A1','#075985'],['#7C3AED','#5B21B6'],['#0D9488','#0F766E'],['#15803D','#166534'],['#B45309','#92400E'],['#475569','#334155']];
-  return data.table.rows.map((row,i)=>{
-    const nome=getCell(row,cNome); if(!nome) return null;
-    // Só entram na Vitrine do Feirão os imóveis marcados Feirao_On_Line=Sim.
-    // Se a coluna ainda não existir na planilha (staff não configurou),
-    // não filtra — evita esconder tudo antes da coluna ser preenchida.
-    if(cFeirao>-1){
-      const val=(getCell(row,cFeirao)||'').toString().trim().toLowerCase();
-      if(val!=='sim') return null;
-    }
-    const quartosRaw=(getCell(row,cQuartos)||'').toString();
-    const quartos=quartosRaw.split(/[,/]/).map(x=>parseInt(x)).filter(x=>!isNaN(x));
-    return {
-      id:'sheet'+i,
-      nome: nome.toString(),
-      construtora: (getCell(row,cConstr)||'WAL Imóveis').toString(),
-      uf: (getCell(row,cUf)||'RJ').toString(),
-      cidade: (getCell(row,cCidade)||'Rio de Janeiro').toString(),
-      bairro: (getCell(row,cBairro)||'—').toString(),
-      quartos: quartos.length?quartos:[2],
-      precoMin: parseFloat(getCell(row,cPrecoMin))||0,
-      precoMax: parseFloat(getCell(row,cPrecoMax))||parseFloat(getCell(row,cPrecoMin))||0,
-      entrega: (getCell(row,cEntrega)||'A combinar').toString(),
-      disponivel: parseInt(getCell(row,cDisp))||1,
-      tipo: (getCell(row,cTipo)||'Novo').toString(),
-      emoji:'🏢', cor1:cores[i%cores.length][0], cor2:cores[i%cores.length][1],
-      destaque:'Direto do sistema WAL', galeria:['🏢','🏠','🛋️'], video:false,
-      vantagens:['Condições especiais do feirão sujeitas a confirmação','Fale com a Sofia para detalhes atualizados deste imóvel'],
-    };
-  }).filter(Boolean);
-}
-
-const LEADS_CADASTRADOS = [
-  { nome:'João Silva', cpf:'123.456.789-00', email:'joao.fab@email.com', tel:'(21) 99999-0000', vinculo:'Militar da Aeronáutica (FAB)' },
-];
 
 /* ════════════ VÍDEO EXPLICATIVO DO PROGRAMA DE AGENTES ════════════ */
 const VIDEO_AGENTE_URL = 'https://youtu.be/SUBSTITUA_PELO_SEU_LINK'; // troque pelo link do YouTube ou Google Drive
@@ -1409,13 +1516,17 @@ const JORNADA_DEFS = [
   { key:'credito_liberado',  ico:'✅', nome:'Recebeu o resultado',            desc:'Análise de crédito concluída' },
   { key:'pagamento_iniciado',ico:'💳', nome:'Iniciou o fluxo de pagamento',   desc:'Começou a montar o cronograma de pagamento' },
   { key:'reserva_pix',       ico:'💰', nome:'Pagou a reserva via PIX',        desc:'Sinal pago para garantir a unidade durante o feirão' },
+  { key:'contrato',          ico:'📄', nome:'Contrato',                       desc:'Contrato de compra e venda gerado e em análise' },
+  { key:'assinatura',        ico:'✍️', nome:'Assinatura',                     desc:'Assinatura do contrato de compra e venda concluída' },
   { key:'pagamento_completo',ico:'🏁', nome:'Concluiu o cronograma',          desc:'Todas as etapas do fluxo de pagamento confirmadas' },
 ];
 
 /* ════════════ ESTADO GLOBAL ════════════ */
 let LEAD = null;
 let _selectedPropId = null;
-let _selectedUnidade = null; // {empId,numero,torre,andar,quartos,area,valor}
+let _selectedUnidade = null; // {empId,id,numero,blocoTorre,tipologia,valor} — id é o Id real da aba UNIDADES (ou sintético no fallback demo)
+let _unidadesAtuais = []; // unidades carregadas para o imóvel aberto no momento (feirao_listar_unidades ou fallback demo)
+let _fonteUnidades = 'demo'; // 'demo' | 'planilha'
 let _galeriaAtual = [];
 let _galeriaIdx = 0;
 let _simResults = null;
@@ -1441,13 +1552,14 @@ function fecharModal(id){ document.getElementById(id).classList.remove('show'); 
 
 /* ════════════ PERSISTÊNCIA DO LEAD (localStorage) ════════════
    Guarda os dados e o progresso do lead localmente neste navegador,
-   indexados por CPF (chave principal) e por e-mail (índice de busca).
-   Assim, toda vez que o mesmo lead entrar, recuperamos tudo que ele
-   já fez: imóvel escolhido, simulação, análise de crédito e fluxo
-   de pagamento. Em produção isso também é espelhado no CRM via
-   registrarNoCRM(), então a equipe WAL vê o mesmo histórico. ═══ */
-function chaveStorageFromCpf(cpf){ return 'wal_feirao_lead_'+(cpf||'').toString().replace(/\D/g,''); }
-function chaveIndexEmail(email){ return 'wal_feirao_idx_'+(email||'').toString().toLowerCase().trim(); }
+   indexados por E-MAIL — a identidade única do lead em todo o
+   ecossistema Feirão (ver documentacao-tecnica-banco-de-dados.html
+   §"Decisões de design"). CPF é opcional e só é pedido mais adiante,
+   na análise de crédito. Assim, toda vez que o mesmo lead confirmar o
+   código enviado ao e-mail, recuperamos tudo que ele já fez: imóvel
+   escolhido, simulação, análise de crédito e fluxo de pagamento. Em
+   produção isso também é espelhado no CRM via registrarNoCRM(). ═══ */
+function chaveStorageFromEmail(email){ return 'wal_feirao_lead_'+(email||'').toString().trim().toLowerCase(); }
 
 function snapshotEstado(){
   const map={sac:'dadosSAC',price:'dadosPrice',cfiae:'dadosCFIAe',poupex:'dadosPOUPEX'};
@@ -1474,11 +1586,10 @@ function snapshotEstado(){
   };
 }
 function salvarEstado(){
-  if(!LEAD || !LEAD.cpf) return;
+  if(!LEAD || !LEAD.email) return;
   try{
     const snap=snapshotEstado();
-    localStorage.setItem(chaveStorageFromCpf(LEAD.cpf), JSON.stringify(snap));
-    if(LEAD.email) localStorage.setItem(chaveIndexEmail(LEAD.email), LEAD.cpf);
+    localStorage.setItem(chaveStorageFromEmail(LEAD.email), JSON.stringify(snap));
   }catch(e){ console.warn('Não foi possível salvar o progresso localmente.',e); }
   agendarSyncPagamentoBackend();
 }
@@ -1498,20 +1609,15 @@ function flushSyncPagamentoBackend(){
   if(!_pagamentoState || !LEAD) return;
   const progresso=parseInt((document.getElementById('pgProgressTxt')?.textContent||'0').replace('%',''))||0;
   chamarFeiraoApi('feirao_pagamento', {
-    cpf:LEAD.cpf, empId:_pagamentoState.empId||'',
+    email:LEAD.email, sessionToken:LEAD.sessionToken, empId:_pagamentoState.empId||'',
     unidade:(_selectedUnidade&&_selectedUnidade.empId===_pagamentoState.empId)?_selectedUnidade.numero:'',
     estado:_pagamentoState, progressoPct:progresso
   });
 }
 window.addEventListener('beforeunload', flushSyncPagamentoBackend);
-function tentarRestaurar(input){
+function tentarRestaurar(email){
   try{
-    input=(input||'').toString().trim();
-    let cpfKey=null;
-    if(input.includes('@')) cpfKey=localStorage.getItem(chaveIndexEmail(input));
-    else cpfKey=input.replace(/\D/g,'');
-    if(!cpfKey) return null;
-    const raw=localStorage.getItem(chaveStorageFromCpf(cpfKey));
+    const raw=localStorage.getItem(chaveStorageFromEmail(email));
     return raw?JSON.parse(raw):null;
   }catch(e){ return null; }
 }
@@ -1606,74 +1712,79 @@ function atualizarKpiEtapaHome(){
   el.textContent=JORNADA_DEFS[idx].nome; sub.textContent=JORNADA_DEFS[idx].desc;
 }
 
-/* ════════════ AUTH ════════════ */
-function switchAuthTab(tab){
-  document.getElementById('tabBtnEntrar').classList.toggle('active',tab==='entrar');
-  document.getElementById('tabBtnNovo').classList.toggle('active',tab==='novo');
-  document.getElementById('tabEntrar').classList.toggle('active',tab==='entrar');
-  document.getElementById('tabNovo').classList.toggle('active',tab==='novo');
+/* ════════════ AUTH — login por e-mail + código de 6 dígitos (OTP) ════════════
+   Identidade única = e-mail (ver documentacao-tecnica-banco-de-dados.html
+   §"Decisões de design"). Sem senha: o código de acesso confirma a posse
+   do e-mail e devolve um sessionToken de 24h que autentica toda escrita
+   subsequente deste lead no backend (feirao_participante/evento/simulacao/
+   credito/agendamento/mensagem/chat/pix/pagamento). ════════════ */
+let _loginEmailPendente='';
+
+function mostrarPassoAuth(passo){
+  ['stepEmail','stepCodigo','stepCompletar'].forEach(id=>{
+    document.getElementById(id).classList.toggle('active', id===passo);
+  });
 }
-async function doEntrar(){
-  const chaveInput=document.getElementById('loginChave').value.trim();
-  const err=document.getElementById('loginErr');
-  if(!chaveInput){err.style.display='block';err.textContent='Digite seu e-mail ou CPF.';return;}
-  const snap=tentarRestaurar(chaveInput);
+function voltarParaEmail(){
+  document.getElementById('loginCodigo').value='';
+  document.getElementById('codigoErr').style.display='none';
+  mostrarPassoAuth('stepEmail');
+}
+function doSolicitarCodigo(reenvio){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const err=document.getElementById('emailErr');
+  if(!email || !email.includes('@')){ err.style.display='block'; err.textContent='Digite um e-mail válido.'; return; }
+  err.style.display='none';
+  const btn=document.getElementById('btnSolicitarCodigo');
+  if(!reenvio){ btn.disabled=true; btn.textContent='Enviando código...'; }
+  _loginEmailPendente=email;
+  chamarFeiraoApi('feirao_login_solicitar_codigo', {email});
+  // Escrita é no-cors/fire-and-forget (padrão do ecossistema WAL) — não dá
+  // pra confirmar entrega do e-mail, então seguimos para a tela de código
+  // depois de um pequeno atraso só pra dar tempo do envio ser disparado.
+  setTimeout(()=>{
+    if(!reenvio){ btn.disabled=false; btn.textContent='Enviar código de acesso →'; }
+    document.getElementById('codigoEmailAlvo').textContent=email;
+    document.getElementById('loginCodigo').value='';
+    document.getElementById('codigoErr').style.display='none';
+    mostrarPassoAuth('stepCodigo');
+    toast(reenvio?'📧 Código reenviado':'📧 Código enviado para seu e-mail','green');
+  }, reenvio?300:700);
+}
+async function doVerificarCodigo(){
+  const codigo=document.getElementById('loginCodigo').value.trim();
+  const err=document.getElementById('codigoErr');
+  if(!/^[0-9]{6}$/.test(codigo)){ err.style.display='block'; err.textContent='Digite os 6 dígitos do código.'; return; }
+  err.style.display='none';
+  const btn=document.getElementById('btnVerificarCodigo');
+  btn.disabled=true; btn.textContent='Confirmando...';
+  const resp = await feiraoApiJsonp('feirao_login_verificar_codigo', {email:_loginEmailPendente, codigo});
+  btn.disabled=false; btn.textContent='Confirmar e entrar →';
+  if(!resp || resp.status!=='ok'){
+    err.style.display='block';
+    err.textContent=(resp&&resp.message)||'Código incorreto, expirado, ou o backend do Feirão ainda não foi implantado.';
+    return;
+  }
+  const sessionToken=resp.sessionToken;
+  const snap=tentarRestaurar(_loginEmailPendente);
   if(snap && snap.lead){
-    err.style.display='none';
     restaurarDeSnapshot(snap);
+    LEAD.sessionToken=sessionToken;
     iniciarApp(true);
     return;
   }
-  const chaveNorm=chaveInput.toLowerCase();
-  const found=LEADS_CADASTRADOS.find(l=>l.email.toLowerCase()===chaveNorm||l.cpf.replace(/\D/g,'')===chaveInput.replace(/\D/g,''));
-  if(found){
-    err.style.display='none';
-    LEAD={nome:found.nome,cpf:found.cpf,email:found.email,tel:found.tel,vinculo:found.vinculo};
-    iniciarApp(false);
-    return;
-  }
-  // Não achou local nem na demo — tenta o backend do feirão (outro
-  // dispositivo/navegador já cadastrado, ou pré-cadastro por e-mail).
-  err.style.display='block'; err.textContent='Procurando seu cadastro...';
-  const resp = await feiraoApiJsonp('feirao_login', {chave:chaveInput});
-  if(resp && resp.found && resp.origem==='participante'){
-    err.style.display='none';
-    LEAD={nome:resp.nome,cpf:resp.cpf,email:resp.email,tel:resp.whatsapp,vinculo:resp.vinculo};
-    iniciarApp(true);
-    return;
-  }
-  if(resp && resp.found && resp.origem==='inscrito'){
-    // Achou no pré-cadastro (sem CPF) — pré-preenche a aba "Primeira vez
-    // aqui" para o lead só confirmar CPF e concluir o cadastro completo.
-    err.style.display='none';
-    switchAuthTab('novo');
-    document.getElementById('novNome').value=resp.nome||'';
-    document.getElementById('novEmail').value=resp.email||chaveInput;
-    document.getElementById('novTel').value=resp.whatsapp||'';
-    toast('👋 Encontramos seu pré-cadastro! Confirme seu CPF para continuar.','green');
-    return;
-  }
-  err.style.display='block';
-  err.textContent='Não encontramos esse cadastro. Use a aba "Primeira vez aqui".';
+  // Primeiro acesso deste e-mail — pede nome/WhatsApp/vínculo antes de entrar.
+  LEAD={nome:'',cpf:'',email:_loginEmailPendente,tel:'',vinculo:'',sessionToken};
+  mostrarPassoAuth('stepCompletar');
 }
-function doCadastroLead(){
+function doCompletarCadastro(){
   const nome=document.getElementById('novNome').value.trim();
-  const cpf=document.getElementById('novCpf').value.trim();
-  const email=document.getElementById('novEmail').value.trim();
   const tel=document.getElementById('novTel').value.trim();
   const vinculo=document.getElementById('novVinculo').value;
   const err=document.getElementById('novErr');
-  if(!nome||!cpf||!email||!tel){err.style.display='block';return;}
+  if(!nome||!tel){err.style.display='block';return;}
   err.style.display='none';
-  const existente=tentarRestaurar(cpf)||tentarRestaurar(email);
-  if(existente && existente.lead){
-    restaurarDeSnapshot(existente);
-    LEAD.nome=nome; LEAD.email=email; LEAD.tel=tel; LEAD.vinculo=vinculo;
-    toast('👋 Bem-vindo de volta, '+nome.split(' ')[0]+'! Recuperamos seu progresso.','green');
-    iniciarApp(true);
-    return;
-  }
-  LEAD={nome,cpf,email,tel,vinculo};
+  LEAD.nome=nome; LEAD.tel=tel; LEAD.vinculo=vinculo;
   toast('🎉 Bem-vindo(a) ao Feirão, '+nome.split(' ')[0]+'!','green');
   registrarJornada('cadastro','Entrou no 1º Feirão de Imóveis WAL');
   iniciarApp(false);
@@ -1681,11 +1792,23 @@ function doCadastroLead(){
 function doSair(){
   document.getElementById('appWrap').style.display='none';
   document.getElementById('authScreen').style.display='flex';
+  document.getElementById('loginEmail').value='';
+  mostrarPassoAuth('stepEmail');
   if(window._creditoTimer) clearInterval(window._creditoTimer);
   pararPollingCredito();
   if(window._statsPoll) clearInterval(window._statsPoll);
   _creditoArquivos={};
   LEAD=null;
+  document.querySelectorAll('.wal-chat-fab,.wal-chat-panel').forEach(el=>el.remove());
+  window._walChatWidget=null;
+}
+/* Chat ao vivo com o consultor (feirao/shared/chat-widget.js) — uma
+   conversa por e-mail de lead. Só inicializa uma vez por sessão. */
+function initChatWidgetLead(){
+  if(window._walChatWidget || typeof WalChatWidget==='undefined' || !LEAD) return;
+  window._walChatWidget = WalChatWidget.init({
+    apiUrl: FEIRAO_API_URL, role:'cliente', threadId:LEAD.email, nome:LEAD.nome, sessionToken:LEAD.sessionToken
+  });
 }
 function iniciarApp(restaurado){
   document.getElementById('authScreen').style.display='none';
@@ -1699,6 +1822,7 @@ function iniciarApp(restaurado){
   document.getElementById('crEmail').value=LEAD.email;
   document.getElementById('crTel').value=LEAD.tel;
   document.getElementById('afVideoLink').href=VIDEO_AGENTE_URL;
+  initChatWidgetLead();
 
   if(!_jornada.find(j=>j.key==='cadastro')) registrarJornada('cadastro');
 
@@ -1740,7 +1864,7 @@ function iniciarApp(restaurado){
 }
 function restaurarDocumentosUI(){
   const docs=_creditoState.documentos||{};
-  const labelMap={docId:'docIdNome',docIr:'docIrNome',docRenda:'docRendaNome',docResid:'docResidNome',docConjId:'docConjIdNome',docConjRenda:'docConjRendaNome'};
+  const labelMap={docId:'docIdNome',docIr:'docIrNome',docRenda:'docRendaNome',docResid:'docResidNome',docEstadoCivil:'docEstadoCivilNome',docConjId:'docConjIdNome',docConjRenda:'docConjRendaNome'};
   let any=false;
   Object.keys(labelMap).forEach(inputId=>{
     if(docs[inputId]){
@@ -1814,9 +1938,24 @@ function restaurarPainelSimulador(){
   selecionarSistema(_simSistemaAtivo);
 }
 
+/* ════════════ MENU MOBILE (GAVETA DA SIDEBAR) ════════════ */
+function toggleSidebarMobile(){
+  const sb=document.querySelector('.sidebar'), bd=document.getElementById('sidebarBackdrop');
+  if(!sb||!bd) return;
+  sb.classList.toggle('open');
+  bd.classList.toggle('show');
+}
+function fecharSidebarMobile(){
+  const sb=document.querySelector('.sidebar'), bd=document.getElementById('sidebarBackdrop');
+  if(!sb||!bd) return;
+  sb.classList.remove('open');
+  bd.classList.remove('show');
+}
+
 /* ════════════ NAVEGAÇÃO ════════════ */
 function nav(el,panel){
   flushSyncPagamentoBackend();
+  fecharSidebarMobile();
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   if(el) el.classList.add('active');
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
@@ -1886,17 +2025,21 @@ setInterval(atualizarStatsReais, 120000);
 
 /* ════════════ VITRINE / FILTROS ════════════ */
 function popularFiltros(){
-  const ufs=[...new Set(EMPREENDIMENTOS.map(e=>e.uf))].sort();
-  const cidades=[...new Set(EMPREENDIMENTOS.map(e=>e.cidade))].sort();
+  const cidadesPadrao=['Rio de Janeiro','Niterói','Nova Iguaçu','Região dos Lagos'];
+  const cidadesDados=[...new Set(EMPREENDIMENTOS.map(e=>e.cidade))].filter(Boolean);
+  // Padrão sempre aparece; cidades extras cadastradas na planilha são somadas ao final
+  const extras=cidadesDados.filter(c=>!cidadesPadrao.includes(c)).sort();
+  const cidades=[...cidadesPadrao, ...extras];
   const bairros=[...new Set(EMPREENDIMENTOS.map(e=>e.bairro))].sort();
-  document.getElementById('fUf').innerHTML='<option value="">Todas</option>'+ufs.map(u=>`<option value="${u}">${u}</option>`).join('');
+  // UF fica fixo em RJ — feirão restrito ao Rio de Janeiro
   document.getElementById('fCidade').innerHTML='<option value="">Todas</option>'+cidades.map(c=>`<option value="${c}">${c}</option>`).join('');
   document.getElementById('fBairro').innerHTML='<option value="">Todos</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
   document.getElementById('kpiEmps').textContent=EMPREENDIMENTOS.length;
   document.getElementById('kpiUnid').textContent=EMPREENDIMENTOS.reduce((a,e)=>a+e.disponivel,0);
 }
 function limparFiltros(){
-  ['fUf','fCidade','fBairro','fQuartos','fValor','fTipo'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fUf').value='RJ';
+  ['fCidade','fBairro','fQuartos','fValor','fTipo'].forEach(id=>document.getElementById(id).value='');
   renderVitrine();
 }
 function filtrarEmpreendimentos(){
@@ -1921,15 +2064,19 @@ function tipoBadgeClass(tipo){
 }
 function propCardHtml(e){
   const quartosTxt=e.quartos.length>1?(Math.min(...e.quartos)+'–'+Math.max(...e.quartos)+' quartos'):(e.quartos[0]+' quarto'+(e.quartos[0]>1?'s':''));
+  const bannerBg = e.urlImagem
+    ? `background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('${e.urlImagem}') center/cover no-repeat`
+    : `background:linear-gradient(135deg,${e.cor1},${e.cor2})`;
+  const precoTxt = e.precoMax>e.precoMin ? `${fmtBRL(e.precoMin)} – ${fmtBRL(e.precoMax)}` : `A partir de ${fmtBRL(e.precoMin)}`;
   return `
   <div class="prop-card" onclick="abrirPropriedade('${e.id}')">
-    <div class="prop-banner" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})">
+    <div class="prop-banner" style="${bannerBg}">
       <div class="prop-banner-badges">
         <span class="bdg bo">${e.uf} · ${e.bairro}</span>
         <span class="bdg bg">${e.disponivel} unid.</span>
       </div>
-      <span style="position:relative;z-index:0">${e.emoji}</span>
-      <div class="prop-banner-price">${fmtBRL(e.precoMin)} – ${fmtBRL(e.precoMax)}</div>
+      ${e.urlImagem ? '' : `<span style="position:relative;z-index:0">${e.emoji}</span>`}
+      <div class="prop-banner-price">${precoTxt}</div>
     </div>
     <div class="prop-body">
       <div class="prop-nome">${e.nome}</div>
@@ -1948,18 +2095,19 @@ function renderVitrine(){
     `<div class="card" style="grid-column:1/-1"><div class="card-b" style="text-align:center;color:var(--muted);padding:40px">Nenhum empreendimento encontrado com esses filtros. <span class="card-link" onclick="limparFiltros()">Limpar filtros</span></div></div>`;
 }
 function renderHomeDestaques(){
-  const top=[...EMPREENDIMENTOS].sort((a,b)=>b.disponivel-a.disponivel).slice(0,3);
+  const marcados=EMPREENDIMENTOS.filter(e=>e.destaquePaginaPrincipal);
+  const base=marcados.length?marcados:EMPREENDIMENTOS;
+  const top=[...base].sort((a,b)=>b.disponivel-a.disponivel).slice(0,3);
   document.getElementById('homeDestaques').innerHTML=top.map(propCardHtml).join('');
 }
 
 /* ════════════ DETALHE DO IMÓVEL (MODAL) ════════════ */
-function abrirPropriedade(id){
+async function abrirPropriedade(id){
   const e=EMPREENDIMENTOS.find(x=>x.id===id); if(!e) return;
   _selectedPropId=id; _galeriaAtual=e.galeria; _galeriaIdx=0;
   registrarEventoJornada('imovel_view','Visualizou o empreendimento '+e.nome);
   document.getElementById('propModalTitle').textContent=e.nome;
   const quartosTxt=e.quartos.map(q=>q+'q').join(' / ');
-  const unidades=gerarUnidadesDemo(e);
   document.getElementById('propModalBody').innerHTML=`
     <div class="gallery-main" id="galMain" style="background:linear-gradient(135deg,${e.cor1},${e.cor2})">${e.galeria[0]}</div>
     <div class="gallery-thumbs" id="galThumbs">
@@ -1970,29 +2118,47 @@ function abrirPropriedade(id){
       <span class="bdg ${tipoBadgeClass(e.tipo)}">${e.tipo}</span><span class="bdg bo">${e.construtora}</span><span class="bdg bt">${e.cidade}/${e.uf}</span><span class="bdg bz">${e.bairro}</span><span class="bdg bg">${e.disponivel} unidades disponíveis</span>
     </div>
     <div class="g4" style="margin-bottom:16px">
-      <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Faixa de preço</div><div class="fw7" style="font-size:13px">${fmtBRL(e.precoMin)}–${fmtBRL(e.precoMax)}</div></div></div>
+      <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Faixa de preço</div><div class="fw7" style="font-size:13px">${e.precoMax>e.precoMin?fmtBRL(e.precoMin)+'–'+fmtBRL(e.precoMax):'A partir de '+fmtBRL(e.precoMin)}</div></div></div>
       <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Quartos</div><div class="fw7" style="font-size:13px">${quartosTxt}</div></div></div>
       <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Entrega</div><div class="fw7" style="font-size:13px">${e.entrega}</div></div></div>
       <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Destaque</div><div class="fw7" style="font-size:12px">${e.destaque}</div></div></div>
     </div>
     <div class="sec">Vantagens exclusivas do feirão</div>
     <div style="margin-bottom:16px">${e.vantagens.map(v=>`<div class="prop-vant">✅ ${v}</div>`).join('')}</div>
-    <div class="sec">Grade de unidades disponíveis</div>
-    <div class="unit-grid" id="unitGrid">${unidades.map(u=>unitCardHtml(e,u)).join('')}</div>
+    <div class="sec">Grade de unidades disponíveis <span class="bdg bz" id="unitSourceTag" style="font-size:8px;margin-left:2px">consultando...</span></div>
+    <div class="unit-grid" id="unitGrid"><div class="fs11 c-muted" style="grid-column:1/-1;padding:6px 0">Consultando unidades disponíveis na planilha...</div></div>
   `;
   document.getElementById('propBtnSimular').onclick=()=>{ fecharModal('modalProp'); irParaSimuladorComImovel(id); };
   document.getElementById('propBtnCredito').onclick=()=>{ fecharModal('modalProp'); nav(document.querySelector('[onclick*=credito]'),'credito'); toast('Preencha seus documentos para iniciar a análise de crédito.',''); };
   abrirModal('modalProp');
   registrarJornada('imovel');
   salvarEstado();
+
+  const unidades = await carregarUnidadesDoImovel_(e);
+  if(_selectedPropId!==id) return; // lead já trocou de imóvel enquanto a planilha respondia
+  _unidadesAtuais = unidades;
+  const grid=document.getElementById('unitGrid');
+  if(grid) grid.innerHTML = unidades.map(u=>unitCardHtml(e,u)).join('');
+  const tag=document.getElementById('unitSourceTag');
+  if(tag) tag.outerHTML = _fonteUnidades==='planilha'
+    ? '<span class="bdg bg" style="font-size:8px;margin-left:2px">🟢 dados reais</span>'
+    : '<span class="bdg ba" style="font-size:8px;margin-left:2px">🟡 demonstração</span>';
 }
 
-/* ════════════ GRADE DE UNIDADES (APARTAMENTOS) ════════════ */
+/* ════════════ GRADE DE UNIDADES (APARTAMENTOS) ════════════
+   Fonte real: aba UNIDADES da planilha "WAL Feirão — Dados
+   Operacionais", via feirao_listar_unidades (ver
+   feirao_listarUnidades_ no apps-script-feirao-operacional.gs —
+   mesma action já usada pelo dashboard-feirao-atendente.html).
+   Se a chamada falhar ou o empreendimento ainda não tiver unidades
+   cadastradas na planilha, cai no gerador de demonstração abaixo,
+   sempre deixando claro na UI qual fonte está em uso. */
 function seedFromString(s){ let h=0; for(let i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))>>>0; } return h; }
 function gerarUnidadesDemo(e){
   const seed=seedFromString(e.id);
   const total=8;
   const torres=['A','B'];
+  const statusPossiveis=['disponivel','disponivel','disponivel','disponivel','disponivel','proposta','reserva','vendida'];
   const units=[];
   for(let i=0;i<total;i++){
     const rnd=(seed+i*97)%1000/1000;
@@ -2000,34 +2166,58 @@ function gerarUnidadesDemo(e){
     const andar=2+Math.floor((seed+i*13)%14);
     const torre=torres[i%torres.length];
     const numero=torre+String(andar).padStart(2,'0')+String(1+(i%4)).padStart(2,'0');
-    const areaBase=quartos*24+18;
-    const area=areaBase+Math.round(rnd*10);
     const faixa=e.precoMax-e.precoMin;
     const valor=Math.round((e.precoMin+faixa*(0.15+rnd*0.8))/1000)*1000;
-    const statusRnd=(seed+i*53)%10;
-    const status = statusRnd<1 ? 'Vendida' : (statusRnd<3 ? 'Reservada' : 'Disponível');
-    units.push({numero,andar,torre,quartos,area,valor,status});
+    const status=statusPossiveis[Math.floor(rnd*statusPossiveis.length)];
+    units.push({id:'DEMO-'+e.id+'-'+numero, empId:e.id, numero, blocoTorre:'Torre '+torre, tipologia:quartos+' quartos', valor, status});
   }
   return units;
 }
+/* Traduz o vocabulário real de status da aba UNIDADES (ver
+   STATUS_UNIDADE no apps-script) para o que faz sentido mostrar ao
+   lead: só "Disponível" é selecionável — todo o resto (em proposta,
+   reservada, em assinatura, vendida ou marcada indisponível por
+   algum atendente) fica bloqueado na grade. */
+function statusUnidadeInfo(status){
+  const s=(status||'disponivel').toLowerCase();
+  if(s==='reserva'||s==='reservada') return {label:'Reservada',cls:'ba',selecionavel:false};
+  if(s==='assinatura'||s==='vendida') return {label:'Vendida',cls:'br',selecionavel:false};
+  if(s==='indisponivel') return {label:'Indisponível',cls:'br',selecionavel:false};
+  if(s==='proposta') return {label:'Em negociação',cls:'ba',selecionavel:false};
+  return {label:'Disponível',cls:'bg',selecionavel:true}; // disponivel/interesse/novo/vazio
+}
+async function carregarUnidadesDoImovel_(e){
+  try{
+    const r = await feiraoApiJsonp('feirao_listar_unidades', {empId:e.id});
+    if(r && r.ok && Array.isArray(r.itens) && r.itens.length){
+      _fonteUnidades='planilha';
+      return r.itens.map(u=>({
+        id:u.id, empId:e.id, numero:u.unidade||u.id,
+        blocoTorre:u.blocoTorre||'', tipologia:u.tipologia||'',
+        valor:Number(u.valor)||Math.round((e.precoMin+e.precoMax)/2), status:u.status||'disponivel'
+      }));
+    }
+  }catch(err){}
+  _fonteUnidades='demo';
+  return gerarUnidadesDemo(e);
+}
 function unitCardHtml(e,u){
-  const selecionada=_selectedUnidade && _selectedUnidade.empId===e.id && _selectedUnidade.numero===u.numero;
-  const indisponivel=u.status!=='Disponível';
-  const badgeCls = u.status==='Disponível'?'bg':(u.status==='Reservada'?'ba':'br');
+  const selecionada=_selectedUnidade && _selectedUnidade.empId===e.id && _selectedUnidade.id===u.id;
+  const info=statusUnidadeInfo(u.status);
+  const metaPartes=[u.blocoTorre,u.tipologia].filter(Boolean);
   return `
-  <div class="unit-card ${selecionada?'selecionada':''} ${indisponivel?'indisponivel':''}" ${indisponivel?'':`onclick="selecionarUnidade('${e.id}','${u.numero}')"`}>
-    <div class="flex-bet"><span class="unit-num">${u.numero}</span><span class="bdg ${badgeCls}" style="font-size:8px">${u.status}</span></div>
-    <div class="unit-meta">Torre ${u.torre} · ${u.andar}º andar · ${u.quartos}q · ${u.area}m²</div>
+  <div class="unit-card ${selecionada?'selecionada':''} ${info.selecionavel?'':'indisponivel'}" ${info.selecionavel?`onclick="selecionarUnidade('${e.id}','${u.id}')"`:''}>
+    <div class="flex-bet"><span class="unit-num">${u.numero}</span><span class="bdg ${info.cls}" style="font-size:8px">${info.label}</span></div>
+    <div class="unit-meta">${metaPartes.join(' · ')||'&nbsp;'}</div>
     <div class="unit-val">${fmtBRL(u.valor)}</div>
     ${selecionada?'<div class="fs9 c-gold" style="margin-top:4px">✓ Selecionada</div>':''}
   </div>`;
 }
-function selecionarUnidade(empId,numero){
+function selecionarUnidade(empId,unidadeId){
   const e=EMPREENDIMENTOS.find(x=>x.id===empId); if(!e) return;
-  const unidades=gerarUnidadesDemo(e);
-  const u=unidades.find(x=>x.numero===numero); if(!u) return;
-  _selectedUnidade={empId,numero:u.numero,torre:u.torre,andar:u.andar,quartos:u.quartos,area:u.area,valor:u.valor};
-  document.getElementById('unitGrid').innerHTML=unidades.map(x=>unitCardHtml(e,x)).join('');
+  const u=_unidadesAtuais.find(x=>x.id===unidadeId); if(!u) return;
+  _selectedUnidade={empId,id:u.id,numero:u.numero,blocoTorre:u.blocoTorre,tipologia:u.tipologia,valor:u.valor};
+  document.getElementById('unitGrid').innerHTML=_unidadesAtuais.map(x=>unitCardHtml(e,x)).join('');
   toast('🏠 Unidade '+u.numero+' selecionada!','green');
   registrarJornada('unidade');
   salvarEstado();
@@ -2190,7 +2380,7 @@ function calcularSimulacao(){
   document.getElementById('tabValPoupex').textContent=fmtBRL(dadosPOUPEX.primeiraEnc);
   renderSimRendaBox();
   chamarFeiraoApi('feirao_simulacao', {
-    cpf:LEAD.cpf, nome:LEAD.nome, email:LEAD.email, empId:_selectedPropId||'',
+    email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, empId:_selectedPropId||'',
     valorImovel:vAval, entrada:vEnt, prazo, taxa:taxaAno, sistemaEscolhido:_simSistemaAtivo,
     encargoSac:dadosSAC.primeiraEnc, encargoPrice:dadosPrice.primeiraEnc,
     encargoCfiae:dadosCFIAe.primeiraEnc, encargoPoupex:dadosPOUPEX.primeiraEnc
@@ -2291,7 +2481,7 @@ function arquivoParaBase64_(file){
   });
 }
 async function enviarAnaliseCredito(){
-  const required=['docId','docIr','docRenda','docResid'];
+  const required=['docId','docIr','docRenda','docResid','docEstadoCivil'];
   const casado=document.getElementById('crEstadoCivil').value==='casado';
   if(casado) required.push('docConjId','docConjRenda');
   for(const id of required){
@@ -2328,9 +2518,13 @@ async function enviarAnaliseCredito(){
     try{ documentos.push({campo, nome:_creditoArquivos[campo].name, tipo:_creditoArquivos[campo].type, base64:await arquivoParaBase64_(_creditoArquivos[campo])}); }
     catch(e){ console.warn('Falha ao ler documento', campo, e); }
   }
+  // CPF só é pedido aqui, na análise de crédito (é onde a instituição
+  // financeira realmente precisa dele) — persiste em LEAD para não pedir de novo.
+  LEAD.cpf=document.getElementById('crCpf').value.trim();
   chamarFeiraoApi('feirao_credito', {
-    protocolo, cpf:LEAD.cpf, nome:document.getElementById('crNome').value, email:document.getElementById('crEmail').value,
-    telefone:document.getElementById('crTel').value, estadoCivil:document.getElementById('crEstadoCivil').value,
+    protocolo, email:LEAD.email, sessionToken:LEAD.sessionToken, cpf:LEAD.cpf,
+    nome:document.getElementById('crNome').value, telefone:document.getElementById('crTel').value,
+    estadoCivil:document.getElementById('crEstadoCivil').value,
     conjugeNome:document.getElementById('crConjugeNome')?.value||'', empId:_selectedPropId||'',
     unidade:(_selectedUnidade&&_selectedUnidade.numero)||'', taxa:(_simResults&&_simResults.taxaAno)||8.3,
     dataLimite:dataLimite.toISOString(), documentos
@@ -2443,7 +2637,7 @@ function confirmarAgendamento(){
     confirmado:true
   };
   chamarFeiraoApi('feirao_agendamento', {
-    acao:'criar', cpf:LEAD.cpf, nome:LEAD.nome, telefone:LEAD.tel,
+    acao:'criar', email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, telefone:LEAD.tel,
     empId:_agendamentoState.empId||'', empNome:_agendamentoState.empNome,
     data, horario:_agendamentoState.horario, pessoas:_agendamentoState.pessoas,
     formato:_agendamentoState.formato, observacoes:_agendamentoState.obs
@@ -2453,7 +2647,7 @@ function confirmarAgendamento(){
   salvarEstado();
 }
 function cancelarAgendamento(){
-  chamarFeiraoApi('feirao_agendamento', {acao:'cancelar', cpf:LEAD.cpf});
+  chamarFeiraoApi('feirao_agendamento', {acao:'cancelar', email:LEAD.email, sessionToken:LEAD.sessionToken});
   _agendamentoState=null;
   renderAgendarPanel();
   salvarEstado();
@@ -2479,7 +2673,7 @@ function enviarMensagemConsultor(){
   const assunto=document.getElementById('conAssunto').value;
   const mensagem=document.getElementById('conMensagem').value.trim();
   if(!mensagem){ toast('Escreva sua mensagem antes de enviar.','red'); return; }
-  chamarFeiraoApi('feirao_mensagem', {cpf:LEAD.cpf, nome:LEAD.nome, telefone:LEAD.tel, email:LEAD.email, assunto, mensagem});
+  chamarFeiraoApi('feirao_mensagem', {email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, telefone:LEAD.tel, assunto, mensagem});
   toast('📤 Mensagem enviada! Um consultor da WAL vai te responder em breve.','green');
   document.getElementById('conMensagem').value='';
 }
@@ -2498,7 +2692,7 @@ function renderPixPanel(){
   const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId);
   document.getElementById('pixEmpNome').textContent=e?e.nome:'—';
   document.getElementById('pixUnidadeInfo').textContent = (_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)
-    ? `Unidade ${_selectedUnidade.numero} · Torre ${_selectedUnidade.torre} · ${_selectedUnidade.andar}º andar · ${fmtBRL(_selectedUnidade.valor)}`
+    ? `Unidade ${_selectedUnidade.numero}${_selectedUnidade.blocoTorre?' · '+_selectedUnidade.blocoTorre:''}${_selectedUnidade.tipologia?' · '+_selectedUnidade.tipologia:''} · ${fmtBRL(_selectedUnidade.valor)}`
     : 'Nenhuma unidade específica selecionada ainda — escolha na grade de unidades do imóvel';
   const valorImovel=valorImovelAtual();
   const minReserva=Math.round(valorImovel*0.10);
@@ -2515,7 +2709,7 @@ function syncPixBackend(){
   if(!LEAD || !_selectedPropId) return;
   const e=EMPREENDIMENTOS.find(x=>x.id===_selectedPropId);
   chamarFeiraoApi('feirao_pix', {
-    cpf:LEAD.cpf, nome:LEAD.nome, empId:_selectedPropId, empNome:e?e.nome:'',
+    email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, empId:_selectedPropId, empNome:e?e.nome:'',
     unidade:(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'',
     valor:_pixState.valor, paga:!!_pixState.paga, dataPagamento:_pixState.data||''
   });
@@ -2820,5 +3014,6 @@ if(new URLSearchParams(location.search).get('demo')!=='1'){
   if(demoWrap) demoWrap.style.display='none';
 }
 </script>
+<script src="../shared/chat-widget.js"></script>
 </body>
 </html>

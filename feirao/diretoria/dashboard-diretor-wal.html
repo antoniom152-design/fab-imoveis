@@ -125,6 +125,7 @@ a{text-decoration:none;color:inherit}
 .kpi.green::before{background:linear-gradient(90deg,var(--green),var(--green2))}
 .kpi.purple::before{background:linear-gradient(90deg,var(--purple),var(--purple2))}
 .kpi.amber::before{background:linear-gradient(90deg,var(--amber),var(--amber2))}
+.kpi.red::before{background:linear-gradient(90deg,var(--red),var(--red2))}
 .kpi .lbl{font-size:10.5px;color:var(--muted);letter-spacing:.3px;display:flex;align-items:center;gap:6px}
 .kpi .val{font-family:var(--mono);font-size:26px;font-weight:700;margin-top:8px;color:var(--txt)}
 .kpi.gold .val{color:var(--gold2)}
@@ -132,6 +133,7 @@ a{text-decoration:none;color:inherit}
 .kpi.green .val{color:var(--green2)}
 .kpi.purple .val{color:var(--purple2)}
 .kpi.amber .val{color:var(--amber2)}
+.kpi.red .val{color:var(--red2)}
 .kpi .delta{font-size:10.5px;margin-top:5px;color:var(--light)}
 .kpi .delta.up{color:var(--green2)}
 .kpi .delta.down{color:var(--red2)}
@@ -202,6 +204,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .empty-state .t{font-weight:600;color:var(--txt);font-size:13px}
 .empty-state .s{font-size:11.5px;margin-top:4px}
 
+/* Pills (seletor de construtora/empreendimento — Construtoras & Empreendimentos) */
+.pill-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.pill{background:var(--surf2);border:1px solid var(--bdr2);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--muted);cursor:pointer}
+.pill.active{background:var(--gold-dim);border-color:var(--gold-b);color:var(--gold2);font-weight:600}
+
+/* Sub-tabs (Cadastro / Buscar Empreendimentos — Construtoras & Empreendimentos) */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--bdr2);margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:9px 16px;font-size:12px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tab.active{color:var(--gold2);border-bottom-color:var(--gold)}
+
 /* Attendance / atendimento */
 .att-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
 .att-card{background:var(--surf2);border:1px solid var(--bdr2);border-radius:9px;padding:12px}
@@ -245,6 +257,40 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .switch input:checked + .slider{background:var(--green-dim);border-color:rgba(52,211,153,.4)}
 .switch input:checked + .slider::before{transform:translateX(20px);background:var(--green2)}
 
+/* Controle dos Agentes */
+.rank-list{display:flex;flex-direction:column;gap:0}
+.rank-item{display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--bdr)}
+.rank-item:last-child{border-bottom:none}
+.rank-pos{width:22px;height:22px;border-radius:50%;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);flex-shrink:0}
+.rank-pos.top{background:var(--gold-dim);color:var(--gold2)}
+.rank-name{flex:1;min-width:0}
+.rank-name .n{font-weight:600;font-size:12px}
+.rank-name .s{font-size:10.5px;color:var(--muted);margin-top:1px}
+.rank-val{font-family:var(--mono);font-weight:700;font-size:13px;color:var(--gold2);flex-shrink:0;text-align:right}
+.agente-row-name{display:flex;align-items:center;gap:10px}
+.agente-ava{width:30px;height:30px;border-radius:50%;background:var(--navy3);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--gold2);flex-shrink:0}
+.chip-list{display:flex;flex-wrap:wrap;gap:8px}
+.chip-check{display:flex;align-items:center;gap:7px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:20px;padding:6px 12px 6px 9px;font-size:11.5px;cursor:pointer;user-select:none}
+.chip-check input{accent-color:var(--gold);cursor:pointer}
+.chip-check.on{border-color:var(--gold-b);background:var(--gold-dim);color:var(--gold2)}
+.add-item-row{display:flex;gap:8px;margin-top:12px}
+.add-item-row input{flex:1;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:9px 12px;color:var(--txt);font-size:12.5px;font-family:'Inter',sans-serif}
+.add-item-row input:focus{outline:none;border-color:var(--gold)}
+.comis-line{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 12px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;margin-bottom:8px;flex-wrap:wrap}
+.comis-line:last-child{margin-bottom:0}
+.comis-line .cl-name{font-weight:600;font-size:12px}
+.comis-line .cl-sub{font-size:10.5px;color:var(--muted);margin-top:2px}
+.comis-line .cl-val{font-family:var(--mono);font-weight:700;font-size:13.5px;color:var(--gold2)}
+.det-sec{margin-bottom:18px}
+.det-sec:last-child{margin-bottom:0}
+.det-sec-title{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr)}
+.det-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 16px}
+.det-item .k{font-size:10px;color:var(--muted)}
+.det-item .v{font-size:12.5px;font-weight:600;margin-top:2px;color:var(--txt)}
+.mini-hist{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto}
+.mini-hist-item{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--bdr);font-size:11.5px}
+.mini-hist-item:last-child{border-bottom:none}
+
 .audit-log{display:flex;flex-direction:column;gap:0;max-height:340px;overflow-y:auto}
 .audit-item{padding:10px 0;border-bottom:1px solid var(--bdr);font-size:11.5px}
 .audit-item:last-child{border-bottom:none}
@@ -264,15 +310,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
 /* Impressão — isola apenas o painel de Pré-Cadastro e força alto contraste em papel */
 @media print{
   body *{visibility:hidden}
-  #tab-precadastro, #tab-precadastro *{visibility:visible}
-  #tab-precadastro{position:absolute;left:0;top:0;width:100%;padding:14px;background:#fff}
+  #tab-precadastro, #tab-precadastro *,
+  #tab-construtorasemp, #tab-construtorasemp *{visibility:visible}
+  #tab-precadastro, #tab-construtorasemp{position:absolute;left:0;top:0;width:100%;padding:14px;background:#fff}
   body{background:#fff}
-  .pg-actions, #painelFiltrosPreCadastro, .print-hint{display:none !important}
+  .pg-actions, #painelFiltrosPreCadastro, .print-hint, .ce-actions{display:none !important}
   .print-only{display:block !important}
-  #tab-precadastro *{color:#111 !important;background:transparent !important;border-color:#ccc !important;box-shadow:none !important}
-  #tab-precadastro table{width:100%}
-  #tab-precadastro th{background:#f2f2f2 !important}
-  #tab-precadastro th,#tab-precadastro td{border-bottom:1px solid #ddd !important}
+  #tab-precadastro *, #tab-construtorasemp *{color:#111 !important;background:transparent !important;border-color:#ccc !important;box-shadow:none !important}
+  #tab-precadastro table, #tab-construtorasemp table{width:100%}
+  #tab-precadastro th, #tab-construtorasemp th{background:#f2f2f2 !important}
+  #tab-precadastro th,#tab-precadastro td, #tab-construtorasemp th,#tab-construtorasemp td{border-bottom:1px solid #ddd !important}
 }
 
 /* Modal */
@@ -280,6 +327,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .modal-ov.show{display:flex}
 .modal-box{background:var(--card2);border:1px solid var(--bdr2);border-radius:14px;max-width:460px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.55)}
 .modal-box.wide{max-width:640px}
+.modal-box.xwide{max-width:840px}
 .modal-h{padding:18px 20px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
 .modal-h h3{font-size:14.5px;font-weight:700}
 .modal-close{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer}
@@ -377,10 +425,13 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <button class="sb-item active" data-tab="visao" onclick="irPara('visao')"><span class="ic">📈</span> Visão Geral</button>
       <button class="sb-item" data-tab="precadastro" onclick="irPara('precadastro')"><span class="ic">📝</span> Pré-Cadastro</button>
       <button class="sb-item" data-tab="vendas" onclick="irPara('vendas')"><span class="ic">🏗️</span> Vendas &amp; Reservas</button>
+      <button class="sb-item" data-tab="construtorasemp" onclick="irPara('construtorasemp')"><span class="ic">🏢</span> Construtoras &amp; Empreendimentos &amp; Unidades</button>
       <button class="sb-item" data-tab="atendimento" onclick="irPara('atendimento')"><span class="ic">🎧</span> Atendimento</button>
       <button class="sb-item" data-tab="alertas" onclick="irPara('alertas')"><span class="ic">🚨</span> Radar de Risco <span class="count hidden" id="cAlertas">0</span></button>
       <button class="sb-item" data-tab="linha" onclick="irPara('linha')"><span class="ic">🗓️</span> Linha do Tempo</button>
       <div class="group-label">Diretoria</div>
+      <button class="sb-item" data-tab="agentes" onclick="irPara('agentes')"><span class="ic">🤝</span> Controle dos Agentes</button>
+      <button class="sb-item" data-tab="comissoes" onclick="irPara('comissoes')"><span class="ic">💰</span> Controle de Comissões</button>
       <button class="sb-item" data-tab="controles" onclick="irPara('controles')"><span class="ic">🛑</span> Controles de Emergência</button>
       <button class="sb-item" data-tab="auditoria" onclick="irPara('auditoria')"><span class="ic">📋</span> Auditoria de Ações</button>
     </nav>
@@ -423,7 +474,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="pg-head">
           <div>
             <div class="pg-title">Visão Geral do Feirão</div>
-            <div class="pg-sub">Acompanhamento em tempo real de cadastros, simulações, crédito, reservas e vendas — 29/jul a 01/ago/2026.</div>
+            <div class="pg-sub">Acompanhamento em tempo real de cadastros, simulações, crédito, reservas e vendas — 13 a 16/ago/2026, às 9h.</div>
           </div>
           <div class="pg-actions">
             <button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar agora</button>
@@ -522,6 +573,111 @@ tr:hover td{background:rgba(255,255,255,.02)}
         </div>
       </section>
 
+      <!-- ============ CONTROLE DOS AGENTES ============ -->
+      <section class="tabpanel hidden" id="tab-agentes">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Controle dos Agentes</div>
+            <div class="pg-sub">Gerencie os agentes parceiros cadastrados: acesso ao painel, dados de cadastro, indicações, pipeline, empreendimentos liberados e comissões.</div>
+          </div>
+          <div class="pg-actions"><button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar</button></div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGridAgentes"></div>
+
+        <div class="grid-2" style="margin-bottom:16px">
+          <div class="panel">
+            <div class="panel-h"><div><h3>🏆 Ranking · Mais indicações</h3><div class="sub">Agentes que mais indicaram conhecidos</div></div></div>
+            <div class="rank-list" id="rankIndicacoes"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-h"><div><h3>🥇 Ranking · Mais vendas efetivadas</h3><div class="sub">Agentes com mais contratos assinados</div></div></div>
+            <div class="rank-list" id="rankVendas"></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-h">
+            <div><h3>Itens disponíveis para atribuição</h3><div class="sub">Campanhas/planilhas que podem ser liberadas por agente, além dos empreendimentos</div></div>
+          </div>
+          <div class="chip-list" id="itensDisponiveisList"></div>
+          <div class="add-item-row">
+            <input type="text" id="novoItemInput" placeholder="Ex: 2º Feirão Online WAL RJ" onkeydown="if(event.key==='Enter') adicionarItemDisponivel()">
+            <button class="btn sm gold" onclick="adicionarItemDisponivel()">+ Adicionar item</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h">
+            <div><h3>Agentes cadastrados <span id="totalAgentesTag" style="color:var(--muted);font-weight:500"></span></h3><div class="sub">Habilite, desabilite ou consulte o cadastro completo de cada agente</div></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="tabelaAgentes">
+              <thead><tr><th>Agente</th><th>WhatsApp</th><th class="tright">Indicações</th><th class="tright">Vendas</th><th class="tright">Comissão pendente</th><th>Acesso ao painel</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ CONTROLE DE COMISSÕES ============ -->
+      <section class="tabpanel hidden" id="tab-comissoes">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Controle de Comissões</div>
+            <div class="pg-sub">Controle total das comissões de Atendentes/Corretores e Agentes parceiros: consulte, libere para pagamento ou cancele.</div>
+          </div>
+          <div class="pg-actions">
+            <button class="btn sm" onclick="atualizarTudo(true)">🔄 Atualizar</button>
+            <button class="btn sm gold" onclick="abrirModalNovaComissao()">+ Nova comissão</button>
+          </div>
+        </div>
+
+        <div class="kpi-grid" id="kpiGridComissoes"></div>
+
+        <div class="panel" style="margin-bottom:16px">
+          <div class="panel-h">
+            <div><h3>Filtros</h3><div class="sub">Combine tipo, status e busca para localizar qualquer comissão</div></div>
+            <button class="btn sm" onclick="limparFiltrosComissoes()">✕ Limpar filtros</button>
+          </div>
+          <div class="filtro-grid">
+            <div class="field-f">
+              <label for="filComTipo">Tipo</label>
+              <select id="filComTipo" onchange="renderTabelaComissoes()">
+                <option value="">Todos</option>
+                <option value="agente">Agentes</option>
+                <option value="corretor">Atendentes/Corretores</option>
+              </select>
+            </div>
+            <div class="field-f">
+              <label for="filComStatus">Status</label>
+              <select id="filComStatus" onchange="renderTabelaComissoes()">
+                <option value="">Todas</option>
+                <option value="aguardando">A pagar</option>
+                <option value="pago">Pagas</option>
+                <option value="cancelado">Canceladas</option>
+              </select>
+            </div>
+            <div class="field-f">
+              <label for="filComBusca">Busca (nome ou cliente)</label>
+              <input type="text" id="filComBusca" placeholder="Digite para buscar…" oninput="renderTabelaComissoes()">
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-h">
+            <div><h3>Comissões <span id="totalComissoesTag" style="color:var(--muted);font-weight:500"></span></h3><div class="sub">Atendentes/Corretores e Agentes, mais recentes primeiro</div></div>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="tabelaComissoes">
+              <thead><tr><th>Tipo</th><th>Nome</th><th>Cliente</th><th>Empreendimento</th><th class="tright">Valor</th><th>Status</th><th>Data</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
       <!-- ============ VENDAS & RESERVAS ============ -->
       <section class="tabpanel hidden" id="tab-vendas">
         <div class="pg-head">
@@ -553,6 +709,17 @@ tr:hover td{background:rgba(255,255,255,.02)}
             </table>
           </div>
         </div>
+      </section>
+
+      <!-- ============ CONSTRUTORAS & EMPREENDIMENTOS & UNIDADES ============ -->
+      <section class="tabpanel hidden" id="tab-construtorasemp">
+        <div class="pg-head">
+          <div>
+            <div class="pg-title">Construtoras &amp; Empreendimentos &amp; Unidades</div>
+            <div class="pg-sub">Mesmo cadastro usado pelo Gerente no atendimento — construtoras parceiras, empreendimentos inscritos no feirão e unidades disponíveis.</div>
+          </div>
+        </div>
+        <div id="construtorasEmpBody"></div>
       </section>
 
       <!-- ============ ATENDIMENTO ============ -->
@@ -588,7 +755,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
         <div class="pg-head">
           <div>
             <div class="pg-title">Linha do Tempo do Evento</div>
-            <div class="pg-sub">Desempenho dia a dia — 29/jul a 01/ago/2026.</div>
+            <div class="pg-sub">Desempenho dia a dia — 13 a 16/ago/2026.</div>
           </div>
         </div>
         <div class="day-grid" id="dayGrid"></div>
@@ -712,6 +879,71 @@ tr:hover td{background:rgba(255,255,255,.02)}
   </div>
 </div>
 
+<!-- ================= MODAL: DETALHE DO AGENTE ================= -->
+<div class="modal-ov" id="modalAgente">
+  <div class="modal-box xwide">
+    <div class="modal-h"><h3 id="agModalTitulo">Agente</h3><button class="modal-close" onclick="fecharModal('modalAgente')">✕</button></div>
+    <div class="modal-body" id="agModalBody"></div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalAgente')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: NOVA COMISSÃO ================= -->
+<div class="modal-ov" id="modalNovaComissao">
+  <div class="modal-box">
+    <div class="modal-h"><h3>+ Nova Comissão</h3><button class="modal-close" onclick="fecharModal('modalNovaComissao')">✕</button></div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:14px">
+        <label for="novaComTipo">Tipo</label>
+        <select id="novaComTipo" onchange="atualizarSelectPessoaComissao()" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+          <option value="agente">Agente parceiro</option>
+          <option value="corretor">Atendente/Corretor</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="novaComPessoa">Pessoa</label>
+        <select id="novaComPessoa" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif"></select>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="novaComCliente">Cliente / Indicado</label>
+        <input type="text" id="novaComCliente" placeholder="Ex: Sgt. Fulano de Tal" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label for="novaComEmp">Empreendimento</label>
+        <input type="text" id="novaComEmp" placeholder="Ex: Ilha Mar Beach & Home" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+      <div class="field">
+        <label for="novaComValor">Valor da comissão (R$)</label>
+        <input type="number" id="novaComValor" placeholder="Ex: 2400" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalNovaComissao')">Cancelar</button>
+      <button class="btn gold" onclick="salvarNovaComissao()">Adicionar comissão</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= MODAL: CANCELAR COMISSÃO ================= -->
+<div class="modal-ov" id="modalCancelarComissao">
+  <div class="modal-box">
+    <div class="modal-h"><h3>🚫 Cancelar Comissão</h3><button class="modal-close" onclick="fecharModal('modalCancelarComissao')">✕</button></div>
+    <div class="modal-body">
+      <p>Isso marca a comissão como <b>cancelada</b>. Ela deixa de contar como "a pagar" e pode ser reativada depois, se necessário.</p>
+      <div class="field" style="margin-top:14px">
+        <label for="motivoCancelComissao">Motivo (fica registrado na auditoria)</label>
+        <input type="text" id="motivoCancelComissao" placeholder="Ex: distrato, venda cancelada, dados divergentes" style="width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;color:var(--txt);font-size:12.5px;letter-spacing:0;text-align:left;font-family:'Inter',sans-serif">
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalCancelarComissao')">Voltar</button>
+      <button class="btn danger" id="btnConfirmarCancelComissao">Confirmar cancelamento</button>
+    </div>
+  </div>
+</div>
+
 <div id="toastHost"></div>
 
 <script>
@@ -731,8 +963,9 @@ tr:hover td{background:rgba(255,255,255,.02)}
 // PIN de acesso da Diretoria (troque antes de compartilhar o link)
 const PIN_DIRETORIA = '2026';
 
-// Mesma planilha "WAL Imóveis — Portfólio", aba IMOVEISDISPONIVEIS
-const SHEET_ID_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+// (Removido: SHEET_ID_IMOVEIS estava declarado mas nunca lido aqui — o
+// Diretor já recebe empreendimentos[] agregados via feirao_resumo, sem
+// precisar duplicar a leitura direta da planilha de portfólio.)
 
 // Apps Script "WAL Feirão — Dados Operacionais" (o mesmo mencionado em
 // dashboard-feirao-lead.html / pre-cadastro-feirao.html). Preencha a URL
@@ -745,11 +978,11 @@ const SHEET_ID_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 //     Retorno esperado: {ok:true, participantes:[{id,dataCadastro,nome,whatsapp,
 //     email,categoria,regiao,fgts,autorizaContato}, ...]}. Enquanto esta ação não
 //     existir no Apps Script, a tela funciona normalmente em modo demonstração.
-const FEIRAO_API_URL = 'COLOQUE_AQUI_A_URL_DO_APPS_SCRIPT_WAL_FEIRAO_OPERACIONAL';
+const FEIRAO_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
 
-const EVENT_START = new Date('2026-07-29T09:00:00-03:00');
-const EVENT_END   = new Date('2026-08-01T20:00:00-03:00');
-const EVENT_DAYS  = ['2026-07-29','2026-07-30','2026-07-31','2026-08-01'];
+const EVENT_START = new Date('2026-08-13T09:00:00-03:00');
+const EVENT_END   = new Date('2026-08-16T20:00:00-03:00');
+const EVENT_DAYS  = ['2026-08-13','2026-08-14','2026-08-15','2026-08-16'];
 
 const CONSTRUTORAS = ['RIVA','Cury','Cyrela/RJZ','Emccamp','Calper','BRZ','Tegra','Even','Luving','Domma'];
 const CONSTR_CORES = {RIVA:'#0E7490',Cury:'#0369A1','Cyrela/RJZ':'#7C3AED',Emccamp:'#B45309',Calper:'#15803D',BRZ:'#DC2626',Tegra:'#D97706',Even:'#0D9488',Luving:'#7C3AED',Domma:'#475569'};
@@ -765,6 +998,587 @@ const MODULOS = [
   {key:'viabilizador',  ic:'🏛️', nome:'Dashboard do Viabilizador', arquivo:'dashboard-viabilizador-wal.html', desc:'Painel das construtoras parceiras (Viabilizador, Superintendente, Diretor)'},
   {key:'agente',        ic:'🤝', nome:'Dashboard do Agente',     arquivo:'dashboard-agente.html',           desc:'Painel dos agentes parceiros que indicam leads'},
 ];
+
+/* ════════════════════════════════════════════════════════════════
+   CONTROLE DOS AGENTES — mesmo padrão de dados exibido em
+   "dashboard-agente.html" (Dados Pessoais, Dados Bancários, Indicações,
+   Pipeline, Empreendimentos, Comissões). Aqui a Diretoria consulta e
+   gerencia todos os agentes cadastrados, habilita/desabilita o acesso
+   ao painel, libera comissões e define quais empreendimentos e itens
+   (campanhas/planilhas) cada agente pode indicar.
+═══════════════════════════════════════════════════════════════ */
+
+// Empreendimentos que podem ser liberados para indicação de agentes
+const EMPREENDIMENTOS_AGENTE = ['Orla Recreio Reserva','Ilha Mar Beach & Home','ICONYC by YOO','Ilha Mar Beach 2','Reserva Ilha do Governador'];
+
+// Itens adicionais (campanhas/planilhas) que podem ser liberados por agente.
+// A Diretoria pode acrescentar novos itens pela tela "Controle dos Agentes".
+const ITENS_AGENTE_PADRAO = ['Pré-Cadastro 1 Feirão WAL RJ','1 Feirão Online WAL RJ'];
+
+/* ═══════════════ CONSTRUTORAS & EMPREENDIMENTOS & UNIDADES ═══════════════
+   Mesma chave de localStorage do dashboard do Atendente (wal_feirao_atendimento_v1)
+   — só os campos construtoras/empreendimentos/unidades são lidos/escritos aqui,
+   para manter os dois dashboards consistentes quando abertos no mesmo navegador. */
+const CONSTREMP_KEY = 'wal_feirao_atendimento_v1';
+const UFS_CE = ['RJ','SP','MG','ES'];
+const TIPOS_IMOVEL_CE = ['Lançamento','Novo','Usado','Em Construção'];
+let ceConstrutoraId = null, ceEmpId = null, ceEmpSubTab = 'cadastro';
+
+function ceUid(p){ return p+'_'+Math.random().toString(36).slice(2,9); }
+function ceNowISO(){ return new Date().toISOString(); }
+function ceFmtDT(iso){ if(!iso) return '—'; const d=new Date(iso); return d.toLocaleDateString('pt-BR')+' '+d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+
+function loadConstrEmpState(){
+  let raw = null;
+  try{ raw = JSON.parse(localStorage.getItem(CONSTREMP_KEY) || 'null'); }catch(e){ raw = null; }
+  return {
+    construtoras: (raw && raw.construtoras) || [],
+    empreendimentos: (raw && raw.empreendimentos) || [],
+    unidades: (raw && raw.unidades) || []
+  };
+}
+function saveConstrEmpState(){
+  let raw = null;
+  try{ raw = JSON.parse(localStorage.getItem(CONSTREMP_KEY) || 'null'); }catch(e){ raw = null; }
+  raw = raw || {};
+  raw.construtoras = CONSTREMP_STATE.construtoras;
+  raw.empreendimentos = CONSTREMP_STATE.empreendimentos;
+  raw.unidades = CONSTREMP_STATE.unidades;
+  localStorage.setItem(CONSTREMP_KEY, JSON.stringify(raw));
+}
+let CONSTREMP_STATE = loadConstrEmpState();
+
+function ceGetConstrutora(id){ return CONSTREMP_STATE.construtoras.find(c=>c.id===id); }
+function ceGetEmpreendimento(id){ return CONSTREMP_STATE.empreendimentos.find(e=>e.id===id); }
+
+function renderConstrutorasEmpUnidades(){
+  CONSTREMP_STATE = loadConstrEmpState();
+  const body = document.getElementById('construtorasEmpBody');
+  if(!body) return;
+  if(!ceConstrutoraId && CONSTREMP_STATE.construtoras.length) ceConstrutoraId = CONSTREMP_STATE.construtoras[0].id;
+  const empsDaConstrutora = CONSTREMP_STATE.empreendimentos.filter(e=>e.construtoraId===ceConstrutoraId);
+  if(!ceEmpId || !empsDaConstrutora.find(e=>e.id===ceEmpId)) ceEmpId = empsDaConstrutora[0]?.id || null;
+  const unidades = CONSTREMP_STATE.unidades.filter(u=>u.empreendimentoId===ceEmpId);
+
+  body.innerHTML = `
+  <div class="tabs">
+    <div class="tab ${ceEmpSubTab==='cadastro'?'active':''}" onclick="ceSetEmpSubTab('cadastro')">Cadastro</div>
+    <div class="tab ${ceEmpSubTab==='busca'?'active':''}" onclick="ceSetEmpSubTab('busca')">🔎 Buscar Empreendimentos</div>
+  </div>
+
+  ${ceEmpSubTab==='busca' ? ceRenderBuscaEmpreendimentos() : `
+
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-h"><div><h3>1. Construtora</h3><div class="sub">${CONSTREMP_STATE.construtoras.length} cadastrada(s)</div></div></div>
+    <div class="pill-row">
+      ${CONSTREMP_STATE.construtoras.map(c=>`<div class="pill ${c.id===ceConstrutoraId?'active':''}" onclick="ceSelectConstrutora('${c.id}')">${c.nome}${c.ativa===false?' · inativa':''}</div>`).join('') || '<span class="sub">Nenhuma construtora cadastrada ainda.</span>'}
+    </div>
+
+    ${ceRenderDetalheConstrutora()}
+
+    <div class="panel-h" style="margin-top:16px"><h3 style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">+ Nova construtora parceira</h3></div>
+    <div class="grid-3">
+      <div class="field-f"><label>Nome</label><input id="ceNovaConstrutoraNome" placeholder="Nome da construtora"></div>
+      <div class="field-f"><label>Telefone</label><input id="ceNovaConstrutoraTelefone" placeholder="(21) 99999-9999"></div>
+      <div class="field-f"><label>Site</label><input id="ceNovaConstrutoraSite" placeholder="https://..."></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Viabilizador</label><input id="ceNovaConstrutoraViabilizador" placeholder="Nome do contato"></div>
+      <div class="field-f"><label>Telefone do Viabilizador</label><input id="ceNovaConstrutoraTelViab" placeholder="(21) 99999-9999"></div>
+      <div class="field-f"><label>Comissão (%)</label><input id="ceNovaConstrutoraComissao" type="number" step="0.1" placeholder="Ex: 5"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Link do Drive</label><input id="ceNovaConstrutoraLinkDrive" placeholder="https://drive.google.com/..."></div>
+      <div class="field-f"><label>Estados de atuação</label><input id="ceNovaConstrutoraEstados" placeholder="Ex: RJ, SP"></div>
+      <div class="field-f"><label>Cidades de atuação</label><input id="ceNovaConstrutoraCidades" placeholder="Ex: Rio de Janeiro"></div>
+    </div>
+    <div class="field-f" style="margin-top:10px"><label>Observações</label><input id="ceNovaConstrutoraObs" placeholder="Observações internas"></div>
+    <button class="btn gold" style="margin-top:12px" onclick="ceCriarConstrutora()">+ Adicionar Construtora</button>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px">
+    <div class="panel-h"><div><h3>2. Empreendimento inscrito no feirão</h3><div class="sub">${empsDaConstrutora.length} nesta construtora</div></div></div>
+    <div class="pill-row">
+      ${empsDaConstrutora.map(e=>`<div class="pill ${e.id===ceEmpId?'active':''}" onclick="ceSelectEmp('${e.id}')">${e.nome}${e.ativo===false?' · inativo':''}</div>`).join('') || '<span class="sub">Nenhum empreendimento cadastrado para esta construtora.</span>'}
+    </div>
+
+    ${ceRenderDetalheEmpreendimento()}
+
+    ${ceConstrutoraId ? `
+    <div class="panel-h" style="margin-top:16px"><h3 style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">+ Novo empreendimento — vinculado a ${ceGetConstrutora(ceConstrutoraId)?.nome||''}</h3></div>
+    <div class="grid-3">
+      <div class="field-f"><label>Nome do empreendimento</label><input id="ceNovoEmpNome" placeholder="Ex: Vista Marina"></div>
+      <div class="field-f"><label>Bairro</label><input id="ceNovoEmpBairro" placeholder="Ex: Barra da Tijuca"></div>
+      <div class="field-f"><label>Cidade</label><input id="ceNovoEmpCidade" placeholder="Ex: Rio de Janeiro"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>UF</label><select id="ceNovoEmpUf">${UFS_CE.map(u=>`<option value="${u}">${u}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Tipo de imóvel</label><select id="ceNovoEmpTipo">${TIPOS_IMOVEL_CE.map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Entrega</label><input id="ceNovoEmpEntrega" type="date"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Entrada</label><input id="ceNovoEmpEntrada" placeholder="Ex: 10%"></div>
+      <div class="field-f"><label>Sinal</label><input id="ceNovoEmpSinal" placeholder="Ex: R$ 5.000"></div>
+      <div class="field-f"><label>Condição especial do feirão</label><input id="ceNovoEmpCond" placeholder="Ex: 5% desconto à vista"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Condições</label><input id="ceNovoEmpCondicoes" placeholder="Condições comerciais gerais"></div>
+      <div class="field-f"><label>Tipologia</label><input id="ceNovoEmpTipologia" placeholder="Ex: 2 e 3 quartos"></div>
+      <div class="field-f"><label>Faixa de valor</label><input id="ceNovoEmpFaixaValor" placeholder="Ex: R$ 400 mil a R$ 700 mil"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Valor a partir de</label><input id="ceNovoEmpValorAPartir" type="number" placeholder="Ex: 420000"></div>
+      <div class="field-f"><label>Qtd. de unidades</label><input id="ceNovoEmpQtdUnidades" type="number" placeholder="Ex: 48"></div>
+      <div class="field-f"><label>URL da imagem</label><input id="ceNovoEmpUrlImagem" placeholder="https://..."></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Link do Drive</label><input id="ceNovoEmpLinkDrive" placeholder="https://drive.google.com/..."></div>
+      <div class="field-f"><label>Link do Blogger</label><input id="ceNovoEmpLinkBlogger" placeholder="https://..."></div>
+      <div class="field-f" style="display:flex;align-items:flex-end;gap:8px"><label style="margin:0;display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)"><input type="checkbox" id="ceNovoEmpDestaque"> Destaque na página principal</label></div>
+    </div>
+    <div class="field-f" style="margin-top:10px"><label>Descrição do imóvel</label><input id="ceNovoEmpDescricao" placeholder="Texto de apresentação do empreendimento"></div>
+    <div class="field-f" style="margin-top:10px"><label>Observações internas</label><input id="ceNovoEmpObsInterna" placeholder="Visível só para a equipe"></div>
+    <button class="btn gold" style="margin-top:12px" onclick="ceCriarEmpreendimento()">+ Inscrever Empreendimento no Feirão</button>
+    ` : ''}
+  </div>
+
+  ${ceEmpId ? `
+  <div class="panel">
+    <div class="panel-h"><div><h3>3. Unidades disponíveis — ${ceGetEmpreendimento(ceEmpId)?.nome||''}</h3><div class="sub">${unidades.length} unidade(s) cadastrada(s)</div></div></div>
+    <div style="overflow-x:auto"><table>
+      <thead><tr><th>Bloco</th><th>Unidade</th><th>Tipologia</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+      ${unidades.map(u=>`<tr>
+        <td><input class="mini" style="width:50px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 8px" value="${u.bloco}" onchange="ceEditUnidade('${u.id}','bloco',this.value)"></td>
+        <td><input class="mini" style="width:60px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 8px" value="${u.unidade}" onchange="ceEditUnidade('${u.id}','unidade',this.value)"></td>
+        <td><input class="mini" style="width:140px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 8px" value="${u.tipologia}" onchange="ceEditUnidade('${u.id}','tipologia',this.value)"></td>
+        <td><input class="mini" style="width:110px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 8px" type="number" value="${u.valor}" onchange="ceEditUnidade('${u.id}','valor',this.value)"></td>
+        <td><select class="mini" style="background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 8px" onchange="ceEditUnidade('${u.id}','status',this.value)">
+            ${['interesse','proposta','reserva','assinatura'].map(s=>`<option value="${s}" ${u.status===s?'selected':''}>${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
+          </select></td>
+        <td><button class="btn sm danger ce-actions" onclick="ceRemoverUnidade('${u.id}')">✕</button></td>
+      </tr>`).join('') || `<tr><td colspan="6"><div class="empty-state"><div class="ic">🏢</div><div class="t">Nenhuma unidade cadastrada</div><div class="s">Adicione manualmente abaixo.</div></div></td></tr>`}
+      </tbody>
+    </table></div>
+    <button class="btn sm ce-actions" style="margin-top:10px" onclick="ceAdicionarUnidadeManual()">+ Adicionar linha manual</button>
+  </div>
+  ` : ''}
+  `}
+  `;
+}
+function ceSetEmpSubTab(tab){ ceEmpSubTab=tab; renderConstrutorasEmpUnidades(); }
+function ceRenderBuscaEmpreendimentos(){
+  const allTipologias = [...new Set(CONSTREMP_STATE.unidades.map(u=>u.tipologia).filter(Boolean))];
+  return `
+  <div class="panel">
+    <div class="panel-h"><div><h3>Buscar Empreendimentos Inscritos no Feirão</h3></div></div>
+    <div class="grid-3">
+      <div class="field-f"><label>UF</label><select id="ceBuscaUf"><option value="">Todas</option>${UFS_CE.map(u=>`<option value="${u}">${u}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Tipo de imóvel</label><select id="ceBuscaTipo"><option value="">Todos</option>${TIPOS_IMOVEL_CE.map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Cidade</label><input id="ceBuscaCidade" placeholder="Ex: Rio de Janeiro"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Bairro</label><input id="ceBuscaBairro" placeholder="Ex: Barra da Tijuca"></div>
+      <div class="field-f"><label>Tipologia</label><select id="ceBuscaTipologia"><option value="">Todas</option>${allTipologias.map(t=>`<option value="${t}">${t}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Faixa de valor máxima</label><input id="ceBuscaValor" type="number" placeholder="Ex: 600000"></div>
+    </div>
+    <button class="btn gold" style="margin-top:14px" onclick="ceExecutarBuscaEmpreendimentos()">🔎 Buscar</button>
+  </div>
+  <div id="ceBuscaResultados"></div>
+  `;
+}
+function ceExecutarBuscaEmpreendimentos(){
+  const uf = document.getElementById('ceBuscaUf').value;
+  const tipo = document.getElementById('ceBuscaTipo').value;
+  const cidade = document.getElementById('ceBuscaCidade').value.trim().toLowerCase();
+  const bairro = document.getElementById('ceBuscaBairro').value.trim().toLowerCase();
+  const tipologia = document.getElementById('ceBuscaTipologia').value;
+  const valorMax = Number(document.getElementById('ceBuscaValor').value) || null;
+
+  const resultados = CONSTREMP_STATE.empreendimentos.filter(e=>{
+    if(uf && e.uf!==uf) return false;
+    if(tipo && e.tipoImovel!==tipo) return false;
+    if(cidade && !(e.cidade||'').toLowerCase().includes(cidade)) return false;
+    if(bairro && !(e.bairro||'').toLowerCase().includes(bairro)) return false;
+    if(tipologia || valorMax){
+      const uns = CONSTREMP_STATE.unidades.filter(u=>u.empreendimentoId===e.id);
+      const match = uns.some(u=>(!tipologia||u.tipologia===tipologia) && (!valorMax||u.valor<=valorMax));
+      if(!match) return false;
+    }
+    return true;
+  });
+
+  const area = document.getElementById('ceBuscaResultados');
+  area.innerHTML = `<div class="panel">
+    <div class="panel-h"><div><h3>${resultados.length} resultado(s)</h3></div></div>
+    ${resultados.map(e=>{
+      const c = ceGetConstrutora(e.construtoraId);
+      const uns = CONSTREMP_STATE.unidades.filter(u=>u.empreendimentoId===e.id);
+      return `<div class="panel" style="margin-top:10px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap" onclick="ceIrParaEmpreendimento('${e.construtoraId}','${e.id}')">
+        <div>
+          <div style="font-weight:700;font-size:12.5px">🏢 ${e.nome} <span style="color:var(--muted);font-weight:400">· ${c?c.nome:''}</span></div>
+          <div class="sub" style="margin-top:3px">${e.bairro}, ${e.cidade} — ${e.uf} · ${e.tipoImovel} · ${uns.length} unidade(s)</div>
+        </div>
+        <button class="btn sm gold">Ver Unidades →</button>
+      </div>`;
+    }).join('') || '<div class="empty-state"><div class="ic">🔎</div><div class="t">Nenhum empreendimento encontrado</div><div class="s">Ajuste os filtros e tente de novo.</div></div>'}
+  </div>`;
+}
+function ceIrParaEmpreendimento(construtoraId, empId){
+  ceConstrutoraId = construtoraId; ceEmpId = empId; ceEmpSubTab = 'cadastro';
+  renderConstrutorasEmpUnidades();
+  toast('Mostrando unidades disponíveis do empreendimento selecionado.');
+}
+
+function ceSelectConstrutora(id){ ceConstrutoraId=id; ceEmpId=null; renderConstrutorasEmpUnidades(); }
+function ceSelectEmp(id){ ceEmpId=id; renderConstrutorasEmpUnidades(); }
+
+function ceCriarConstrutora(){
+  const nome = document.getElementById('ceNovaConstrutoraNome').value.trim();
+  if(!nome){ toast('Informe o nome da construtora.','danger'); return; }
+  const c = {
+    id:ceUid('c'), nome,
+    telefone: document.getElementById('ceNovaConstrutoraTelefone').value.trim(),
+    site: document.getElementById('ceNovaConstrutoraSite').value.trim(),
+    viabilizador: document.getElementById('ceNovaConstrutoraViabilizador').value.trim(),
+    telefoneViabilizador: document.getElementById('ceNovaConstrutoraTelViab').value.trim(),
+    comissaoPct: Number(document.getElementById('ceNovaConstrutoraComissao').value) || 0,
+    linkDrive: document.getElementById('ceNovaConstrutoraLinkDrive').value.trim(),
+    estadosAtuacao: document.getElementById('ceNovaConstrutoraEstados').value.trim(),
+    cidadesAtuacao: document.getElementById('ceNovaConstrutoraCidades').value.trim(),
+    observacoes: document.getElementById('ceNovaConstrutoraObs').value.trim(),
+    ativa: true, dataInclusao: ceNowISO()
+  };
+  CONSTREMP_STATE.construtoras.push(c); ceConstrutoraId=c.id; ceEmpId=null;
+  saveConstrEmpState(); toast('Construtora adicionada: '+nome); renderConstrutorasEmpUnidades();
+}
+function ceRenderDetalheConstrutora(){
+  const c = ceGetConstrutora(ceConstrutoraId);
+  if(!c) return '';
+  const empsCount = CONSTREMP_STATE.empreendimentos.filter(e=>e.construtoraId===c.id).length;
+  return `
+  <div class="panel" style="margin:14px 0;background:var(--surf2)">
+    <div class="panel-h"><h3>Detalhes — ${c.nome}</h3>
+      <span class="badge ${c.ativa===false?'b-danger':'b-ok'}">${c.ativa===false?'Inativa':'Ativa'}</span>
+    </div>
+    <div class="grid-3">
+      <div class="field-f"><label>Nome</label><input value="${c.nome||''}" onchange="ceEditConstrutora('${c.id}','nome',this.value)"></div>
+      <div class="field-f"><label>Telefone</label><input value="${c.telefone||''}" onchange="ceEditConstrutora('${c.id}','telefone',this.value)"></div>
+      <div class="field-f"><label>Site</label><input value="${c.site||''}" onchange="ceEditConstrutora('${c.id}','site',this.value)"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Viabilizador</label><input value="${c.viabilizador||''}" onchange="ceEditConstrutora('${c.id}','viabilizador',this.value)"></div>
+      <div class="field-f"><label>Telefone do Viabilizador</label><input value="${c.telefoneViabilizador||''}" onchange="ceEditConstrutora('${c.id}','telefoneViabilizador',this.value)"></div>
+      <div class="field-f"><label>Comissão (%)</label><input type="number" step="0.1" value="${c.comissaoPct||0}" onchange="ceEditConstrutora('${c.id}','comissaoPct',Number(this.value))"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Link do Drive</label><input value="${c.linkDrive||''}" onchange="ceEditConstrutora('${c.id}','linkDrive',this.value)"></div>
+      <div class="field-f"><label>Estados de atuação</label><input value="${c.estadosAtuacao||''}" onchange="ceEditConstrutora('${c.id}','estadosAtuacao',this.value)"></div>
+      <div class="field-f"><label>Cidades de atuação</label><input value="${c.cidadesAtuacao||''}" onchange="ceEditConstrutora('${c.id}','cidadesAtuacao',this.value)"></div>
+    </div>
+    <div class="field-f" style="margin-top:10px"><label>Observações</label><input value="${c.observacoes||''}" onchange="ceEditConstrutora('${c.id}','observacoes',this.value)"></div>
+    <div class="sub" style="margin-top:8px">Incluída em ${ceFmtDT(c.dataInclusao)} · ${empsCount} empreendimento(s) vinculado(s)</div>
+    <div class="ce-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sm" onclick="ceToggleAtivaConstrutora('${c.id}')">${c.ativa===false?'✓ Ativar':'⏸ Desativar'}</button>
+      <button class="btn sm" onclick="ceImprimir('impressora')">🖨️ Imprimir</button>
+      <button class="btn sm" onclick="ceImprimir('pdf')">📄 Salvar PDF</button>
+      <button class="btn sm danger" onclick="ceExcluirConstrutora('${c.id}')">🗑️ Excluir</button>
+    </div>
+  </div>`;
+}
+function ceEditConstrutora(id, campo, valor){
+  const c = ceGetConstrutora(id); if(!c) return;
+  c[campo] = valor; saveConstrEmpState(); toast('Construtora atualizada.');
+}
+function ceToggleAtivaConstrutora(id){
+  const c = ceGetConstrutora(id); if(!c) return;
+  c.ativa = c.ativa===false ? true : false;
+  saveConstrEmpState(); toast(c.ativa?'Construtora ativada.':'Construtora desativada.'); renderConstrutorasEmpUnidades();
+}
+function ceExcluirConstrutora(id){
+  const emUso = CONSTREMP_STATE.empreendimentos.filter(e=>e.construtoraId===id).length;
+  if(emUso>0){ toast(`Existem ${emUso} empreendimento(s) vinculado(s) a esta construtora.`,'danger'); return; }
+  const c = ceGetConstrutora(id);
+  if(!confirm(`Excluir a construtora "${c?.nome||''}"? Esta ação não pode ser desfeita.`)) return;
+  CONSTREMP_STATE.construtoras = CONSTREMP_STATE.construtoras.filter(x=>x.id!==id);
+  if(ceConstrutoraId===id) ceConstrutoraId = null;
+  saveConstrEmpState(); toast('Construtora excluída.'); renderConstrutorasEmpUnidades();
+}
+function ceImprimir(destino){
+  toast(destino==='pdf' ? 'Na janela que abrir, escolha "Salvar como PDF" em Destino.' : 'Abrindo janela de impressão...');
+  setTimeout(()=>window.print(), 250);
+}
+
+function ceCriarEmpreendimento(){
+  const nome = document.getElementById('ceNovoEmpNome').value.trim();
+  if(!nome){ toast('Informe o nome do empreendimento.','danger'); return; }
+  if(!ceConstrutoraId){ toast('Selecione uma construtora antes de inscrever um empreendimento.','danger'); return; }
+  const e = {
+    id:ceUid('e'), construtoraId:ceConstrutoraId, nome,
+    bairro: document.getElementById('ceNovoEmpBairro').value.trim(),
+    cidade: document.getElementById('ceNovoEmpCidade').value.trim(),
+    uf: document.getElementById('ceNovoEmpUf').value,
+    tipoImovel: document.getElementById('ceNovoEmpTipo').value,
+    condFeirao: document.getElementById('ceNovoEmpCond').value.trim(),
+    entrega: document.getElementById('ceNovoEmpEntrega').value,
+    entrada: document.getElementById('ceNovoEmpEntrada').value.trim(),
+    sinal: document.getElementById('ceNovoEmpSinal').value.trim(),
+    condicoes: document.getElementById('ceNovoEmpCondicoes').value.trim(),
+    descricaoImovel: document.getElementById('ceNovoEmpDescricao').value.trim(),
+    tipologia: document.getElementById('ceNovoEmpTipologia').value.trim(),
+    faixaValor: document.getElementById('ceNovoEmpFaixaValor').value.trim(),
+    valorAPartirDe: Number(document.getElementById('ceNovoEmpValorAPartir').value) || 0,
+    qtdUnidades: Number(document.getElementById('ceNovoEmpQtdUnidades').value) || 0,
+    urlImagem: document.getElementById('ceNovoEmpUrlImagem').value.trim(),
+    linkDrive: document.getElementById('ceNovoEmpLinkDrive').value.trim(),
+    linkBlogger: document.getElementById('ceNovoEmpLinkBlogger').value.trim(),
+    destaquePaginaPrincipal: document.getElementById('ceNovoEmpDestaque').checked,
+    obsInterna: document.getElementById('ceNovoEmpObsInterna').value.trim(),
+    ativo: true, dataCadastro: ceNowISO(), criadoEm: ceNowISO()
+  };
+  CONSTREMP_STATE.empreendimentos.push(e); ceEmpId=e.id;
+  saveConstrEmpState(); toast('Empreendimento inscrito no feirão: '+nome); renderConstrutorasEmpUnidades();
+}
+function ceRenderDetalheEmpreendimento(){
+  const e = ceGetEmpreendimento(ceEmpId);
+  if(!e) return '';
+  const unCount = CONSTREMP_STATE.unidades.filter(u=>u.empreendimentoId===e.id).length;
+  return `
+  <div class="panel" style="margin:14px 0;background:var(--surf2)">
+    <div class="panel-h"><h3>Detalhes — ${e.nome}</h3>
+      <span class="badge ${e.ativo===false?'b-danger':'b-ok'}">${e.ativo===false?'Inativo':'Ativo'}</span>
+    </div>
+    <div class="grid-3">
+      <div class="field-f"><label>Nome</label><input value="${e.nome||''}" onchange="ceEditEmpreendimento('${e.id}','nome',this.value)"></div>
+      <div class="field-f"><label>Bairro</label><input value="${e.bairro||''}" onchange="ceEditEmpreendimento('${e.id}','bairro',this.value)"></div>
+      <div class="field-f"><label>Cidade</label><input value="${e.cidade||''}" onchange="ceEditEmpreendimento('${e.id}','cidade',this.value)"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>UF</label><select onchange="ceEditEmpreendimento('${e.id}','uf',this.value)">${UFS_CE.map(u=>`<option value="${u}" ${e.uf===u?'selected':''}>${u}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Tipo de imóvel</label><select onchange="ceEditEmpreendimento('${e.id}','tipoImovel',this.value)">${TIPOS_IMOVEL_CE.map(t=>`<option value="${t}" ${e.tipoImovel===t?'selected':''}>${t}</option>`).join('')}</select></div>
+      <div class="field-f"><label>Entrega</label><input type="date" value="${e.entrega||''}" onchange="ceEditEmpreendimento('${e.id}','entrega',this.value)"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Entrada</label><input value="${e.entrada||''}" onchange="ceEditEmpreendimento('${e.id}','entrada',this.value)"></div>
+      <div class="field-f"><label>Sinal</label><input value="${e.sinal||''}" onchange="ceEditEmpreendimento('${e.id}','sinal',this.value)"></div>
+      <div class="field-f"><label>Condição especial do feirão</label><input value="${e.condFeirao||''}" onchange="ceEditEmpreendimento('${e.id}','condFeirao',this.value)"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Condições</label><input value="${e.condicoes||''}" onchange="ceEditEmpreendimento('${e.id}','condicoes',this.value)"></div>
+      <div class="field-f"><label>Tipologia</label><input value="${e.tipologia||''}" onchange="ceEditEmpreendimento('${e.id}','tipologia',this.value)"></div>
+      <div class="field-f"><label>Faixa de valor</label><input value="${e.faixaValor||''}" onchange="ceEditEmpreendimento('${e.id}','faixaValor',this.value)"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Valor a partir de</label><input type="number" value="${e.valorAPartirDe||0}" onchange="ceEditEmpreendimento('${e.id}','valorAPartirDe',Number(this.value))"></div>
+      <div class="field-f"><label>Qtd. de unidades</label><input type="number" value="${e.qtdUnidades||0}" onchange="ceEditEmpreendimento('${e.id}','qtdUnidades',Number(this.value))"></div>
+      <div class="field-f"><label>URL da imagem</label><input value="${e.urlImagem||''}" onchange="ceEditEmpreendimento('${e.id}','urlImagem',this.value)"></div>
+    </div>
+    <div class="grid-3" style="margin-top:10px">
+      <div class="field-f"><label>Link do Drive</label><input value="${e.linkDrive||''}" onchange="ceEditEmpreendimento('${e.id}','linkDrive',this.value)"></div>
+      <div class="field-f"><label>Link do Blogger</label><input value="${e.linkBlogger||''}" onchange="ceEditEmpreendimento('${e.id}','linkBlogger',this.value)"></div>
+      <div class="field-f" style="display:flex;align-items:flex-end;gap:8px"><label style="margin:0;display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted)"><input type="checkbox" ${e.destaquePaginaPrincipal?'checked':''} onchange="ceEditEmpreendimento('${e.id}','destaquePaginaPrincipal',this.checked)"> Destaque na página principal</label></div>
+    </div>
+    <div class="field-f" style="margin-top:10px"><label>Descrição do imóvel</label><input value="${e.descricaoImovel||''}" onchange="ceEditEmpreendimento('${e.id}','descricaoImovel',this.value)"></div>
+    <div class="field-f" style="margin-top:10px"><label>Observações internas</label><input value="${e.obsInterna||''}" onchange="ceEditEmpreendimento('${e.id}','obsInterna',this.value)"></div>
+    <div class="sub" style="margin-top:8px">Cadastrado em ${ceFmtDT(e.criadoEm)} · ${unCount} unidade(s) cadastrada(s)</div>
+    <div class="ce-actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn sm" onclick="ceToggleAtivoEmpreendimento('${e.id}')">${e.ativo===false?'✓ Ativar':'⏸ Desativar'}</button>
+      <button class="btn sm" onclick="ceImprimir('impressora')">🖨️ Imprimir</button>
+      <button class="btn sm" onclick="ceImprimir('pdf')">📄 Salvar PDF</button>
+      <button class="btn sm danger" onclick="ceExcluirEmpreendimento('${e.id}')">🗑️ Excluir</button>
+    </div>
+  </div>`;
+}
+function ceEditEmpreendimento(id, campo, valor){
+  const e = ceGetEmpreendimento(id); if(!e) return;
+  e[campo] = valor; saveConstrEmpState(); toast('Empreendimento atualizado.');
+}
+function ceToggleAtivoEmpreendimento(id){
+  const e = ceGetEmpreendimento(id); if(!e) return;
+  e.ativo = e.ativo===false ? true : false;
+  saveConstrEmpState(); toast(e.ativo?'Empreendimento ativado.':'Empreendimento desativado.'); renderConstrutorasEmpUnidades();
+}
+function ceExcluirEmpreendimento(id){
+  const emUso = CONSTREMP_STATE.unidades.filter(u=>u.empreendimentoId===id).length;
+  if(emUso>0){ toast(`Existem ${emUso} unidade(s) cadastrada(s) neste empreendimento.`,'danger'); return; }
+  const e = ceGetEmpreendimento(id);
+  if(!confirm(`Excluir o empreendimento "${e?.nome||''}"? Esta ação não pode ser desfeita.`)) return;
+  CONSTREMP_STATE.empreendimentos = CONSTREMP_STATE.empreendimentos.filter(x=>x.id!==id);
+  if(ceEmpId===id) ceEmpId = null;
+  saveConstrEmpState(); toast('Empreendimento excluído.'); renderConstrutorasEmpUnidades();
+}
+
+function ceEditUnidade(id, campo, valor){
+  const u = CONSTREMP_STATE.unidades.find(x=>x.id===id); if(!u) return;
+  u[campo] = campo==='valor' ? Number(valor) : valor;
+  saveConstrEmpState(); toast('Unidade atualizada.');
+}
+function ceRemoverUnidade(id){
+  CONSTREMP_STATE.unidades = CONSTREMP_STATE.unidades.filter(u=>u.id!==id);
+  saveConstrEmpState(); renderConstrutorasEmpUnidades();
+}
+function ceAdicionarUnidadeManual(){
+  CONSTREMP_STATE.unidades.push({id:ceUid('un'), empreendimentoId:ceEmpId, bloco:'', unidade:'', tipologia:'', valor:0, status:'interesse'});
+  saveConstrEmpState(); renderConstrutorasEmpUnidades();
+}
+
+const LS_KEY_AGENTES = 'wal_diretor_agentes_v1';
+
+function seedAgentes(){
+  return [
+    { id:'ag1', nome:'Cb. Ricardo Alves', cpf:'123.456.789-00', email:'ricardo.alves@fab.mil.br', whatsapp:'(21) 98765-4321',
+      nascimento:'1988-04-12', profissao:'Militar da Aeronáutica (FAB)', habilitado:true, dataCadastro:'2026-01-10',
+      banco:'Caixa Econômica Federal', agencia:'0001', conta:'12345-6', tipoConta:'Conta Corrente', pix:'123.456.789-00',
+      documentos:[
+        {tipo:'RG / CNH', enviadoEm:'2026-01-10', status:'aprovado'},
+        {tipo:'Comprovante de Residência', enviadoEm:'2026-01-10', status:'aprovado'},
+        {tipo:'Contrato de Parceria', enviadoEm:'2026-01-12', status:'assinado'},
+      ],
+      empreendimentos:['Orla Recreio Reserva','Ilha Mar Beach & Home','Ilha Mar Beach 2'], itens:['Pré-Cadastro 1 Feirão WAL RJ','1 Feirão Online WAL RJ'],
+      indicacoes:[
+        {id:'i1', nome:'Cap. Henrique Santos', emp:'Ilha Mar Beach & Home', valor:480000, status:'proposta', criado:'2026-06-01'},
+        {id:'i2', nome:'Sgt. Carlos Alves', emp:'Orla Recreio Reserva', valor:520000, status:'contato', criado:'2026-06-10'},
+        {id:'i3', nome:'Ten. Marco Pereira', emp:'Ilha Mar Beach 2', valor:320000, status:'fechado', criado:'2026-01-10'},
+      ],
+      comissoes:[
+        {id:'c1', indicado:'Ten. Marco Pereira', emp:'Ilha Mar Beach 2', valor:1600, status:'pago', data:'2026-01-30'},
+        {id:'c2', indicado:'Cap. Henrique Santos', emp:'Ilha Mar Beach & Home', valor:2400, status:'aguardando', data:''},
+      ]
+    },
+    { id:'ag2', nome:'Sgt. Mariana Costa', cpf:'234.567.890-11', email:'mariana.costa@fab.mil.br', whatsapp:'(21) 97654-3210',
+      nascimento:'1991-09-03', profissao:'Militar da Aeronáutica (FAB)', habilitado:true, dataCadastro:'2026-02-04',
+      banco:'Banco do Brasil', agencia:'1234', conta:'55667-8', tipoConta:'Conta Corrente', pix:'mariana.costa@fab.mil.br',
+      documentos:[
+        {tipo:'RG / CNH', enviadoEm:'2026-02-04', status:'aprovado'},
+        {tipo:'Comprovante de Residência', enviadoEm:'2026-02-04', status:'aprovado'},
+        {tipo:'Contrato de Parceria', enviadoEm:'2026-02-06', status:'assinado'},
+      ],
+      empreendimentos:['ICONYC by YOO','Reserva Ilha do Governador'], itens:['Pré-Cadastro 1 Feirão WAL RJ'],
+      indicacoes:[
+        {id:'i4', nome:'Maj. André Lima', emp:'ICONYC by YOO', valor:780000, status:'visita', criado:'2026-05-14'},
+        {id:'i5', nome:'Sgt. Fernanda Dias', emp:'Reserva Ilha do Governador', valor:410000, status:'fechado', criado:'2026-03-02'},
+      ],
+      comissoes:[
+        {id:'c3', indicado:'Sgt. Fernanda Dias', emp:'Reserva Ilha do Governador', valor:2050, status:'pago', data:'2026-03-25'},
+      ]
+    },
+    { id:'ag3', nome:'Ten. Paulo Ferreira', cpf:'345.678.901-22', email:'paulo.ferreira@marinha.mil.br', whatsapp:'(21) 96543-2109',
+      nascimento:'1985-01-22', profissao:'Militar da Marinha', habilitado:false, dataCadastro:'2026-02-18',
+      banco:'Nubank', agencia:'0001', conta:'98765-4', tipoConta:'Conta Corrente', pix:'(21) 96543-2109',
+      documentos:[
+        {tipo:'RG / CNH', enviadoEm:'2026-02-18', status:'pendente'},
+        {tipo:'Comprovante de Residência', enviadoEm:'2026-02-18', status:'aprovado'},
+        {tipo:'Contrato de Parceria', enviadoEm:'', status:'pendente_assinatura'},
+      ],
+      empreendimentos:['Orla Recreio Reserva'], itens:[],
+      indicacoes:[
+        {id:'i6', nome:'Cb. Juliana Souza', emp:'Orla Recreio Reserva', valor:390000, status:'agente', criado:'2026-06-28'},
+      ],
+      comissoes:[]
+    },
+    { id:'ag4', nome:'Cb. Juliana Souza', cpf:'456.789.012-33', email:'juliana.souza@exercito.mil.br', whatsapp:'(21) 95432-1098',
+      nascimento:'1993-07-15', profissao:'Militar do Exército', habilitado:true, dataCadastro:'2026-03-01',
+      banco:'Caixa Econômica Federal', agencia:'0002', conta:'22334-5', tipoConta:'Conta Poupança', pix:'juliana.souza@exercito.mil.br',
+      documentos:[
+        {tipo:'RG / CNH', enviadoEm:'2026-03-01', status:'aprovado'},
+        {tipo:'Comprovante de Residência', enviadoEm:'2026-03-01', status:'aprovado'},
+        {tipo:'Contrato de Parceria', enviadoEm:'2026-03-03', status:'assinado'},
+      ],
+      empreendimentos:['Ilha Mar Beach & Home','ICONYC by YOO','Ilha Mar Beach 2','Orla Recreio Reserva'], itens:['1 Feirão Online WAL RJ'],
+      indicacoes:[
+        {id:'i7', nome:'Sd. Camila Rocha', emp:'Ilha Mar Beach & Home', valor:340000, status:'contato', criado:'2026-05-20'},
+        {id:'i8', nome:'Cb. Bruno Martins', emp:'ICONYC by YOO', valor:650000, status:'proposta', criado:'2026-06-05'},
+        {id:'i9', nome:'Sgt. Roberto Nunes', emp:'Ilha Mar Beach 2', valor:300000, status:'fechado', criado:'2026-02-14'},
+        {id:'i10', nome:'Cb. Patrícia Gomes', emp:'Orla Recreio Reserva', valor:420000, status:'fechado', criado:'2026-04-02'},
+      ],
+      comissoes:[
+        {id:'c4', indicado:'Sgt. Roberto Nunes', emp:'Ilha Mar Beach 2', valor:1500, status:'pago', data:'2026-02-28'},
+        {id:'c5', indicado:'Cb. Patrícia Gomes', emp:'Orla Recreio Reserva', valor:2100, status:'pago', data:'2026-04-20'},
+        {id:'c6', indicado:'Cb. Bruno Martins', emp:'ICONYC by YOO', valor:3250, status:'aguardando', data:''},
+      ]
+    },
+    { id:'ag5', nome:'Maj. André Lima', cpf:'567.890.123-44', email:'andre.lima@fab.mil.br', whatsapp:'(21) 94321-0987',
+      nascimento:'1980-11-30', profissao:'Militar da Aeronáutica (FAB)', habilitado:true, dataCadastro:'2026-01-25',
+      banco:'Itaú', agencia:'3456', conta:'11223-4', tipoConta:'Conta Corrente', pix:'(21) 94321-0987',
+      documentos:[
+        {tipo:'RG / CNH', enviadoEm:'2026-01-25', status:'aprovado'},
+        {tipo:'Comprovante de Residência', enviadoEm:'2026-01-25', status:'rejeitado'},
+        {tipo:'Contrato de Parceria', enviadoEm:'2026-01-27', status:'assinado'},
+      ],
+      empreendimentos:['Reserva Ilha do Governador'], itens:['Pré-Cadastro 1 Feirão WAL RJ','1 Feirão Online WAL RJ'],
+      indicacoes:[
+        {id:'i11', nome:'Sd. Camila Rocha 2', emp:'Reserva Ilha do Governador', valor:0, status:'perdido', criado:'2026-04-11'},
+      ],
+      comissoes:[]
+    },
+  ];
+}
+
+function estadoPadraoAgentes(){
+  return { agentes: seedAgentes(), itensDisponiveis: [...ITENS_AGENTE_PADRAO] };
+}
+
+/* NOTA — gap conhecido (ver documentacao-tecnica-banco-de-dados.html §5):
+   esta lista de Agentes/Comissões ainda é só local (localStorage), com
+   dados de demonstração. O cadastro real de agente agora existe de
+   verdade no backend (dashboard-agente.html → feirao_agente
+   operacao:cadastrar, aprovado aqui via toggleAgenteAcesso →
+   feirao_agente operacao:habilitar). Ainda falta puxar a lista real
+   via feirao_listar_agentes/feirao_listar_comissoes para substituir
+   (não só complementar) os dados de demonstração — os formatos de
+   registro são parecidos mas não idênticos (o backend ainda não guarda
+   empreendimentos[]/itens[] por agente), por isso não foram só
+   mescladas às cegas aqui. */
+let AGENTES_STATE = (function(){
+  try{
+    const salvo = JSON.parse(localStorage.getItem(LS_KEY_AGENTES) || 'null');
+    if(salvo && Array.isArray(salvo.agentes) && salvo.agentes.length) return salvo;
+  }catch(e){}
+  return estadoPadraoAgentes();
+})();
+function salvarAgentesState(){ localStorage.setItem(LS_KEY_AGENTES, JSON.stringify(AGENTES_STATE)); }
+
+/* ── Comissões de Atendentes/Corretores (equipe interna WAL) ──
+   Mesmos nomes usados na aba "Atendimento" (Ana P., Bruno S., Carla M.,
+   Diego F., Elaine R., Felipe T.), com ficha própria de comissões,
+   independente do sorteio aleatório usado no modo demonstração daquela aba. */
+const LS_KEY_CORRETORES = 'wal_diretor_corretores_v1';
+
+function seedCorretores(){
+  return [
+    { id:'cr1', nome:'Ana P.', papel:'Atendente', comissoes:[
+      {id:'cc1', cliente:'Cb. Ricardo Alves', emp:'Ilha Mar Beach & Home', valor:2880, status:'pago', data:'2026-02-12'},
+      {id:'cc2', cliente:'Sgt. Mariana Costa', emp:'Orla Recreio Reserva', valor:2100, status:'aguardando', data:''},
+    ]},
+    { id:'cr2', nome:'Bruno S.', papel:'Atendente', comissoes:[
+      {id:'cc3', cliente:'Ten. Marco Pereira', emp:'Ilha Mar Beach 2', valor:1600, status:'pago', data:'2026-01-31'},
+    ]},
+    { id:'cr3', nome:'Carla M.', papel:'Atendente', comissoes:[
+      {id:'cc4', cliente:'Maj. André Lima', emp:'ICONYC by YOO', valor:4200, status:'aguardando', data:''},
+    ]},
+    { id:'cr4', nome:'Diego F.', papel:'Atendente', comissoes:[] },
+    { id:'cr5', nome:'Elaine R.', papel:'Atendente', comissoes:[
+      {id:'cc5', cliente:'Cb. Patrícia Gomes', emp:'Orla Recreio Reserva', valor:2500, status:'cancelado', data:'2026-04-10', motivoCancelamento:'Distrato solicitado pelo cliente'},
+    ]},
+    { id:'cr6', nome:'Felipe T.', papel:'Gerente', comissoes:[
+      {id:'cc6', cliente:'Sgt. Roberto Nunes', emp:'Ilha Mar Beach 2', valor:1800, status:'pago', data:'2026-02-27'},
+    ]},
+  ];
+}
+
+function estadoPadraoCorretores(){ return { corretores: seedCorretores() }; }
+
+let CORRETORES_STATE = (function(){
+  try{
+    const salvo = JSON.parse(localStorage.getItem(LS_KEY_CORRETORES) || 'null');
+    if(salvo && Array.isArray(salvo.corretores) && salvo.corretores.length) return salvo;
+  }catch(e){}
+  return estadoPadraoCorretores();
+})();
+function salvarCorretoresState(){ localStorage.setItem(LS_KEY_CORRETORES, JSON.stringify(CORRETORES_STATE)); }
+
+
+
 
 /* ════════════════════════════════════════════════════════════════
    ESTADO — persistido em localStorage (funciona offline / modo demo)
@@ -1405,7 +2219,7 @@ function renderAlertas(){
 
 function renderLinhaDoTempo(){
   const hoje = new Date().toISOString().slice(0,10);
-  const labels = ['Ter · Dia 1','Qua · Dia 2','Qui · Dia 3','Sex · Dia 4'];
+  const labels = ['Qui · Dia 1','Sex · Dia 2','Sáb · Dia 3','Dom · Dia 4'];
   const d = dados();
   document.getElementById('dayGrid').innerHTML = EVENT_DAYS.map((dt,i)=>{
     const isToday = dt===hoje;
@@ -1441,6 +2255,496 @@ function renderModulos(){
     </div>`;
   }).join('');
 }
+
+/* ════════════════════════════════════════════════════════════════
+   CONTROLE DOS AGENTES
+═══════════════════════════════════════════════════════════════ */
+function statusIndLabelDir(s){
+  return {agente:'Enviado',contato:'Em contato',visita:'Visita',proposta:'Proposta',fechado:'Fechado',perdido:'Perdido'}[s] || s;
+}
+function statusIndBdgDir(s){
+  return {agente:'b-info',contato:'b-info',visita:'b-warn',proposta:'b-warn',fechado:'b-ok',perdido:'b-danger'}[s] || 'b-muted';
+}
+function agenteIniciais(nome){
+  const partes = nome.replace(/^(Cb\.|Sgt\.|Ten\.|Cap\.|Maj\.|Sd\.|Cel\.)\s*/,'').split(' ').filter(Boolean);
+  return ((partes[0]||'?')[0] + (partes[1]||'')[0]).toUpperCase();
+}
+function agenteVendas(ag){ return ag.indicacoes.filter(i=>i.status==='fechado').length; }
+function agenteComissaoPendente(ag){ return ag.comissoes.filter(c=>c.status==='aguardando').reduce((s,c)=>s+c.valor,0); }
+function agenteComissaoPaga(ag){ return ag.comissoes.filter(c=>c.status==='pago').reduce((s,c)=>s+c.valor,0); }
+
+function renderKpisAgentes(){
+  const ags = AGENTES_STATE.agentes;
+  const totalIndicacoes = ags.reduce((s,a)=>s+a.indicacoes.length,0);
+  const totalVendas = ags.reduce((s,a)=>s+agenteVendas(a),0);
+  const pendente = ags.reduce((s,a)=>s+agenteComissaoPendente(a),0);
+  const paga = ags.reduce((s,a)=>s+agenteComissaoPaga(a),0);
+  const ativos = ags.filter(a=>a.habilitado).length;
+  document.getElementById('kpiGridAgentes').innerHTML = `
+    <div class="kpi teal"><div class="lbl">🤝 Agentes cadastrados</div><div class="val">${fmtNum(ags.length)}</div><div class="delta">${fmtNum(ativos)} com acesso habilitado</div></div>
+    <div class="kpi gold"><div class="lbl">📣 Indicações totais</div><div class="val">${fmtNum(totalIndicacoes)}</div><div class="delta">de todos os agentes</div></div>
+    <div class="kpi green"><div class="lbl">🏆 Vendas via agentes</div><div class="val">${fmtNum(totalVendas)}</div><div class="delta up">contratos assinados</div></div>
+    <div class="kpi amber"><div class="lbl">💰 Comissão a liberar</div><div class="val">${fmtMoney(pendente)}</div><div class="delta">aguardando venda efetivada</div></div>
+    <div class="kpi purple"><div class="lbl">✅ Comissão já paga</div><div class="val">${fmtMoney(paga)}</div><div class="delta">total histórico</div></div>
+  `;
+}
+
+function renderRankings(){
+  const ags = [...AGENTES_STATE.agentes];
+  const porIndicacao = [...ags].sort((a,b)=>b.indicacoes.length-a.indicacoes.length).slice(0,5);
+  document.getElementById('rankIndicacoes').innerHTML = porIndicacao.map((a,i)=>`
+    <div class="rank-item">
+      <div class="rank-pos ${i===0?'top':''}">${i+1}</div>
+      <div class="rank-name"><div class="n">${a.nome}</div><div class="s">${a.profissao}</div></div>
+      <div class="rank-val">${fmtNum(a.indicacoes.length)}</div>
+    </div>`).join('') || `<div class="empty-state"><div class="ic">🤝</div><div class="t">Nenhum agente cadastrado</div></div>`;
+
+  const porVendas = [...ags].sort((a,b)=>agenteVendas(b)-agenteVendas(a)).slice(0,5);
+  document.getElementById('rankVendas').innerHTML = porVendas.map((a,i)=>`
+    <div class="rank-item">
+      <div class="rank-pos ${i===0?'top':''}">${i+1}</div>
+      <div class="rank-name"><div class="n">${a.nome}</div><div class="s">${a.profissao}</div></div>
+      <div class="rank-val">${fmtNum(agenteVendas(a))}</div>
+    </div>`).join('') || `<div class="empty-state"><div class="ic">🏆</div><div class="t">Nenhuma venda registrada</div></div>`;
+}
+
+function renderItensDisponiveis(){
+  document.getElementById('itensDisponiveisList').innerHTML = AGENTES_STATE.itensDisponiveis.map(item=>
+    `<div class="chip-check on">📌 ${item}<span title="Excluir item" style="margin-left:6px;color:var(--red2);font-weight:700;cursor:pointer" onclick="excluirItemDisponivel('${item.replace(/'/g,"\\'")}')">✕</span></div>`
+  ).join('') || `<div class="empty-state"><div class="ic">📌</div><div class="t">Nenhum item cadastrado ainda</div></div>`;
+}
+
+function adicionarItemDisponivel(){
+  const inp = document.getElementById('novoItemInput');
+  const val = inp.value.trim();
+  if(!val) return;
+  if(AGENTES_STATE.itensDisponiveis.includes(val)){ toast('Este item já existe.', 'danger'); return; }
+  AGENTES_STATE.itensDisponiveis.push(val);
+  salvarAgentesState();
+  logAudit('➕ Novo item de agente criado', val);
+  inp.value = '';
+  renderItensDisponiveis();
+  toast(`Item "${val}" adicionado. Agora pode ser liberado por agente.`, 'success');
+}
+
+function excluirItemDisponivel(item){
+  const emUso = AGENTES_STATE.agentes.filter(a=>a.itens.includes(item)).length;
+  const aviso = emUso>0
+    ? `O item "${item}" está liberado para ${emUso} agente(s). Excluir vai removê-lo também da ficha desses agentes.\n\nConfirma a exclusão?`
+    : `Confirma a exclusão do item "${item}"?`;
+  if(!confirm(aviso)) return;
+  AGENTES_STATE.itensDisponiveis = AGENTES_STATE.itensDisponiveis.filter(i=>i!==item);
+  AGENTES_STATE.agentes.forEach(a=>{ a.itens = a.itens.filter(i=>i!==item); });
+  salvarAgentesState();
+  logAudit('🗑️ Item de agente excluído', item);
+  renderAgentes();
+  toast(`Item "${item}" excluído.`, 'danger');
+}
+
+function renderTabelaAgentes(){
+  const ags = AGENTES_STATE.agentes;
+  document.getElementById('totalAgentesTag').textContent = `(${ags.length})`;
+  document.getElementById('tabelaAgentes').querySelector('tbody').innerHTML = ags.map(a=>{
+    const pendente = agenteComissaoPendente(a);
+    return `<tr>
+      <td><div class="agente-row-name"><div class="agente-ava">${agenteIniciais(a.nome)}</div><div><div class="fw6" style="font-weight:600">${a.nome}</div><div style="font-size:10.5px;color:var(--muted)">${a.profissao}</div></div></div></td>
+      <td class="mono">${a.whatsapp}</td>
+      <td class="tright mono">${fmtNum(a.indicacoes.length)}</td>
+      <td class="tright mono">${fmtNum(agenteVendas(a))}</td>
+      <td class="tright mono" style="color:${pendente>0?'var(--amber2)':'var(--muted)'}">${fmtMoney(pendente)}</td>
+      <td>
+        <label class="switch">
+          <input type="checkbox" ${a.habilitado?'checked':''} onchange="toggleAgenteAcesso('${a.id}', this.checked)">
+          <span class="slider"></span>
+        </label>
+      </td>
+      <td><button class="btn sm" onclick="abrirDetalheAgente('${a.id}')">🔎 Ver detalhes</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="7"><div class="empty-state"><div class="ic">🤝</div><div class="t">Nenhum agente cadastrado</div></div></td></tr>`;
+}
+
+function toggleAgenteAcesso(id, habilitado){
+  const a = AGENTES_STATE.agentes.find(x=>x.id===id);
+  if(!a) return;
+  a.habilitado = habilitado;
+  salvarAgentesState();
+  logAudit(habilitado ? `✅ Acesso liberado ao Agente: ${a.nome}` : `⏸️ Acesso suspenso ao Agente: ${a.nome}`, '');
+  renderKpisAgentes();
+  renderTabelaAgentes();
+  toast(`${a.nome}: acesso ao dashboard ${habilitado?'habilitado':'desabilitado'}.`, habilitado?'success':'danger');
+  // Só reflete de verdade agentes cadastrados de verdade (via
+  // dashboard-agente.html → feirao_agente operacao:cadastrar); os
+  // agentes de demonstração desta lista local não existem no backend.
+  if(habilitado) chamarFeiraoApi('feirao_agente', {operacao:'habilitar', id, authPin:PIN_DIRETORIA});
+}
+
+function toggleEmpreendimentoAgente(id, nome, marcado){
+  const a = AGENTES_STATE.agentes.find(x=>x.id===id);
+  if(!a) return;
+  if(marcado){ if(!a.empreendimentos.includes(nome)) a.empreendimentos.push(nome); }
+  else { a.empreendimentos = a.empreendimentos.filter(e=>e!==nome); }
+  salvarAgentesState();
+  logAudit(`🏗️ Empreendimentos atualizados — ${a.nome}`, `${marcado?'+ ':'- '}${nome}`);
+}
+
+function toggleItemAgente(id, item, marcado){
+  const a = AGENTES_STATE.agentes.find(x=>x.id===id);
+  if(!a) return;
+  if(marcado){ if(!a.itens.includes(item)) a.itens.push(item); }
+  else { a.itens = a.itens.filter(e=>e!==item); }
+  salvarAgentesState();
+  logAudit(`📌 Itens atualizados — ${a.nome}`, `${marcado?'+ ':'- '}${item}`);
+}
+
+function liberarComissao(agId, comId){
+  liberarComissaoUnificada('agente', agId, comId);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CONTROLE DE COMISSÕES — visão unificada Agentes + Atendentes/Corretores
+═══════════════════════════════════════════════════════════════ */
+let _agenteModalAberto = null;
+
+function encontrarComissao(tipo, pessoaId, comId){
+  if(tipo==='agente'){
+    const a = AGENTES_STATE.agentes.find(x=>x.id===pessoaId);
+    if(!a) return null;
+    const c = a.comissoes.find(x=>x.id===comId);
+    return c ? {obj:a, com:c} : null;
+  } else {
+    const cr = CORRETORES_STATE.corretores.find(x=>x.id===pessoaId);
+    if(!cr) return null;
+    const c = cr.comissoes.find(x=>x.id===comId);
+    return c ? {obj:cr, com:c} : null;
+  }
+}
+function clienteRefComissao(tipo, com){ return tipo==='agente' ? com.indicado : com.cliente; }
+function salvarEstadoComissoes(tipo){ if(tipo==='agente') salvarAgentesState(); else salvarCorretoresState(); }
+
+function refrescarAposComissao(tipo, pessoaId){
+  renderComissoes();
+  if(tipo==='agente'){
+    renderAgentes();
+    if(_agenteModalAberto===pessoaId && document.getElementById('modalAgente').classList.contains('show')) abrirDetalheAgente(pessoaId);
+  }
+}
+
+function liberarComissaoUnificada(tipo, pessoaId, comId){
+  const r = encontrarComissao(tipo, pessoaId, comId);
+  if(!r || r.com.status==='pago') return;
+  r.com.status = 'pago';
+  r.com.data = new Date().toISOString().slice(0,10);
+  salvarEstadoComissoes(tipo);
+  logAudit(`💰 Comissão liberada — ${r.obj.nome}`, `${clienteRefComissao(tipo,r.com)} · ${fmtMoney(r.com.valor)}`);
+  refrescarAposComissao(tipo, pessoaId);
+  toast(`Comissão de ${fmtMoney(r.com.valor)} liberada para ${r.obj.nome}.`, 'success');
+}
+
+let _cancelarComissaoAlvo = null;
+function abrirCancelarComissao(tipo, pessoaId, comId){
+  _cancelarComissaoAlvo = {tipo, pessoaId, comId};
+  document.getElementById('motivoCancelComissao').value = '';
+  document.getElementById('modalCancelarComissao').classList.add('show');
+}
+document.getElementById('btnConfirmarCancelComissao').addEventListener('click', ()=>{
+  if(!_cancelarComissaoAlvo) return;
+  const {tipo, pessoaId, comId} = _cancelarComissaoAlvo;
+  const r = encontrarComissao(tipo, pessoaId, comId);
+  if(r){
+    const motivo = document.getElementById('motivoCancelComissao').value.trim();
+    r.com.status = 'cancelado';
+    r.com.data = new Date().toISOString().slice(0,10);
+    r.com.motivoCancelamento = motivo;
+    salvarEstadoComissoes(tipo);
+    logAudit(`🚫 Comissão cancelada — ${r.obj.nome}`, `${clienteRefComissao(tipo,r.com)} · ${fmtMoney(r.com.valor)}${motivo?' · '+motivo:''}`);
+    refrescarAposComissao(tipo, pessoaId);
+    toast('Comissão cancelada.', 'danger');
+  }
+  fecharModal('modalCancelarComissao');
+  _cancelarComissaoAlvo = null;
+});
+
+function reativarComissaoUnificada(tipo, pessoaId, comId){
+  const r = encontrarComissao(tipo, pessoaId, comId);
+  if(!r) return;
+  r.com.status = 'aguardando';
+  r.com.data = '';
+  salvarEstadoComissoes(tipo);
+  logAudit(`↩️ Comissão reativada — ${r.obj.nome}`, `${clienteRefComissao(tipo,r.com)} · ${fmtMoney(r.com.valor)}`);
+  refrescarAposComissao(tipo, pessoaId);
+  toast('Comissão reativada e voltou para "A pagar".', 'success');
+}
+
+function todasComissoes(){
+  const lista = [];
+  AGENTES_STATE.agentes.forEach(a=>{
+    a.comissoes.forEach(c=>{
+      lista.push({tipo:'agente', pessoaId:a.id, pessoaNome:a.nome, comId:c.id, cliente:c.indicado, emp:c.emp, valor:c.valor, status:c.status, data:c.data});
+    });
+  });
+  CORRETORES_STATE.corretores.forEach(cr=>{
+    cr.comissoes.forEach(c=>{
+      lista.push({tipo:'corretor', pessoaId:cr.id, pessoaNome:cr.nome, comId:c.id, cliente:c.cliente, emp:c.emp, valor:c.valor, status:c.status, data:c.data});
+    });
+  });
+  return lista;
+}
+
+function filtrarComissoes(){
+  const tipo = (document.getElementById('filComTipo')||{}).value || '';
+  const status = (document.getElementById('filComStatus')||{}).value || '';
+  const busca = ((document.getElementById('filComBusca')||{}).value || '').toLowerCase().trim();
+  return todasComissoes().filter(c=>{
+    if(tipo && c.tipo!==tipo) return false;
+    if(status && c.status!==status) return false;
+    if(busca && !(c.pessoaNome.toLowerCase().includes(busca) || c.cliente.toLowerCase().includes(busca))) return false;
+    return true;
+  }).sort((a,b)=>{
+    const ordemStatus = {aguardando:0, pago:1, cancelado:2};
+    if(ordemStatus[a.status] !== ordemStatus[b.status]) return ordemStatus[a.status]-ordemStatus[b.status];
+    return (b.data||'').localeCompare(a.data||'');
+  });
+}
+
+function limparFiltrosComissoes(){
+  document.getElementById('filComTipo').value = '';
+  document.getElementById('filComStatus').value = '';
+  document.getElementById('filComBusca').value = '';
+  renderTabelaComissoes();
+}
+
+function renderKpisComissoes(){
+  const lista = todasComissoes();
+  const aPagar = lista.filter(c=>c.status==='aguardando');
+  const pagas = lista.filter(c=>c.status==='pago');
+  const canceladas = lista.filter(c=>c.status==='cancelado');
+  document.getElementById('kpiGridComissoes').innerHTML = `
+    <div class="kpi amber"><div class="lbl">⏳ A pagar</div><div class="val">${fmtMoney(aPagar.reduce((s,c)=>s+c.valor,0))}</div><div class="delta">${fmtNum(aPagar.length)} comissões aguardando</div></div>
+    <div class="kpi green"><div class="lbl">✅ Pagas</div><div class="val">${fmtMoney(pagas.reduce((s,c)=>s+c.valor,0))}</div><div class="delta up">${fmtNum(pagas.length)} liberadas</div></div>
+    <div class="kpi red"><div class="lbl">🚫 Canceladas</div><div class="val">${fmtMoney(canceladas.reduce((s,c)=>s+c.valor,0))}</div><div class="delta">${fmtNum(canceladas.length)} registros</div></div>
+    <div class="kpi teal"><div class="lbl">📄 Total de registros</div><div class="val">${fmtNum(lista.length)}</div><div class="delta">atendentes/corretores + agentes</div></div>
+  `;
+}
+
+function renderTabelaComissoes(){
+  const lista = filtrarComissoes();
+  document.getElementById('totalComissoesTag').textContent = `(${lista.length})`;
+  const statusBdg = {aguardando:'b-warn', pago:'b-ok', cancelado:'b-danger'};
+  const statusLbl = {aguardando:'A pagar', pago:'Pago', cancelado:'Cancelado'};
+  document.getElementById('tabelaComissoes').querySelector('tbody').innerHTML = lista.map(c=>{
+    const tipoLbl = c.tipo==='agente' ? '🤝 Agente' : '🎧 Corretor';
+    let acoes = '';
+    if(c.status==='aguardando'){
+      acoes = `<button class="btn sm gold" onclick="liberarComissaoUnificada('${c.tipo}','${c.pessoaId}','${c.comId}')">💸 Liberar</button> <button class="btn sm danger" onclick="abrirCancelarComissao('${c.tipo}','${c.pessoaId}','${c.comId}')">🚫 Cancelar</button>`;
+    } else if(c.status==='pago'){
+      acoes = `<button class="btn sm danger" onclick="abrirCancelarComissao('${c.tipo}','${c.pessoaId}','${c.comId}')">🚫 Cancelar</button>`;
+    } else {
+      acoes = `<button class="btn sm" onclick="reativarComissaoUnificada('${c.tipo}','${c.pessoaId}','${c.comId}')">↩️ Reativar</button>`;
+    }
+    return `<tr>
+      <td>${tipoLbl}</td>
+      <td style="font-weight:600">${c.pessoaNome}</td>
+      <td>${c.cliente}</td>
+      <td style="font-size:11px">${c.emp}</td>
+      <td class="tright mono">${fmtMoney(c.valor)}</td>
+      <td><span class="badge ${statusBdg[c.status]}">${statusLbl[c.status]}</span></td>
+      <td class="mono" style="font-size:11px">${c.data?fmtDataCurta(c.data):'—'}</td>
+      <td style="white-space:nowrap">${acoes}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="8"><div class="empty-state"><div class="ic">💰</div><div class="t">Nenhuma comissão encontrada</div></div></td></tr>`;
+}
+
+function atualizarSelectPessoaComissao(){
+  const tipo = document.getElementById('novaComTipo').value;
+  const sel = document.getElementById('novaComPessoa');
+  const lista = tipo==='agente' ? AGENTES_STATE.agentes : CORRETORES_STATE.corretores;
+  sel.innerHTML = lista.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('') || `<option value="">Nenhum cadastrado</option>`;
+}
+
+function abrirModalNovaComissao(){
+  document.getElementById('novaComTipo').value = 'agente';
+  atualizarSelectPessoaComissao();
+  document.getElementById('novaComCliente').value = '';
+  document.getElementById('novaComEmp').value = '';
+  document.getElementById('novaComValor').value = '';
+  document.getElementById('modalNovaComissao').classList.add('show');
+}
+
+function salvarNovaComissao(){
+  const tipo = document.getElementById('novaComTipo').value;
+  const pessoaId = document.getElementById('novaComPessoa').value;
+  const cliente = document.getElementById('novaComCliente').value.trim();
+  const emp = document.getElementById('novaComEmp').value.trim();
+  const valor = parseFloat(document.getElementById('novaComValor').value);
+  if(!pessoaId || !cliente || !emp || !valor || valor<=0){ toast('Preencha todos os campos corretamente.', 'danger'); return; }
+  const novoId = 'c'+Date.now();
+  if(tipo==='agente'){
+    const a = AGENTES_STATE.agentes.find(x=>x.id===pessoaId);
+    if(!a) return;
+    a.comissoes.unshift({id:novoId, indicado:cliente, emp, valor, status:'aguardando', data:''});
+    salvarAgentesState();
+    logAudit(`➕ Comissão manual criada — ${a.nome}`, `${cliente} · ${fmtMoney(valor)}`);
+  } else {
+    const cr = CORRETORES_STATE.corretores.find(x=>x.id===pessoaId);
+    if(!cr) return;
+    cr.comissoes.unshift({id:novoId, cliente, emp, valor, status:'aguardando', data:''});
+    salvarCorretoresState();
+    logAudit(`➕ Comissão manual criada — ${cr.nome}`, `${cliente} · ${fmtMoney(valor)}`);
+  }
+  fecharModal('modalNovaComissao');
+  renderComissoes();
+  renderAgentes();
+  toast('Comissão adicionada com status "A pagar".', 'success');
+}
+
+function renderComissoes(){
+  renderKpisComissoes();
+  renderTabelaComissoes();
+}
+
+function visualizarDocumentoAgente(agId, tipoDoc){
+  const a = AGENTES_STATE.agentes.find(x=>x.id===agId);
+  if(!a) return;
+  toast(`Abrindo "${tipoDoc}" enviado por ${a.nome} no cadastro (arquivo armazenado no Drive/Sheets do formulário).`, 'success');
+}
+
+function abrirDetalheAgente(id){
+  _agenteModalAberto = id;
+  const a = AGENTES_STATE.agentes.find(x=>x.id===id);
+  if(!a) return;
+  document.getElementById('agModalTitulo').textContent = `${a.nome} · Ficha do Agente`;
+
+  const docIcones = {'RG / CNH':'🪪','Comprovante de Residência':'🏠','Contrato de Parceria':'📋'};
+  const docStatusBdg = {aprovado:'b-ok', assinado:'b-ok', pendente:'b-warn', pendente_assinatura:'b-warn', rejeitado:'b-danger'};
+  const docStatusLbl = {aprovado:'Aprovado', assinado:'Assinado', pendente:'Pendente análise', pendente_assinatura:'Pendente assinatura', rejeitado:'Rejeitado'};
+  const documentosHtml = (a.documentos||[]).map(d=>`
+    <div class="comis-line">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">${docIcones[d.tipo]||'📄'}</span>
+        <div><div class="cl-name">${d.tipo}</div><div class="cl-sub">${d.enviadoEm ? 'Enviado em '+fmtDataCurta(d.enviadoEm) : 'Aguardando envio'}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="badge ${docStatusBdg[d.status]||'b-muted'}">${docStatusLbl[d.status]||d.status}</span>
+        <button class="btn sm" onclick="visualizarDocumentoAgente('${a.id}','${d.tipo}')">👁️ Visualizar</button>
+      </div>
+    </div>
+  `).join('') || `<div class="empty-state"><div class="ic">📄</div><div class="t">Nenhum documento enviado no cadastro</div></div>`;
+
+  const empChips = EMPREENDIMENTOS_AGENTE.map(nome=>{
+    const on = a.empreendimentos.includes(nome);
+    return `<label class="chip-check ${on?'on':''}"><input type="checkbox" ${on?'checked':''} onchange="toggleEmpreendimentoAgente('${a.id}','${nome}', this.checked)"> ${nome}</label>`;
+  }).join('');
+
+  const itemChips = AGENTES_STATE.itensDisponiveis.map(item=>{
+    const on = a.itens.includes(item);
+    return `<label class="chip-check ${on?'on':''}"><input type="checkbox" ${on?'checked':''} onchange="toggleItemAgente('${a.id}','${item}', this.checked)"> ${item}</label>`;
+  }).join('');
+
+  const indicacoesRows = a.indicacoes.map(i=>`
+    <tr><td>${i.nome}</td><td class="fs11" style="font-size:11px">${i.emp}</td><td><span class="badge ${statusIndBdgDir(i.status)}">${statusIndLabelDir(i.status)}</span></td><td class="tright mono">${i.valor?fmtMoney(i.valor):'—'}</td></tr>
+  `).join('') || `<tr><td colspan="4"><div class="empty-state"><div class="ic">📣</div><div class="t">Sem indicações ainda</div></div></td></tr>`;
+
+  const etapas = [
+    {key:'agente',  lbl:'Enviado'},
+    {key:'contato', lbl:'Em contato'},
+    {key:'visita',  lbl:'Visita'},
+    {key:'proposta',lbl:'Proposta'},
+    {key:'fechado', lbl:'Fechado'},
+  ];
+  const totalPipe = Math.max(a.indicacoes.filter(i=>i.status!=='perdido').length,1);
+  const pipelineHtml = etapas.map(e=>{
+    const n = a.indicacoes.filter(i=>i.status===e.key).length;
+    const pct = Math.round(n/totalPipe*100);
+    return `<div class="f-row"><div class="f-lbl">${e.lbl}</div><div class="f-bar-bg"><div class="f-bar" style="width:${pct}%"></div></div><div class="f-n">${n}</div><div class="f-pct">${pct}%</div></div>`;
+  }).join('');
+
+  const comissoesHtml = a.comissoes.map(c=>{
+    const statusBdg = {aguardando:'b-warn', pago:'b-ok', cancelado:'b-danger'}[c.status];
+    const statusLbl = {aguardando:'A pagar', pago:'Pago', cancelado:'Cancelado'}[c.status];
+    let acoes = '';
+    if(c.status==='aguardando'){
+      acoes = `<button class="btn sm gold" onclick="liberarComissaoUnificada('agente','${a.id}','${c.id}')">💸 Liberar</button> <button class="btn sm danger" onclick="abrirCancelarComissao('agente','${a.id}','${c.id}')">🚫 Cancelar</button>`;
+    } else if(c.status==='pago'){
+      acoes = `<button class="btn sm danger" onclick="abrirCancelarComissao('agente','${a.id}','${c.id}')">🚫 Cancelar</button>`;
+    } else {
+      acoes = `<button class="btn sm" onclick="reativarComissaoUnificada('agente','${a.id}','${c.id}')">↩️ Reativar</button>`;
+    }
+    return `<div class="comis-line">
+      <div><div class="cl-name">${c.indicado}</div><div class="cl-sub">${c.emp}${c.data?' · '+fmtDataCurta(c.data):''} · <span class="badge ${statusBdg}">${statusLbl}</span></div></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="cl-val">${fmtMoney(c.valor)}</div>
+        ${acoes}
+      </div>
+    </div>`;
+  }).join('') || `<div class="empty-state"><div class="ic">💰</div><div class="t">Nenhuma comissão registrada</div></div>`;
+
+  document.getElementById('agModalBody').innerHTML = `
+    <div class="det-sec">
+      <div class="det-sec-title">👤 Dados Pessoais</div>
+      <div class="det-grid">
+        <div class="det-item"><div class="k">Nome completo</div><div class="v">${a.nome}</div></div>
+        <div class="det-item"><div class="k">CPF</div><div class="v mono">${a.cpf}</div></div>
+        <div class="det-item"><div class="k">E-mail</div><div class="v">${a.email}</div></div>
+        <div class="det-item"><div class="k">WhatsApp</div><div class="v mono">${a.whatsapp}</div></div>
+        <div class="det-item"><div class="k">Nascimento</div><div class="v">${fmtDataCurta(a.nascimento)}</div></div>
+        <div class="det-item"><div class="k">Profissão / Vínculo</div><div class="v">${a.profissao}</div></div>
+        <div class="det-item"><div class="k">Cadastrado em</div><div class="v">${fmtDataCurta(a.dataCadastro)}</div></div>
+        <div class="det-item"><div class="k">Acesso ao painel</div><div class="v">${a.habilitado?'<span class="badge b-ok">Habilitado</span>':'<span class="badge b-danger">Desabilitado</span>'}</div></div>
+      </div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">🏦 Dados Bancários</div>
+      <div class="det-grid">
+        <div class="det-item"><div class="k">Banco</div><div class="v">${a.banco}</div></div>
+        <div class="det-item"><div class="k">Agência</div><div class="v mono">${a.agencia}</div></div>
+        <div class="det-item"><div class="k">Conta</div><div class="v mono">${a.conta}</div></div>
+        <div class="det-item"><div class="k">Tipo de conta</div><div class="v">${a.tipoConta}</div></div>
+        <div class="det-item"><div class="k">Chave Pix</div><div class="v mono">${a.pix}</div></div>
+      </div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">📄 Documentos Enviados no Cadastro</div>
+      ${documentosHtml}
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">🏗️ Empreendimentos que pode indicar</div>
+      <div class="chip-list">${empChips}</div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">📌 Itens liberados (campanhas/planilhas)</div>
+      <div class="chip-list">${itemChips || '<span style="color:var(--muted);font-size:11.5px">Nenhum item disponível — cadastre em "Itens disponíveis para atribuição".</span>'}</div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">📣 Indicações realizadas (${a.indicacoes.length})</div>
+      <div style="overflow-x:auto"><table><thead><tr><th>Indicado</th><th>Empreendimento</th><th>Status</th><th class="tright">Valor</th></tr></thead><tbody>${indicacoesRows}</tbody></table></div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">📊 Pipeline de vendas</div>
+      <div class="funnel">${pipelineHtml}</div>
+    </div>
+
+    <div class="det-sec">
+      <div class="det-sec-title">💰 Comissões — consultar e liberar por venda efetivada</div>
+      ${comissoesHtml}
+    </div>
+  `;
+  document.getElementById('modalAgente').classList.add('show');
+}
+
+function renderAgentes(){
+  renderKpisAgentes();
+  renderRankings();
+  renderItensDisponiveis();
+  renderTabelaAgentes();
+}
+
+
 
 function renderAuditLog(){
   const el = document.getElementById('auditLogBody');
@@ -1481,6 +2785,9 @@ function renderAll(){
   renderLinhaDoTempo();
   renderModulos();
   renderAuditLog();
+  renderAgentes();
+  renderComissoes();
+  renderConstrutorasEmpUnidades();
 }
 
 /* ════════════════════════════════════════════════════════════════

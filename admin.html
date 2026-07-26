@@ -790,6 +790,36 @@
           </div>
         </div>
 
+        <!-- FEIRÃO DE IMÓVEIS -->
+        <div class="cad-section">
+          <div class="cad-section-title">1º Feirão de Imóveis</div>
+          <div class="toggle-row">
+            <label class="toggle-item">
+              <input type="checkbox" class="toggle-input" id="cadFeiraoOnline">
+              <span class="toggle-track"></span>
+              <span class="toggle-label">🎪 Exibir na Vitrine do Feirão Online</span>
+            </label>
+          </div>
+          <div class="cad-grid cad-grid-3" style="margin-top:14px">
+            <div class="cad-field">
+              <label class="cad-label">Quartos (separe por vírgula)</label>
+              <input class="cad-input" type="text" id="cadQuartos" placeholder="Ex: 2,3">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Preço mínimo (R$)</label>
+              <input class="cad-input" type="text" id="cadPrecoMin" placeholder="Ex: R$ 320.000" oninput="mascaraValor(this)">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Preço máximo (R$)</label>
+              <input class="cad-input" type="text" id="cadPrecoMax" placeholder="Ex: R$ 620.000" oninput="mascaraValor(this)">
+            </div>
+          </div>
+          <div class="cad-field" style="margin-top:14px">
+            <label class="cad-label">Entrega prevista</label>
+            <input class="cad-input" type="text" id="cadEntrega" placeholder="Ex: Dez/2027">
+          </div>
+        </div>
+
         <!-- CONTEÚDO -->
         <div class="cad-section">
           <div class="cad-section-title">Conteúdo e Links</div>
@@ -2357,7 +2387,9 @@ function parseGvizToAdmin(table) {
       descricao: g(6), imagem: g(7), faixa: g(8), valor: parseFloat(g(9)) || 0,
       qtd: g(10), blog: g(11), data: g(12), obs: g(13),
       destaque: row.c && row.c[14] && row.c[14].v === true,
-      uf: g(15), bairro: g(16), linkDrive: g(17)
+      uf: g(15), bairro: g(16), linkDrive: g(17),
+      quartos: g(18), precoMin: parseFloat(g(19)) || 0, precoMax: parseFloat(g(20)) || 0,
+      entrega: g(21), feiraoOnLine: g(22) === 'Sim'
     };
   }).filter(r => r.nome);
 }
@@ -2586,6 +2618,7 @@ function abrirFormNovo() {
   document.getElementById('cadForm').reset();
   document.getElementById('cadAtivo').checked    = true;
   document.getElementById('cadDestaque').checked = false;
+  document.getElementById('cadFeiraoOnline').checked = false;
   document.getElementById('imgPreview').style.display = 'none';
   // Reseta selects encadeados e hidden fields
   document.getElementById('cadUFVal').value     = '';
@@ -2670,6 +2703,11 @@ function abrirFormEdit(id) {
   document.getElementById('cadFaixa').value        = d.faixa       || '';
   document.getElementById('cadValor').value        = d.valor ? 'R$ ' + Number(d.valor).toLocaleString('pt-BR') : '';
   document.getElementById('cadQtd').value          = d.qtd         || '';
+  document.getElementById('cadFeiraoOnline').checked = !!d.feiraoOnLine;
+  document.getElementById('cadQuartos').value      = d.quartos     || '';
+  document.getElementById('cadPrecoMin').value     = d.precoMin ? 'R$ ' + Number(d.precoMin).toLocaleString('pt-BR') : '';
+  document.getElementById('cadPrecoMax').value     = d.precoMax ? 'R$ ' + Number(d.precoMax).toLocaleString('pt-BR') : '';
+  document.getElementById('cadEntrega').value      = d.entrega     || '';
   document.getElementById('cadDescricao').value    = d.descricao   || '';
   document.getElementById('cadImagem').value       = d.imagem      || '';
   document.getElementById('cadBlog').value         = d.blog        || '';
@@ -2707,6 +2745,11 @@ function coletarDadosForm() {
     faixa:        document.getElementById('cadFaixa').value,
     valor:        parseFloat(document.getElementById('cadValor').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     qtd:          document.getElementById('cadQtd').value.trim(),
+    feirao_on_line: document.getElementById('cadFeiraoOnline').checked,
+    quartos:      document.getElementById('cadQuartos').value.trim(),
+    preco_min:    parseFloat(document.getElementById('cadPrecoMin').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
+    preco_max:    parseFloat(document.getElementById('cadPrecoMax').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
+    entrega:      document.getElementById('cadEntrega').value.trim(),
     descricao:    document.getElementById('cadDescricao').value.trim(),
     imagem:       document.getElementById('cadImagem').value.trim(),
     blog:         document.getElementById('cadBlog').value.trim(),

@@ -74,30 +74,22 @@ a{color:inherit;}
   margin-top:4px;
 }
 
-.role-switch{
-  margin:14px 20px 0;
-  display:flex;
+.role-logout-btn{
+  display:block;
+  width:calc(100% - 40px);
+  margin:10px 20px 0;
   background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:9px;
-  padding:3px;
-  gap:3px;
-}
-.role-switch button{
-  flex:1;
-  border:none;
-  background:transparent;
+  border:1px solid rgba(255,255,255,.15);
   color:#9fadc7;
-  font-size:10.5px;
+  font-size:11px;
   font-weight:600;
-  padding:8px 3px;
-  border-radius:7px;
+  padding:8px 10px;
+  border-radius:8px;
   cursor:pointer;
   transition:.15s;
-  line-height:1.3;
+  text-align:center;
 }
-.role-switch button:hover{color:#fff;}
-.role-switch button.active{background:var(--gold-500);color:var(--navy-950);}
+.role-logout-btn:hover{color:#fff;border-color:rgba(255,255,255,.35);background:rgba(255,255,255,.09);}
 
 .role-badge{
   margin:12px 20px 0;
@@ -299,6 +291,46 @@ tbody tr:last-child td{border-bottom:none;}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
 @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr;}}
 
+/* Tabelas: rolagem horizontal segura em qualquer largura, sem alterar
+   nenhuma tabela existente. */
+.panel-body{overflow-x:auto;}
+
+/* ═══════════════ RESPONSIVO — desktop, notebook, iPad/tablet, celular ═══════════════
+   A sidebar (270px) usava posição "sticky" dentro de um layout flex, o que
+   espremia o conteúdo em telas estreitas. A partir de 900px ela passa a ser
+   uma gaveta deslizante (off-canvas), com botão de abrir/fechar e um fundo
+   escurecido — sem alterar nenhuma aba, função ou dado já existente. */
+#mobileNavToggle{display:none;position:fixed;top:14px;left:14px;z-index:610;width:38px;height:38px;background:var(--navy-900);border:1px solid rgba(255,255,255,.15);border-radius:8px;align-items:center;justify-content:center;color:var(--gold-400);font-size:16px;cursor:pointer;}
+#sidebarBackdrop{display:none;position:fixed;inset:0;background:rgba(6,12,24,.55);z-index:590;}
+#sidebarBackdrop.show{display:block;}
+
+@media(max-width:900px){
+  #mobileNavToggle{display:flex;}
+  .sidebar{position:fixed;top:0;left:-270px;z-index:600;transition:left .22s ease;box-shadow:10px 0 30px rgba(0,0,0,.35);}
+  .sidebar.open{left:0;}
+  main{padding:60px 18px 50px;}
+  .topbar h1{font-size:20px;}
+  .form-grid{grid-template-columns:1fr;}
+}
+
+@media(max-width:600px){
+  main{padding:56px 14px 46px;}
+  .kpi-card{padding:13px 14px;}
+  .kpi-card .val{font-size:20px;}
+  .panel-head{padding:12px 14px;}
+  .panel-body{padding:13px 14px;}
+  .modal{max-width:100%;}
+  .modal-body{padding:14px 16px;}
+  .modal-head,.modal-foot{padding:12px 16px;}
+}
+
+@media(max-width:380px){
+  .pin-box{padding:24px 18px;}
+  .pin-field input{font-size:19px;letter-spacing:5px;}
+  .topbar-actions{width:100%;}
+  .topbar-actions .btn{flex:1;justify-content:center;}
+}
+
 .tag-pill{
   display:inline-flex;align-items:center;gap:6px;background:#f2f0e8;border:1px solid var(--line);
   padding:4px 10px;border-radius:20px;font-size:11.5px;color:var(--navy-800);font-weight:600;
@@ -398,6 +430,75 @@ body.wal-locked > *:not(#pinGate){display:none !important;}
 </head>
 <body>
 
+<!-- ============================================================
+     WAL · CONTROLE REMOTO DO FEIRÃO (Torre de Controle da Diretoria)
+     Não remova nem mova este bloco. Ele verifica, a cada carregamento
+     e a cada 20s, se a Diretoria suspendeu o Feirão inteiro ou este
+     painel especificamente (dashboard-diretor-wal.html) e exibe uma
+     tela de manutenção quando necessário.
+     Chave deste painel: 'viabilizador'
+============================================================ -->
+<div id="walOverlayManutencao" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 30% 20%,#15294a 0%,#08192E 65%);display:none;align-items:center;justify-content:center;padding:24px;font-family:'Inter',Arial,sans-serif;color:#E8EDF5;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px">🛠️</div>
+    <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:8px">WAL Imóveis</div>
+    <div id="walOverlayTitulo" style="font-size:15px;font-weight:700;margin-bottom:10px">Estamos em manutenção rápida</div>
+    <div id="walOverlayMsg" style="font-size:13px;color:#9db1c8;line-height:1.6">Volte em instantes. Já estamos de olho e o Feirão retorna em breve.</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var WAL_CONTROLE_KEY = 'viabilizador';
+  // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
+  var WAL_CONTROLE_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+  var LS_KEY = 'wal_diretor_v1';
+
+  function lerLocal(){{
+    try{{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }}catch(e){{ return null; }}
+  }}
+  function aplicarEstado(ctrl){{
+    if(!ctrl) return;
+    var overlay = document.getElementById('walOverlayManutencao');
+    if(!overlay) return;
+    var bloqueado = ctrl.fairStatus==='suspenso' || ctrl.fairStatus==='nao_iniciado' || (ctrl.modulos && ctrl.modulos[WAL_CONTROLE_KEY]===false);
+    if(bloqueado){{
+      document.getElementById('walOverlayTitulo').textContent = ctrl.fairStatus==='nao_iniciado' ? 'O Feirão ainda não começou' : 'Estamos em manutenção rápida';
+      document.getElementById('walOverlayMsg').textContent = ctrl.mensagem || ctrl.mensagemVisitante || 'Volte em instantes. Já estamos de olho e retornamos em breve.';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }} else {{
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }}
+  }}
+  function consultarRemoto(){{
+    if(!WAL_CONTROLE_API_URL || WAL_CONTROLE_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+    var cb = 'walCtrlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var s = document.createElement('script');
+    var timeout = setTimeout(function(){{ limpar(); }}, 10000);
+    function limpar(){{ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }}
+    window[cb] = function(data){{
+      limpar();
+      if(data && data.ok && data.controle){{
+        localStorage.setItem(LS_KEY, JSON.stringify(data.controle));
+        aplicarEstado(data.controle);
+      }}
+    }};
+    s.onerror = limpar;
+    s.src = WAL_CONTROLE_API_URL + '?action=feirao_get_controle&callback=' + cb;
+    document.body.appendChild(s);
+  }}
+  aplicarEstado(lerLocal());
+  consultarRemoto();
+  setInterval(consultarRemoto, 20000);
+}})();
+</script>
+<!-- ===== FIM DO BLOCO DE CONTROLE REMOTO DA DIRETORIA ===== -->
+
+
+<button id="mobileNavToggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.getElementById('sidebarBackdrop').classList.toggle('show')" aria-label="Abrir menu">☰</button>
+<div id="sidebarBackdrop" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
 <!-- ================= PIN GATE (mockup — sem backend por construtora ainda) ================= -->
 <div id="pinGate" class="pin-gate">
   <div class="pin-box">
@@ -427,13 +528,8 @@ body.wal-locked > *:not(#pinGate){display:none !important;}
     <div class="sub">Feirão Online · Construtora</div>
   </div>
 
-  <div class="role-switch" id="roleSwitch">
-    <button data-role="viabilizador" class="active">👷 Viabilizador/Ger Imob</button>
-    <button data-role="superintendente">🧭 Superintendente</button>
-    <button data-role="diretor">🗂️ Diretor</button>
-  </div>
-
   <div class="role-badge" id="roleBadge"></div>
+  <button type="button" id="walLogoutBtn" class="role-logout-btn">🔒 Sair / Trocar de perfil</button>
 
   <div class="online-counter">
     <span class="pulse-dot"></span>
@@ -888,6 +984,26 @@ const LS_KEY = 'wal_viabilizador_v1';
 const META_MIN = 50, META_MAX = 60, META_PRAZO = '31/12/2026';
 const COMISSAO_PCT = 0.005; // 0,5% referral, conforme estrutura de agentes WAL
 
+/* Mesma URL de WAL_CONTROLE_API_URL (bloco de manutenção, no fim do
+   arquivo) — repetida aqui porque aquele bloco é um IIFE isolado. O
+   painel continua 100% funcional offline (DB em localStorage); estas
+   chamadas são um espelho fire-and-forget para o backend real, cada
+   uma autorizada pelo PIN autenticado (currentAuthPin). */
+const FEIRAO_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+/* Declaradas aqui (não no <script> do PIN GATE, mais abaixo no arquivo)
+   porque updateRoleBadge()/setRole() já são chamadas ao fim deste
+   script, antes do script do PIN GATE rodar — declarar lá causaria
+   ReferenceError (temporal dead zone) neste script. O PIN GATE só
+   ATRIBUI valor a estas variáveis, não as declara de novo. */
+let currentConstrutora = ''; // '' = sem escopo (PIN de demonstração, vê tudo)
+let currentAuthPin = '';
+function chamarFeiraoApi(action, payload){
+  if(!FEIRAO_API_URL || FEIRAO_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+  try{
+    fetch(FEIRAO_API_URL,{method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action},payload))}).catch(()=>{});
+  }catch(e){}
+}
+
 function seedData(){
   return {
     empreendimentos: [
@@ -968,6 +1084,18 @@ let DB = JSON.parse(localStorage.getItem(LS_KEY) || 'null') || seedData();
 function save(){ localStorage.setItem(LS_KEY, JSON.stringify(DB)); renderAll(); }
 
 function empName(id){ const e = DB.empreendimentos.find(x=>x.id===id); return e ? e.nome : '—'; }
+/* Escopo por construtora (ver PIN GATE no fim do arquivo): quando o PIN
+   autenticado veio da aba AUTORIZADOS com uma CONSTRUTORA associada,
+   toda listagem abaixo só mostra registros dessa construtora. Sem
+   construtora (PIN de demonstração) o comportamento é o de antes: vê tudo. */
+function empreendimentosVisiveis(){
+  return currentConstrutora ? DB.empreendimentos.filter(e=>e.construtora===currentConstrutora) : DB.empreendimentos;
+}
+function empIdVisivel(empId){
+  if(!currentConstrutora) return true;
+  const e = DB.empreendimentos.find(x=>x.id===empId);
+  return !!e && e.construtora===currentConstrutora;
+}
 
 function tipoEscalLabel(t){
   return {desconto:'Desconto em unidade', premio:'Prêmio/vantagem p/ imobiliária', outro:'Outro'}[t] || t;
@@ -999,16 +1127,14 @@ const ROLE_BADGE = {
   superintendente: {ic:'🧭', title:'Superintendente', sub:'Elo entre Viabilizador/Ger Imob, Produto e Diretoria'}
 };
 
-document.getElementById('roleSwitch').addEventListener('click', e=>{
-  const btn = e.target.closest('button[data-role]');
-  if(!btn) return;
-  setRole(btn.dataset.role);
+document.getElementById('walLogoutBtn').addEventListener('click', ()=>{
+  localStorage.removeItem('wal_role');
+  location.reload();
 });
 
 function setRole(role){
   currentRole = role;
   localStorage.setItem('wal_role', role);
-  document.querySelectorAll('#roleSwitch button').forEach(b=>b.classList.toggle('active', b.dataset.role===role));
   document.querySelectorAll('.nav-group').forEach(g=>{
     const r = g.dataset.role;
     g.style.display = (r==='all' || r===role) ? '' : 'none';
@@ -1019,8 +1145,20 @@ function setRole(role){
 }
 function updateRoleBadge(){
   const r = ROLE_BADGE[currentRole];
-  document.getElementById('roleBadge').innerHTML = `<b>${r.ic} ${r.title}</b>${r.sub}`;
+  const sufixoConstrutora = currentConstrutora ? ` · ${currentConstrutora}` : ' · todas as construtoras (PIN de demonstração)';
+  document.getElementById('roleBadge').innerHTML = `<b>${r.ic} ${r.title}${sufixoConstrutora}</b>${r.sub}`;
 }
+/* NOTA — gap conhecido (ver documentacao-tecnica-banco-de-dados.html §5):
+   marcarSolicitacao/confirmarReserva/decidirCredito/decidirPagamento/
+   emitirContrato ainda são só locais (DB em localStorage) — são um
+   TERCEIRO modelo de "solicitação"/"crédito" (disponibilidade de
+   unidade pedida pela imobiliária, keyed por id local), diferente do
+   modelo do Atendente e do modelo do Lead (ambos keyed por protocolo).
+   Unificar os três é trabalho de modelagem de dados, não uma chamada de
+   API — registrado aqui para não ser esquecido. Os CRUDs de
+   empreendimento/unidade e as solicitações ao Viabilizador feitas pelo
+   Atendente (feirao_solicitacao_viabilizador/feirao_escalonamento) já
+   estão conectados de verdade. */
 
 /* ---------------- NAV ---------------- */
 document.getElementById('navTabs').addEventListener('click', e=>{
@@ -1034,6 +1172,8 @@ function switchTab(tab){
   document.getElementById('tab-'+tab).style.display='block';
   document.querySelectorAll(`nav.tabs button[data-tab="${tab}"]`).forEach(b=>b.classList.add('active'));
   if(tab==='super-bloqueios') renderBloqueios();
+  document.querySelector('.sidebar').classList.remove('open');
+  const _bd = document.getElementById('sidebarBackdrop'); if(_bd) _bd.classList.remove('show');
 }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 function openModal(id){ document.getElementById(id).classList.add('show'); }
@@ -1073,20 +1213,21 @@ function statusBadge(status){
 
 /* ==================== RENDER: OVERVIEW (compartilhado Viabilizador/Superintendente) ==================== */
 function renderOverview(){
-  const totalUnid = DB.unidades.length;
-  const disponiveis = DB.unidades.filter(u=>u.status==='disponivel').length;
-  const reservadas = DB.unidades.filter(u=>u.status==='reservada').length;
-  const vendidas = DB.unidades.filter(u=>u.status==='vendida').length;
-  const solPendentes = DB.solicitacoes.filter(s=>s.status==='pendente').length;
-  const credPendentes = DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').length;
-  const contratosAguardando = DB.contratos.filter(c=>c.status==='aguardando_emissao').length;
+  const unidVisiveis = DB.unidades.filter(u=>empIdVisivel(u.empId));
+  const totalUnid = unidVisiveis.length;
+  const disponiveis = unidVisiveis.filter(u=>u.status==='disponivel').length;
+  const reservadas = unidVisiveis.filter(u=>u.status==='reservada').length;
+  const vendidas = unidVisiveis.filter(u=>u.status==='vendida').length;
+  const solPendentes = DB.solicitacoes.filter(s=>empIdVisivel(s.empId) && s.status==='pendente').length;
+  const credPendentes = DB.creditos.filter(c=>empIdVisivel(c.empId) && (c.status==='pendente'||c.status==='em_analise')).length;
+  const contratosAguardando = DB.contratos.filter(c=>empIdVisivel(c.empId) && c.status==='aguardando_emissao').length;
 
   const kpis = [
     {lbl:'Unidades disponíveis', val:disponiveis+' / '+totalUnid, delta:reservadas+' reservadas · '+vendidas+' vendidas'},
     {lbl:'Solicitações pendentes', val:solPendentes, delta: solPendentes>0 ? 'Aguardando confirmação' : 'Tudo em dia', cls: solPendentes>0?'warn':''},
     {lbl:'Análises de crédito em aberto', val:credPendentes, delta: credPendentes>0 ? 'Aguardando decisão' : 'Sem pendências', cls: credPendentes>0?'warn':''},
     {lbl:'Contratos p/ emitir', val:contratosAguardando, delta:'Após confirmação de sinal', cls: contratosAguardando>0?'warn':''},
-    {lbl:'Reservas ativas', val:DB.reservas.length, delta:'Até assinatura + sinal'},
+    {lbl:'Reservas ativas', val:reservasVisiveis().length, delta:'Até assinatura + sinal'},
   ];
   document.getElementById('kpiGrid').innerHTML = kpis.map(k=>`
     <div class="kpi-card">
@@ -1139,7 +1280,7 @@ function renderOverview(){
 /* ==================== RENDER: EMPREENDIMENTOS (compartilhado) ==================== */
 function renderEmpreendimentos(){
   document.getElementById('empActions').style.display = currentRole==='viabilizador' ? '' : 'none';
-  document.getElementById('empList').innerHTML = DB.empreendimentos.map(e=>{
+  document.getElementById('empList').innerHTML = empreendimentosVisiveis().map(e=>{
     const totalU = DB.unidades.filter(u=>u.empId===e.id).length;
     const dispU = DB.unidades.filter(u=>u.empId===e.id && u.status==='disponivel').length;
     return `<div class="panel">
@@ -1168,23 +1309,27 @@ function saveEmp(){
   const nome = document.getElementById('empNome').value.trim();
   if(!nome){ toast('Informe o nome do empreendimento.'); return; }
   const id = Math.max(0,...DB.empreendimentos.map(e=>e.id))+1;
-  DB.empreendimentos.push({
-    id, nome,
-    construtora: document.getElementById('empConstrutora').value.trim()||'—',
+  // Com PIN escopado por construtora, o campo trava na construtora do
+  // próprio Viabilizador — impede cadastrar em nome de outra construtora.
+  const construtora = currentConstrutora || document.getElementById('empConstrutora').value.trim()||'—';
+  const registro = {
+    id, nome, construtora,
     entrega: document.getElementById('empEntrega').value.trim()||'—',
     entrada: document.getElementById('empEntrada').value.trim()||'—',
     sinal: document.getElementById('empSinal').value.trim()||'—',
     condicoes: document.getElementById('empCondicoes').value.trim()||'—'
-  });
+  };
+  DB.empreendimentos.push(registro);
   logAction(`Empreendimento "${nome}" inscrito no Feirão.`);
   closeModal('modalEmp');
   save();
   toast('Empreendimento inscrito no Feirão.');
+  chamarFeiraoApi('feirao_empreendimento', Object.assign({operacao:'criar', authPin:currentAuthPin}, registro));
 }
 
 /* ==================== RENDER: UNIDADES (compartilhado) ==================== */
 function fillEmpSelects(){
-  const opts = DB.empreendimentos.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');
+  const opts = empreendimentosVisiveis().map(e=>`<option value="${e.id}">${e.nome}</option>`).join('');
   document.getElementById('fUnidEmp').innerHTML = '<option value="">Todos os empreendimentos</option>'+opts;
   document.getElementById('unidEmp').innerHTML = opts;
   const escalSel = document.getElementById('escalEmp');
@@ -1197,6 +1342,7 @@ function renderUnidades(){
   const fStatus = document.getElementById('fUnidStatus').value;
   const fBusca = document.getElementById('fUnidBusca').value.toLowerCase();
   const rows = DB.unidades.filter(u=>{
+    if(!empIdVisivel(u.empId)) return false;
     if(fEmp && String(u.empId)!==fEmp) return false;
     if(fStatus && u.status!==fStatus) return false;
     if(fBusca && !(u.unidade.toLowerCase().includes(fBusca) || empName(u.empId).toLowerCase().includes(fBusca))) return false;
@@ -1227,6 +1373,7 @@ function changeUnidStatus(id, status){
   logAction(`Unidade "${u.unidade}" (${empName(u.empId)}) marcada como ${status}.`);
   save();
   toast('Status da unidade atualizado.');
+  chamarFeiraoApi('feirao_unidade', {operacao:'status', id, status, authPin:currentAuthPin});
 }
 function openUnidModal(){
   document.getElementById('unidNumero').value='';
@@ -1240,16 +1387,18 @@ function saveUnid(){
   const unidade = document.getElementById('unidNumero').value.trim();
   if(!unidade){ toast('Informe o identificador da unidade.'); return; }
   const id = Math.max(0,...DB.unidades.map(u=>u.id))+1;
-  DB.unidades.push({
+  const registro = {
     id, empId, unidade,
     tipo: document.getElementById('unidTipo').value.trim()||'—',
     valor: Number(document.getElementById('unidValor').value)||0,
     status: document.getElementById('unidStatus').value
-  });
+  };
+  DB.unidades.push(registro);
   logAction(`Unidade "${unidade}" adicionada em ${empName(empId)}.`);
   closeModal('modalUnid');
   save();
   toast('Unidade cadastrada.');
+  chamarFeiraoApi('feirao_unidade', Object.assign({operacao:'criar', authPin:currentAuthPin}, registro));
 }
 
 /* ==================== RENDER: SOLICITAÇÕES (compartilhado) ==================== */
@@ -1258,6 +1407,7 @@ function renderSolicitacoes(){
   const fStatus = document.getElementById('fSolStatus').value;
   const fBusca = document.getElementById('fSolBusca').value.toLowerCase();
   const rows = DB.solicitacoes.filter(s=>{
+    if(!empIdVisivel(s.empId)) return false;
     if(fStatus && s.status!==fStatus) return false;
     if(fBusca && !(s.cliente.toLowerCase().includes(fBusca) || empName(s.empId).toLowerCase().includes(fBusca))) return false;
     return true;
@@ -1305,6 +1455,7 @@ function renderCredito(){
   const fStatus = document.getElementById('fCredStatus').value;
   const fBusca = document.getElementById('fCredBusca').value.toLowerCase();
   const rows = DB.creditos.filter(c=>{
+    if(!empIdVisivel(c.empId)) return false;
     if(fStatus && c.status!==fStatus) return false;
     if(fBusca && !c.cliente.toLowerCase().includes(fBusca)) return false;
     return true;
@@ -1373,8 +1524,10 @@ function decidirCredito(status){
 }
 
 /* ==================== RENDER: RESERVAS ==================== */
+function reservasVisiveis(){ return DB.reservas.filter(r=>empIdVisivel(r.empId)); }
 function renderReservas(){
-  document.getElementById('reservasList').innerHTML = DB.reservas.length ? DB.reservas.map(r=>`
+  const listaR = reservasVisiveis();
+  document.getElementById('reservasList').innerHTML = listaR.length ? listaR.map(r=>`
     <div class="panel">
       <div class="panel-head">
         <div><h3>${r.cliente}</h3><span class="hint">${empName(r.empId)} · ${r.unidade}</span></div>
@@ -1413,7 +1566,8 @@ function confirmarDeposito(id){
 
 /* ==================== RENDER: PAGAMENTO ==================== */
 function renderPagamentos(){
-  document.getElementById('tblPagamentoBody').innerHTML = DB.pagamentos.length ? DB.pagamentos.map(p=>`
+  const listaP = DB.pagamentos.filter(p=>empIdVisivel(p.empId));
+  document.getElementById('tblPagamentoBody').innerHTML = listaP.length ? listaP.map(p=>`
     <tr>
       <td><b>${p.cliente}</b></td>
       <td>${empName(p.empId)} · ${p.unidade}</td>
@@ -1437,7 +1591,8 @@ function decidirPagamento(id, status){
 
 /* ==================== RENDER: CONTRATOS ==================== */
 function renderContratos(){
-  document.getElementById('tblContratosBody').innerHTML = DB.contratos.length ? DB.contratos.map(c=>`
+  const listaC = DB.contratos.filter(c=>empIdVisivel(c.empId));
+  document.getElementById('tblContratosBody').innerHTML = listaC.length ? listaC.map(c=>`
     <tr>
       <td><b>${c.cliente}</b></td>
       <td>${empName(c.empId)} · ${c.unidade}</td>
@@ -1470,7 +1625,7 @@ function marcarAssinado(id){
 
 /* ==================== RENDER: ALERTAS ==================== */
 function renderAlertas(){
-  const alertas = DB.reservas.filter(r=>!r.depositoConfirmado || r.etapa==='aguardando_contrato').map(r=>{
+  const alertas = reservasVisiveis().filter(r=>!r.depositoConfirmado || r.etapa==='aguardando_contrato').map(r=>{
     const horasRestantes = (new Date(r.prazo).getTime()-Date.now())/3600000;
     return {r, horasRestantes};
   }).sort((a,b)=>a.horasRestantes-b.horasRestantes);
@@ -1492,8 +1647,8 @@ function renderAlertas(){
 
 /* ==================== DIRETOR: PAINEL EXECUTIVO ==================== */
 function computeExecutivo(){
-  const unidadesVendidas = DB.unidades.filter(u=>u.status==='vendida');
-  const unidadesReservadas = DB.unidades.filter(u=>u.status==='reservada');
+  const unidadesVendidas = DB.unidades.filter(u=>u.status==='vendida' && empIdVisivel(u.empId));
+  const unidadesReservadas = DB.unidades.filter(u=>u.status==='reservada' && empIdVisivel(u.empId));
   const vgvRealizado = unidadesVendidas.reduce((s,u)=>s+u.valor,0);
   const vgvCarteira = unidadesReservadas.reduce((s,u)=>s+u.valor,0);
   const totalNegociado = vgvRealizado+vgvCarteira;
@@ -1543,7 +1698,7 @@ function exportExecutivo(){
   linhas.push('COMISSÃO ESTIMADA (0,5%): ' + fmtMoney(ex.comissaoEstimada));
   linhas.push('');
   linhas.push('--- POR CONSTRUTORA ---');
-  DB.empreendimentos.forEach(e=>{
+  empreendimentosVisiveis().forEach(e=>{
     const us = DB.unidades.filter(u=>u.empId===e.id);
     const vgvPot = us.reduce((s,u)=>s+u.valor,0);
     linhas.push(`${e.construtora} — ${e.nome}: ${us.filter(u=>u.status==='vendida').length} vendidas / ${us.filter(u=>u.status==='reservada').length} reservadas / ${us.filter(u=>u.status==='disponivel').length} disponíveis — VGV potencial ${fmtMoney(vgvPot)}`);
@@ -1558,7 +1713,7 @@ function exportExecutivo(){
 
 /* ==================== DIRETOR: VISÃO POR EMPREENDIMENTO ==================== */
 function renderConstrutoras(){
-  document.getElementById('tblConstrutorasBody').innerHTML = DB.empreendimentos.map(e=>{
+  document.getElementById('tblConstrutorasBody').innerHTML = empreendimentosVisiveis().map(e=>{
     const us = DB.unidades.filter(u=>u.empId===e.id);
     const disp = us.filter(u=>u.status==='disponivel').length;
     const res = us.filter(u=>u.status==='reservada').length;
@@ -1579,14 +1734,14 @@ function renderConstrutoras(){
 /* ==================== RADAR DE RISCO (Diretor) ==================== */
 function computeRiscoItems(){
   const itens = [];
-  DB.creditos.filter(c=>c.status==='reprovado').forEach(c=>itens.push({sev:'danger', tipo:'Crédito reprovado', desc:`${c.cliente} — ${empName(c.empId)}`}));
-  DB.pagamentos.filter(p=>p.status==='ajustar').forEach(p=>itens.push({sev:'warning', tipo:'Pagamento com ajuste solicitado', desc:`${p.cliente} — ${empName(p.empId)}`}));
-  DB.reservas.forEach(r=>{
+  DB.creditos.filter(c=>c.status==='reprovado' && empIdVisivel(c.empId)).forEach(c=>itens.push({sev:'danger', tipo:'Crédito reprovado', desc:`${c.cliente} — ${empName(c.empId)}`}));
+  DB.pagamentos.filter(p=>p.status==='ajustar' && empIdVisivel(p.empId)).forEach(p=>itens.push({sev:'warning', tipo:'Pagamento com ajuste solicitado', desc:`${p.cliente} — ${empName(p.empId)}`}));
+  reservasVisiveis().forEach(r=>{
     const h=(new Date(r.prazo).getTime()-Date.now())/3600000;
     if(h<12) itens.push({sev: h<=0?'danger':'warning', tipo: h<=0?'Prazo de reserva vencido':'Reserva perto do prazo', desc:`${r.cliente} — ${empName(r.empId)} / ${r.unidade}`});
   });
-  DB.orcamentoPedidos.filter(o=>o.status==='pendente' && (Date.now()-new Date(o.data).getTime())/3600000>24).forEach(o=>itens.push({sev:'warning', tipo:'Orçamento pendente há mais de 24h', desc:`${o.solicitante}`}));
-  DB.solicitacoesEscalonamento.filter(s=>s.status==='pendente' && (Date.now()-new Date(s.data).getTime())/3600000>24).forEach(s=>itens.push({sev:'warning', tipo:'Solicitação ao Superintendente pendente há mais de 24h', desc:`${tipoEscalLabel(s.tipo)} — ${empName(s.empId)}`}));
+  DB.orcamentoPedidos.filter(o=>o.status==='pendente' && empIdVisivel(o.empId) && (Date.now()-new Date(o.data).getTime())/3600000>24).forEach(o=>itens.push({sev:'warning', tipo:'Orçamento pendente há mais de 24h', desc:`${o.solicitante}`}));
+  DB.solicitacoesEscalonamento.filter(s=>s.status==='pendente' && empIdVisivel(s.empId) && (Date.now()-new Date(s.data).getTime())/3600000>24).forEach(s=>itens.push({sev:'warning', tipo:'Solicitação ao Superintendente pendente há mais de 24h', desc:`${tipoEscalLabel(s.tipo)} — ${empName(s.empId)}`}));
   return itens;
 }
 function renderRisco(){
@@ -1601,15 +1756,16 @@ function renderRisco(){
 function computeBloqueioItems(){
   // itens "genéricos" em aberto, além das solicitações de escalonamento (mostradas em lista própria)
   const itens = [];
-  DB.orcamentoPedidos.filter(o=>o.status==='pendente').forEach(o=>itens.push({tipo:'Aguardando aprovação da Diretoria', desc:`${o.solicitante} — ${fmtMoney(o.valor)}`}));
-  DB.creditos.filter(c=>c.status==='reprovado').forEach(c=>itens.push({tipo:'Crédito reprovado — avaliar alternativa', desc:`${c.cliente} — ${empName(c.empId)}`}));
+  DB.orcamentoPedidos.filter(o=>o.status==='pendente' && empIdVisivel(o.empId)).forEach(o=>itens.push({tipo:'Aguardando aprovação da Diretoria', desc:`${o.solicitante} — ${fmtMoney(o.valor)}`}));
+  DB.creditos.filter(c=>c.status==='reprovado' && empIdVisivel(c.empId)).forEach(c=>itens.push({tipo:'Crédito reprovado — avaliar alternativa', desc:`${c.cliente} — ${empName(c.empId)}`}));
   return itens;
 }
+function escalonamentosVisiveis(){ return DB.solicitacoesEscalonamento.filter(s=>empIdVisivel(s.empId)); }
 function computeBloqueioCountSuperintendente(){
-  return computeBloqueioItems().length + DB.solicitacoesEscalonamento.filter(s=>s.status==='pendente').length;
+  return computeBloqueioItems().length + escalonamentosVisiveis().filter(s=>s.status==='pendente').length;
 }
 function computeBloqueioCountDiretor(){
-  return computeBloqueioItems().length + DB.solicitacoesEscalonamento.filter(s=>s.status==='encaminhado').length;
+  return computeBloqueioItems().length + escalonamentosVisiveis().filter(s=>s.status==='encaminhado').length;
 }
 function despachoNote(s){
   return s.despacho ? `<div class="small-muted" style="margin-top:4px;">📋 Despacho da Diretoria: ${s.despacho}</div>` : '';
@@ -1623,7 +1779,7 @@ function renderBloqueios(){
   document.getElementById('bloqueiosDesc').textContent = descByRole[currentRole] || '';
   document.getElementById('painelNovaSolicitacao').style.display = currentRole==='viabilizador' ? '' : 'none';
 
-  const escal = DB.solicitacoesEscalonamento;
+  const escal = escalonamentosVisiveis();
 
   if(currentRole==='viabilizador'){
     document.getElementById('bloqueiosList').innerHTML = escal.length ? `<div class="panel"><div class="panel-head"><h3>Minhas solicitações enviadas</h3></div><div class="panel-body" style="padding:0"><table>
@@ -1695,6 +1851,7 @@ function enviarEscalonamento(){
   document.getElementById('escalValor').value='';
   save();
   toast('Solicitação enviada ao Superintendente.');
+  chamarFeiraoApi('feirao_escalonamento', {operacao:'criar', empId, tipo, descricao, valor, authPin:currentAuthPin});
 }
 function decidirEscalonamento(id, status){
   const s = DB.solicitacoesEscalonamento.find(x=>x.id===id);
@@ -1702,6 +1859,7 @@ function decidirEscalonamento(id, status){
   logAction(`Solicitação de ${tipoEscalLabel(s.tipo)} (${empName(s.empId)}) ${status==='aprovado'?'APROVADA':'RECUSADA'} pelo Superintendente.`);
   save();
   toast(status==='aprovado' ? 'Solicitação aprovada.' : 'Solicitação recusada.');
+  chamarFeiraoApi('feirao_escalonamento', {operacao:'decidir', id, status, authPin:currentAuthPin});
 }
 function encaminharDiretoria(id){
   const s = DB.solicitacoesEscalonamento.find(x=>x.id===id);
@@ -1709,6 +1867,7 @@ function encaminharDiretoria(id){
   logAction(`Solicitação de ${tipoEscalLabel(s.tipo)} encaminhada à Diretoria para despacho final.`);
   save();
   toast('Encaminhado à Diretoria para despacho.');
+  chamarFeiraoApi('feirao_escalonamento', {operacao:'encaminhar', id, authPin:currentAuthPin});
 }
 let despachoAtualId = null;
 function openDespacho(id){
@@ -1735,6 +1894,9 @@ function decidirDespacho(status){
   closeModal('modalDespacho');
   save();
   toast(status==='aprovado_diretoria' ? 'Solicitação aprovada pela Diretoria.' : 'Solicitação recusada pela Diretoria.');
+  // Backend acrescenta o sufixo "_diretoria" sozinho a partir do papel do
+  // authPin — por isso manda-se aqui só o status "base" (aprovado/recusado).
+  chamarFeiraoApi('feirao_escalonamento', {operacao:'decidir', id:despachoAtualId, status:status.replace('_diretoria',''), despacho:motivo, authPin:currentAuthPin});
 }
 
 /* ==================== RENDER: LOG ==================== */
@@ -1746,23 +1908,23 @@ function renderLog(){
 
 /* ==================== SIDEBAR COUNTS ==================== */
 function renderCounts(){
-  document.getElementById('cEmp').textContent = DB.empreendimentos.length;
-  const disp = DB.unidades.filter(u=>u.status==='disponivel').length;
+  document.getElementById('cEmp').textContent = empreendimentosVisiveis().length;
+  const disp = DB.unidades.filter(u=>empIdVisivel(u.empId) && u.status==='disponivel').length;
   document.getElementById('cUnid').textContent = disp;
   document.getElementById('cUnidS').textContent = disp;
-  const solPend = DB.solicitacoes.filter(s=>s.status==='pendente').length;
+  const solPend = DB.solicitacoes.filter(s=>empIdVisivel(s.empId) && s.status==='pendente').length;
   document.getElementById('cSol').textContent = solPend;
   document.getElementById('cSolS').textContent = solPend;
-  const credPend = DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').length;
+  const credPend = DB.creditos.filter(c=>empIdVisivel(c.empId) && (c.status==='pendente'||c.status==='em_analise')).length;
   document.getElementById('cCred').textContent = credPend;
   document.getElementById('cCredS').textContent = credPend;
-  document.getElementById('cRes').textContent = DB.reservas.length;
-  document.getElementById('cPag').textContent = DB.pagamentos.filter(p=>p.status==='pendente').length;
-  document.getElementById('cCon').textContent = DB.contratos.filter(c=>c.status==='aguardando_emissao').length;
-  const alertasCount = DB.reservas.filter(r=>(new Date(r.prazo).getTime()-Date.now())/3600000 < 12).length;
+  document.getElementById('cRes').textContent = reservasVisiveis().length;
+  document.getElementById('cPag').textContent = DB.pagamentos.filter(p=>empIdVisivel(p.empId) && p.status==='pendente').length;
+  document.getElementById('cCon').textContent = DB.contratos.filter(c=>empIdVisivel(c.empId) && c.status==='aguardando_emissao').length;
+  const alertasCount = reservasVisiveis().filter(r=>(new Date(r.prazo).getTime()-Date.now())/3600000 < 12).length;
   document.getElementById('cAlert').textContent = alertasCount;
   document.getElementById('cRisco').textContent = computeRiscoItems().length;
-  document.getElementById('cEscalV').textContent = DB.solicitacoesEscalonamento.filter(isEscalAberta).length;
+  document.getElementById('cEscalV').textContent = escalonamentosVisiveis().filter(isEscalAberta).length;
   document.getElementById('cBloqS').textContent = computeBloqueioCountSuperintendente();
   document.getElementById('cBloqD').textContent = computeBloqueioCountDiretor();
 }
@@ -1772,11 +1934,12 @@ function exportReport(){
   const linhas = [];
   linhas.push('WAL IMÓVEIS — RELATÓRIO DO VIABILIZADOR/GER IMOB — ' + new Date().toLocaleString('pt-BR'));
   linhas.push('');
-  linhas.push('UNIDADES DISPONÍVEIS: ' + DB.unidades.filter(u=>u.status==='disponivel').length + ' de ' + DB.unidades.length);
-  linhas.push('SOLICITAÇÕES PENDENTES: ' + DB.solicitacoes.filter(s=>s.status==='pendente').length);
-  linhas.push('ANÁLISES DE CRÉDITO EM ABERTO: ' + DB.creditos.filter(c=>c.status==='pendente'||c.status==='em_analise').length);
-  linhas.push('RESERVAS ATIVAS: ' + DB.reservas.length);
-  linhas.push('CONTRATOS AGUARDANDO EMISSÃO: ' + DB.contratos.filter(c=>c.status==='aguardando_emissao').length);
+  const unidVisiveis = DB.unidades.filter(u=>empIdVisivel(u.empId));
+  linhas.push('UNIDADES DISPONÍVEIS: ' + unidVisiveis.filter(u=>u.status==='disponivel').length + ' de ' + unidVisiveis.length);
+  linhas.push('SOLICITAÇÕES PENDENTES: ' + DB.solicitacoes.filter(s=>empIdVisivel(s.empId) && s.status==='pendente').length);
+  linhas.push('ANÁLISES DE CRÉDITO EM ABERTO: ' + DB.creditos.filter(c=>empIdVisivel(c.empId) && (c.status==='pendente'||c.status==='em_analise')).length);
+  linhas.push('RESERVAS ATIVAS: ' + reservasVisiveis().length);
+  linhas.push('CONTRATOS AGUARDANDO EMISSÃO: ' + DB.contratos.filter(c=>empIdVisivel(c.empId) && c.status==='aguardando_emissao').length);
   linhas.push('');
   linhas.push('--- LOG DE ATIVIDADES ---');
   DB.log.forEach(l=> linhas.push(fmtDateTime(l.data) + ' — ' + l.acao));
@@ -1811,17 +1974,56 @@ renderAll();
 setRole(currentRole);
 </script>
 
-<!-- ================= PIN GATE — script (mockup, sem validação por construtora ainda) ================= -->
+<!-- ================= PIN GATE — validação real via aba AUTORIZADOS, com escopo por construtora ================= -->
 <script>
-/* PINs fixos só pra demo/reunião com os viabilizadores. Quando o
-   modelo de PIN por construtora for definido, trocar por uma
-   checagem real (ex: consultando a planilha/CRM da construtora). */
-const PIN_POR_PERFIL = {
-  viabilizador: '1111',
-  superintendente: '2222',
-  diretor: '3333'
+/* Implementa o plano que estava documentado bem aqui como TODO: o PIN
+   deixou de ser fixo por papel (PIN_POR_PERFIL) e passa a ser
+   consultado na aba AUTORIZADOS da planilha "Pre Cadastro 1 Feirao
+   WAL" (mesma planilha/aba que acompanhamento-pre-cadastro.html já usa
+   para Nível 3) via gvizJsonp — mesmo padrão gviz do resto do
+   ecossistema WAL. A CONSTRUTORA retornada fica em `currentConstrutora`
+   e filtra toda listagem (ver aplicarFiltroConstrutora_ chamado dentro
+   de renderEmpreendimentos/renderUnidades/renderSolicitacoes/etc.).
+   PINs fixos de demonstração (sem checagem de construtora) continuam
+   funcionando como fallback quando a planilha está offline, para a
+   ferramenta não travar numa reunião sem internet. */
+const PIN_POR_PERFIL_DEMO = { viabilizador: '1111', superintendente: '2222', diretor: '3333' };
+const CARGO_AUTORIZADOS_PARA_PAPEL = {
+  'Viabilizador/Ger. Imob.': 'viabilizador',
+  'Superintendente': 'superintendente',
+  'Diretor': 'diretor'
 };
+const PLANILHA_PRECADASTRO_ID = '1fSGrDRVBcoZUtz_4WLYWrNQn5-Vg-oafG7uH2ytJtx0';
+const ABA_AUTORIZADOS = 'AUTORIZADOS';
 let pinRoleSelecionado = 'viabilizador';
+/* currentConstrutora / currentAuthPin são declaradas no script principal
+   (mais acima no arquivo) — aqui só são atribuídas. */
+
+function gvizAutorizados_(pin){
+  return new Promise((resolve)=>{
+    const cb = 'walViabGviz_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 8000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = 'https://docs.google.com/spreadsheets/d/'+PLANILHA_PRECADASTRO_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cb+'&sheet='+encodeURIComponent(ABA_AUTORIZADOS)+'&_='+Date.now();
+    document.body.appendChild(s);
+  }).then((json)=>{
+    if(!json || !json.table || !json.table.rows) return null;
+    const cel=(row,i)=>{ const c=row.c&&row.c[i]; return c&&c.v!=null ? c.v : ''; };
+    const linhas = json.table.rows.map(r=>({
+      nome:String(cel(r,1)), cargo:String(cel(r,2)), construtora:String(cel(r,3)),
+      pin:String(cel(r,4)).trim(), status:String(cel(r,7)||'Ativo')
+    })).filter(a=>a.pin && a.pin===String(pin).trim());
+    const achado = linhas[0];
+    if(!achado) return null;
+    if(String(achado.status).toLowerCase().indexOf('desab')===0) return {desabilitado:true};
+    const papel = CARGO_AUTORIZADOS_PARA_PAPEL[achado.cargo];
+    if(!papel) return null;
+    return {papel, nome:achado.nome, construtora:achado.construtora};
+  }).catch(()=>null);
+}
 
 document.body.classList.add('wal-locked');
 
@@ -1833,14 +2035,34 @@ document.getElementById('pinRoleTabs').addEventListener('click', function(e){
   document.getElementById('pinError').classList.remove('show');
 });
 
-function walTentarEntrarPin(){
+function walEntrarComPapel_(papel, construtora, pin){
+  currentRole = papel; currentConstrutora = construtora||''; currentAuthPin = pin;
+  document.body.classList.remove('wal-locked');
+  document.getElementById('pinGate').style.display = 'none';
+  setRole(papel);
+}
+
+async function walTentarEntrarPin(){
   const valor = document.getElementById('pinInput').value.trim();
-  if(valor && valor === PIN_POR_PERFIL[pinRoleSelecionado]){
-    document.body.classList.remove('wal-locked');
-    document.getElementById('pinGate').style.display = 'none';
-    setRole(pinRoleSelecionado);
-  } else {
-    document.getElementById('pinError').classList.add('show');
+  const errEl = document.getElementById('pinError');
+  errEl.classList.remove('show');
+  if(!valor) return;
+  const submitBtn = document.getElementById('pinSubmit');
+  submitBtn.disabled = true;
+  try{
+    const achado = await gvizAutorizados_(valor);
+    if(achado && achado.desabilitado){ errEl.textContent='Este acesso foi desabilitado. Fale com a WAL Imóveis.'; errEl.classList.add('show'); return; }
+    if(achado){ walEntrarComPapel_(achado.papel, achado.construtora, valor); return; }
+    // Fail-soft: planilha offline/sem resultado — aceita os PINs fixos de
+    // demonstração (sem escopo por construtora), pra não travar sem internet.
+    if(valor === PIN_POR_PERFIL_DEMO[pinRoleSelecionado]){
+      walEntrarComPapel_(pinRoleSelecionado, '', valor);
+      return;
+    }
+    errEl.textContent='PIN inválido. Verifique o número ou fale com a WAL Imóveis.';
+    errEl.classList.add('show');
+  } finally {
+    submitBtn.disabled = false;
   }
 }
 document.getElementById('pinSubmit').addEventListener('click', walTentarEntrarPin);

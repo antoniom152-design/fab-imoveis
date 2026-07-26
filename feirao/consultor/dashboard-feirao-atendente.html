@@ -133,6 +133,7 @@ a{text-decoration:none;color:inherit}
 .badge.b-interesse{background:var(--teal-dim);color:var(--teal2)}
 .badge.b-ativo{background:var(--green-dim);color:var(--green2)}
 .badge.b-inativo{background:var(--red-dim);color:var(--red2)}
+.badge.b-indisponivel{background:rgba(255,255,255,.06);color:var(--muted)}
 .badge.pri-alta{background:var(--red-dim);color:var(--red2)}
 .badge.pri-media{background:var(--amber-dim);color:var(--amber2)}
 .badge.pri-baixa{background:rgba(255,255,255,.06);color:var(--muted)}
@@ -460,10 +461,176 @@ function sincronizarStatusBackend_(lead){
   chamarFeiraoApi('feirao_lead_status', {email:lead.email, etapaFunil:mapearStatusParaFunilUnificado_(lead.status), authPin:SESSION.authPin});
 }
 
+/* ════════════════════════════════════════════════════════════
+   FASE 1 — SINCRONIZAÇÃO COM A PLANILHA 'WAL Feirão — Dados
+   Operacionais' (abas PARTICIPANTES e ATENDENTES).
+   A planilha é a fonte da verdade: no login e a cada 30s os leads
+   e atendentes são lidos via JSONP; o localStorage vira cache para
+   os campos ricos que ainda são locais (histórico, docs, visita…)
+   e fallback quando a API está fora do ar.
+═══════════════════════════════════════════════════════════ */
+const MAPA_STATUS_DO_BACKEND = {novo:'novo', contato:'contato', proposta_analise:'proposta', reserva:'reserva', assinatura:'assinatura', fechado:'fechado', perdido:'perdido'};
+function isoOuMantem_(v, atual){ const d=new Date(v); return isNaN(d.getTime())? atual : d.toISOString(); }
+
+function leadPadraoRemoto_(r){
+  return {
+    id: 'ld_'+(r.email||'').toLowerCase().replace(/[^a-z0-9]/g,'_'),
+    nome: r.nome || r.email || 'Lead sem nome',
+    cpf: r.cpf || '', telefone: r.whatsapp || '', email: r.email || '',
+    orgao: r.vinculo || '—', patente: '—', origem: r.origem || 'Feirão Online',
+    empreendimentoInteresse: r.empSelecionado || null,
+    tipologiaDesejada: '—', faixaValor: 0, rendaDeclarada: 0, rendaConjuge: 0,
+    modalidadeFinanciamento: '—', parcelaEstimada: 0,
+    documentos: {identidade:false, renda:false, residencia:false, ir:false},
+    documentosEnviadosEm: {identidade:null, renda:null, residencia:null, ir:null},
+    analiseCredito: null,
+    visita: {data:'', horario:'', formato:'presencial', observacao:'', confirmada:false, agendadaEm:null},
+    chat: [], simulacaoCliente: null, fluxoPagamento: null,
+    contrato: {solicitado:false, solicitadoEm:null, enviado:false, enviadoEm:null, assinado:false, assinadoEm:null, cobrancaEm:null},
+    status: 'novo', atendenteId: null, prioridade: 'media',
+    criadoEm: nowISO(), ultimaAtualizacao: nowISO(), unidadeReservada: null,
+    historico: [{tipo:'sistema', texto:'Lead sincronizado da planilha WAL Feirão — Dados Operacionais.', autor:'Sistema', data:nowISO()}]
+  };
+}
+function aplicarLeadRemoto_(local, r){
+  if(r.nome) local.nome = r.nome;
+  if(r.cpf) local.cpf = r.cpf;
+  if(r.whatsapp) local.telefone = r.whatsapp;
+  if(r.vinculo) local.orgao = r.vinculo;
+  if(r.origem) local.origem = r.origem;
+  if(r.empSelecionado) local.empreendimentoInteresse = r.empSelecionado;
+  if(r.unidadeSelecionada && !local.unidadeReservada) local.unidadeReservada = r.unidadeSelecionada;
+  local.atendenteId = r.atendenteId || null;
+  if(r.prioridade) local.prioridade = r.prioridade;
+  const novoStatus = MAPA_STATUS_DO_BACKEND[r.etapaFunil] || 'novo';
+  // o backend não distingue "visita" de "contato" — preserva o refinamento local
+  if(!(novoStatus==='contato' && local.status==='visita')) local.status = novoStatus;
+  if(r.criadoEm) local.criadoEm = isoOuMantem_(r.criadoEm, local.criadoEm);
+  if(r.atualizadoEm) local.ultimaAtualizacao = isoOuMantem_(r.atualizadoEm, local.ultimaAtualizacao);
+}
+async function sincronizarLeadsDoBackend_(){
+  if(!SESSION) return;
+  const resp = await feiraoApiJsonp('feirao_listar_leads', {authPin:SESSION.authPin});
+  if(!resp || !resp.ok || !Array.isArray(resp.leads)) return;
+  const porEmail = {};
+  STATE.leads.forEach(l=>{ if(l.email) porEmail[l.email.toLowerCase()] = l; });
+  STATE.leads = resp.leads.map(r=>{
+    const local = porEmail[(r.email||'').toLowerCase()] || leadPadraoRemoto_(r);
+    aplicarLeadRemoto_(local, r);
+    return local;
+  });
+  await aplicarAgendamentosDoBackend_();
+  saveState();
+  if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanel(currentPanel); updateNavBadges(); }
+}
+/* Fase 3: puxa a aba AGENDAMENTOS_VISITA e aplica em lead.visita a visita
+   confirmada mais recente de cada e-mail — inclusive as que o próprio
+   lead marcou pelo dashboard dele. */
+async function aplicarAgendamentosDoBackend_(){
+  const resp = await feiraoApiJsonp('feirao_listar_agendamentos', {authPin:SESSION.authPin});
+  if(!resp || !resp.ok || !Array.isArray(resp.itens)) return;
+  const ultimoPorEmail = {};
+  resp.itens.forEach(a=>{
+    if(!a.email || a.status!=='confirmado') return;
+    if(!ultimoPorEmail[a.email] || (a.timestamp||'') > (ultimoPorEmail[a.email].timestamp||'')) ultimoPorEmail[a.email] = a;
+  });
+  STATE.leads.forEach(l=>{
+    const a = l.email ? ultimoPorEmail[l.email.toLowerCase()] : null;
+    if(!a || !a.data) return;
+    const remotoTs = isoOuMantem_(a.timestamp, null);
+    if(l.visita && l.visita.confirmada && l.visita.agendadaEm && remotoTs && remotoTs <= l.visita.agendadaEm) return;
+    l.visita = {
+      data:(a.data||'').slice(0,10), horario:(a.horario||'').slice(0,5),
+      formato:/online|v[ií]deo/i.test(a.formato||'') ? 'online' : 'presencial',
+      observacao:a.observacoes||'', confirmada:true, agendadaEm:remotoTs || nowISO()
+    };
+    if(JOURNEY_STAGES.indexOf(l.status) > -1 && JOURNEY_STAGES.indexOf(l.status) < JOURNEY_STAGES.indexOf('visita')) l.status='visita';
+  });
+}
+/* ── Fase 2: catálogo (CONSTRUTORAS / EMPREENDIMENTOS / UNIDADES) ──
+   Leitura pública (mesmas ações usadas pelo dashboard do lead). A
+   planilha é a fonte da verdade; se a API não responder, o cache
+   local (localStorage) continua valendo. */
+const MAPA_STATUS_UNIDADE_DO_BACKEND = {
+  disponivel:'interesse', novo:'interesse', interesse:'interesse', contato:'interesse',
+  proposta:'proposta', proposta_analise:'proposta',
+  reserva:'reserva', reservada:'reserva',
+  assinatura:'assinatura', vendida:'assinatura', fechado:'assinatura',
+  indisponivel:'indisponivel', perdido:'indisponivel'
+};
+async function sincronizarCatalogoDoBackend_(){
+  const [rc, re, ru] = await Promise.all([
+    feiraoApiJsonp('feirao_listar_construtoras', {}),
+    feiraoApiJsonp('feirao_listar_empreendimentos', {}),
+    feiraoApiJsonp('feirao_listar_unidades', {})
+  ]);
+  let mudou = false;
+  if(rc && rc.ok && Array.isArray(rc.itens)){
+    STATE.construtoras = rc.itens.map(c=>({
+      id:c.id, nome:c.nome, telefone:c.telefone||'', site:c.site||'',
+      viabilizador:c.viabilizador||'', telefoneViabilizador:c.telefoneViabilizador||'',
+      comissaoPct:Number(c.comissaoPct)||0, linkDrive:c.linkDrive||'',
+      estadosAtuacao:c.estadosAtuacao||'', cidadesAtuacao:c.cidadesAtuacao||'',
+      observacoes:c.observacoes||'', ativa:c.ativa!==false,
+      dataInclusao:isoOuMantem_(c.dataInclusao, nowISO())
+    }));
+    mudou = true;
+  }
+  if(re && re.ok && Array.isArray(re.itens)){
+    STATE.empreendimentos = re.itens.map(e=>({
+      id:e.id, construtoraId:e.construtoraId, nome:e.nome, bairro:e.bairro||'', cidade:e.cidade||'',
+      uf:e.uf||'RJ', tipoImovel:e.tipoImovel||'Lançamento',
+      condFeirao:(e.condFeirao===true||e.condFeirao===false)?'':(e.condFeirao||''),
+      entrega:e.entrega||'', entrada:e.entrada||'', sinal:e.sinal||'', condicoes:e.condicoes||'',
+      descricaoImovel:e.descricaoImovel||'', tipologia:e.tipologia||'', faixaValor:e.faixaValor||'',
+      valorAPartirDe:Number(e.valorAPartirDe)||0, qtdUnidades:Number(e.qtdUnidades)||0,
+      dataCadastro:isoOuMantem_(e.dataCadastro, nowISO()), urlImagem:e.urlImagem||'',
+      linkDrive:e.linkDrive||'', linkBlogger:e.linkBlogger||'',
+      destaquePaginaPrincipal:!!e.destaquePaginaPrincipal, obsInterna:e.obsInterna||'',
+      ativo:e.ativo!==false, criadoEm:isoOuMantem_(e.criadoEm, nowISO())
+    }));
+    mudou = true;
+  }
+  if(ru && ru.ok && Array.isArray(ru.itens)){
+    STATE.unidades = ru.itens.map(u=>({
+      id:u.id, empreendimentoId:u.empId, bloco:u.blocoTorre||'', unidade:u.unidade||'',
+      tipologia:u.tipologia||'', valor:Number(u.valor)||0,
+      status: MAPA_STATUS_UNIDADE_DO_BACKEND[u.status] || 'interesse'
+    }));
+    mudou = true;
+  }
+  if(mudou){
+    saveState();
+    if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanel(currentPanel); }
+  }
+}
+
+async function sincronizarAtendentesDoBackend_(){
+  const admin = SESSION && SESSION.tipo==='gerente';
+  const resp = await feiraoApiJsonp(admin?'feirao_listar_atendentes_admin':'feirao_listar_atendentes', admin?{authPin:SESSION.authPin}:{});
+  if(!resp || !resp.ok || !Array.isArray(resp.itens)) return false;
+  if(!resp.itens.length && !admin) return false; // lista pública vazia: mantém cache local
+  const porId = {};
+  STATE.atendentes.forEach(a=>{ porId[a.id]=a; });
+  STATE.atendentes = resp.itens.map(r=>{
+    const local = porId[r.id] || {};
+    return {
+      id: r.id, nome: r.nome,
+      whatsapp: r.whatsapp!==undefined ? String(r.whatsapp) : (local.whatsapp||''),
+      pin: r.pin!==undefined ? String(r.pin) : (local.pin||''),
+      ativo: r.ativo!==undefined ? r.ativo===true : true,
+      criadoEm: r.criadoEm || local.criadoEm || nowISO()
+    };
+  });
+  saveState();
+  return true;
+}
+
 const STATUS_LABELS = {
   novo:'Novo', contato:'Em Contato', visita:'Visita Agendada', interesse:'Interesse', proposta:'Proposta', reserva:'Reserva',
-  assinatura:'Assinatura', fechado:'Fechado', perdido:'Perdido'
+  assinatura:'Assinatura', fechado:'Fechado', perdido:'Perdido', indisponivel:'Indisponível'
 };
+const STATUS_UNIDADE_OPCOES = ['interesse','proposta','reserva','assinatura','indisponivel'];
 const JOURNEY_STAGES = ['novo','contato','visita','proposta','reserva','assinatura','fechado'];
 const LEAD_DOC_LABELS = {identidade:'Identidade (RG/CNH)', renda:'Comprovante de Renda', residencia:'Comprovante de Residência', ir:'Declaração/Recibo IR'};
 const EMAIL_GERENTE_FEIRAO = 'feirao@walimoveis.com.br'; // TODO Antonio: criar esta caixa de e-mail dedicada ao Feirão Online
@@ -605,7 +772,7 @@ function loadState(){
         ['entrega','entrada','sinal','condicoes','descricaoImovel','tipologia','faixaValor','urlImagem','linkDrive','linkBlogger','obsInterna'].forEach(k=>{ if(e[k]===undefined) e[k]=''; });
         ['valorAPartirDe','qtdUnidades'].forEach(k=>{ if(e[k]===undefined) e[k]=0; });
       });
-      parsed.unidades.forEach(u=>{ if(!u.status || !['interesse','proposta','reserva','assinatura'].includes(u.status)) u.status='interesse'; });
+      parsed.unidades.forEach(u=>{ if(!u.status || !['interesse','proposta','reserva','assinatura','indisponivel'].includes(u.status)) u.status='interesse'; });
       parsed.leads.forEach(l=>{
         if(!l.documentosEnviadosEm) l.documentosEnviadosEm = {identidade:null,renda:null,residencia:null,ir:null};
         if(l.analiseCredito===undefined) l.analiseCredito = null;
@@ -656,12 +823,19 @@ function pickRole(role){
 }
 function fillAtendenteSelect(){
   const sel = document.getElementById('selAtendente');
-  const ativos = STATE.atendentes.filter(a=>a.ativo);
-  sel.innerHTML = ativos.length
-    ? ativos.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('')
-    : `<option value="">Nenhum atendente ativo</option>`;
+  const render = ()=>{
+    const ativos = STATE.atendentes.filter(a=>a.ativo);
+    const anterior = sel.value;
+    sel.innerHTML = ativos.length
+      ? ativos.map(a=>`<option value="${a.id}">${a.nome}</option>`).join('')
+      : `<option value="">Nenhum atendente ativo</option>`;
+    if(anterior && ativos.find(a=>a.id===anterior)) sel.value = anterior;
+  };
+  render();
+  // atualiza a lista com a aba ATENDENTES da planilha (sem travar a tela)
+  sincronizarAtendentesDoBackend_().then(ok=>{ if(ok) render(); });
 }
-function doLogin(){
+async function doLogin(){
   const isGerente = document.getElementById('roleBtnGerente').classList.contains('active');
   const errEl = document.getElementById('authErr');
   if(isGerente){
@@ -673,9 +847,20 @@ function doLogin(){
     const pin = document.getElementById('pinAtendente').value.trim();
     const at = STATE.atendentes.find(a=>a.id===selId);
     if(!at){ errEl.textContent='Selecione um atendente ativo.'; return; }
-    if(!at.ativo){ errEl.textContent='Este atendente está desativado pelo gerente.'; return; }
-    if(pin !== at.pin){ errEl.textContent='PIN incorreto.'; return; }
-    SESSION = {tipo:'atendente', atendenteId:at.id, nome:at.nome, authPin:pin};
+    if(!pin){ errEl.textContent='Digite o seu PIN.'; return; }
+    errEl.textContent='Verificando PIN na planilha…';
+    const resp = await feiraoApiJsonp('feirao_login_atendente', {pin});
+    if(resp){
+      // planilha respondeu — ela decide
+      if(!resp.found || resp.papel!=='atendente'){ errEl.textContent='PIN incorreto.'; return; }
+      if(resp.id && resp.id!==selId){ errEl.textContent='Este PIN pertence a outro atendente. Confira o nome selecionado.'; return; }
+      SESSION = {tipo:'atendente', atendenteId:resp.id||at.id, nome:resp.nome||at.nome, authPin:pin};
+    } else {
+      // API fora do ar — validação local de emergência (cache)
+      if(!at.ativo){ errEl.textContent='Este atendente está desativado pelo gerente.'; return; }
+      if(!at.pin || pin !== at.pin){ errEl.textContent='Sem conexão com a planilha e PIN não confere com o cache local.'; return; }
+      SESSION = {tipo:'atendente', atendenteId:at.id, nome:at.nome, authPin:pin};
+    }
   }
   errEl.textContent='';
   document.getElementById('authScreen').classList.add('hidden');
@@ -705,6 +890,7 @@ const NAV_GERENTE = [
   {id:'simulador', ic:'🧮', label:'Simulador Financeiro'},
   {id:'solicitacaoViabilizador', ic:'📨', label:'Solicitação ao Viabilizador'},
   {id:'reservaUnidade', ic:'🔐', label:'Reserva de Unidade'},
+  {id:'mensagensConsultor', ic:'✉️', label:'Mensagens do Consultor'},
   {id:'consultorIA', ic:'🤖', label:'Consultor IA'}
 ];
 const NAV_ATENDENTE = [
@@ -731,6 +917,11 @@ function initShell(){
   tickCountdown(); setInterval(tickCountdown,1000);
   setInterval(()=>{ if(currentPanel) renderPanel(currentPanel); updateNavBadges(); }, 30000);
   initChatWidgetAtendente();
+  // Fases 1 e 2: carrega os dados reais da planilha ao entrar e re-sincroniza a cada 30s
+  sincronizarAtendentesDoBackend_().then(()=>{ if(currentPanel && currentPanel!=='leadDetail') renderPanel(currentPanel); });
+  sincronizarLeadsDoBackend_();
+  sincronizarCatalogoDoBackend_();
+  setInterval(()=>{ sincronizarLeadsDoBackend_(); sincronizarCatalogoDoBackend_(); }, 30000);
 }
 /* Chat ao vivo com os leads (feirao/shared/chat-widget.js), modo inbox —
    uma conversa por lead, indexada pelo e-mail do lead. */
@@ -856,6 +1047,7 @@ function renderPanel(id){
     empreendimentos: renderEmpreendimentos, acompanhar: renderAcompanhar,
     funil: renderFunil, simulador: renderSimulador, consultorIA: renderConsultorIA,
     solicitacaoViabilizador: renderSolicitacaoViabilizador, reservaUnidade: renderReservaUnidade,
+    mensagensConsultor: renderMensagensConsultor,
     minhaFila: renderMinhaFila, unidades: renderUnidadesAtendente, meuDesempenho: renderMeuDesempenho,
     agendaVisita: renderAgendaVisitaAtendente, funilLead: renderFunilLead,
     leadDetail: renderLeadDetail
@@ -948,6 +1140,13 @@ function renderAtendentes(){
     </table></div>
   </div>`;
 }
+/* Após cada escrita, re-busca a aba ATENDENTES (a criação gera o Id
+   definitivo AT#### na planilha, que substitui o id provisório local). */
+function resincronizarAtendentesAposEscrita_(){
+  setTimeout(()=>{
+    sincronizarAtendentesDoBackend_().then(()=>{ if(currentPanel==='atendentes') renderPanel('atendentes'); });
+  }, 2500);
+}
 function criarAtendente(){
   if(STATE.atendentes.length>=20){ toast('Limite de 20 atendentes atingido.'); return; }
   const nome = document.getElementById('natNome').value.trim();
@@ -956,18 +1155,29 @@ function criarAtendente(){
   if(!nome || !pin || pin.length<4){ toast('Preencha nome e um PIN de 4 dígitos.'); return; }
   STATE.atendentes.push({id:uid('at'), nome, whatsapp:wpp, pin, ativo:true, criadoEm:nowISO()});
   saveState(); toast('Atendente cadastrado: '+nome); renderPanel('atendentes');
+  chamarFeiraoApi('feirao_atendente', {operacao:'criar', nome, whatsapp:wpp, pin, authPin:SESSION.authPin});
+  resincronizarAtendentesAposEscrita_();
 }
 function toggleAtendente(id){
   const a = getAtendente(id); a.ativo = !a.ativo; saveState();
   toast(a.nome+(a.ativo?' ativado.':' desativado — não poderá mais entrar no painel.'));
   renderPanel('atendentes');
+  chamarFeiraoApi('feirao_atendente', {operacao:'toggle', id, authPin:SESSION.authPin});
+  resincronizarAtendentesAposEscrita_();
 }
 function removerAtendente(id){
   const a = getAtendente(id);
   if(!confirm('Remover '+a.nome+'? Os leads dele ficarão sem atendente.')) return;
-  STATE.leads.forEach(l=>{ if(l.atendenteId===id) l.atendenteId=null; });
+  STATE.leads.forEach(l=>{
+    if(l.atendenteId===id){
+      l.atendenteId=null;
+      if(l.email) chamarFeiraoApi('feirao_lead_atribuir', {email:l.email, atendenteId:'', authPin:SESSION.authPin});
+    }
+  });
   STATE.atendentes = STATE.atendentes.filter(x=>x.id!==id);
   saveState(); toast('Atendente removido.'); renderPanel('atendentes');
+  chamarFeiraoApi('feirao_atendente', {operacao:'remover', id, authPin:SESSION.authPin});
+  resincronizarAtendentesAposEscrita_();
 }
 
 /* ═══════════════ GERENTE · LEADS (fila geral + encaminhamento) ═══════════════ */
@@ -1037,16 +1247,22 @@ function corrigirStatusManual(leadId, novoStatus){
 }
 function encaminharLead(leadId, atendenteId){
   const lead = STATE.leads.find(l=>l.id===leadId);
-  if(!atendenteId){ lead.atendenteId=null; saveState(); toast('Encaminhamento removido.'); renderPanel('leadsGerente'); return; }
+  if(!atendenteId){
+    lead.atendenteId=null; saveState(); toast('Encaminhamento removido.'); renderPanel('leadsGerente');
+    if(lead.email) chamarFeiraoApi('feirao_lead_atribuir', {email:lead.email, atendenteId:'', authPin:SESSION.authPin});
+    return;
+  }
   const at = getAtendente(atendenteId);
   lead.atendenteId = atendenteId;
   addHistorico(lead, 'encaminhamento', `Encaminhado para ${at.nome}.`, GERENTE_NOME);
   saveState(); toast(`${lead.nome} encaminhado para ${at.nome}.`);
   renderPanel('leadsGerente'); updateNavBadges();
+  if(lead.email) chamarFeiraoApi('feirao_lead_atribuir', {email:lead.email, atendenteId, prioridade:lead.prioridade||'', authPin:SESSION.authPin});
 }
 function verLeadGerente(leadId){
   activeLeadId = leadId; currentPanel='leadDetail';
   document.getElementById('mainArea').innerHTML = renderLeadDetail();
+  carregarDadosRemotosDoLead_(leadId);
 }
 
 /* ═══════════════ GERENTE · EMPREENDIMENTOS & UNIDADES ═══════════════ */
@@ -1056,7 +1272,8 @@ const STATUS_ACOES = {
   interesse:'Nenhuma ação — cliente ainda em fase de interesse pela unidade.',
   proposta:'Aciona análise de crédito do cliente junto ao Viabilizador.',
   reserva:'Requer pagamento de sinal + análise de crédito em andamento.',
-  assinatura:'Contrato assinado — venda concluída para esta unidade.'
+  assinatura:'Contrato assinado — venda concluída para esta unidade.',
+  indisponivel:'Unidade fora do feirão — não ofertar ao cliente.'
 };
 const TIPOS_IMOVEL = ['Lançamento','Novo','Usado','Em Construção'];
 const UFS = ['RJ','SP','MG','ES'];
@@ -1176,7 +1393,7 @@ function renderEmpreendimentos(){
         <td><input class="mini" style="width:140px" value="${u.tipologia}" onchange="editUnidade('${u.id}','tipologia',this.value)"></td>
         <td><input class="mini" style="width:110px" type="number" value="${u.valor}" onchange="editUnidade('${u.id}','valor',this.value)"></td>
         <td><select class="mini" onchange="editUnidade('${u.id}','status',this.value)">
-            ${['interesse','proposta','reserva','assinatura'].map(s=>`<option value="${s}" ${u.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+            ${STATUS_UNIDADE_OPCOES.map(s=>`<option value="${s}" ${u.status===s?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
           </select></td>
         <td><button class="btn sm danger" onclick="removerUnidade('${u.id}')">✕</button></td>
       </tr>`).join('') || '<tr><td colspan="6" class="empty">Nenhuma unidade cadastrada. Adicione manualmente abaixo ou importe uma planilha/PDF.</td></tr>'}
@@ -1283,6 +1500,7 @@ function criarConstrutora(){
   };
   STATE.construtoras.push(c); selectedConstrutoraId=c.id; selectedEmpId=null;
   saveState(); toast('Construtora adicionada: '+nome); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_construtora', Object.assign({operacao:'criar', authPin:SESSION.authPin}, c));
 }
 function renderDetalheConstrutora(){
   const c = STATE.construtoras.find(x=>x.id===selectedConstrutoraId);
@@ -1323,12 +1541,14 @@ function editConstrutora(id, campo, valor){
   if(!c) return;
   c[campo] = valor;
   saveState(); toast('Construtora atualizada.');
+  chamarFeiraoApi('feirao_construtora', {operacao:'atualizar', id, [campo]:valor, authPin:SESSION.authPin});
 }
 function toggleAtivaConstrutora(id){
   const c = STATE.construtoras.find(x=>x.id===id);
   if(!c) return;
   c.ativa = c.ativa===false ? true : false;
   saveState(); toast(c.ativa?'Construtora ativada.':'Construtora desativada.'); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_construtora', {operacao:c.ativa?'ativar':'desativar', id, authPin:SESSION.authPin});
 }
 function excluirConstrutora(id){
   const emUso = STATE.empreendimentos.filter(e=>e.construtoraId===id).length;
@@ -1338,6 +1558,7 @@ function excluirConstrutora(id){
   STATE.construtoras = STATE.construtoras.filter(x=>x.id!==id);
   if(selectedConstrutoraId===id) selectedConstrutoraId = null;
   saveState(); toast('Construtora excluída.'); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_construtora', {operacao:'excluir', id, authPin:SESSION.authPin});
 }
 function imprimirConstrutora(destino){
   toast(destino==='pdf' ? 'Na janela que abrir, escolha "Salvar como PDF" em Destino.' : 'Abrindo janela de impressão...');
@@ -1371,6 +1592,7 @@ function criarEmpreendimento(){
     ativo: true, dataCadastro: nowISO(), criadoEm: nowISO()
   };
   STATE.empreendimentos.push(e); selectedEmpId=e.id;
+  chamarFeiraoApi('feirao_empreendimento', Object.assign({operacao:'criar', authPin:SESSION.authPin}, e));
   saveState(); toast('Empreendimento inscrito no feirão: '+nome); renderPanel('empreendimentos');
 }
 function renderDetalheEmpreendimento(){
@@ -1430,12 +1652,14 @@ function editEmpreendimento(id, campo, valor){
   if(!e) return;
   e[campo] = valor;
   saveState(); toast('Empreendimento atualizado.');
+  chamarFeiraoApi('feirao_empreendimento', {operacao:'atualizar', id, [campo]:valor, authPin:SESSION.authPin});
 }
 function toggleAtivoEmpreendimento(id){
   const e = STATE.empreendimentos.find(x=>x.id===id);
   if(!e) return;
   e.ativo = e.ativo===false ? true : false;
   saveState(); toast(e.ativo?'Empreendimento ativado.':'Empreendimento desativado.'); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_empreendimento', {operacao:e.ativo?'ativar':'desativar', id, authPin:SESSION.authPin});
 }
 function excluirEmpreendimento(id){
   const emUso = STATE.unidades.filter(u=>u.empreendimentoId===id).length;
@@ -1445,6 +1669,7 @@ function excluirEmpreendimento(id){
   STATE.empreendimentos = STATE.empreendimentos.filter(x=>x.id!==id);
   if(selectedEmpId===id) selectedEmpId = null;
   saveState(); toast('Empreendimento excluído.'); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_empreendimento', {operacao:'excluir', id, authPin:SESSION.authPin});
 }
 function imprimirEmpreendimento(destino){
   toast(destino==='pdf' ? 'Na janela que abrir, escolha "Salvar como PDF" em Destino.' : 'Abrindo janela de impressão...');
@@ -1452,24 +1677,33 @@ function imprimirEmpreendimento(destino){
 }
 function editUnidade(id, field, value){
   const u = STATE.unidades.find(x=>x.id===id);
+  if(!u) return;
   const statusAnterior = u.status;
   u[field] = field==='valor' ? Number(value) : value;
   saveState();
-  if(field==='status' && value!==statusAnterior){
-    toast(STATUS_ACOES[value] || 'Unidade atualizada.');
-    if(value==='proposta') toast('Lembrete: registre a solicitação de análise de crédito em "Solicitação ao Viabilizador".');
-    if(value==='reserva') toast('Lembrete: registre esta reserva em "Reserva de Unidade" para envio ao Viabilizador.');
+  if(field==='status'){
+    if(value!==statusAnterior){
+      toast(STATUS_ACOES[value] || 'Unidade atualizada.');
+      if(value==='proposta') toast('Lembrete: registre a solicitação de análise de crédito em "Solicitação ao Viabilizador".');
+      if(value==='reserva') toast('Lembrete: registre esta reserva em "Reserva de Unidade" para envio ao Viabilizador.');
+      chamarFeiraoApi('feirao_unidade', {operacao:'status', id, status:value, authPin:SESSION.authPin});
+    }
   } else {
     toast('Unidade atualizada.');
+    const campoBackend = field==='bloco' ? 'blocoTorre' : field; // planilha usa Bloco_Torre
+    chamarFeiraoApi('feirao_unidade', {operacao:'atualizar', id, [campoBackend]:u[field], authPin:SESSION.authPin});
   }
 }
 function removerUnidade(id){
   STATE.unidades = STATE.unidades.filter(u=>u.id!==id);
   saveState(); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_unidade', {operacao:'excluir', id, authPin:SESSION.authPin});
 }
 function adicionarUnidadeManual(){
-  STATE.unidades.push({id:uid('un'), empreendimentoId:selectedEmpId, bloco:'', unidade:'', tipologia:'', valor:0, status:'interesse'});
+  const u = {id:uid('un'), empreendimentoId:selectedEmpId, bloco:'', unidade:'', tipologia:'', valor:0, status:'interesse'};
+  STATE.unidades.push(u);
   saveState(); renderPanel('empreendimentos');
+  chamarFeiraoApi('feirao_unidade', {operacao:'criar', id:u.id, empId:u.empreendimentoId, blocoTorre:u.bloco, unidade:u.unidade, tipologia:u.tipologia, valor:u.valor, status:u.status, authPin:SESSION.authPin});
 }
 
 /* ── Import parser (CSV/XLSX via SheetJS, PDF via pdf.js) ── */
@@ -1518,7 +1752,7 @@ function normalizeRow(r){
   const keys = Object.keys(r).reduce((acc,k)=>{ acc[k.trim().toLowerCase()] = r[k]; return acc; },{});
   const get = (...names)=>{ for(const n of names){ if(keys[n]!==undefined && keys[n]!=='') return keys[n]; } return ''; };
   let status = String(get('status')||'interesse').toLowerCase();
-  const statusMap = {interesse:'interesse', proposta:'proposta', 'análise de crédito':'proposta', reserva:'reserva', sinal:'reserva', assinatura:'assinatura', contrato:'assinatura', 'contrato assinado':'assinatura'};
+  const statusMap = {interesse:'interesse', 'disponivel':'interesse', 'disponível':'interesse', proposta:'proposta', 'análise de crédito':'proposta', reserva:'reserva', reservada:'reserva', sinal:'reserva', assinatura:'assinatura', vendida:'assinatura', contrato:'assinatura', 'contrato assinado':'assinatura', 'indisponivel':'indisponivel', 'indisponível':'indisponivel'};
   status = statusMap[status] || 'interesse';
   let valor = get('valor','preço','preco','valor(r$)');
   valor = Number(String(valor).replace(/[^\d,.-]/g,'').replace(/\.(?=\d{3})/g,'').replace(',','.')) || 0;
@@ -1583,7 +1817,9 @@ function confirmarImportacao(){
   checks.forEach(chk=>{
     if(chk.checked){
       const r = pendingImportRows[Number(chk.dataset.idx)];
-      STATE.unidades.push({id:uid('un'), empreendimentoId:selectedEmpId, bloco:r.bloco, unidade:r.unidade, tipologia:r.tipologia, valor:r.valor, status:r.status});
+      const u = {id:uid('un'), empreendimentoId:selectedEmpId, bloco:r.bloco, unidade:r.unidade, tipologia:r.tipologia, valor:r.valor, status:r.status};
+      STATE.unidades.push(u);
+      chamarFeiraoApi('feirao_unidade', {operacao:'criar', id:u.id, empId:u.empreendimentoId, blocoTorre:u.bloco, unidade:u.unidade, tipologia:u.tipologia, valor:u.valor, status:u.status, authPin:SESSION.authPin});
       count++;
     }
   });
@@ -1663,6 +1899,7 @@ function assumirAtendimento(){
   addHistorico(lead, 'gerente', 'Gerente assumiu o atendimento diretamente para apoiar o fechamento.', GERENTE_NOME);
   lead.atendenteId = null;
   saveState(); toast('Você assumiu o atendimento de '+lead.nome+'.'); renderPanel('acompanhar');
+  if(lead.email) chamarFeiraoApi('feirao_lead_atribuir', {email:lead.email, atendenteId:'', authPin:SESSION.authPin});
 }
 
 /* ═══════════════ GERENTE · FUNIL DE ATENDIMENTO ═══════════════ */
@@ -1909,11 +2146,71 @@ async function enviarIA(){
 
 /* ═══════════════ GERENTE · SOLICITAÇÃO AO VIABILIZADOR ═══════════════ */
 const TIPOS_SOLICITACAO = {desconto:'Desconto Comercial', analise_credito:'Análise de Crédito Prioritária', condicao_especial:'Condição Especial de Feirão', gerar_contrato:'Geração de Contrato', outro:'Outro'};
+/* Protocolos REAIS de análise de crédito — gerados pelo próprio lead ao
+   enviar documentos no dashboard dele (feirao_credito_), com upload real
+   no Drive. Distinto do fluxo manual abaixo (gerente pede parecer ao
+   Viabilizador sobre desconto/condição/crédito para um lead qualquer).
+   Ver feirao_listarAnalisesCredito_/feirao_creditoDecisao_ no .gs. */
+async function carregarAnalisesCreditoReaisEAtualizar_(){
+  if(!SESSION) return;
+  const r = await feiraoApiJsonp('feirao_listar_analises_credito', {authPin:SESSION.authPin});
+  const box = document.getElementById('analisesCreditoReaisBox');
+  if(!box) return; // painel já foi trocado enquanto a planilha respondia
+  const itens = (r && r.ok && Array.isArray(r.itens)) ? r.itens : [];
+  box.innerHTML = itens.length ? itens.map(protocoloCredCardHtml).join('') :
+    '<div class="empty">Nenhum protocolo de análise de crédito enviado pelos leads ainda.</div>';
+}
+function protocoloCredCardHtml(p){
+  const emp = getEmpreendimento(p.empId);
+  const statusLbl = {enviado:'Enviado',em_analise:'Em análise',aprovado:'Aprovado',reprovado:'Reprovado'}[p.status]||p.status;
+  const statusCls = p.status==='aprovado'?'b-fechado':(p.status==='reprovado'?'b-perdido':'b-novo');
+  const podeDecidir = p.status==='enviado' || p.status==='em_analise';
+  return `<div class="card" style="background:var(--surf2);margin-bottom:12px">
+    <div class="card-h"><h3 style="font-size:13.5px">${p.nome||p.email} <span style="color:var(--muted);font-weight:400">— ${emp?emp.nome:(p.empId||'—')}</span></h3>
+      <span class="badge ${statusCls}">${statusLbl}</span></div>
+    <div class="grid2">
+      <div>
+        <div class="info-row"><span class="k">Protocolo</span><span class="v mono">${p.protocolo}</span></div>
+        <div class="info-row"><span class="k">CPF</span><span class="v">${p.cpf||'—'}</span></div>
+        <div class="info-row"><span class="k">Telefone</span><span class="v">${p.telefone||'—'}</span></div>
+        <div class="info-row"><span class="k">E-mail</span><span class="v">${p.email}</span></div>
+      </div>
+      <div>
+        <div class="info-row"><span class="k">Unidade</span><span class="v">${p.unidade||'—'}</span></div>
+        <div class="info-row"><span class="k">Enviado em</span><span class="v">${fmtDT(p.dataEnvio)}</span></div>
+        <div class="info-row"><span class="k">Prazo</span><span class="v">${fmtDT(p.dataLimite)}</span></div>
+        ${p.status==='aprovado'?`<div class="info-row"><span class="k">Aprovado</span><span class="v">${fmtMoney(p.valorAprovado)} · entrada mín. ${fmtMoney(p.entradaMinima)} · ${p.taxa}% a.a.</span></div>`:''}
+      </div>
+    </div>
+    ${p.parecer?`<div class="hint" style="margin-top:6px">Parecer: ${p.parecer}</div>`:''}
+    ${podeDecidir?`<div class="quick-actions" style="margin-top:10px">
+      <button class="btn sm green" onclick="decidirCreditoReal('${p.protocolo}','aprovado')">✅ Aprovar</button>
+      <button class="btn sm" onclick="decidirCreditoReal('${p.protocolo}','reprovado')">❌ Reprovar</button>
+    </div>`:''}
+  </div>`;
+}
+function decidirCreditoReal(protocolo, statusAlvo){
+  const aprovado = statusAlvo==='aprovado';
+  const valorAprovado = aprovado ? Number(prompt('Valor aprovado (R$):')||0) : 0;
+  const entradaMinima = aprovado ? Number(prompt('Entrada mínima exigida (R$):')||0) : 0;
+  const taxa = aprovado ? Number(prompt('Taxa concedida (% a.a.):')||8.3) : 0;
+  const parecer = prompt('Parecer (opcional, vai para o protocolo real na planilha):')||'';
+  chamarFeiraoApi('feirao_credito_decisao', {protocolo, status:statusAlvo, valorAprovado, entradaMinima, taxa, parecer, authPin:SESSION.authPin});
+  toast('Decisão registrada na planilha.');
+  setTimeout(carregarAnalisesCreditoReaisEAtualizar_, 1200);
+}
+
 function renderSolicitacaoViabilizador(){
   const sols = [...STATE.solicitacoesViabilizador].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm));
   const solsCredito = sols.filter(s=>s.tipo==='analise_credito');
+  carregarAnalisesCreditoReaisEAtualizar_(); // dispara sem esperar; preenche #analisesCreditoReaisBox quando responder
   return `
   <div class="pg-header"><div><div class="pg-title">Solicitação ao Viabilizador/Ger. Imob.</div><div class="pg-sub">Envie pedidos de desconto, análise de crédito ou condições especiais e acompanhe o retorno</div></div></div>
+
+  <div class="card">
+    <div class="card-h"><h3>📋 Protocolos reais de Análise de Crédito <span class="hint">(documentos enviados pelo lead no dashboard dele)</span></h3></div>
+    <div id="analisesCreditoReaisBox"><div class="hint">Consultando planilha...</div></div>
+  </div>
 
   <div class="card">
     <div class="card-h"><h3>Nova Solicitação</h3></div>
@@ -2071,6 +2368,22 @@ const DOC_TIPOS = {
   residencia:'Comprovante de Residência', declaracaoIR:'Declaração de Imposto de Renda', reciboIR:'Recibo do Imposto de Renda'
 };
 function docsVazios(){ return {identidade:false, cpf:false, renda3m:false, residencia:false, declaracaoIR:false, reciboIR:false}; }
+/* Espelha a reserva na aba RESERVAS da planilha (mesmo padrão fire-and-
+   forget usado no resto do ecossistema WAL — ver feirao_reservaCrud_ no
+   .gs). Antes desta função a "Reserva de Unidade" existia só no
+   localStorage do gerente e nunca aparecia na planilha operacional. */
+function mirrorReservaBackend_(r){
+  if(!SESSION) return;
+  chamarFeiraoApi('feirao_reserva', {
+    id:r.id, emailLead:r.clienteEmail||'', clienteNome:r.clienteNome, clienteCpf:r.clienteCpf,
+    clienteTelefone:r.clienteTelefone, orgao:r.orgao, patente:r.patente,
+    rendaDeclarada:r.rendaDeclarada, rendaConjuge:r.rendaConjuge, atendenteId:r.atendenteId||'',
+    empNome:r.empreendimentoNome, unidadeDesc:r.unidadeDesc, valorUnidade:r.valorUnidade, valorSinal:r.valorSinal,
+    status:r.status, parecerViabilizador:r.parecerViabilizador||'', parecerData:r.parecerData||'',
+    emailEnviado:!!r.emailEnviado, docsClienteJson:JSON.stringify(r.documentosCliente||{}),
+    conjugeJson:JSON.stringify(r.conjuge||{}), authPin:SESSION.authPin
+  });
+}
 function ensureReserva(lead, unidade){
   let r = STATE.reservas.find(x=>x.leadId===lead.id && x.unidadeId===unidade.id);
   const emp = getEmpreendimento(unidade.empreendimentoId);
@@ -2087,6 +2400,7 @@ function ensureReserva(lead, unidade){
       criadoEm:nowISO()
     };
     STATE.reservas.push(r);
+    mirrorReservaBackend_(r);
   }
   saveState();
   return r;
@@ -2102,22 +2416,28 @@ function toggleDoc(reservaId, target, docKey, checked){
   const r = STATE.reservas.find(x=>x.id===reservaId);
   if(target==='cliente') r.documentosCliente[docKey] = checked;
   else r.conjuge.documentos[docKey] = checked;
-  saveState(); renderPanel('reservaUnidade');
+  saveState(); renderPanel('reservaUnidade'); mirrorReservaBackend_(r);
 }
 function toggleConjuge(reservaId, checked){
   const r = STATE.reservas.find(x=>x.id===reservaId);
   r.conjuge.tem = checked;
-  saveState(); renderPanel('reservaUnidade');
+  saveState(); renderPanel('reservaUnidade'); mirrorReservaBackend_(r);
 }
 function editConjugeField(reservaId, field, value){
   const r = STATE.reservas.find(x=>x.id===reservaId);
   r.conjuge[field] = field==='renda' ? Number(value) : value;
-  saveState();
+  saveState(); mirrorReservaBackend_(r);
 }
 function renderReservaUnidade(){
   const reservas = [...STATE.reservas].sort((a,b)=>new Date(b.criadoEm)-new Date(a.criadoEm));
+  carregarPixReaisEAtualizar_(); // dispara sem esperar; preenche #pixReaisBox quando responder
   return `
   <div class="pg-header"><div><div class="pg-title">Reserva de Unidade</div><div class="pg-sub">Controle geral do Gerente sobre reservas e análise de crédito junto ao Viabilizador</div></div></div>
+
+  <div class="card">
+    <div class="card-h"><h3>💰 Pagamentos de reserva via PIX <span class="hint">(autodeclarados pelos leads no dashboard deles)</span></h3></div>
+    <div id="pixReaisBox"><div class="hint">Consultando planilha...</div></div>
+  </div>
 
   <div class="card">
     <div class="card-h"><h3>Registrar nova reserva manualmente</h3><span class="hint">Também é criada automaticamente quando o atendente confirma reserva no lead</span></div>
@@ -2209,6 +2529,7 @@ function marcarEmailEnviado(id){
   r.emailEnviado = true; r.emailEnviadoEm = nowISO();
   saveState(); toast('Registro de envio ao Viabilizador salvo (garantia de registro da operação).');
   setTimeout(()=>renderPanel('reservaUnidade'), 300);
+  mirrorReservaBackend_(r);
 }
 function registrarParecerViabilizador(id){
   const r = STATE.reservas.find(x=>x.id===id);
@@ -2219,6 +2540,76 @@ function registrarParecerViabilizador(id){
   r.parecerViabilizador = parecer;
   r.parecerData = nowISO();
   saveState(); toast('Parecer do Viabilizador registrado.'); renderPanel('reservaUnidade');
+  mirrorReservaBackend_(r);
+}
+
+/* Pagamento de reserva via PIX autodeclarado pelo lead (RESERVAS_PIX_FEIRAO,
+   feirao_pix_ no .gs) — antes desta seção o gerente não tinha nenhuma
+   visibilidade desse dado dentro do painel, só abrindo a planilha direto. */
+async function carregarPixReaisEAtualizar_(){
+  if(!SESSION) return;
+  const r = await feiraoApiJsonp('feirao_listar_pix', {authPin:SESSION.authPin});
+  const box = document.getElementById('pixReaisBox');
+  if(!box) return;
+  const itens = (r && r.ok && Array.isArray(r.itens)) ? r.itens.filter(p=>p.status!=='nao_pago') : [];
+  box.innerHTML = itens.length ? `<div class="tbl-wrap"><table>
+    <thead><tr><th>Cliente</th><th>Empreendimento</th><th>Unidade</th><th>Valor</th><th>Status</th><th>Data</th></tr></thead>
+    <tbody>${itens.map(p=>`<tr>
+      <td>${p.nome||p.email}</td><td>${p.empNome||'—'}</td><td>${p.unidade||'—'}</td><td>${fmtMoney(p.valor)}</td>
+      <td><span class="badge ${p.status==='confirmado'?'b-fechado':'b-novo'}">${p.status==='confirmado'?'Confirmado':'Autodeclarado — a confirmar'}</span></td>
+      <td>${p.dataPagamento||fmtDT(p.timestamp)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>` : '<div class="empty">Nenhum PIX de reserva autodeclarado pelos leads ainda.</div>';
+}
+
+/* ═══════════════ GERENTE · MENSAGENS DO CONSULTOR ═══════════════
+   Lê/responde MENSAGENS_CONSULTOR — antes desta tela, a mensagem que o
+   lead envia em "Falar com Consultor" só existia como e-mail para a
+   equipe, sem histórico consultável dentro do sistema (ver
+   feirao_listarMensagens_/feirao_mensagemResponder_ no .gs). */
+let _mensagensConsultorCache = [];
+function renderMensagensConsultor(){
+  carregarMensagensConsultorEAtualizar_(); // dispara sem esperar; preenche #mensagensConsultorBox quando responder
+  return `
+  <div class="pg-header"><div><div class="pg-title">Mensagens do Consultor</div><div class="pg-sub">Mensagens enviadas pelos leads em "Falar com Consultor" no dashboard deles</div></div></div>
+  <div class="card">
+    <div class="card-h"><h3>Caixa de mensagens</h3><span class="hint" id="mensagensConsultorCount"></span></div>
+    <div id="mensagensConsultorBox"><div class="hint">Consultando planilha...</div></div>
+  </div>`;
+}
+async function carregarMensagensConsultorEAtualizar_(){
+  if(!SESSION) return;
+  const r = await feiraoApiJsonp('feirao_listar_mensagens', {authPin:SESSION.authPin});
+  const box = document.getElementById('mensagensConsultorBox');
+  if(!box) return;
+  _mensagensConsultorCache = (r && r.ok && Array.isArray(r.itens)) ? r.itens : [];
+  const itens = [..._mensagensConsultorCache].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  const cnt = document.getElementById('mensagensConsultorCount');
+  if(cnt) cnt.textContent = itens.filter(m=>m.status==='nao_lida').length+' não lida(s) de '+itens.length;
+  box.innerHTML = itens.length ? itens.map(mensagemConsultorCardHtml).join('') : '<div class="empty">Nenhuma mensagem recebida ainda.</div>';
+}
+function mensagemConsultorCardHtml(m){
+  const respondida = m.status==='respondida';
+  return `<div class="card" style="background:var(--surf2);margin-bottom:12px">
+    <div class="card-h"><h3 style="font-size:13.5px">${m.nome||m.email} <span style="color:var(--muted);font-weight:400">— ${m.assunto||'Sem assunto'}</span></h3>
+      <span class="badge ${respondida?'b-fechado':'b-novo'}">${respondida?'Respondida':'Aguardando'}</span></div>
+    <div class="info-row"><span class="k">E-mail</span><span class="v">${m.email}</span></div>
+    <div class="info-row"><span class="k">Telefone</span><span class="v">${m.telefone||'—'}</span></div>
+    <div class="info-row"><span class="k">Recebida em</span><span class="v">${fmtDT(m.timestamp)}</span></div>
+    <div class="hint" style="margin-top:8px;color:var(--txt);white-space:pre-wrap">${m.mensagem}</div>
+    ${respondida?`<div class="hint" style="margin-top:8px">↩️ Resposta: ${m.resposta} <span class="hint">· ${fmtDT(m.respondidoEm)}</span></div>`:
+      `<div class="quick-actions" style="margin-top:10px">
+        <button class="btn sm gold" onclick="responderMensagemConsultor('${m.email}','${m.timestamp}')">↩️ Responder</button>
+        <a class="btn sm" target="_blank" href="https://wa.me/55${(m.telefone||'').replace(/\\D/g,'')}?text=${encodeURIComponent('Olá '+(m.nome||'').split(' ')[0]+'! Recebemos sua mensagem no Feirão Online WAL: "'+m.mensagem+'"')}">💬 Responder por WhatsApp</a>
+      </div>`}
+  </div>`;
+}
+function responderMensagemConsultor(email, timestamp){
+  const resposta = prompt('Resposta para o lead (fica registrada na planilha):');
+  if(resposta===null || !resposta.trim()) return;
+  chamarFeiraoApi('feirao_mensagem_responder', {email, timestamp, resposta, authPin:SESSION.authPin});
+  toast('Resposta registrada.');
+  setTimeout(carregarMensagensConsultorEAtualizar_, 1200);
 }
 
 /* ═══════════════ ATENDENTE · MINHA FILA ═══════════════ */
@@ -2273,7 +2664,7 @@ function renderMinhaFila(){
   </div>
   `;
 }
-function verLeadAtendente(leadId){ activeLeadId=leadId; currentPanel='leadDetail'; document.getElementById('mainArea').innerHTML = renderLeadDetail(); }
+function verLeadAtendente(leadId){ activeLeadId=leadId; currentPanel='leadDetail'; document.getElementById('mainArea').innerHTML = renderLeadDetail(); carregarDadosRemotosDoLead_(leadId); }
 
 /* ═══════════════ ATENDENTE · AGENDA DE VISITA ═══════════════ */
 function renderAgendaVisitaAtendente(){
@@ -2645,6 +3036,60 @@ function renderLeadDetail(){
   </div>`;
 }
 
+/* Fase 3: ao abrir o detalhe de um lead, busca na planilha a simulação
+   mais recente do cliente (SIMULACOES_FEIRAO), o fluxo de pagamento
+   (FLUXO_PAGAMENTO) e a conversa completa (CHAT_MENSAGENS), e re-renderiza
+   o detalhe se algo mais novo chegou. */
+async function carregarDadosRemotosDoLead_(leadId){
+  const lead = STATE.leads.find(l=>l.id===leadId);
+  if(!lead || !lead.email || !SESSION) return;
+  const [sim, pag, chat] = await Promise.all([
+    feiraoApiJsonp('feirao_simulacao_status', {email:lead.email, authPin:SESSION.authPin}),
+    feiraoApiJsonp('feirao_pagamento_status', {email:lead.email, authPin:SESSION.authPin}),
+    feiraoApiJsonp('feirao_chat_buscar', {email:lead.email, leitor:'atendente', authPin:SESSION.authPin})
+  ]);
+  let mudou = false;
+  if(sim && sim.found){
+    const tsRemoto = isoOuMantem_(sim.timestamp, null);
+    const tsLocal = lead.simulacaoCliente ? lead.simulacaoCliente.data : null;
+    if(!tsLocal || (tsRemoto && tsRemoto > tsLocal)){
+      // a planilha guarda os parâmetros; a parcela é recalculada aqui com os mesmos calculadores
+      const pv = Math.max((sim.valor||0)-(sim.entrada||0), 0);
+      const imMensal = Math.pow(1+(sim.taxa||8.3)/100, 1/12)-1;
+      const parcelas = (/price/i.test(sim.sistema||'') ? calcPrice : calcSAC)(pv, sim.prazo||300, imMensal, 0.00025, 0.00015, sim.valor||0);
+      lead.simulacaoCliente = {
+        sistema:sim.sistema||'—', valor:sim.valor||0, entrada:sim.entrada||0,
+        entradaPct: sim.valor ? Math.round((sim.entrada||0)/sim.valor*100) : 0,
+        prazo:sim.prazo||0, taxa:sim.taxa||0,
+        renda1: lead.rendaDeclarada||0, dataNasc1:'', temConjuge:false, renda2:0, dataNasc2:'', juntarRenda:false,
+        parcela: parcelas.length ? parcelas[0].parcela : 0,
+        data: tsRemoto || nowISO()
+      };
+      mudou = true;
+    }
+  }
+  if(pag && pag.found && pag.estado && Array.isArray(pag.estado.etapas)){
+    const tsRemoto = isoOuMantem_(pag.atualizadoEm, null);
+    const tsLocal = lead.fluxoPagamento ? lead.fluxoPagamento.atualizadoEm : null;
+    if(!tsLocal || (tsRemoto && tsRemoto > tsLocal)){
+      lead.fluxoPagamento = {etapas:pag.estado.etapas, intermediarios:pag.estado.intermediarios||[], atualizadoEm:tsRemoto||nowISO()};
+      mudou = true;
+    }
+  }
+  if(chat && Array.isArray(chat.mensagens) && chat.mensagens.length){
+    const remotas = chat.mensagens.map(m=>({
+      remetente: m.remetente==='atendente' ? 'atendente' : 'cliente',
+      autor: m.nome || (m.remetente==='atendente' ? 'Atendimento WAL' : lead.nome),
+      texto: m.texto, data: isoOuMantem_(m.timestamp, nowISO())
+    }));
+    if(!lead.chat || remotas.length !== lead.chat.length){ lead.chat = remotas; mudou = true; }
+  }
+  if(mudou){
+    saveState();
+    if(activeLeadId===leadId && currentPanel==='leadDetail') reopenLead(leadId);
+  }
+}
+
 function requireOwnLead(leadId){
   const lead = STATE.leads.find(l=>l.id===leadId);
   if(SESSION.tipo==='atendente' && lead.atendenteId!==SESSION.atendenteId){ toast('Este lead não está atribuído a você.'); return null; }
@@ -2665,6 +3110,8 @@ function avancarStatus(leadId, novoStatus){
   if(unidade && ['proposta','reserva','assinatura'].includes(novoStatus)){
     unidade.status = novoStatus;
     lead.unidadeReservada = `Bloco ${unidade.bloco} · Un. ${unidade.unidade}`;
+    // espelha o status da unidade na aba UNIDADES (o backend aceita 'status' com PIN de atendente)
+    chamarFeiraoApi('feirao_unidade', {operacao:'status', id:unidade.id, status:novoStatus, authPin:SESSION.authPin});
   }
   addHistorico(lead, 'status', `Status avançado para "${STATUS_LABELS[novoStatus]}"${unidade && novoStatus!=='visita'?' — unidade '+lead.unidadeReservada:''}.`, SESSION.nome);
   if(novoStatus==='reserva' && unidade){
@@ -2685,6 +3132,15 @@ function agendarVisitaLead(leadId){
   addHistorico(lead, 'visita', `Visita agendada para ${new Date(data+'T00:00').toLocaleDateString('pt-BR')} ${horario||''} (${formato==='presencial'?'presencial':'online'}).`, SESSION.nome);
   saveState(); toast('Visita agendada com sucesso.'); reopenLead(leadId);
   sincronizarStatusBackend_(lead);
+  if(lead.email){
+    const emp = getEmpreendimento(lead.empreendimentoInteresse);
+    chamarFeiraoApi('feirao_agendamento', {
+      email:lead.email, nome:lead.nome, telefone:lead.telefone,
+      empId:lead.empreendimentoInteresse||'', empNome:emp?emp.nome:'',
+      data, horario, formato, observacoes:lead.visita.observacao||'',
+      authPin:SESSION.authPin
+    });
+  }
 }
 function toggleFormSimulacaoLead(leadId){ simFormAberto = !simFormAberto; reopenLead(leadId); }
 function renderFormSimulacaoLead(lead){
@@ -2751,6 +3207,13 @@ function calcularESalvarSimulacaoLead(leadId){
   lead.simulacaoCliente = {sistema, valor, entrada, entradaPct, prazo, taxa, renda1, dataNasc1, temConjuge, renda2, dataNasc2, juntarRenda, parcela: parcelas[0].parcela, data:nowISO()};
   addHistorico(lead, 'simulacao', `Simulação refeita pelo atendente (${sistema}, ${fmtMoney(valor)}, ${prazo} meses).`, SESSION.nome);
   saveState(); simFormAberto = false; toast('Simulação calculada e salva.'); reopenLead(leadId);
+  if(lead.email){
+    chamarFeiraoApi('feirao_simulacao', {
+      email:lead.email, nome:lead.nome, whatsapp:lead.telefone,
+      empId:lead.empreendimentoInteresse||'', valorImovel:valor, entrada, prazo, taxa,
+      sistemaEscolhido:sistema, authPin:SESSION.authPin
+    });
+  }
 }
 function enviarSimulacaoPorChat(leadId){
   const lead = requireOwnLead(leadId); if(!lead) return;
@@ -2761,6 +3224,20 @@ function enviarSimulacaoPorChat(leadId){
   lead.chat.push({remetente:'atendente', autor:SESSION.nome, texto, data:nowISO()});
   addHistorico(lead, 'chat', 'Simulação enviada ao cliente pelo chat interno.', SESSION.nome);
   saveState(); chatLeadAberto = true; toast('Simulação enviada pelo chat.'); reopenLead(leadId);
+  if(lead.email) chamarFeiraoApi('feirao_chat_enviar', {email:lead.email, nome:SESSION.nome, remetente:'atendente', texto, authPin:SESSION.authPin});
+}
+/* Fase 3: espelha o fluxo de pagamento inteiro (etapas + intermediários)
+   na aba FLUXO_PAGAMENTO como Estado_JSON — mesmo formato que o
+   dashboard do lead usa, então os dois lados leem/escrevem igual. */
+function sincronizarFluxoBackend_(lead){
+  if(!lead || !lead.email || !lead.fluxoPagamento || !SESSION) return;
+  const etapas = lead.fluxoPagamento.etapas||[];
+  const pagas = etapas.filter(e=>e.status==='pago').length;
+  chamarFeiraoApi('feirao_pagamento', {
+    email:lead.email, empId:lead.empreendimentoInteresse||'', unidade:lead.unidadeReservada||'',
+    estado:lead.fluxoPagamento, progressoPct: etapas.length? Math.round(pagas/etapas.length*100) : 0,
+    authPin:SESSION.authPin
+  });
 }
 function gerarFluxoPagamentoLead(leadId){
   const lead = requireOwnLead(leadId); if(!lead) return;
@@ -2783,6 +3260,7 @@ function gerarFluxoPagamentoLead(leadId){
   };
   addHistorico(lead, 'fluxo', 'Fluxo de pagamento criado/recriado pelo atendente a partir da simulação.', SESSION.nome);
   saveState(); toast('Fluxo de pagamento gerado.'); reopenLead(leadId);
+  sincronizarFluxoBackend_(lead);
 }
 function editarEtapaFluxo(leadId, idx, campo, valor){
   const lead = requireOwnLead(leadId); if(!lead || !lead.fluxoPagamento) return;
@@ -2791,12 +3269,14 @@ function editarEtapaFluxo(leadId, idx, campo, valor){
   lead.fluxoPagamento.atualizadoEm = nowISO();
   addHistorico(lead, 'fluxo', `Etapa "${e.nome}" do fluxo de pagamento ajustada pelo atendente (${campo}).`, SESSION.nome);
   saveState(); reopenLead(leadId);
+  sincronizarFluxoBackend_(lead);
 }
 function removerEtapaFluxo(leadId, idx){
   const lead = requireOwnLead(leadId); if(!lead || !lead.fluxoPagamento) return;
   lead.fluxoPagamento.etapas.splice(idx,1);
   lead.fluxoPagamento.atualizadoEm = nowISO();
   saveState(); reopenLead(leadId);
+  sincronizarFluxoBackend_(lead);
 }
 function adicionarIntermediarioFluxo(leadId){
   const lead = requireOwnLead(leadId); if(!lead) return;
@@ -2809,12 +3289,14 @@ function adicionarIntermediarioFluxo(leadId){
   lead.fluxoPagamento.atualizadoEm = nowISO();
   addHistorico(lead, 'fluxo', `Pagamento intermediário lançado pelo atendente: ${desc} (${fmtMoney(valor)}).`, SESSION.nome);
   saveState(); toast('Pagamento intermediário lançado.'); reopenLead(leadId);
+  sincronizarFluxoBackend_(lead);
 }
 function removerIntermediarioFluxo(leadId, idx){
   const lead = requireOwnLead(leadId); if(!lead || !lead.fluxoPagamento) return;
   lead.fluxoPagamento.intermediarios.splice(idx,1);
   lead.fluxoPagamento.atualizadoEm = nowISO();
   saveState(); reopenLead(leadId);
+  sincronizarFluxoBackend_(lead);
 }
 function enviarFluxoPorChat(leadId){
   const lead = requireOwnLead(leadId); if(!lead || !lead.fluxoPagamento) return;
@@ -2824,6 +3306,7 @@ function enviarFluxoPorChat(leadId){
   lead.chat.push({remetente:'atendente', autor:SESSION.nome, texto, data:nowISO()});
   addHistorico(lead, 'chat', 'Fluxo de pagamento enviado ao cliente pelo chat interno.', SESSION.nome);
   saveState(); chatLeadAberto = true; toast('Fluxo enviado pelo chat.'); reopenLead(leadId);
+  if(lead.email) chamarFeiraoApi('feirao_chat_enviar', {email:lead.email, nome:SESSION.nome, remetente:'atendente', texto, authPin:SESSION.authPin});
 }
 function solicitarContratoViabilizador(leadId){
   const lead = requireOwnLead(leadId); if(!lead) return;
@@ -2844,6 +3327,7 @@ function cobrarAssinaturaContrato(leadId){
   lead.contrato.cobrancaEm = nowISO();
   addHistorico(lead, 'contrato', 'Cobrança de assinatura do contrato enviada ao cliente pelo chat interno.', SESSION.nome);
   saveState(); chatLeadAberto = true; toast('Cobrança enviada pelo chat.'); reopenLead(leadId);
+  if(lead.email) chamarFeiraoApi('feirao_chat_enviar', {email:lead.email, nome:SESSION.nome, remetente:'atendente', texto, authPin:SESSION.authPin});
 }
 function fecharVenda(leadId){
   const lead = requireOwnLead(leadId); if(!lead) return;

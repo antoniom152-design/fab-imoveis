@@ -409,9 +409,120 @@ a{text-decoration:none;color:inherit}
 .alert-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:#FCD34D}
 .alert-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
 .alert-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2)}
+
+/* ══════════════════════════
+   RESPONSIVO — desktop, notebook, iPad/tablet, celular
+   A sidebar (224px fixa) e o .main com margin-left:224px espremiam o
+   conteúdo em telas estreitas. A partir de 900px a sidebar vira uma
+   gaveta deslizante, com botão de abrir/fechar e fundo escurecido.
+   Nenhum painel, dado ou função existente foi alterado.
+══════════════════════════ */
+#mobileNavToggle{display:none;position:fixed;top:12px;left:12px;z-index:610;width:36px;height:36px;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;align-items:center;justify-content:center;color:var(--gold);font-size:16px;cursor:pointer}
+#sidebarBackdrop{display:none;position:fixed;inset:0;background:rgba(4,10,20,.6);z-index:590}
+#sidebarBackdrop.show{display:block}
+
+@media(max-width:900px){
+  #mobileNavToggle{display:flex}
+  .sidebar{position:fixed;left:-224px;top:0;transition:left .22s ease;z-index:600;box-shadow:8px 0 30px rgba(0,0,0,.4)}
+  .sidebar.open{left:0}
+  .main{margin-left:0}
+  .topbar{padding-left:58px}
+  .g2,.g3{grid-template-columns:1fr}
+  .field-2,.field-3{grid-template-columns:1fr}
+  .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
+  .emp-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  div[style*="grid-template-columns:1fr 280px"]{grid-template-columns:1fr!important}
+  .content{padding:18px}
+}
+
+@media(max-width:600px){
+  .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:1fr!important}
+  .ph-title{font-size:19px}
+  .kpi-val{font-size:20px}
+  .content{padding:14px}
+  .topbar{padding-left:54px;padding-right:14px}
+  .tb-sec{display:none}
+  .modal-ov{padding:20px 12px}
+  div[style*="grid-template-columns:1fr 1fr;gap:8px"]{grid-template-columns:1fr!important}
+}
+
+@media(max-width:380px){
+  .sb-agente{margin:14px 8px 0}
+  .nav-grp{padding:12px 4px 2px}
+  .modal-ov{padding:14px 8px}
+}
 </style>
 </head>
 <body>
+
+<!-- ============================================================
+     WAL · CONTROLE REMOTO DO FEIRÃO (Torre de Controle da Diretoria)
+     Não remova nem mova este bloco. Ele verifica, a cada carregamento
+     e a cada 20s, se a Diretoria suspendeu o Feirão inteiro ou este
+     painel especificamente (dashboard-diretor-wal.html) e exibe uma
+     tela de manutenção quando necessário.
+     Chave deste painel: 'agente'
+============================================================ -->
+<div id="walOverlayManutencao" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 30% 20%,#15294a 0%,#08192E 65%);display:none;align-items:center;justify-content:center;padding:24px;font-family:'Inter',Arial,sans-serif;color:#E8EDF5;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px">🛠️</div>
+    <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:8px">WAL Imóveis</div>
+    <div id="walOverlayTitulo" style="font-size:15px;font-weight:700;margin-bottom:10px">Estamos em manutenção rápida</div>
+    <div id="walOverlayMsg" style="font-size:13px;color:#9db1c8;line-height:1.6">Volte em instantes. Já estamos de olho e o Feirão retorna em breve.</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var WAL_CONTROLE_KEY = 'agente';
+  // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
+  var WAL_CONTROLE_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+  var LS_KEY = 'wal_diretor_v1';
+
+  function lerLocal(){{
+    try{{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }}catch(e){{ return null; }}
+  }}
+  function aplicarEstado(ctrl){{
+    if(!ctrl) return;
+    var overlay = document.getElementById('walOverlayManutencao');
+    if(!overlay) return;
+    var bloqueado = ctrl.fairStatus==='suspenso' || ctrl.fairStatus==='nao_iniciado' || (ctrl.modulos && ctrl.modulos[WAL_CONTROLE_KEY]===false);
+    if(bloqueado){{
+      document.getElementById('walOverlayTitulo').textContent = ctrl.fairStatus==='nao_iniciado' ? 'O Feirão ainda não começou' : 'Estamos em manutenção rápida';
+      document.getElementById('walOverlayMsg').textContent = ctrl.mensagem || ctrl.mensagemVisitante || 'Volte em instantes. Já estamos de olho e retornamos em breve.';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }} else {{
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }}
+  }}
+  function consultarRemoto(){{
+    if(!WAL_CONTROLE_API_URL || WAL_CONTROLE_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+    var cb = 'walCtrlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var s = document.createElement('script');
+    var timeout = setTimeout(function(){{ limpar(); }}, 10000);
+    function limpar(){{ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }}
+    window[cb] = function(data){{
+      limpar();
+      if(data && data.ok && data.controle){{
+        localStorage.setItem(LS_KEY, JSON.stringify(data.controle));
+        aplicarEstado(data.controle);
+      }}
+    }};
+    s.onerror = limpar;
+    s.src = WAL_CONTROLE_API_URL + '?action=feirao_get_controle&callback=' + cb;
+    document.body.appendChild(s);
+  }}
+  aplicarEstado(lerLocal());
+  consultarRemoto();
+  setInterval(consultarRemoto, 20000);
+}})();
+</script>
+<!-- ===== FIM DO BLOCO DE CONTROLE REMOTO DA DIRETORIA ===== -->
+
+<button id="mobileNavToggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.getElementById('sidebarBackdrop').classList.toggle('show')" aria-label="Abrir menu">☰</button>
+<div id="sidebarBackdrop" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
 
 <!-- ══ TOAST ══ -->
 <div id="toast"></div>
@@ -788,6 +899,16 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
       <div id="empGrid" class="emp-grid mb20"></div>
+
+      <div class="card mb20">
+        <div class="card-h">
+          <div class="card-title">📌 Itens Disponíveis para Atribuição</div>
+        </div>
+        <div class="card-b">
+          <div class="fs11 c-muted mb14">Campanhas e materiais liberados pela Diretoria para você utilizar nas suas indicações.</div>
+          <div class="ai-chips" id="itensAtribGrid" style="padding:0"></div>
+        </div>
+      </div>
     </div>
 
     <!-- ══ MATERIAIS ══ -->
@@ -1185,10 +1306,10 @@ let _indicacoes = [
 ];
 
 const EMPREENDIMENTOS = [
-  { id:'e1', nome:'Orla Recreio Reserva', construtora:'RIVA', cluster:'RJ', bairro:'Recreio dos Bandeirantes', emoji:'🏖️', status:'Lançamento', disponivel:42, entrega:'Dez/2027', ticket:'R$390k–R$620k', destaque:'Vista mar, cobertura duplex', pontos:['Financiamento CFIAe 8,5%a.a.','Localização privilegiada no Recreio','Cobertura duplex disponível','Lazer completo · condomínio fechado'] },
-  { id:'e2', nome:'Ilha Mar Beach & Home', construtora:'CURY', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🌊', status:'Em construção', disponivel:28, entrega:'Jun/2028', ticket:'R$320k–R$520k', destaque:'Frente ao mar, lazer completo', pontos:['Entrada a partir de 10%','A 200m da praia','Studios e apartamentos 2 e 3 quartos','FGTS aceito na entrada'] },
-  { id:'e3', nome:'ICONYC by YOO', construtora:'EMCAMP', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🏙️', status:'Lançamento', disponivel:15, entrega:'Mar/2028', ticket:'R$480k–R$1,2M', destaque:'Assinado YOO Design, studios luxo', pontos:['Design internacional YOO','Localização Barra da Tijuca','Unidades exclusivas em número limitado','Investimento e moradia'] },
-  { id:'e4', nome:'Ilha Mar Beach 2', construtora:'CURY', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🌴', status:'Pré-lançamento', disponivel:35, entrega:'Dez/2028', ticket:'R$280k–R$420k', destaque:'Primeira opção para militares FAB', pontos:['Ticket menor · maior acessibilidade','Ideal para 1º imóvel via CFIAe','Entrega facilitada para FAB','Mesmo padrão CURY Ilha Mar'] },
+  { id:'e1', nome:'Orla Recreio Reserva', construtora:'RIVA', cluster:'RJ', bairro:'Recreio dos Bandeirantes', emoji:'🏖️', status:'Lançamento', disponivel:42, entrega:'Dez/2027', ticket:'R$390k–R$620k', destaque:'Vista mar, cobertura duplex', pontos:['Financiamento CFIAe 8,5%a.a.','Localização privilegiada no Recreio','Cobertura duplex disponível','Lazer completo · condomínio fechado'], link:'https://estavelimoveis.com.br/orla-recreio-reserva' },
+  { id:'e2', nome:'Ilha Mar Beach & Home', construtora:'CURY', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🌊', status:'Em construção', disponivel:28, entrega:'Jun/2028', ticket:'R$320k–R$520k', destaque:'Frente ao mar, lazer completo', pontos:['Entrada a partir de 10%','A 200m da praia','Studios e apartamentos 2 e 3 quartos','FGTS aceito na entrada'], link:'https://estavelimoveis.com.br/ilha-mar-beach-home' },
+  { id:'e3', nome:'ICONYC by YOO', construtora:'EMCAMP', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🏙️', status:'Lançamento', disponivel:15, entrega:'Mar/2028', ticket:'R$480k–R$1,2M', destaque:'Assinado YOO Design, studios luxo', pontos:['Design internacional YOO','Localização Barra da Tijuca','Unidades exclusivas em número limitado','Investimento e moradia'], link:'https://estavelimoveis.com.br/iconyc-by-yoo' },
+  { id:'e4', nome:'Ilha Mar Beach 2', construtora:'CURY', cluster:'RJ', bairro:'Barra da Tijuca', emoji:'🌴', status:'Pré-lançamento', disponivel:35, entrega:'Dez/2028', ticket:'R$280k–R$420k', destaque:'Primeira opção para militares FAB', pontos:['Ticket menor · maior acessibilidade','Ideal para 1º imóvel via CFIAe','Entrega facilitada para FAB','Mesmo padrão CURY Ilha Mar'], link:'https://estavelimoveis.com.br/ilha-mar-beach-2' },
 ];
 
 const MATERIAIS = [
@@ -1222,6 +1343,34 @@ Seja natural, empático, direto. Dê respostas práticas que o agente possa usar
 
 let _aiHistory = [];
 
+/* ═══ API DO FEIRÃO (feirao/shared/apps-script-feirao-operacional.gs) ═══
+   Mesma URL de WAL_CONTROLE_API_URL (bloco de manutenção, acima neste
+   arquivo). Login/cadastro tentam o backend real primeiro; se não
+   houver resposta (URL não configurada, ou e-mail não cadastrado lá),
+   cai para os USERS locais de demonstração — o painel nunca trava por
+   falta de backend. */
+const FEIRAO_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+function chamarFeiraoApi(action, payload){
+  if(!FEIRAO_API_URL || FEIRAO_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+  try{
+    fetch(FEIRAO_API_URL,{method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action},payload))}).catch(()=>{});
+  }catch(e){}
+}
+function feiraoApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    if(!FEIRAO_API_URL || FEIRAO_API_URL.indexOf('COLOQUE_AQUI')===0){ resolve(null); return; }
+    const cb = 'feiraoAgCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = FEIRAO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+
 /* ═══ UTILS ═══ */
 function hoje(d=0){const dt=new Date();dt.setDate(dt.getDate()+d);return dt.toISOString().split('T')[0]}
 function fmtDt(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
@@ -1239,20 +1388,33 @@ function switchAuthTab(tab){
   document.getElementById('tabLogin').classList.toggle('active',tab==='login');
   document.getElementById('tabCadastro').classList.toggle('active',tab==='cadastro');
 }
-function doLogin(){
+async function doLogin(){
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   const senha=document.getElementById('loginSenha').value;
   const err=document.getElementById('loginErr');
+  const btn=document.getElementById('loginBtn');
   err.style.display='none';
+  if(btn){ btn.disabled=true; }
+  const resp = await feiraoApiJsonp('feirao_agente_login', {email, senha});
+  if(btn){ btn.disabled=false; }
+  if(resp && resp.found){
+    _user={email, senha, status:resp.status, nome:resp.nome, iniciais:iniciaisDe_(resp.nome), prof:''};
+    localStorage.setItem('wal_agente_sess',JSON.stringify({email,status:resp.status}));
+    iniciarApp();
+    return;
+  }
+  // Backend não respondeu (offline/não implantado) ou e-mail não achado lá
+  // — cai para os USERS locais de demonstração.
   const u=USERS[email];
   if(!u||u.senha!==senha){err.style.display='block';return}
   _user={...u,email};
   localStorage.setItem('wal_agente_sess',JSON.stringify({email,status:u.status}));
   iniciarApp();
 }
+function iniciaisDe_(nome){ return (nome||'').split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'AG'; }
 function doCadastro(){
   const nome=document.getElementById('cadNome').value.trim();
-  const email=document.getElementById('cadEmail').value.trim();
+  const email=document.getElementById('cadEmail').value.trim().toLowerCase();
   const tel=document.getElementById('cadTel').value.trim();
   const cpf=document.getElementById('cadCpf').value.trim();
   const s1=document.getElementById('cadSenha').value;
@@ -1264,7 +1426,7 @@ function doCadastro(){
   if(!nome||!email||!tel||!cpf||!s1||!s2||!termos){err.textContent='Preencha todos os campos obrigatórios e aceite os termos.';err.style.display='block';return}
   if(s1!==s2){err.textContent='As senhas não coincidem.';err.style.display='block';return}
   if(s1.length<6){err.textContent='A senha deve ter ao menos 6 caracteres.';err.style.display='block';return}
-  // Simula envio
+  chamarFeiraoApi('feirao_agente', {operacao:'cadastrar', nome, email, cpf, whatsapp:tel, senha:s1});
   ok.style.display='block';
   setTimeout(()=>{
     ['cadNome','cadCpf','cadEmail','cadTel','cadSenha','cadSenha2','cadMotivacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
@@ -1319,6 +1481,7 @@ function iniciarApp(){
   renderIndicacoes();indStats();
   renderPipeline();
   renderEmps();
+  renderItensAtribuicao();
   renderMateriais();
   renderComissBadge();
   // IA welcome
@@ -1334,6 +1497,8 @@ function nav(el,id){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   const t=document.getElementById('panel-'+id);if(t)t.classList.add('active');
   document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+  const _sb=document.querySelector('.sidebar'); if(_sb) _sb.classList.remove('open');
+  const _bd=document.getElementById('sidebarBackdrop'); if(_bd) _bd.classList.remove('show');
 }
 
 /* ═══ INDICAÇÕES ═══ */
@@ -1434,6 +1599,12 @@ function salvarIndicacao(){
   } else {
     _indicacoes.unshift({id:'i'+Date.now(),...dados});
     toast(`✅ Indicação de "${nome}" enviada ao corretor!`,'green');
+    if(_user){
+      chamarFeiraoApi('feirao_indicacao', {
+        operacao:'criar', emailAgente:_user.email, senhaAgente:_user.senha,
+        nomeCliente:nome, telefone:tel, email:dados.email, orcamento:dados.orcamento, interesse:dados.interesse
+      });
+    }
   }
   fecharModal('modalInd');renderIndicacoes();renderHomeInd();atualizarPills();renderPipeline();
 }
@@ -1499,6 +1670,34 @@ function renderPipeline(){
 }
 
 /* ═══ EMPREENDIMENTOS ═══ */
+function compartilharWhats(id){
+  const e=EMPREENDIMENTOS.find(x=>x.id===id);
+  if(!e)return;
+  const link=e.link||'https://estavelimoveis.com.br';
+  const texto=`🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cluster}\n💰 Faixa: ${e.ticket}\n✅ ${e.destaque}\n\nConheça mais e simule o financiamento: ${link}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
+  toast('📲 Abrindo WhatsApp para compartilhar...','green');
+}
+
+function getItensDisponiveisAtribuicao(){
+  try{
+    const raw=localStorage.getItem('wal_diretor_agentes_v1');
+    if(raw){
+      const st=JSON.parse(raw);
+      if(Array.isArray(st.itensDisponiveis)&&st.itensDisponiveis.length)return st.itensDisponiveis;
+    }
+  }catch(e){}
+  return ['Pré-Cadastro 1 Feirão WAL RJ','1 Feirão Online WAL RJ'];
+}
+
+function renderItensAtribuicao(){
+  const el=document.getElementById('itensAtribGrid');
+  if(!el)return;
+  const itens=getItensDisponiveisAtribuicao();
+  el.innerHTML=itens.map(i=>`<div class="ai-chip" style="cursor:default">📌 ${i}</div>`).join('')
+    ||`<div class="fs11 c-muted">Nenhum item liberado no momento.</div>`;
+}
+
 function renderEmps(){
   const busca=(document.getElementById('empBusca')?.value||'').toLowerCase();
   const list=EMPREENDIMENTOS.filter(e=>!busca||e.nome.toLowerCase().includes(busca)||e.bairro.toLowerCase().includes(busca));
@@ -1519,7 +1718,10 @@ function renderEmps(){
         </div>
         <div class="sec" style="margin-bottom:8px">Argumentos para indicar</div>
         <div style="display:flex;flex-direction:column;gap:4px">${e.pontos.map(p=>`<div style="font-size:11px;color:var(--txt)">✅ ${p}</div>`).join('')}</div>
-        <button class="btn-teal btn btn-sm btn-full" style="margin-top:12px" onclick="event.stopPropagation();nav(document.querySelector('[onclick*=materiais]'),'materiais')">📁 Ver materiais deste empreendimento</button>
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <button class="btn-teal btn btn-sm" style="flex:1" onclick="event.stopPropagation();nav(document.querySelector('[onclick*=materiais]'),'materiais')">📁 Materiais</button>
+          <button class="btn-gold btn btn-sm" style="flex:1" onclick="event.stopPropagation();compartilharWhats('${e.id}')">📲 Compartilhar</button>
+        </div>
       </div>
     </div>`).join('');
 }
@@ -1569,6 +1771,19 @@ function copiarWA(enc){
 /* ═══ PERFIL ═══ */
 function salvarPerfil(){
   if(_user)_user.nome=document.getElementById('perfNome').value;
+  // Dados bancários: o próprio agente grava os seus (precisa disso pra
+  // receber comissão), mas só o Diretor consegue LER de volta depois —
+  // ver feirao_agente_bancario_definir/consultar no backend, e a
+  // seção de LGPD na documentação técnica.
+  const bancoEl=document.getElementById('perfBancoEdit');
+  if(_user && bancoEl){
+    chamarFeiraoApi('feirao_agente_bancario_definir', {
+      email:_user.email, senha:_user.senha,
+      banco:bancoEl.value, agencia:document.getElementById('perfAgEdit').value,
+      conta:document.getElementById('perfCtEdit').value, tipoConta:document.getElementById('perfTipoCtEdit').value,
+      pix:document.getElementById('perfPixEdit').value
+    });
+  }
   toast('✅ Perfil atualizado!','green');
 }
 
