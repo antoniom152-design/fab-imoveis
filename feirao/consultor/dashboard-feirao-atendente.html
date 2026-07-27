@@ -623,6 +623,20 @@ async function sincronizarCatalogoDoBackend_(){
     if(SESSION && currentPanel && currentPanel!=='leadDetail'){ renderPanelSeguro_(currentPanel); }
   }
 }
+/* Após criar construtora/empreendimento/unidade, o id local (uid()) é só
+   provisório — o backend sempre gera o id sequencial de verdade (CT####/
+   EMP####/UN####) e ignora o id que o cliente mandou. Essa resincronização
+   troca o provisório pelo definitivo em poucos segundos (sincronizarCatalogoDoBackend_
+   substitui STATE.construtoras/empreendimentos/unidades por completo, então
+   o id provisório simplesmente some e dá lugar ao real). */
+function resincronizarCatalogoAposEscrita_(reconciliar){
+  setTimeout(()=>{
+    sincronizarCatalogoDoBackend_().then(()=>{
+      if(typeof reconciliar==='function') reconciliar(); // troca o id provisório selecionado pelo id real, se aplicável
+      if(currentPanel==='empreendimentos') renderPanelSeguro_('empreendimentos');
+    });
+  }, 2500);
+}
 
 async function sincronizarAtendentesDoBackend_(){
   const admin = SESSION && SESSION.tipo==='gerente';
@@ -1548,6 +1562,10 @@ function criarConstrutora(){
   STATE.construtoras.push(c); selectedConstrutoraId=c.id; selectedEmpId=null;
   saveState(); toast('Construtora adicionada: '+nome); renderPanel('empreendimentos');
   chamarFeiraoApi('feirao_construtora', Object.assign({operacao:'criar', authPin:SESSION.authPin}, c));
+  resincronizarCatalogoAposEscrita_(()=>{
+    const real = STATE.construtoras.find(x=>x.nome===nome);
+    if(real) selectedConstrutoraId = real.id;
+  });
 }
 function renderDetalheConstrutora(){
   const c = STATE.construtoras.find(x=>x.id===selectedConstrutoraId);
@@ -1641,6 +1659,10 @@ function criarEmpreendimento(){
   STATE.empreendimentos.push(e); selectedEmpId=e.id;
   chamarFeiraoApi('feirao_empreendimento', Object.assign({operacao:'criar', authPin:SESSION.authPin}, e));
   saveState(); toast('Empreendimento inscrito no feirão: '+nome); renderPanel('empreendimentos');
+  resincronizarCatalogoAposEscrita_(()=>{
+    const real = STATE.empreendimentos.find(x=>x.nome===nome && x.construtoraId===selectedConstrutoraId);
+    if(real) selectedEmpId = real.id;
+  });
 }
 function renderDetalheEmpreendimento(){
   const e = STATE.empreendimentos.find(x=>x.id===selectedEmpId);
@@ -1751,6 +1773,7 @@ function adicionarUnidadeManual(){
   STATE.unidades.push(u);
   saveState(); renderPanel('empreendimentos');
   chamarFeiraoApi('feirao_unidade', {operacao:'criar', id:u.id, empId:u.empreendimentoId, blocoTorre:u.bloco, unidade:u.unidade, tipologia:u.tipologia, valor:u.valor, status:u.status, authPin:SESSION.authPin});
+  resincronizarCatalogoAposEscrita_();
 }
 
 /* ── Import parser (CSV/XLSX via SheetJS, PDF via pdf.js) ── */
@@ -1873,6 +1896,7 @@ function confirmarImportacao(){
   saveState(); toast(count+' unidade(s) importada(s) com sucesso.');
   document.getElementById('importPreviewArea').innerHTML='';
   renderPanel('empreendimentos');
+  if(count>0) resincronizarCatalogoAposEscrita_();
 }
 
 /* ═══════════════ GERENTE · ACOMPANHAR ATENDIMENTO ═══════════════ */
@@ -3716,7 +3740,14 @@ async function carregarDadosRemotosDoLead_(leadId){
   }
   if(mudou){
     saveState();
-    if(activeLeadId===leadId && currentPanel==='leadDetail') reopenLead(leadId);
+    // reopenLead reconstrói TODO o HTML do detalhe do lead — se o atendente
+    // estiver com uma nota/agendamento/simulação/campo do cônjuge em
+    // andamento nessa tela quando esta busca em segundo plano terminar,
+    // o innerHTML apagaria o que ele estava digitando (mesmo bug que já
+    // corrigimos para os painéis gerais com mainAreaDirty/renderPanelSeguro_
+    // — aqui o caminho é diferente, carregarDadosRemotosDoLead_ nunca
+    // passava por aquela proteção).
+    if(activeLeadId===leadId && currentPanel==='leadDetail' && !mainAreaDirty) reopenLead(leadId);
   }
 }
 

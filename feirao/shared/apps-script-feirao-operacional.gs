@@ -1674,13 +1674,23 @@ function feirao_construtoraCrud_(data) {
 
   return comLock_(function () {
     if (data.operacao === 'criar') {
-      var id = s_(data.id) || gerarId_(aba, 'CT'); // aceita id do cliente (espelho fire-and-forget)
-      if (data.id && acharLinhaPorChave_(aba, 'ID', id) !== -1) return { status: 'error', message: 'Construtora já existe.' };
-      aba.appendRow([
-        id, data.nome || '', data.telefone || '', data.site || '', data.viabilizador || '',
-        data.telefoneViabilizador || '', data.comissaoPct || 0, data.linkDrive || '', agora_(),
-        data.estadosAtuacao || '', data.cidadesAtuacao || '', data.observacoes || '', true, data.chavePix || ''
-      ]);
+      // Id SEMPRE gerado pelo servidor (CT0001, CT0002...) — nunca aceita id
+      // do cliente. Antes disso o dashboard mandava seu uid() local (tipo
+      // "c_a1b2c3d") e o servidor só usava se nenhum id viesse, então na
+      // prática o sequencial nunca era usado. O appendRow monta a linha
+      // pelo NOME de cada cabeçalho (não por posição fixa), pra nunca
+      // gravar um campo na coluna errada mesmo que a ordem real das
+      // colunas na planilha divirja da esperada aqui.
+      var id = gerarId_(aba, 'CT');
+      var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var camposCriar = {
+        ID: id, Nome: data.nome || '', Telefone: data.telefone || '', Site: data.site || '',
+        Viabilizador: data.viabilizador || '', Telefone_Viabilizador: data.telefoneViabilizador || '',
+        'Comissao_%': data.comissaoPct || 0, Link_Drive: data.linkDrive || '', Data_Inclusao: agora_(),
+        Estados_de_Atuacao: data.estadosAtuacao || '', Cidades_de_Atuacao: data.cidadesAtuacao || '',
+        Observacoes: data.observacoes || '', Ativa: true, Chave_PIX: data.chavePix || ''
+      };
+      aba.appendRow(headers.map(function (h) { return camposCriar[h] !== undefined ? camposCriar[h] : ''; }));
       registrarLogSensivel_(auth.nome, 'feirao_construtora_criar', id);
       return { status: 'ok', id: id };
     }
@@ -1741,17 +1751,27 @@ function feirao_empreendimentoCrud_(data) {
       var construtoraRow = acharLinhaPorChave_(ss.getSheetByName(ABA_CONSTRUTORAS), 'ID', data.construtoraId);
       if (construtoraRow === -1) return { status: 'error', message: 'Construtora não encontrada.' };
       var construtoraNome = s_(ss.getSheetByName(ABA_CONSTRUTORAS).getRange(construtoraRow, 2).getValue());
-      var id = s_(data.id) || gerarId_(aba, 'EMP'); // aceita id do cliente (espelho fire-and-forget)
-      if (data.id && acharLinhaPorChave_(aba, 'Id', id) !== -1) return { status: 'error', message: 'Empreendimento já existe.' };
-      aba.appendRow([
-        id, data.nome || '', data.construtoraId, construtoraNome, data.bairro || '', data.cidade || '',
-        data.uf || '', data.tipoImovel || '', data.entrega || '', data.entrada || '', data.sinal || '',
-        data.condicoes || '', data.condFeirao || '', agora_(),
-        data.descricaoImovel || '', data.tipologia || '', data.faixaValor || '', data.valorAPartirDe || 0,
-        data.qtdUnidades || 0, data.dataCadastro || agora_(), data.urlImagem || '', data.linkDrive || '',
-        data.linkBlogger || '', !!data.destaquePaginaPrincipal, data.obsInterna || '',
-        data.ativo === undefined ? true : !!data.ativo
-      ]);
+      // Id SEMPRE gerado pelo servidor (EMP0001, EMP0002...) — nunca aceita
+      // id do cliente (mesma correção de feirao_construtoraCrud_ acima).
+      // Linha montada pelo NOME de cada cabeçalho, não por posição fixa —
+      // elimina o risco de "Condicoes" acabar gravado em "Cond_Feirao" (ou
+      // qualquer outro campo na coluna errada) se a ordem real das colunas
+      // na planilha divergir da esperada aqui.
+      var id = gerarId_(aba, 'EMP');
+      var headersCriar = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var camposCriarEmp = {
+        Id: id, Nome: data.nome || '', Construtora_ID: data.construtoraId, Construtora: construtoraNome,
+        Bairro: data.bairro || '', Cidade: data.cidade || '', UF: data.uf || '', Tipo_Imovel: data.tipoImovel || '',
+        Entrega: data.entrega || '', Entrada: data.entrada || '', Sinal: data.sinal || '',
+        Condicoes: data.condicoes || '', Cond_Feirao: data.condFeirao || '', Criado_em: agora_(),
+        Descricao_do_Imovel: data.descricaoImovel || '', Tipologia: data.tipologia || '',
+        Faixa_de_Valor: data.faixaValor || '', Valor_a_Partir_De: data.valorAPartirDe || 0,
+        Qtd_Unidades: data.qtdUnidades || 0, Data_Cadastro: data.dataCadastro || agora_(),
+        URL_da_Imagem: data.urlImagem || '', Link_Drive: data.linkDrive || '', Link_Blogger: data.linkBlogger || '',
+        Destaque_Pagina_Principal: !!data.destaquePaginaPrincipal, Obs_Interna: data.obsInterna || '',
+        Ativo: data.ativo === undefined ? true : !!data.ativo
+      };
+      aba.appendRow(headersCriar.map(function (h) { return camposCriarEmp[h] !== undefined ? camposCriarEmp[h] : ''; }));
       return { status: 'ok', id: id };
     }
     var linha = acharLinhaPorChave_(aba, 'Id', data.id);
@@ -1821,12 +1841,15 @@ function feirao_unidadeCrud_(data) {
 
   return comLock_(function () {
     if (data.operacao === 'criar') {
-      // aceita o id do cliente: os dashboards espelham via no-cors (fire-and-
-      // forget) e não conseguem ler o id gerado — mandando o próprio id, o
-      // registro local e o da planilha ficam sempre iguais.
-      var id = s_(data.id) || gerarId_(aba, 'UN');
-      if (data.id && acharLinhaPorChave_(aba, 'Id', id) !== -1) return { status: 'error', message: 'Unidade já existe.' };
-      aba.appendRow([id, data.empId || '', data.blocoTorre || '', data.unidade || '', data.tipologia || '', data.valor || 0, data.status || 'disponivel', agora_()]);
+      // Id SEMPRE gerado pelo servidor (UN0001, UN0002...) — nunca aceita id
+      // do cliente (mesma correção de feirao_construtoraCrud_/empreendimentoCrud_).
+      var id = gerarId_(aba, 'UN');
+      var headersUn = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var camposCriarUn = {
+        Id: id, Emp_Id: data.empId || '', Bloco_Torre: data.blocoTorre || '', Unidade: data.unidade || '',
+        Tipologia: data.tipologia || '', Valor: data.valor || 0, Status: data.status || 'disponivel', Atualizado_em: agora_()
+      };
+      aba.appendRow(headersUn.map(function (h) { return camposCriarUn[h] !== undefined ? camposCriarUn[h] : ''; }));
       return { status: 'ok', id: id };
     }
     var linha = acharLinhaPorChave_(aba, 'Id', data.id);
