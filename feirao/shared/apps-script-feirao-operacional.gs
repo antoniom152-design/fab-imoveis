@@ -397,6 +397,21 @@ function adicionarColunaChavePix() {
   avisar_('Coluna Chave_PIX criada em CONSTRUTORAS! Agora preencha a chave PIX de cada construtora nessa coluna, na planilha.');
 }
 
+/* Mesmo motivo do adicionarColunaChavePix acima — PARTICIPANTES já existia
+   antes desta mudança, então a coluna nova não aparece sozinha só de
+   publicar o .gs. Rode uma vez pelo editor (▶ Executar →
+   adicionarColunaFavoritos → Executar). */
+function adicionarColunaFavoritos() {
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = ss.getSheetByName(ABA_PARTICIPANTES);
+  if (!aba) { avisar_('Aba PARTICIPANTES não existe — rode setupPlanilhaFeirao() primeiro.'); return; }
+  var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+  if (headers.indexOf('Empreendimentos_Favoritos') !== -1) { avisar_('A coluna Empreendimentos_Favoritos já existe em PARTICIPANTES — nada a fazer.'); return; }
+  aba.getRange(1, aba.getLastColumn() + 1).setValue('Empreendimentos_Favoritos')
+    .setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  avisar_('Coluna Empreendimentos_Favoritos criada em PARTICIPANTES!');
+}
+
 function criarTriggerNotificacoes() {
   ScriptApp.getProjectTriggers().forEach(function (t) {
     if (t.getHandlerFunction() === 'processarFilaNotificacoes') ScriptApp.deleteTrigger(t);
@@ -409,6 +424,8 @@ function onOpen() {
     .addItem('Configurar planilha (1ª vez)', 'setupPlanilhaFeirao')
     .addItem('Migração Fase 1 — dashboard do atendente (1ª vez)', 'setupFase1')
     .addItem('Verificar migração Fase 1 (só confere)', 'verificarFase1')
+    .addItem('Adicionar coluna Chave_PIX em CONSTRUTORAS (1ª vez)', 'adicionarColunaChavePix')
+    .addItem('Adicionar coluna Favoritos em PARTICIPANTES (1ª vez)', 'adicionarColunaFavoritos')
     .addItem('Instalar gatilho de notificações (1ª vez)', 'criarTriggerNotificacoes')
     .addSeparator()
     .addItem('Aprovar Crédito (protocolo)...', 'aprovarCreditoMenu')
@@ -568,6 +585,8 @@ function doGet(e) {
       case 'feirao_simulacao_status':    result = feirao_simulacaoStatus_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
       case 'feirao_pagamento_status':    result = feirao_pagamentoStatus_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
       case 'feirao_fluxo_salvar':        result = feirao_fluxoSalvoCrud_(p); break;
+      case 'feirao_favorito_toggle':      result = feirao_favoritoToggle_(Object.assign({}, p, { favoritos: (function(){ try { return JSON.parse(p.favoritos||'[]'); } catch(e){ return []; } })() })); break;
+      case 'feirao_favoritos_lead':       result = feirao_favoritosLead_(p.email || '', p.sessionToken || ''); break;
       case 'feirao_listar_fluxos_salvos': result = feirao_listarFluxosSalvos_(p); break;
       case 'feirao_listar_agendamentos': result = feirao_listarAgendamentos_(p); break;
       case 'feirao_stats':               result = feirao_stats_(); break;
@@ -800,12 +819,63 @@ function feirao_loginVerificarCodigo_(data) {
       abaPart.appendRow([email, data.nome || '', '', '', '', '', '', '', 'novo', agora_(), agora_()]);
       return { status: 'ok', sessionToken: token, novo: true };
     }
-    var p = abaPart.getRange(linhaPart, 1, 1, 5).getValues()[0]; // Email, Nome, CPF, WhatsApp, Vinculo
+    var headersPart = abaPart.getRange(1, 1, 1, abaPart.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+    var colFav = headersPart.indexOf('Empreendimentos_Favoritos');
+    var p = abaPart.getRange(linhaPart, 1, 1, abaPart.getLastColumn()).getValues()[0];
+    var favoritos = [];
+    if (colFav !== -1) { try { favoritos = JSON.parse(p[colFav] || '[]'); } catch (e) {} }
     return {
       status: 'ok', sessionToken: token, novo: false,
-      nome: s_(p[1]), cpf: s_(p[2]), whatsapp: s_(p[3]), vinculo: s_(p[4])
+      nome: s_(p[1]), cpf: s_(p[2]), whatsapp: s_(p[3]), vinculo: s_(p[4]), favoritos: favoritos
     };
   });
+}
+
+/* ══════════════════════ EMPREENDIMENTOS FAVORITOS DO LEAD ═════════════
+   Lista simples de Emp_Id guardada como JSON numa única coluna de
+   PARTICIPANTES — não precisa de aba própria, é só "curtir/descurtir". */
+function feirao_favoritoToggle_(data) {
+  if (!validarSessaoLead_(data.email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = ss.getSheetByName(ABA_PARTICIPANTES);
+  var email = normalizarEmail_(data.email);
+  return comLock_(function () {
+    var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+    var colFav = headers.indexOf('Empreendimentos_Favoritos');
+    if (colFav === -1) return { status: 'error', message: 'Coluna Empreendimentos_Favoritos não existe — rode adicionarColunaFavoritos() no editor.' };
+    var favoritosJson = JSON.stringify(Array.isArray(data.favoritos) ? data.favoritos : []);
+    var linha = acharLinhaPorChave_(aba, 'Email', email);
+    var now = agora_();
+    if (linha === -1) {
+      var novaLinha = new Array(headers.length).fill('');
+      novaLinha[headers.indexOf('Email')] = email;
+      novaLinha[headers.indexOf('Etapa_Funil')] = 'novo';
+      novaLinha[headers.indexOf('Criado_em')] = now;
+      novaLinha[headers.indexOf('Atualizado_em')] = now;
+      novaLinha[colFav] = favoritosJson;
+      aba.appendRow(novaLinha);
+    } else {
+      aba.getRange(linha, colFav + 1).setValue(favoritosJson);
+      var colAtu = headers.indexOf('Atualizado_em');
+      if (colAtu !== -1) aba.getRange(linha, colAtu + 1).setValue(now);
+    }
+    return { status: 'ok' };
+  });
+}
+
+function feirao_favoritosLead_(email, sessionToken) {
+  if (!validarSessaoLead_(email, sessionToken)) return { ok: false, erro: 'Sessão de e-mail não verificada.' };
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = ss.getSheetByName(ABA_PARTICIPANTES);
+  var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+  var colFav = headers.indexOf('Empreendimentos_Favoritos');
+  if (colFav === -1) return { ok: true, favoritos: [] };
+  var linha = acharLinhaPorChave_(aba, 'Email', normalizarEmail_(email));
+  if (linha === -1) return { ok: true, favoritos: [] };
+  var valor = aba.getRange(linha, colFav + 1).getValue();
+  var favoritos = [];
+  try { favoritos = JSON.parse(valor || '[]'); } catch (e) {}
+  return { ok: true, favoritos: favoritos };
 }
 
 /* Valida um sessionToken de Lead — usado por toda ação de escrita do

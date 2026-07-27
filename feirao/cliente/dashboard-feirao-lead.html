@@ -221,7 +221,9 @@ a{text-decoration:none;color:inherit}
 .fh-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold2);font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:10px}
 .fh-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;line-height:1.15}
 .fh-title em{color:var(--gold2);font-style:italic}
-.fh-sub{color:rgba(255,255,255,.55);font-size:12px;margin-top:6px;max-width:480px;line-height:1.6}
+.fh-sub{color:rgba(255,255,255,.55);font-size:12px;margin-top:6px;max-width:620px;line-height:1.6}
+.fh-meta-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;max-width:620px}
+.fh-meta-chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:rgba(255,255,255,.65);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:20px;padding:4px 10px}
 .fh-cd{display:flex;gap:8px}
 .fh-cd-box{background:rgba(0,0,0,.25);border:1px solid var(--gold-b);border-radius:8px;padding:10px 14px;text-align:center;min-width:64px}
 .fh-cd-val{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--gold2)}
@@ -701,7 +703,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
             <div>
               <div class="fh-badge">🎪 1º Feirão de Imóveis WAL</div>
               <div class="fh-title">Condições exclusivas para<br><em>Militares (Marinha, Exército, FAB, PM, Bombeiro) e Servidores Públicos (Federal, Estadual e Municipal) e MP</em></div>
-              <div class="fh-sub">Durante o feirão você acessa condições especiais, como entrada facilitada em empreendimentos selecionados no Rio de Janeiro e outras vantagens disponibilizadas pelas melhores construtoras do Rio de Janeiro e Niterói. Evento com duração de 4 dias — com início às 9h de 13/08 até às 22h de 16/08/2026. Podendo ser prorrogada ou alterada para melhor atender os clientes participantes do Feirão Online da WAL Imóveis.</div>
+              <div class="fh-sub">Durante o feirão você acessa condições especiais, como entrada facilitada em empreendimentos selecionados no Rio de Janeiro e outras vantagens das melhores construtoras do Rio de Janeiro e Niterói.</div>
+              <div class="fh-meta-row">
+                <span class="fh-meta-chip">📅 13 a 16/08/2026 · 9h às 22h</span>
+                <span class="fh-meta-chip">ℹ️ Duração sujeita a prorrogação ou alteração</span>
+              </div>
             </div>
             <div class="fh-cd" id="heroCd">
               <div class="fh-cd-box"><div class="fh-cd-val" id="cdDias">00</div><div class="fh-cd-lbl">dias</div></div>
@@ -744,6 +750,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
         <div class="sec">Empreendimentos em destaque</div>
         <div class="prop-grid" id="homeDestaques"></div>
+
+        <div id="homeSelecionadosWrap" style="display:none;margin-top:20px">
+          <div class="sec">🌟 Empreendimentos selecionados</div>
+          <div class="prop-grid" id="homeSelecionados"></div>
+        </div>
 
       </div>
 
@@ -1674,6 +1685,7 @@ let _pagamentoState = null;
 let _pixState = { valor:0, paga:false, data:'' };
 let _aiHistory = [];
 let _jornada = []; // [{key,data}]
+let _favoritos = []; // ids dos empreendimentos que o lead "selecionou/gostou" (Empreendimentos Selecionados no Início)
 
 /* ════════════ UTILS ════════════ */
 function fmtBRL(n){ return 'R$ '+(n||0).toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0}); }
@@ -1720,6 +1732,7 @@ function snapshotEstado(){
     agendamento: _agendamentoState,
     jornada: _jornada.map(j=>({key:j.key,data:(j.data instanceof Date?j.data:new Date(j.data)).toISOString()})),
     negociosFechados:_negociosFechados,
+    favoritos:_favoritos,
     savedAt: new Date().toISOString()
   };
 }
@@ -1763,6 +1776,7 @@ function restaurarDeSnapshot(snap){
   LEAD=snap.lead;
   _selectedPropId=snap.selectedPropId||null;
   _selectedUnidade=snap.selectedUnidade||null;
+  _favoritos=Array.isArray(snap.favoritos)?snap.favoritos:[];
   _jornada=(snap.jornada||[]).map(j=>({key:j.key,data:new Date(j.data)}));
   const c=snap.credito||{};
   _creditoState={
@@ -1904,10 +1918,15 @@ async function doVerificarCodigo(){
     return;
   }
   const sessionToken=resp.sessionToken;
+  // A planilha (PARTICIPANTES) é a fonte de verdade dos favoritos — se
+  // veio na resposta do login, prevalece sobre o que estiver no snapshot
+  // local (pode estar desatualizado se o lead selecionou de outro aparelho).
+  const favoritosServidor = Array.isArray(resp.favoritos) ? resp.favoritos : null;
   const snap=tentarRestaurar(_loginEmailPendente);
   if(snap && snap.lead){
     restaurarDeSnapshot(snap);
     LEAD.sessionToken=sessionToken;
+    if(favoritosServidor) _favoritos=favoritosServidor;
     iniciarApp(true);
     return;
   }
@@ -1917,6 +1936,7 @@ async function doVerificarCodigo(){
   // reais do cadastro em vez de pedir para recadastrar do zero.
   if(resp.novo===false && resp.nome){
     LEAD={nome:resp.nome, cpf:resp.cpf||'', email:_loginEmailPendente, tel:resp.whatsapp||'', vinculo:resp.vinculo||'', sessionToken};
+    _favoritos=favoritosServidor||[];
     iniciarApp(true);
     return;
   }
@@ -2220,6 +2240,7 @@ function propCardHtml(e){
     ? `background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.55)),url('${e.urlImagem}') center/cover no-repeat`
     : `background:linear-gradient(135deg,${e.cor1},${e.cor2})`;
   const precoTxt = e.precoMax>e.precoMin ? `${fmtBRL(e.precoMin)} – ${fmtBRL(e.precoMax)}` : `A partir de ${fmtBRL(e.precoMin)}`;
+  const favoritado = _favoritos.includes(e.id);
   return `
   <div class="prop-card" onclick="abrirPropriedade('${e.id}')">
     <div class="prop-banner" style="${bannerBg}">
@@ -2237,6 +2258,7 @@ function propCardHtml(e){
       <div class="prop-vant">✅ ${e.vantagens[0]}</div>
       <div class="prop-vant">✅ ${e.vantagens[1]||''}</div>
       <button class="btn btn-teal btn-sm btn-full" style="margin-top:10px" onclick="event.stopPropagation();abrirPropriedade('${e.id}')">Ver detalhes do feirão →</button>
+      <button class="btn btn-sm btn-full${favoritado?' btn-gold':''}" style="margin-top:6px" onclick="event.stopPropagation();toggleFavorito_('${e.id}')">${favoritado?'❤️ Selecionado':'🤍 Selecionar este empreendimento'}</button>
       <button class="btn btn-sm btn-full" style="margin-top:6px" onclick="event.stopPropagation();compartilharImovel('${e.id}')">🔗 Compartilhar</button>
     </div>
   </div>`;
@@ -2252,6 +2274,36 @@ function renderHomeDestaques(){
   const base=marcados.length?marcados:EMPREENDIMENTOS;
   const top=[...base].sort((a,b)=>b.disponivel-a.disponivel).slice(0,3);
   document.getElementById('homeDestaques').innerHTML=top.map(propCardHtml).join('');
+  renderHomeSelecionados_();
+}
+/* ════════════ EMPREENDIMENTOS SELECIONADOS (favoritos do lead) ════════════
+   Lista de Emp_Id guardada em PARTICIPANTES.Empreendimentos_Favoritos
+   (feirao_favorito_toggle/feirao_favoritos_lead) — sincroniza entre
+   dispositivos, não é só localStorage. */
+function renderHomeSelecionados_(){
+  const wrap=document.getElementById('homeSelecionadosWrap'), box=document.getElementById('homeSelecionados');
+  if(!wrap||!box) return;
+  const lista=EMPREENDIMENTOS.filter(e=>_favoritos.includes(e.id));
+  if(!lista.length){ wrap.style.display='none'; box.innerHTML=''; return; }
+  wrap.style.display='block';
+  box.innerHTML=lista.map(propCardHtml).join('');
+}
+async function toggleFavorito_(empId){
+  const idx=_favoritos.indexOf(empId);
+  if(idx===-1) _favoritos.push(empId); else _favoritos.splice(idx,1);
+  renderHomeDestaques(); renderVitrine();
+  salvarEstado();
+  if(!LEAD) return;
+  const resp=await feiraoApiJsonp('feirao_favorito_toggle', {email:LEAD.email, sessionToken:LEAD.sessionToken, favoritos:JSON.stringify(_favoritos)});
+  if(!resp || resp.status!=='ok') toast('⚠️ Não foi possível salvar sua seleção agora — tente novamente.','red');
+}
+async function carregarFavoritosDoSistema_(){
+  if(!LEAD) return;
+  try{
+    const resp=await feiraoApiJsonp('feirao_favoritos_lead', {email:LEAD.email, sessionToken:LEAD.sessionToken});
+    if(resp && resp.ok && Array.isArray(resp.favoritos)) _favoritos=resp.favoritos;
+  }catch(e){}
+  renderHomeDestaques();
 }
 
 /* ════════════ DETALHE DO IMÓVEL (MODAL) ════════════ */
