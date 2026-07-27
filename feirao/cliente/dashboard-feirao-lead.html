@@ -1060,9 +1060,14 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
                 </select>
               </div></div>
               <div class="field-row mb14"><div><div class="field-lbl">Mensagem</div><textarea class="field-ta" id="conMensagem" placeholder="Escreva sua dúvida ou pedido..."></textarea></div></div>
-              <button class="btn btn-gold btn-full" onclick="enviarMensagemConsultor()">📤 Enviar mensagem</button>
+              <button class="btn btn-gold btn-full" id="btnEnviarMsgConsultor" onclick="enviarMensagemConsultor()">📤 Enviar mensagem</button>
             </div>
           </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-h"><div class="card-title">🕓 Histórico de mensagens</div><span class="card-link" onclick="carregarHistoricoMensagensConsultor_()">atualizar</span></div>
+          <div class="card-b" id="conHistoricoBox"><div class="fs11 c-muted">Consultando planilha...</div></div>
         </div>
       </div>
 
@@ -3165,9 +3170,9 @@ function cancelarAgendamento(){
 
 /* ════════════ FALAR COM CONSULTOR ════════════
    Troque os dados abaixo pelos contatos reais da equipe WAL. */
-const WAL_WHATSAPP_NUMERO = '5521999990000'; // formato internacional sem símbolos, ex: 55 21 99999-0000
+const WAL_WHATSAPP_NUMERO = '5521972443592'; // +55 21 97244-3592
 const WAL_TELEFONE = '+552199990000';
-const WAL_EMAIL_CONTATO = 'contato@walservidor.com.br';
+const WAL_EMAIL_CONTATO = 'comercial@walservidor.com.br';
 function renderConsultorPanel(){
   const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
   const nomeLead=LEAD?LEAD.nome:'';
@@ -3178,14 +3183,46 @@ function renderConsultorPanel(){
   if(tel) tel.href='tel:'+WAL_TELEFONE;
   const email=document.getElementById('consultorEmail');
   if(email) email.href='mailto:'+WAL_EMAIL_CONTATO+'?subject='+encodeURIComponent('Feirão WAL — dúvida de '+nomeLead)+'&body='+encodeURIComponent(msg);
+  carregarHistoricoMensagensConsultor_();
 }
-function enviarMensagemConsultor(){
+/* Usa feiraoApiJsonp (GET, lê a resposta de verdade) em vez do POST
+   no-cors fire-and-forget — precisamos saber se a mensagem realmente
+   gravou na planilha antes de dizer "enviada" pro lead. */
+async function enviarMensagemConsultor(){
   const assunto=document.getElementById('conAssunto').value;
   const mensagem=document.getElementById('conMensagem').value.trim();
   if(!mensagem){ toast('Escreva sua mensagem antes de enviar.','red'); return; }
-  chamarFeiraoApi('feirao_mensagem', {email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, telefone:LEAD.tel, assunto, mensagem});
-  toast('📤 Mensagem enviada! Um consultor da WAL vai te responder em breve.','green');
-  document.getElementById('conMensagem').value='';
+  const btn=document.getElementById('btnEnviarMsgConsultor');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const resp=await feiraoApiJsonp('feirao_mensagem', {email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome, telefone:LEAD.tel, assunto, mensagem});
+  btn.disabled=false; btn.textContent='📤 Enviar mensagem';
+  if(resp && resp.status==='ok'){
+    toast('📤 Mensagem enviada! Um consultor da WAL vai te responder em breve.','green');
+    document.getElementById('conMensagem').value='';
+    carregarHistoricoMensagensConsultor_();
+  } else {
+    toast('❌ '+((resp&&resp.message)||'Não foi possível enviar agora. O backend do Feirão pode ainda não ter esta ação publicada.'),'red');
+  }
+}
+/* Histórico das próprias mensagens do lead (feirao_mensagens_lead). */
+async function carregarHistoricoMensagensConsultor_(){
+  const box=document.getElementById('conHistoricoBox'); if(!box||!LEAD) return;
+  const resp=await feiraoApiJsonp('feirao_mensagens_lead', {email:LEAD.email, sessionToken:LEAD.sessionToken});
+  if(!resp || !resp.ok){ box.innerHTML='<div class="fs11 c-red">Não foi possível carregar o histórico agora.</div>'; return; }
+  const itens=[...(resp.itens||[])].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+  if(!itens.length){ box.innerHTML='<div class="fs11 c-muted">Você ainda não enviou nenhuma mensagem.</div>'; return; }
+  box.innerHTML=itens.map(m=>`
+    <div class="card" style="background:var(--card2);margin-bottom:10px">
+      <div class="card-b" style="padding:12px">
+        <div class="flex-bet" style="margin-bottom:4px">
+          <span class="fs11 fw7" style="color:#fff">${m.assunto||'—'}</span>
+          <span class="bdg ${m.status==='respondida'?'bg':'ba'}">${m.status==='respondida'?'Respondida':'Aguardando'}</span>
+        </div>
+        <div class="fs10 c-muted" style="margin-bottom:6px">${fmtDataHora(m.timestamp)}</div>
+        <div class="fs12" style="color:var(--txt)">${m.mensagem}</div>
+        ${m.resposta?`<div class="alert-box alert-teal" style="margin-top:8px;margin-bottom:0"><strong>Resposta da equipe WAL:</strong> ${m.resposta}</div>`:''}
+      </div>
+    </div>`).join('');
 }
 
 /* ════════════ PAGAMENTO DA RESERVA VIA PIX ════════════ */

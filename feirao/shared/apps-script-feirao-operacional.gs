@@ -560,6 +560,8 @@ function doGet(e) {
       case 'feirao_status_credito':      result = feirao_statusCredito_(p.protocolo || ''); break;
       case 'feirao_listar_analises_credito': result = feirao_listarAnalisesCredito_(p); break;
       case 'feirao_listar_mensagens':     result = feirao_listarMensagens_(p); break;
+      case 'feirao_mensagens_lead':       result = feirao_mensagensLead_(p.email || '', p.sessionToken || ''); break;
+      case 'feirao_mensagem':            result = feirao_mensagem_(p); break;
       case 'feirao_listar_pix':          result = feirao_listarPix_(p); break;
       case 'feirao_status_contrato':     result = feirao_statusContrato_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
       case 'feirao_simulacao_status':    result = feirao_simulacaoStatus_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
@@ -606,7 +608,6 @@ function doPost(e) {
       case 'feirao_credito_decisao':         out = feirao_creditoDecisao_(data); break;
       case 'feirao_contrato_status':         out = feirao_contratoStatusEscrita_(data); break;
       case 'feirao_agendamento':             out = feirao_agendamento_(data); break;
-      case 'feirao_mensagem':                out = feirao_mensagem_(data); break;
       case 'feirao_mensagem_responder':      out = feirao_mensagemResponder_(data); break;
       case 'feirao_chat_enviar':             out = feirao_chatEnviar_(data); break;
       case 'feirao_pix':                     out = feirao_pix_(data); break;
@@ -1246,6 +1247,26 @@ function feirao_mensagem_(data) {
   });
   enfileirarNotificacao_('mensagem_consultor', EMAIL_EQUIPE_FEIRAO, { nome: data.nome, telefone: data.telefone, assunto: data.assunto, mensagem: data.mensagem });
   return { status: 'ok' };
+}
+
+/* Histórico das PRÓPRIAS mensagens do lead (não do atendente/gerente) —
+   autenticado por sessão OTP, não por PIN. Alimenta o "Histórico de
+   mensagens" no painel Falar com Consultor do dashboard do lead. */
+function feirao_mensagensLead_(email, sessionToken) {
+  if (!validarSessaoLead_(email, sessionToken)) return { ok: false, erro: 'Sessão de e-mail não verificada.' };
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = ss.getSheetByName(ABA_MENSAGENS);
+  if (!aba) return { ok: true, itens: [] };
+  var emailN = normalizarEmail_(email);
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (l) { return normalizarEmail_(l.Email) === emailN; })
+    .map(function (l) {
+      return {
+        assunto: s_(l.Assunto), mensagem: s_(l.Mensagem), timestamp: s_(l.Timestamp),
+        status: s_(l.Status) || 'nao_lida', resposta: s_(l.Resposta), respondidoEm: s_(l.Respondido_em)
+      };
+    });
+  return { ok: true, itens: itens };
 }
 
 /* Lista MENSAGENS_CONSULTOR para o painel do atendente/gerente — antes
