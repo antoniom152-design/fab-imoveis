@@ -107,6 +107,9 @@
       padding:9px 10px;color:#E7ECF3;font-size:13px}\
     .wal-chat-inputrow button{background:#C9A84C;color:#0A1628;border:none;border-radius:8px;\
       padding:0 14px;font-weight:700;cursor:pointer;font-size:13px}\
+    .wal-chat-msg.pending{opacity:.55}\
+    .wal-chat-msg.failed{background:#3A1620;border:1px solid #D64545}\
+    .wal-chat-msg-fail{display:block;color:#FCA5A5;font-size:11px;margin-top:4px;font-weight:600}\
   ';
 
   function injetarEstilos() {
@@ -134,6 +137,8 @@
     this.unread         = 0;
     this.pollTimer       = null;
     this.threadsPollTimer = null;
+    this._pendentes = {}; // pendingKey -> texto — mensagens pintadas na tela mas ainda não confirmadas pelo servidor
+    this._pintadas = {}; // assinatura -> true — evita pintar a mesma mensagem 2x quando dois polls se sobrepõem
 
     this._build();
     this._startBackgroundPolling();
@@ -234,6 +239,8 @@
   /* ── modo THREAD (conversa aberta — cliente sempre está aqui) ── */
   WalChatWidget.prototype._renderThreadShell = function (titulo, comVoltar) {
     var self = this;
+    this._pintadas = {}; // container de mensagens vai ser recriado do zero — nada foi pintado nele ainda
+    this._threadCarregado = false; // controla o "wipe" de primeira carga — ver _poll()
     this.panel.innerHTML =
       '<div class="wal-chat-head">' +
         (comVoltar ? '<button class="wal-chat-back">←</button>' : '') +
@@ -263,19 +270,54 @@
     input.onkeydown = function (e) { if (e.key === 'Enter') enviar(); };
   };
 
+  /* Escrita = POST no-cors fire-and-forget: o navegador nunca sabe se o
+     servidor aceitou (ex.: sessão do lead expirada) só de olhar a resposta.
+     Por isso a mensagem é pintada como "pending" e só perde esse estado
+     quando ALGUM poll (o disparado logo depois de enviar, ou qualquer um
+     de fundo) trouxer de volta uma mensagem igual, remetida por nós — sem
+     isso em 8s, marcamos como falha visível em vez de deixar o usuário
+     achando que enviou algo que nunca chegou à planilha. */
   WalChatWidget.prototype._enviar = function (texto) {
     if (!this.activeThread) return;
     var self = this;
-    this._pintarMensagem({ remetente: this.role, texto: texto, timestamp: new Date().toISOString(), nome: this.nome });
+    var pendingKey = 'p' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    var el = this._pintarMensagem({ remetente: this.role, texto: texto, timestamp: new Date().toISOString(), nome: this.nome }, pendingKey);
+    if (el) el.classList.add('pending');
+    this._pendentes[pendingKey] = texto;
+    // o box já tem conteúdo real agora — impede que uma resposta atrasada
+    // do carregamento inicial (disparado ao abrir a thread) apague esta
+    // bolha ao "zerar" o container quando finalmente responder (ver _poll)
+    this._threadCarregado = true;
     post(this.apiUrl, 'feirao_chat_enviar', {
       email: this.activeThread, nome: this.nome, remetente: this.role, texto: texto,
       sessionToken: this.sessionToken, authPin: this.authPin
     }).then(function () { self._poll(false); });
+    setTimeout(function () {
+      if (!self._pendentes[pendingKey]) return; // já foi confirmada por algum poll
+      delete self._pendentes[pendingKey];
+      var pendingEl = self.panel.querySelector('[data-pending="' + pendingKey + '"]');
+      if (!pendingEl) return;
+      pendingEl.classList.remove('pending');
+      pendingEl.classList.add('failed');
+      var warn = document.createElement('span');
+      warn.className = 'wal-chat-msg-fail';
+      warn.textContent = '⚠️ Não confirmado pelo servidor — sua sessão pode ter expirado. Atualize a página e tente de novo.';
+      pendingEl.appendChild(warn);
+    }, 8000);
   };
 
-  WalChatWidget.prototype._pintarMensagem = function (m) {
+  WalChatWidget.prototype._pintarMensagem = function (m, pendingKey) {
+    if (!pendingKey) {
+      // mensagens "oficiais" (vindas do servidor) podem se repetir quando
+      // dois polls ficam em voo ao mesmo tempo (ex.: o poll de confirmação
+      // disparado logo após enviar + o poll periódico de fundo) — sem isso,
+      // a mesma mensagem aparece duplicada na tela.
+      var assinatura = m.remetente + '|' + m.texto + '|' + m.timestamp;
+      if (this._pintadas[assinatura]) return null;
+      this._pintadas[assinatura] = true;
+    }
     var box = this.panel.querySelector('.wal-chat-messages');
-    if (!box) return;
+    if (!box) return null;
     var vazio = box.querySelector('.wal-chat-empty');
     if (vazio) vazio.remove();
     var mine = m.remetente === this.role;
@@ -283,9 +325,11 @@
     try { hora = new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
     var div = document.createElement('div');
     div.className = 'wal-chat-msg ' + (mine ? 'mine' : 'theirs');
+    if (pendingKey) div.setAttribute('data-pending', pendingKey);
     div.innerHTML = escapeHtml(m.texto) + '<span class="wal-chat-msg-time">' + hora + '</span>';
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
+    return div;
   };
 
   WalChatWidget.prototype._poll = function (primeiraCarga) {
@@ -296,11 +340,28 @@
       sessionToken: this.sessionToken || '', authPin: this.authPin || ''
     }).then(function (data) {
       var mensagens = (data && data.mensagens) || [];
-      if (primeiraCarga) {
+      // "primeiraCarga" só pode zerar o box se NADA aconteceu no meio tempo
+      // (Apps Script pode demorar; se o usuário já digitou e enviou algo
+      // enquanto essa resposta ainda estava a caminho, self._threadCarregado
+      // já virou true em _enviar — sem essa checagem, esta resposta atrasada
+      // apagaria a mensagem que o usuário acabou de mandar).
+      if (primeiraCarga && !self._threadCarregado) {
         var box = self.panel.querySelector('.wal-chat-messages');
         if (box) box.innerHTML = mensagens.length ? '' : '<div class="wal-chat-empty">Nenhuma mensagem ainda. Diga oi 👋</div>';
       }
+      self._threadCarregado = true;
       mensagens.forEach(function (m) {
+        // esta mensagem confirma algum envio nosso ainda pendente? remove a
+        // bolha otimista — a cópia "oficial" do servidor é pintada abaixo
+        if (m.remetente === self.role) {
+          Object.keys(self._pendentes).forEach(function (key) {
+            if (self._pendentes[key] === m.texto) {
+              delete self._pendentes[key];
+              var pendingEl = self.panel.querySelector('[data-pending="' + key + '"]');
+              if (pendingEl) pendingEl.remove();
+            }
+          });
+        }
         self._pintarMensagem(m);
         if (!self.lastTimestamp || m.timestamp > self.lastTimestamp) self.lastTimestamp = m.timestamp;
         if (m.remetente !== self.role && !self.panel.classList.contains('open')) self.unread++;

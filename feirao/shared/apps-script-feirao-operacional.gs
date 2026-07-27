@@ -114,6 +114,7 @@ var ABA_EMPREENDIMENTOS = 'EMPREENDIMENTOS';
 var ABA_UNIDADES        = 'UNIDADES';
 var ABA_SOLICITACOES    = 'SOLICITACOES_VIABILIZADOR';
 var ABA_RESERVAS        = 'RESERVAS';
+var ABA_HISTORICO       = 'HISTORICO_ATENDIMENTO';
 var ABA_ESCALONAMENTOS  = 'ESCALONAMENTOS';
 var ABA_ATENDENTES      = 'ATENDENTES';
 var ABA_AGENTES         = 'AGENTES';
@@ -234,6 +235,8 @@ function setupPlanilhaFeirao() {
     'Parecer_Viabilizador', 'Parecer_Data', 'Email_Enviado',
     'Docs_Cliente_JSON', 'Conjuge_JSON', 'Criado_em', 'Atualizado_em'
   ]);
+
+  criarAbaSeNaoExiste_(ss, ABA_HISTORICO, ['Email', 'Tipo', 'Texto', 'Autor', 'Timestamp']);
 
   criarAbaSeNaoExiste_(ss, ABA_ESCALONAMENTOS, [
     'Id', 'Emp_Id', 'Tipo', 'Descricao', 'Valor', 'Status', 'Criado_em', 'Despacho', 'Despacho_em'
@@ -362,6 +365,27 @@ function setupFase1() {
   }
 }
 
+/* Migração do Histórico de Atendimento (linha do tempo do lead no dashboard
+   do atendente/gerente). Antes desta migração, addHistorico() só gravava no
+   localStorage do navegador — o gerente abrindo o mesmo lead de outro
+   computador via um navegador diferente, o histórico inteiro estava vazio.
+   Rode UMA vez pelo editor ou pelo menu Feirão WAL — idempotente, pode
+   rodar de novo sem problema. */
+function setupHistoricoAtendimento() {
+  try {
+    var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+    var relatorio = [];
+    criarAbaSeNaoExiste_(ss, ABA_HISTORICO, ['Email', 'Tipo', 'Texto', 'Autor', 'Timestamp']);
+    relatorio.push('Aba HISTORICO_ATENDIMENTO verificada/criada.');
+    var msg = '✅ Migração do Histórico de Atendimento concluída!\n\n' + relatorio.join('\n');
+    Logger.log(msg);
+    avisar_(msg);
+  } catch (err) {
+    Logger.log('setupHistoricoAtendimento ERRO: ' + err.message + '\n' + (err.stack || ''));
+    throw err;
+  }
+}
+
 /* Só CONFERE (não altera nada): mostra no Registro de execução se as
    colunas, a aba RESERVAS e os atendentes da Fase 1 estão no lugar. */
 function verificarFase1() {
@@ -424,6 +448,7 @@ function onOpen() {
     .addItem('Configurar planilha (1ª vez)', 'setupPlanilhaFeirao')
     .addItem('Migração Fase 1 — dashboard do atendente (1ª vez)', 'setupFase1')
     .addItem('Verificar migração Fase 1 (só confere)', 'verificarFase1')
+    .addItem('Migração Histórico de Atendimento (1ª vez)', 'setupHistoricoAtendimento')
     .addItem('Adicionar coluna Chave_PIX em CONSTRUTORAS (1ª vez)', 'adicionarColunaChavePix')
     .addItem('Adicionar coluna Favoritos em PARTICIPANTES (1ª vez)', 'adicionarColunaFavoritos')
     .addItem('Instalar gatilho de notificações (1ª vez)', 'criarTriggerNotificacoes')
@@ -601,6 +626,7 @@ function doGet(e) {
       case 'feirao_listar_atendentes_admin': result = feirao_listarAtendentesAdmin_(p); break;
       case 'feirao_listar_leads':        result = feirao_listarLeads_(p); break;
       case 'feirao_listar_reservas':     result = feirao_listarReservas_(p); break;
+      case 'feirao_listar_historico':    result = feirao_listarHistorico_(p); break;
       case 'feirao_listar_agentes':      result = feirao_listarAgentes_(p); break;
       case 'feirao_agente_bancario':     result = feirao_agenteBancarioConsultar_(p); break;
       case 'feirao_listar_comissoes':    result = feirao_listarComissoes_(p); break;
@@ -643,6 +669,7 @@ function doPost(e) {
       case 'feirao_lead_status':             out = feirao_leadStatus_(data); break;
       case 'feirao_lead_atribuir':           out = feirao_leadAtribuir_(data); break;
       case 'feirao_reserva':                 out = feirao_reservaCrud_(data); break;
+      case 'feirao_historico_evento':        out = feirao_historicoEvento_(data); break;
       case 'feirao_agente':                  out = feirao_agenteCrud_(data); break;
       case 'feirao_agente_bancario_definir': out = feirao_agenteBancarioDefinir_(data); break;
       case 'feirao_comissao':                out = feirao_comissaoCrud_(data); break;
@@ -1457,18 +1484,24 @@ function feirao_chatThreads_(p) {
   var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
   var linhas = lerAbaObjetos_(ss.getSheetByName(ABA_CHAT));
 
-  var porEmail = {}, naoLidasPorEmail = {};
+  var porEmail = {}, naoLidasPorEmail = {}, nomeClientePorEmail = {};
   linhas.forEach(function (l) {
     var email = normalizarEmail_(l.Email);
     if (!email) return;
     if (!porEmail[email] || s_(l.Timestamp) > porEmail[email].ultimoTimestamp) {
-      porEmail[email] = { email: email, nome: s_(l.Nome), ultimaMensagem: s_(l.Texto), ultimoTimestamp: s_(l.Timestamp), ultimoRemetente: s_(l.Remetente) };
+      porEmail[email] = { email: email, ultimaMensagem: s_(l.Texto), ultimoTimestamp: s_(l.Timestamp), ultimoRemetente: s_(l.Remetente) };
     }
+    // nome exibido é sempre o do CLIENTE — se pegasse o Nome da última linha
+    // (que pode ser do atendente respondendo), a caixa de conversas passa a
+    // mostrar o nome do próprio atendente assim que ele responde, tornando
+    // impossível identificar quem é o lead daquela conversa
+    if (s_(l.Remetente) === 'cliente' && s_(l.Nome)) nomeClientePorEmail[email] = s_(l.Nome);
     if (s_(l.Remetente) === 'cliente' && l.Lida !== true) naoLidasPorEmail[email] = (naoLidasPorEmail[email] || 0) + 1;
   });
 
   var threads = Object.keys(porEmail).map(function (email) {
     var t = porEmail[email];
+    t.nome = nomeClientePorEmail[email] || email;
     t.naoLidas = naoLidasPorEmail[email] || 0;
     return t;
   });
@@ -1932,6 +1965,45 @@ function feirao_listarReservas_(p) {
       var obj = { id: s_(r.Id), criadoEm: s_(r.Criado_em), atualizadoEm: s_(r.Atualizado_em) };
       RESERVA_CAMPOS_.forEach(function (c) { obj[c[1]] = (r[c[0]] === undefined) ? '' : r[c[0]]; });
       return obj;
+    })
+  };
+}
+
+/* ══════════════════════ HISTÓRICO DE ATENDIMENTO (linha do tempo do lead) ══
+   Espelha addHistorico() do dashboard-feirao-atendente.html — como TODAS as
+   24 chamadas de addHistorico já passam por essa única função no cliente,
+   um espelho lá (chamarFeiraoApi) cobre todos os pontos de escrita de uma
+   vez, sem precisar tocar em cada call site individualmente. O timestamp
+   é o mesmo ISO gerado pelo cliente (não agora_() do servidor) — assim o
+   merge na leitura consegue deduplicar por igualdade exata de string,
+   sem depender de conversão de fuso/formatação entre cliente e planilha. */
+function feirao_historicoEvento_(data) {
+  var auth = autorizarAcao_(data.authPin, ['atendente', 'gerente_atendimento']);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var email = normalizarEmail_(data.email);
+  if (!email) return { status: 'error', message: 'E-mail do lead é obrigatório.' };
+  return comLock_(function () {
+    var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+    var aba = ss.getSheetByName(ABA_HISTORICO);
+    if (!aba) return { status: 'error', message: 'Aba HISTORICO_ATENDIMENTO não existe — rode setupHistoricoAtendimento() no editor.' };
+    aba.appendRow([email, data.tipo || '', data.texto || '', data.autor || '', data.timestamp || agora_()]);
+    return { status: 'ok' };
+  });
+}
+
+function feirao_listarHistorico_(p) {
+  var auth = autorizarAcao_(p.authPin, ['atendente', 'gerente_atendimento']);
+  if (!auth.ok) return { ok: false, erro: auth.erro };
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = ss.getSheetByName(ABA_HISTORICO);
+  if (!aba) return { ok: true, itens: [] };
+  var emailFiltro = normalizarEmail_(p.email || '');
+  var itens = lerAbaObjetos_(aba);
+  if (emailFiltro) itens = itens.filter(function (l) { return normalizarEmail_(l.Email) === emailFiltro; });
+  return {
+    ok: true,
+    itens: itens.map(function (l) {
+      return { email: normalizarEmail_(l.Email), tipo: s_(l.Tipo), texto: s_(l.Texto), autor: s_(l.Autor), timestamp: s_(l.Timestamp) };
     })
   };
 }
