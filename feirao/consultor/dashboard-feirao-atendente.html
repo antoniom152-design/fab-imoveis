@@ -3001,14 +3001,28 @@ async function sincronizarReservasDoBackend_(){
   if(!r || !r.ok || !Array.isArray(r.itens)) return;
   const porId = {};
   STATE.reservas.forEach(x=>{ porId[x.id]=x; });
+  // Precisa checar se algo REALMENTE mudou antes de redesenhar — esta função
+  // é chamada de dentro do próprio renderReservaUnidade(), então redesenhar
+  // sempre (mesmo sem nenhuma mudança real) reabre o painel, que chama esta
+  // função de novo, que redesenha de novo... um loop sem fim que travava a
+  // tela de Reserva de Unidade (ficava "piscando"/impossível de usar).
+  let mudou = false;
   r.itens.forEach(remota=>{
     const convertida = reservaLocalDeRemota_(remota);
     const local = porId[remota.id];
-    if(local) Object.assign(local, convertida, {leadId: local.leadId || convertida.leadId, unidadeId: local.unidadeId});
-    else STATE.reservas.push(convertida);
+    if(local){
+      const antes = JSON.stringify(local);
+      Object.assign(local, convertida, {leadId: local.leadId || convertida.leadId, unidadeId: local.unidadeId});
+      if(JSON.stringify(local)!==antes) mudou = true;
+    } else {
+      STATE.reservas.push(convertida);
+      mudou = true;
+    }
   });
-  saveState();
-  if(currentPanel==='reservaUnidade') renderPanelSeguro_('reservaUnidade');
+  if(mudou){
+    saveState();
+    if(currentPanel==='reservaUnidade') renderPanelSeguro_('reservaUnidade');
+  }
 }
 function ensureReserva(lead, unidade){
   let r = STATE.reservas.find(x=>x.leadId===lead.id && x.unidadeId===unidade.id);
