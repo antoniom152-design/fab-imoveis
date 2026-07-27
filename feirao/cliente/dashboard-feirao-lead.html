@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WAL · 1º Feirão de Imóveis FAB & Servidores Públicos</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- Bibliotecas para geração de PDF do simulador (mesmas de simulador.html) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
 :root{
   --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
@@ -444,9 +447,23 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
   .auth-panel{padding:20px}
 }
 
+/* ══ CABEÇALHO EXCLUSIVO PARA IMPRESSÃO/PDF DO SIMULADOR (oculto na tela) ══ */
+.sim-print-header{display:none}
+
 @media print{
   .sidebar,.topbar,.agent-footer,.ai-wrap,.ph-acts,#toast,.mobile-nav-toggle,.sidebar-backdrop{display:none!important}
   body{background:#fff;color:#000}
+  #simFormPanel,#simTabRow,#simRendaBox,#btnUsarSimNoFluxo,#simEmpAlert{display:none!important}
+  .sim-print-header{display:block!important}
+  .main,.content{margin:0!important;padding:0!important}
+  #p-simulador .g2{grid-template-columns:1fr!important;display:block!important}
+  .card,.card .card-b{background:#f9f9f9!important;border:1px solid #ccc!important;color:#000!important}
+  .fs10,.c-muted{color:#555!important}
+  .fw7{color:#000!important}
+  table.tbl th{background:#eee!important;color:#333!important}
+  table.tbl td{color:#000!important}
+  .card-b[style*="overflow-y"]{max-height:none!important;overflow:visible!important}
+  @page{size:A4 portrait;margin:15mm}
 }
 </style>
 </head>
@@ -706,12 +723,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <div class="card">
             <div class="card-h"><div class="card-title">🏆 Vantagens exclusivas do Feirão</div></div>
             <div class="card-b">
-              <div class="prop-vant">✅ Taxa CFIAe promocional de <strong style="color:#fff">8,3% a.a.</strong> + TR (somente durante o feirão)</div>
-              <div class="prop-vant">✅ Isenção da taxa de avaliação do imóvel (economia média de R$ 1.200)</div>
-              <div class="prop-vant">✅ Entrada parcelada em até 10x sem juros direto com a construtora</div>
-              <div class="prop-vant">✅ Análise de crédito prioritária — resultado em até 24 horas</div>
-              <div class="prop-vant">✅ FGTS aceito como parte da entrada, com simulação automática</div>
-              <div class="prop-vant">✅ Brinde de boas-vindas: kit mudança + 1 ano de seguro residencial</div>
+              <div class="prop-vant">✅ Taxa CFIAe -  <strong style="color:#fff">8,3% a.a.</strong> + TR</div>
+              <div class="prop-vant">✅ Entrada parcelada - conforme análise de crédito</div>
+              <div class="prop-vant">✅ Análise de crédito prioritária — resultado em até 48 horas</div>
+              <div class="prop-vant">✅ FGTS pode ser aceito em alguns casos como parte da entrada</div>
             </div>
           </div>
           <div class="card">
@@ -792,13 +807,38 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <div class="panel" id="p-simulador">
         <div class="ph">
           <div><div class="ph-eye">Financiamento</div><div class="ph-title">Simulador comparativo</div><div class="ph-sub">SAC CEF · PRICE CEF · CFIAe · POUPEX — compare as 4 modalidades lado a lado</div></div>
-          <div class="ph-acts"><button class="btn btn-sm" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button></div>
+          <div class="ph-acts">
+            <button class="btn btn-sm" onclick="imprimirSimulacao()">🖨️ Imprimir simulação</button>
+            <button class="btn btn-sm btn-gold" id="btnGerarPdfSim" onclick="gerarPDFSimulacao()">📄 Gerar PDF</button>
+          </div>
+        </div>
+
+        <!-- Cabeçalho exclusivo para impressão/PDF — oculto na tela, exibido via @media print e usado como base do PDF gerado por jsPDF -->
+        <div class="sim-print-header">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;border-bottom:2px solid #C4922A;padding-bottom:14px;margin-bottom:18px">
+            <div>
+              <div style="font-family:Georgia,serif;font-size:22pt;color:#1A1510;font-weight:700;line-height:1">WAL Imóveis</div>
+              <div style="font-size:8pt;color:#8A7D6A;letter-spacing:.18em;text-transform:uppercase;margin-top:4px">CRECI 12261-J · Simulação de Financiamento Imobiliário</div>
+            </div>
+            <div style="text-align:right;font-size:9pt;color:#8A7D6A">
+              <div id="simPrintDate">—</div>
+              <div style="margin-top:2px">Documento gerado pelo Simulador Digital · 1º Feirão WAL</div>
+            </div>
+          </div>
+          <div style="margin-bottom:18px">
+            <div style="font-size:9pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#8A7D6A;margin-bottom:10px">Parâmetros da Simulação</div>
+            <div id="simPrintParams" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px"></div>
+          </div>
+          <div style="margin-bottom:18px">
+            <div style="font-size:9pt;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:#8A7D6A;margin-bottom:10px">Comparativo — 1ª Parcela / Encargo</div>
+            <div id="simPrintComparativo" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px"></div>
+          </div>
         </div>
 
         <div class="alert-box alert-gold" id="simEmpAlert">Nenhum imóvel selecionado ainda — escolha um na <span class="card-link" onclick="nav(document.querySelector('[onclick*=vitrine]'),'vitrine')">Vitrine</span> para preencher o valor automaticamente, ou simule livremente abaixo.</div>
 
         <div class="g2" style="align-items:start">
-          <div class="card">
+          <div class="card" id="simFormPanel">
             <div class="card-h"><div class="card-title">📐 Dados da simulação</div></div>
             <div class="card-b">
               <div class="field-row mb14">
@@ -823,15 +863,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
               </div>
               <div class="field-row mb14">
                 <div><div class="field-lbl">Taxa de juros (a.a.)</div>
-                  <div class="slider-row"><input type="range" id="simTaxaSlider" min="3" max="14" value="8.3" step="0.1" oninput="document.getElementById('simTaxaInput').value=parseFloat(this.value).toFixed(1).replace('.',',')"><span class="slider-val" id="simTaxaInput">8,3</span></div>
-                  <div class="fs10 c-gold">Taxa promocional do feirão (CFIAe): 8,3% a.a.</div>
+                  <div class="slider-row"><input type="range" id="simTaxaSlider" min="3" max="18" value="8.3" step="0.1" oninput="document.getElementById('simTaxaInput').value=parseFloat(this.value).toFixed(1).replace('.',',')"><input class="field-inp" id="simTaxaInput" value="8,3" style="width:76px;text-align:center" oninput="simSincTaxaInput(this)"></div>
                 </div>
               </div>
 
               <div class="f-sec">Titular — renda e data de nascimento</div>
               <div class="field-row field-2 mb14">
                 <div><div class="field-lbl">Renda bruta 1 (titular)</div><input class="field-inp" id="simRenda1" placeholder="0,00" oninput="fmtSimInput(this)"></div>
-                <div><div class="field-lbl">Data de nascimento 1</div><input class="field-inp" type="date" id="simDataNasc" onchange="simOnDataNasc()"></div>
+                <div><div class="field-lbl">Data de nascimento 1</div><input class="field-inp" type="date" id="simDataNasc" onchange="simOnDataNasc()">
+                  <div class="fs10 c-muted" id="simIdadeHint" style="margin-top:4px">Informe para calcular idade, prazo máximo (CEF) e taxa MIP sugerida</div>
+                </div>
               </div>
 
               <div class="terms-check" style="margin-bottom:10px">
@@ -1259,7 +1300,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
             <div class="af-bullet">🤖 Assistente IA exclusivo para agentes</div>
           </div>
         </div>
-        <a href="../agente/dashboard-agente.html" target="_blank"><button class="btn btn-teal">🤝 Quero ser Agente Parceiro →</button></a>
+        <a href="https://www.walservidor.com.br/agente" target="_blank"><button class="btn btn-teal">🤝 Quero ser Agente Parceiro →</button></a>
       </div>
 
     </div>
@@ -1963,7 +2004,8 @@ function restaurarPainelSimulador(){
   document.getElementById('simDataNasc').value=_simResults.dataNasc||'';
   simAtualizaPrazo(_simResults.prazo);
   document.getElementById('simTaxaSlider').value=_simResults.taxaAno;
-  document.getElementById('simTaxaInput').textContent=_simResults.taxaAno.toFixed(1).replace('.',',');
+  document.getElementById('simTaxaInput').value=_simResults.taxaAno.toFixed(1).replace('.',',');
+  simOnDataNasc();
   if(_simResults.renda1) document.getElementById('simRenda1').value=_simResults.renda1.toLocaleString('pt-BR',{minimumFractionDigits:2});
   if(_simResults.temConjuge){
     document.getElementById('simTemConjuge').checked=true;
@@ -2361,18 +2403,36 @@ function selecionarUnidade(empId,unidadeId){
   salvarEstado();
 }
 
-/* ════════════ SIMULADOR — LÓGICA DE CÁLCULO (SAC / PRICE / CFIAe / POUPEX) ════════════ */
+/* ════════════ SIMULADOR — LÓGICA DE CÁLCULO (SAC / PRICE / CFIAe / POUPEX) ════════════
+   Fórmulas idênticas às de simulador.html (fonte de verdade dos cálculos).
+   Diferença deliberada: simulador.html não tem conceito de cônjuge — quando
+   o lead marca "Sou casado(a)/união estável" aqui no dashboard, a idade
+   usada nas tabelas de MIP e no limite de prazo da CEF passa a ser a MAIOR
+   idade entre titular e cônjuge (ver idadeParaCalculo_ mais abaixo). Essa é
+   a prática comum de mercado para financiamento em conjunto: o seguro MIP
+   cobre a dívida toda independentemente de qual mutuário venha a falecer,
+   então a seguradora precifica pelo perfil de maior risco (o mais velho),
+   e a regra da CEF de idade+prazo ≤ 80 anos e 6 meses vale por mutuário —
+   o mais velho é quem limita o prazo do casal. */
 const MIP_TABELA=[
   {ate:25,taxa:0.0230},{ate:30,taxa:0.0297},{ate:35,taxa:0.0374},{ate:40,taxa:0.0512},
   {ate:45,taxa:0.0660},{ate:50,taxa:0.0908},{ate:55,taxa:0.1260},{ate:60,taxa:0.1736},
   {ate:65,taxa:0.2664},{ate:70,taxa:0.3464},{ate:99,taxa:0.5568}
 ];
 function getMIPRate(anos){ for(const f of MIP_TABELA){ if(anos<=f.ate) return f.taxa; } return 0.5568; }
-const MIP_SEGURADORAS={ ALLSEG:[
-  {ate:25,taxa:0.00007600},{ate:30,taxa:0.00008600},{ate:35,taxa:0.00009900},{ate:40,taxa:0.00012500},
-  {ate:45,taxa:0.00019400},{ate:50,taxa:0.00032300},{ate:55,taxa:0.00051200},{ate:60,taxa:0.00077600},
-  {ate:65,taxa:0.00123800},{ate:70,taxa:0.00532500},{ate:75,taxa:0.00703761},{ate:999,taxa:0.00703761} ] };
-function getMIPRateCFIAe(anos){ const t=MIP_SEGURADORAS.ALLSEG; for(const f of t){ if(anos<=f.ate) return f.taxa; } return t[t.length-1].taxa; }
+const MIP_SEGURADORAS={
+  ALLSEG:[
+    {ate:25,taxa:0.00007600},{ate:30,taxa:0.00008600},{ate:35,taxa:0.00009900},{ate:40,taxa:0.00012500},
+    {ate:45,taxa:0.00019400},{ate:50,taxa:0.00032300},{ate:55,taxa:0.00051200},{ate:60,taxa:0.00077600},
+    {ate:65,taxa:0.00123800},{ate:70,taxa:0.00532500},{ate:75,taxa:0.00703761},{ate:999,taxa:0.00703761}
+  ],
+  EXCELSIOR:[
+    {ate:25,taxa:0.00008200},{ate:30,taxa:0.00009400},{ate:35,taxa:0.00011000},{ate:40,taxa:0.00014200},
+    {ate:45,taxa:0.00021500},{ate:50,taxa:0.00035800},{ate:55,taxa:0.00056400},{ate:60,taxa:0.00086200},
+    {ate:65,taxa:0.00136000},{ate:70,taxa:0.00590000},{ate:75,taxa:0.00760000},{ate:999,taxa:0.00760000}
+  ]
+};
+function getMIPRateCFIAe(anos,seguradora){ const t=MIP_SEGURADORAS[seguradora]||MIP_SEGURADORAS.ALLSEG; for(const f of t){ if(anos<=f.ate) return f.taxa; } return t[t.length-1].taxa; }
 function calcIdade(dataNasc){
   if(!dataNasc) return null;
   const hoje=new Date(), nasc=new Date(dataNasc); if(isNaN(nasc)) return null;
@@ -2390,52 +2450,71 @@ function calcIdadeExata(dataNascDate,mesI){
 }
 function maxPrazoByAge(anos){ return Math.min(420,Math.max(12,(80*12+6)-anos*12)); }
 
+/* Quando há cônjuge, usa a data de nascimento do MAIS VELHO dos dois para
+   MIP e prazo máximo (ver nota acima de MIP_TABELA). Sem cônjuge, usa a
+   do titular normalmente. */
+function dataNascParaCalculo_(dataNasc,temConjuge,dataNasc2){
+  if(!temConjuge||!dataNasc2) return dataNasc||'';
+  const id1=calcIdade(dataNasc), id2=calcIdade(dataNasc2);
+  if(!id1) return dataNasc2;
+  if(!id2) return dataNasc;
+  return id2.anos>id1.anos ? dataNasc2 : dataNasc;
+}
+
 function calcSAC(pv,n,im,mipTx,dfiTx,vAval){
   const amort=pv/n, dfiFixo=vAval*dfiTx;
-  let rows=[],totalP=0;
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0;
   for(let i=1;i<=n;i++){
     const saldo=pv-amort*(i-1), juros=saldo*im, parcela=amort+juros, mip=saldo*mipTx, dfi=dfiFixo, encargo=parcela+mip+dfi;
-    totalP+=encargo; rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo:pv-amort*i});
+    totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;totalP+=encargo;
+    rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo:pv-amort*i});
   }
-  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,totalP};
+  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,
+          totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
 }
 function calcPrice(pv,n,im,mipTx,dfiTx,vAval){
   const parcela=pv*(im*Math.pow(1+im,n))/(Math.pow(1+im,n)-1), dfiFixo=vAval*dfiTx;
-  let rows=[],saldo=pv;
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,saldo=pv;
   for(let i=1;i<=n;i++){
     const juros=saldo*im, amort=parcela-juros, mip=saldo*mipTx, dfi=dfiFixo, encargo=parcela+mip+dfi;
+    totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;
     saldo=Math.max(0,saldo-amort); rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo});
   }
   const totalP=rows.reduce((a,r)=>a+r.encargo,0);
-  return {rows,primeiraP:parcela,primeiraEnc:rows[0].encargo,ultimaP:parcela,ultimaEnc:rows[n-1].encargo,totalP};
+  return {rows,primeiraP:parcela,primeiraEnc:rows[0].encargo,ultimaP:parcela,ultimaEnc:rows[n-1].encargo,
+          totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi};
 }
-function calcCFIAe(pv,n,im,dfiTx,trMensal,vAval,dataNasc){
+function calcCFIAe(pv,n,im,dfiTx,trMensal,vAval,dataNasc,seguradora){
   const amortBaseSAC=pv/n;
   let dataNascDate=dataNasc?new Date(dataNasc):null, idadeBase=36;
   if(dataNascDate){ const id=calcIdade(dataNasc); if(id) idadeBase=id.anos; }
-  let rows=[],totalP=0,saldo=pv;
+  let rows=[],totalJ=0,totalMIP=0,totalDFI=0,totalP=0,saldo=pv;
   for(let i=1;i<=n;i++){
     const idadeAtual=dataNascDate?calcIdadeExata(dataNascDate,i):idadeBase+Math.floor((i-1)/12);
-    const mip=saldo*getMIPRateCFIAe(idadeAtual);
+    const mip=saldo*getMIPRateCFIAe(idadeAtual,seguradora);
     const dfi=vAval*dfiTx;
     const trCorr=saldo*trMensal; saldo+=trCorr;
     const juros=saldo*im;
     const amort=(i===n)?saldo:Math.min(amortBaseSAC,saldo);
     const parcela=amort+juros, encargo=parcela+mip+dfi;
-    saldo=Math.max(0,saldo-amort); totalP+=encargo;
-    rows.push({mes:i,parcela,amort,juros,mip,dfi,encargo,saldo});
+    saldo=Math.max(0,saldo-amort);
+    totalJ+=juros;totalMIP+=mip;totalDFI+=dfi;totalP+=encargo;
+    rows.push({mes:i,parcela,amort,juros,tr:trCorr,mip,dfi,encargo,saldo,idadeAtual});
   }
-  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,totalP};
+  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].encargo,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].encargo,
+          totalJ,totalMIP,totalDFI,totalP,mip1:rows[0].mip,dfi1:rows[0].dfi,
+          mipAliq1:getMIPRateCFIAe(dataNascDate?calcIdadeExata(dataNascDate,1):idadeBase,seguradora)};
 }
 function calcPOUPEX(pv,n,im,idxAnual){
   const taxaIdxMensal=Math.pow(1+idxAnual/100,1/12)-1, taxaTotal=(1+im)*(1+taxaIdxMensal)-1, amortConst=pv/n;
-  let rows=[],totalP=0,saldo=pv;
+  let rows=[],totalJ=0,totalP=0,saldo=pv;
   for(let i=1;i<=n;i++){
     const juros=saldo*taxaTotal, amort=(i===n)?saldo:Math.min(amortConst,saldo), parcela=amort+juros;
-    saldo=Math.max(0,saldo-amort); totalP+=parcela;
+    saldo=Math.max(0,saldo-amort); totalJ+=juros; totalP+=parcela;
     rows.push({mes:i,parcela,amort,juros,mip:0,dfi:0,encargo:parcela,saldo});
   }
-  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].parcela,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].parcela,totalP};
+  return {rows,primeiraP:rows[0].parcela,primeiraEnc:rows[0].parcela,ultimaP:rows[n-1].parcela,ultimaEnc:rows[n-1].parcela,
+          totalJ,totalMIP:0,totalDFI:0,totalP,mip1:0,dfi1:0};
 }
 
 /* ════════════ SIMULADOR — UI ════════════ */
@@ -2475,11 +2554,24 @@ function simAtualizaPrazo(m){
   document.getElementById('simPrazoLabel').textContent=t;
 }
 function simOnDataNasc(){
-  const val=document.getElementById('simDataNasc').value; if(!val) return;
-  const id=calcIdade(val); if(!id) return;
+  const val=document.getElementById('simDataNasc').value;
+  const hint=document.getElementById('simIdadeHint');
+  if(!hint) return;
+  if(!val){ hint.className='fs10 c-muted'; hint.textContent='Informe para calcular idade, prazo máximo (CEF) e taxa MIP sugerida'; return; }
+  const id=calcIdade(val);
+  if(!id||id.anos<18||id.anos>80){ hint.className='fs10 c-red'; hint.textContent='Idade fora do intervalo permitido (18–80 anos).'; return; }
   const prazoMax=maxPrazoByAge(id.anos);
+  const mipSug=getMIPRate(id.anos);
   const prazoAtual=parseInt(document.getElementById('simPrazoInput').value)||300;
-  if(prazoAtual>prazoMax) simAtualizaPrazo(prazoMax);
+  let aviso='';
+  if(prazoAtual>prazoMax){ simAtualizaPrazo(prazoMax); aviso=' ⚠️ Prazo ajustado para '+prazoMax+' meses.'; }
+  hint.className='fs10 c-gold';
+  hint.textContent=`Idade: ${id.anos} anos e ${id.meses} mês(es) · Prazo máx (CEF): ${prazoMax} meses (${Math.floor(prazoMax/12)} anos) · MIP sugerido: ${mipSug.toFixed(4).replace('.',',')}% a.m.${aviso}`;
+}
+function simSincTaxaInput(el){
+  const v=parseFloat(el.value.replace(',','.'));
+  if(isNaN(v)) return;
+  document.getElementById('simTaxaSlider').value=Math.min(18,Math.max(3,v));
 }
 function simToggleConjuge(){
   const tem=document.getElementById('simTemConjuge').checked;
@@ -2489,7 +2581,7 @@ function calcularSimulacao(){
   const vAval=parseBR(document.getElementById('simValor').value);
   const vEnt=parseBR(document.getElementById('simEntrada').value);
   const prazo=parseInt(document.getElementById('simPrazoInput').value)||300;
-  const taxaAno=parseFloat(document.getElementById('simTaxaInput').textContent.replace(',','.'))||8.3;
+  const taxaAno=parseFloat(document.getElementById('simTaxaInput').value.replace(',','.'))||8.3;
   const dataNasc=document.getElementById('simDataNasc').value;
   const renda1=parseBR(document.getElementById('simRenda1').value);
   const temConjuge=document.getElementById('simTemConjuge').checked;
@@ -2498,14 +2590,28 @@ function calcularSimulacao(){
   const juntarRenda=temConjuge&&document.getElementById('simJuntarRenda').checked;
   if(vAval<=0){toast('Informe o valor do imóvel.','red');return;}
   if(vEnt>=vAval){toast('A entrada deve ser menor que o valor do imóvel.','red');return;}
+  const dataNascCalc=dataNascParaCalculo_(dataNasc,temConjuge,dataNasc2);
+  const idadeCalc=calcIdade(dataNascCalc);
+  if(idadeCalc){
+    const prazoMax=maxPrazoByAge(idadeCalc.anos);
+    if(prazo>prazoMax){
+      toast(`⚠️ Prazo excede o limite da CEF para a idade considerada (${idadeCalc.anos} anos). Ajustado para ${prazoMax} meses.`,'amber');
+      simAtualizaPrazo(prazoMax);
+    }
+  }
+  const prazoFinal=parseInt(document.getElementById('simPrazoInput').value)||prazo;
   const pv=vAval-vEnt, im=taxaAno/100/12;
-  const mipTx=0.000512, dfiTx=0.0000804;
-  const dadosSAC=calcSAC(pv,prazo,im,mipTx,dfiTx,vAval);
-  const dadosPrice=calcPrice(pv,prazo,im,mipTx,dfiTx,vAval);
-  const dadosCFIAe=calcCFIAe(pv,prazo,im,dfiTx,0,vAval,dataNasc);
-  const dadosPOUPEX=calcPOUPEX(pv,prazo,im,0);
+  // MIP por faixa etária (mesma tabela do simulador.html) — usa a idade de
+  // referência (a mais velha do casal, se houver cônjuge); sem data de
+  // nascimento, cai no padrão do simulador.html (0,0086% a.m.).
+  const mipTx=idadeCalc?getMIPRate(idadeCalc.anos)/100:0.000086;
+  const dfiTx=0.00008; // 0,0080% a.m. — mesmo padrão do simulador.html
+  const dadosSAC=calcSAC(pv,prazoFinal,im,mipTx,dfiTx,vAval);
+  const dadosPrice=calcPrice(pv,prazoFinal,im,mipTx,dfiTx,vAval);
+  const dadosCFIAe=calcCFIAe(pv,prazoFinal,im,dfiTx,0,vAval,dataNascCalc,'ALLSEG');
+  const dadosPOUPEX=calcPOUPEX(pv,prazoFinal,im,0);
   const rendaConsiderada=renda1+(juntarRenda?renda2:0);
-  _simResults={vAval,vEnt,pv,prazo,taxaAno,dataNasc,renda1,renda2,dataNasc2,temConjuge,juntarRenda,rendaConsiderada,dadosSAC,dadosPrice,dadosCFIAe,dadosPOUPEX};
+  _simResults={vAval,vEnt,pv,prazo:prazoFinal,taxaAno,dataNasc,dataNasc2,dataNascCalc,renda1,renda2,temConjuge,juntarRenda,rendaConsiderada,dadosSAC,dadosPrice,dadosCFIAe,dadosPOUPEX};
   document.getElementById('simTabRow').style.display='grid';
   document.getElementById('tabValSac').textContent=fmtBRL(dadosSAC.primeiraEnc);
   document.getElementById('tabValPrice').textContent=fmtBRL(dadosPrice.primeiraEnc);
@@ -2524,12 +2630,22 @@ function calcularSimulacao(){
 }
 function renderSimRendaBox(){
   const box=document.getElementById('simRendaBox'); if(!box||!_simResults) return;
-  const {renda1,renda2,juntarRenda,rendaConsiderada,dadosCFIAe}=_simResults;
-  if(!rendaConsiderada){ box.innerHTML=''; return; }
+  const {renda1,renda2,juntarRenda,temConjuge,dataNascCalc,dataNasc,rendaConsiderada,dadosCFIAe}=_simResults;
+  let idadeInfo='';
+  const idadeCalc=calcIdade(dataNascCalc);
+  if(idadeCalc){
+    const prazoMax=maxPrazoByAge(idadeCalc.anos);
+    const usouConjuge=temConjuge && dataNascCalc!==dataNasc;
+    idadeInfo=`<div class="alert-box alert-teal" style="margin-bottom:10px">
+      🎂 Idade considerada: <strong>${idadeCalc.anos} anos e ${idadeCalc.meses} mês(es)</strong>${usouConjuge?' (idade do cônjuge, por ser a mais velha do casal)':''} ·
+      Prazo máx (CEF): <strong>${prazoMax} meses</strong> (${Math.floor(prazoMax/12)} anos)
+    </div>`;
+  }
+  if(!rendaConsiderada){ box.innerHTML=idadeInfo; return; }
   const limite=rendaConsiderada*0.30;
   const ok=dadosCFIAe.primeiraEnc<=limite;
   const pct=((dadosCFIAe.primeiraEnc/rendaConsiderada)*100).toFixed(1);
-  box.innerHTML=`<div class="alert-box ${ok?'alert-green':'alert-amber'}" style="margin-bottom:10px">
+  box.innerHTML=idadeInfo+`<div class="alert-box ${ok?'alert-green':'alert-amber'}" style="margin-bottom:10px">
     💰 Renda considerada: <strong>${fmtBRL(rendaConsiderada)}</strong>${juntarRenda?' (renda 1 + renda 2 combinadas)':''} ·
     Limite de 30% para o encargo: <strong>${fmtBRL(limite)}</strong> ·
     Encargo CFIAe estimado compromete <strong>${pct}%</strong> da renda —
@@ -2541,6 +2657,10 @@ function selecionarSistema(sis){
   ['sac','price','cfiae','poupex'].forEach(s=>document.getElementById('tab-'+s).classList.toggle('active',s===sis));
   renderSimDetalhe();
 }
+/* Mesma estrutura de apresentação de resultados do simulador.html:
+   resumo (financiado/juros/seguros/total), encargos da 1ª parcela
+   (prestação/MIP/DFI/total) e tabela de amortização completa (com
+   colunas de TR e Idade para o CFIAe, como no simulador.html). */
 function renderSimDetalhe(){
   if(!_simResults) return;
   const map={sac:{d:_simResults.dadosSAC,label:'SAC CEF — Amortização Constante',cor:'#34D399'},
@@ -2548,22 +2668,229 @@ function renderSimDetalhe(){
              cfiae:{d:_simResults.dadosCFIAe,label:'CFIAe — Aeronáutica (taxa do feirão)',cor:'var(--gold2)'},
              poupex:{d:_simResults.dadosPOUPEX,label:'POUPEX — SAC',cor:'#A78BFA'}};
   const sel=map[_simSistemaAtivo], d=sel.d;
-  const rows=d.rows.slice(0,6).map(r=>`<tr><td>${r.mes}</td><td>${fmtBRL2(r.amort)}</td><td>${fmtBRL2(r.juros)}</td><td class="fw7" style="color:${sel.cor}">${fmtBRL2(r.encargo)}</td><td>${fmtBRL2(r.saldo)}</td></tr>`).join('');
+  const isPoupex=_simSistemaAtivo==='poupex', isCfiae=_simSistemaAtivo==='cfiae';
+
+  const head=`<tr><th>Nº</th><th>Amortização</th><th>Juros</th>${isCfiae?'<th>TR</th><th>Idade</th>':''}${!isPoupex?'<th>MIP</th><th>DFI</th>':''}<th>Prestação</th>${!isPoupex?'<th>Encargo</th>':''}<th>Saldo</th></tr>`;
+  const rows=d.rows.map(r=>`<tr>
+    <td>${String(r.mes).padStart(3,'0')}</td><td>${fmtBRL2(r.amort)}</td><td>${fmtBRL2(r.juros)}</td>
+    ${isCfiae?`<td>${fmtBRL2(r.tr||0)}</td><td style="color:${sel.cor};font-weight:700">${r.idadeAtual||'—'}</td>`:''}
+    ${!isPoupex?`<td>${fmtBRL2(r.mip||0)}</td><td>${fmtBRL2(r.dfi||0)}</td>`:''}
+    <td class="fw7">${fmtBRL2(r.parcela)}</td>
+    ${!isPoupex?`<td class="fw7" style="color:${sel.cor}">${fmtBRL2(r.encargo)}</td>`:''}
+    <td>${fmtBRL2(r.saldo)}</td>
+  </tr>`).join('');
+
   document.getElementById('simResultArea').innerHTML=`
     <div class="card">
       <div class="card-h"><div class="card-title" style="color:${sel.cor}">${sel.label}</div></div>
       <div class="card-b">
-        <div class="kpi-strip g3" style="margin-bottom:14px">
-          <div class="kpi gold"><div class="kpi-lbl">1ª parcela/encargo</div><div class="kpi-val" style="font-size:18px">${fmtBRL(d.primeiraEnc)}</div></div>
-          <div class="kpi teal"><div class="kpi-lbl">Última parcela</div><div class="kpi-val" style="font-size:18px">${fmtBRL(d.ultimaEnc)}</div></div>
-          <div class="kpi purple"><div class="kpi-lbl">Total estimado pago</div><div class="kpi-val" style="font-size:16px">${fmtBRL(d.totalP)}</div></div>
+        <div class="g4" style="margin-bottom:14px">
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Valor Financiado</div><div class="fw7" style="font-size:15px">${fmtBRL(_simResults.pv)}</div><div class="fs10 c-muted">Entrada: ${((_simResults.vEnt/_simResults.vAval)*100).toFixed(1)}%</div></div></div>
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Total Juros</div><div class="fw7" style="font-size:15px">${fmtBRL(d.totalJ)}</div><div class="fs10 c-muted">Sistema ${sel.label.split(' —')[0]}</div></div></div>
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Total Seguros</div><div class="fw7" style="font-size:15px">${isPoupex?'—':fmtBRL(d.totalMIP+d.totalDFI)}</div><div class="fs10 c-muted">${isPoupex?'POUPEX sem MIP/DFI':'MIP + DFI acumulados'}</div></div></div>
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Total Pago</div><div class="fw7" style="font-size:15px">${fmtBRL(d.totalP)}</div><div class="fs10 c-muted">em ${_simResults.prazo} parcelas</div></div></div>
         </div>
-        <div class="sec" style="margin-bottom:8px">Primeiras parcelas</div>
-        <table class="tbl" style="margin-bottom:14px"><thead><tr><th>Nº</th><th>Amortização</th><th>Juros</th><th>Parcela/Encargo</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table>
-        <button class="btn btn-gold btn-full" onclick="usarSimulacaoNoFluxo()">💳 Usar esta simulação no Fluxo de Pagamento →</button>
+        ${isPoupex?'':`<div class="g4" style="margin-bottom:14px">
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">Prestação (1ª)</div><div class="fw7">${fmtBRL2(d.primeiraP)}</div><div class="fs10 c-muted">Amortização + Juros</div></div></div>
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">MIP</div><div class="fw7">${fmtBRL2(d.mip1)}</div><div class="fs10 c-muted">Sobre saldo devedor</div></div></div>
+          <div class="card"><div class="card-b" style="padding:10px"><div class="fs10 c-muted">DFI</div><div class="fw7">${fmtBRL2(d.dfi1)}</div><div class="fs10 c-muted">Fixo — sobre avaliação</div></div></div>
+          <div class="card" style="background:linear-gradient(135deg,var(--gold-dim),transparent);border-color:var(--gold-b)"><div class="card-b" style="padding:10px"><div class="fs10 c-gold">Encargo Mensal Total (1ª)</div><div class="fw7 c-gold" style="font-size:16px">${fmtBRL2(d.primeiraEnc)}</div><div class="fs10 c-muted">Prestação + MIP + DFI</div></div></div>
+        </div>`}
+        <div class="sec" style="margin-bottom:8px">Tabela de amortização completa (${d.rows.length} parcelas)</div>
+        <div class="card-b" style="padding:0;max-height:340px;overflow-y:auto;border:1px solid var(--bdr);border-radius:8px;margin-bottom:14px">
+          <table class="tbl"><thead>${head}</thead><tbody>${rows}</tbody></table>
+        </div>
+        <div class="fs10 c-muted" style="margin-bottom:14px;line-height:1.6">
+          ⚠️ MIP (Morte e Invalidez Permanente) incide sobre o saldo devedor — taxa varia por faixa etária. DFI (Danos Físicos ao Imóvel) é fixo sobre o valor de avaliação.<br>
+          SAC e Price seguem metodologia da Caixa Econômica Federal. CFIAe inclui correção pela TR mensal. Regra CEF: idade + prazo ≤ 80 anos e 6 meses.<br>
+          Simulação educativa. Valores finais sujeitos à análise de crédito e aprovação.
+        </div>
+        <button class="btn btn-gold btn-full" id="btnUsarSimNoFluxo" onclick="usarSimulacaoNoFluxo()">💳 Usar esta simulação no Fluxo de Pagamento →</button>
       </div>
     </div>`;
 }
+
+/* ════════════ SIMULADOR — IMPRIMIR / GERAR PDF (mesmo formato do simulador.html) ════════════ */
+function prepararHeaderImpressaoSim_(){
+  if(!_simResults) return;
+  const {vAval,vEnt,prazo,taxaAno,pv,dataNascCalc}=_simResults;
+  document.getElementById('simPrintDate').textContent=new Date().toLocaleString('pt-BR',{dateStyle:'long',timeStyle:'short'});
+  const idadeCalc=calcIdade(dataNascCalc);
+  const idadeStr=idadeCalc?`${idadeCalc.anos} anos e ${idadeCalc.meses} mês(es)`:'Não informada';
+  const params=[
+    {l:'Valor do Imóvel',v:fmtBRL2(vAval)},
+    {l:'Entrada ('+((vEnt/vAval)*100).toFixed(1)+'%)',v:fmtBRL2(vEnt)},
+    {l:'Valor Financiado',v:fmtBRL2(pv)},
+    {l:'Prazo',v:prazo+' meses'},
+    {l:'Taxa de Juros',v:taxaAno.toFixed(2).replace('.',',')+'% a.a.'},
+    {l:'Idade considerada',v:idadeStr}
+  ];
+  document.getElementById('simPrintParams').innerHTML=params.map(p=>`
+    <div style="background:#f5f0e8;border:1px solid #ddd;padding:9px 11px;border-radius:3px">
+      <div style="font-size:8pt;color:#8A7D6A;font-weight:600;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px">${p.l}</div>
+      <div style="font-size:12pt;font-weight:700;color:#1A1510">${p.v}</div>
+    </div>`).join('');
+  const comp=[
+    {nome:'SAC CEF',cor:'#2D5A3D',bg:'#E8F2EB',d:_simResults.dadosSAC},
+    {nome:'Price CEF',cor:'#1A3A5C',bg:'#E8EFF7',d:_simResults.dadosPrice},
+    {nome:'CFIAe',cor:'#6B2D5A',bg:'#F2E8EF',d:_simResults.dadosCFIAe},
+    {nome:'POUPEX',cor:'#1A5C4A',bg:'#E8F2EF',d:_simResults.dadosPOUPEX}
+  ];
+  document.getElementById('simPrintComparativo').innerHTML=comp.map(c=>`
+    <div style="background:${c.bg};border:2px solid ${c.cor};padding:10px 12px;border-radius:3px">
+      <div style="font-size:9pt;font-weight:700;color:${c.cor};letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">${c.nome}</div>
+      <div style="font-size:8pt;color:#8A7D6A">1ª Parcela/Encargo</div>
+      <div style="font-size:14pt;font-weight:700;color:${c.cor};line-height:1.1">${fmtBRL2(c.d.primeiraEnc)}</div>
+      <div style="border-top:1px solid ${c.cor}30;margin-top:6px;padding-top:6px;font-size:8pt;color:#8A7D6A">Total pago (estimado)</div>
+      <div style="font-size:10pt;font-weight:700;color:${c.cor}">${fmtBRL2(c.d.totalP)}</div>
+    </div>`).join('');
+}
+function imprimirSimulacao(){
+  if(!_simResults){ toast('Calcule uma simulação primeiro.','red'); return; }
+  prepararHeaderImpressaoSim_();
+  setTimeout(()=>window.print(),120);
+}
+function esperarLibsSim_(tentativas){
+  tentativas=tentativas||0;
+  return new Promise((res,rej)=>{
+    if(window.jspdf&&window.html2canvas){ res(); return; }
+    if(tentativas>30){ rej(new Error('Bibliotecas de PDF não carregaram. Verifique sua conexão.')); return; }
+    setTimeout(()=>esperarLibsSim_(tentativas+1).then(res).catch(rej),300);
+  });
+}
+async function gerarPDFSimulacao(){
+  if(!_simResults){ toast('Calcule uma simulação primeiro.','red'); return; }
+  const btn=document.getElementById('btnGerarPdfSim');
+  const originalHTML=btn.innerHTML;
+  btn.innerHTML='⏳ Gerando…'; btn.disabled=true;
+  try{
+    await esperarLibsSim_();
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const A4_W=210,MARGIN=10,usableW=A4_W-MARGIN*2;
+    let curY=MARGIN;
+
+    doc.setFillColor(26,21,16); doc.rect(0,0,A4_W,22,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(14); doc.setTextColor(196,146,42);
+    doc.text('WAL Imóveis',MARGIN,10);
+    doc.setFontSize(7); doc.setTextColor(180,170,150);
+    doc.text('CRECI 12261-J  ·  Simulação de Financiamento Imobiliário — 1º Feirão WAL',MARGIN,15);
+    const dataStr=new Date().toLocaleString('pt-BR',{dateStyle:'long',timeStyle:'short'});
+    doc.setFontSize(7); doc.text(dataStr,A4_W-MARGIN,10,{align:'right'});
+    curY=30;
+    doc.setDrawColor(196,146,42); doc.setLineWidth(0.5); doc.line(MARGIN,24,A4_W-MARGIN,24);
+
+    const {vAval,vEnt,prazo,taxaAno,pv,dataNascCalc}=_simResults;
+    const idadeCalc=calcIdade(dataNascCalc);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(138,125,106);
+    doc.text('PARÂMETROS DA SIMULAÇÃO',MARGIN,curY); curY+=5;
+    const paramCols=[
+      ['Valor do Imóvel',fmtBRL2(vAval)],
+      ['Entrada',fmtBRL2(vEnt)+' ('+((vEnt/vAval)*100).toFixed(1)+'%)'],
+      ['Financiado',fmtBRL2(pv)],
+      ['Prazo',prazo+' meses'],
+      ['Taxa a.a.',taxaAno.toFixed(2).replace('.',',')+' %'],
+      ['Idade considerada',idadeCalc?(idadeCalc.anos+' anos'):'Não informada']
+    ];
+    const colW=usableW/3;
+    paramCols.forEach(([l,v],i)=>{
+      const cx=MARGIN+(i%3)*colW, cy=curY+Math.floor(i/3)*14;
+      doc.setFillColor(245,240,232); doc.rect(cx,cy-4,colW-2,13,'F');
+      doc.setDrawColor(200,190,175); doc.rect(cx,cy-4,colW-2,13);
+      doc.setFont('helvetica','bold'); doc.setFontSize(7); doc.setTextColor(138,125,106);
+      doc.text(l.toUpperCase(),cx+2,cy+1);
+      doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.setTextColor(26,21,16);
+      doc.text(v,cx+2,cy+8);
+    });
+    curY+=32;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(138,125,106);
+    doc.text('COMPARATIVO DOS SISTEMAS',MARGIN,curY); curY+=5;
+    const sistemas=[
+      {nome:'SAC',cor:[45,90,61],bg:[232,242,235],d:_simResults.dadosSAC,l1:'1º Encargo',lN:'Último Encargo'},
+      {nome:'Price',cor:[26,58,92],bg:[232,239,247],d:_simResults.dadosPrice,l1:'1º Encargo',lN:'Último Encargo'},
+      {nome:'CFIAe',cor:[107,45,90],bg:[242,232,239],d:_simResults.dadosCFIAe,l1:'1º Encargo',lN:'Último Encargo'},
+      {nome:'POUPEX',cor:[26,92,74],bg:[232,242,239],d:_simResults.dadosPOUPEX,l1:'1ª Parcela',lN:'Última Parcela'}
+    ];
+    const sW=usableW/4;
+    sistemas.forEach((s,i)=>{
+      const cx=MARGIN+i*sW, cy=curY;
+      doc.setFillColor(...s.bg); doc.rect(cx,cy-4,sW-2,40,'F');
+      doc.setDrawColor(...s.cor); doc.setLineWidth(0.8); doc.rect(cx,cy-4,sW-2,40);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9); doc.setTextColor(...s.cor); doc.text(s.nome,cx+3,cy+2);
+      doc.setFontSize(7); doc.setTextColor(138,125,106); doc.text(s.l1,cx+3,cy+8);
+      doc.setFontSize(12); doc.setTextColor(...s.cor); doc.text(fmtBRL2(s.d.primeiraEnc),cx+3,cy+16);
+      doc.setFontSize(7); doc.setTextColor(138,125,106); doc.text(s.lN,cx+3,cy+21);
+      doc.setFontSize(9); doc.setTextColor(...s.cor); doc.text(fmtBRL2(s.d.ultimaEnc),cx+3,cy+27);
+      doc.setDrawColor(...s.cor); doc.setLineWidth(0.3); doc.line(cx+2,cy+31,cx+sW-4,cy+31);
+      doc.setFontSize(7); doc.setTextColor(138,125,106); doc.text('Total estimado',cx+3,cy+35);
+      doc.setFontSize(8); doc.setTextColor(...s.cor); doc.text(fmtBRL2(s.d.totalP),cx+3,cy+40);
+    });
+    curY+=50;
+
+    const map={sac:_simResults.dadosSAC,price:_simResults.dadosPrice,cfiae:_simResults.dadosCFIAe,poupex:_simResults.dadosPOUPEX};
+    const dadosTab=map[_simSistemaAtivo];
+    const isCfiae=_simSistemaAtivo==='cfiae', isPoupex=_simSistemaAtivo==='poupex';
+    const nomeTab={sac:'SAC',price:'Price',cfiae:'CFIAe',poupex:'POUPEX'}[_simSistemaAtivo];
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(138,125,106);
+    doc.text(`TABELA DE AMORTIZAÇÃO — ${nomeTab} (primeiras 24 parcelas)`,MARGIN,curY); curY+=4;
+
+    const thCols=isCfiae?['Nº','Amortização','Juros','TR','MIP','DFI','Prestação','Encargo','Saldo']
+      :isPoupex?['Nº','Amortização','Juros','Prestação','Saldo']
+      :['Nº','Amortização','Juros','MIP','DFI','Prestação','Encargo','Saldo'];
+    const cWidths=isCfiae?[10,22,22,12,15,13,22,22,22]
+      :isPoupex?[10,35,35,35,75]
+      :[10,25,25,17,17,25,25,29];
+
+    doc.setFillColor(26,21,16); doc.rect(MARGIN,curY,usableW,7,'F');
+    let xc=MARGIN;
+    thCols.forEach((th,i)=>{
+      doc.setFont('helvetica','bold'); doc.setFontSize(6.5); doc.setTextColor(196,146,42);
+      doc.text(th,xc+1,curY+5); xc+=cWidths[i];
+    });
+    curY+=7;
+
+    dadosTab.rows.slice(0,24).forEach((r,idx)=>{
+      doc.setFillColor(idx%2===0?250:255,idx%2===0?248:255,idx%2===0?244:255);
+      doc.rect(MARGIN,curY,usableW,6,'F');
+      doc.setDrawColor(220,215,205); doc.rect(MARGIN,curY,usableW,6);
+      const vals=isCfiae
+        ?[String(r.mes).padStart(3,'0'),fmtBRL2(r.amort),fmtBRL2(r.juros),fmtBRL2(r.tr||0),fmtBRL2(r.mip||0),fmtBRL2(r.dfi||0),fmtBRL2(r.parcela),fmtBRL2(r.encargo),fmtBRL2(r.saldo)]
+        :isPoupex?[String(r.mes).padStart(3,'0'),fmtBRL2(r.amort),fmtBRL2(r.juros),fmtBRL2(r.parcela),fmtBRL2(r.saldo)]
+        :[String(r.mes).padStart(3,'0'),fmtBRL2(r.amort),fmtBRL2(r.juros),fmtBRL2(r.mip||0),fmtBRL2(r.dfi||0),fmtBRL2(r.parcela),fmtBRL2(r.encargo),fmtBRL2(r.saldo)];
+      xc=MARGIN;
+      vals.forEach((v,i)=>{
+        doc.setFont('helvetica','normal'); doc.setFontSize(6); doc.setTextColor(60,50,40);
+        doc.text(v,xc+1,curY+4.5); xc+=cWidths[i];
+      });
+      curY+=6;
+    });
+    if(dadosTab.rows.length>24){
+      doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(138,125,106);
+      doc.text(`… + ${dadosTab.rows.length-24} parcelas adicionais. Use a tabela completa no simulador online para ver o extrato integral.`,MARGIN,curY+5);
+      curY+=10;
+    }
+
+    curY+=8;
+    doc.setDrawColor(200,190,175); doc.line(MARGIN,curY,A4_W-MARGIN,curY);
+    doc.setFont('helvetica','italic'); doc.setFontSize(7); doc.setTextColor(138,125,106);
+    const disc=[
+      'Simulação educativa com fins ilustrativos. Valores finais sujeitos a análise de crédito e aprovação.',
+      'CFIAe: MIP (morte/invalidez) incide sobre saldo devedor; DFI (danos físicos) é fixo sobre o valor de avaliação.',
+      'WAL Imóveis · CRECI 12261-J · Documento gerado em: '+dataStr
+    ];
+    disc.forEach((d,i)=>doc.text(d,MARGIN,curY+4+i*4));
+
+    doc.save(`Simulacao-WAL-Imoveis-${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.pdf`);
+  }catch(e){
+    console.error(e);
+    toast('Erro ao gerar PDF: '+e.message,'red');
+  }finally{
+    btn.innerHTML=originalHTML; btn.disabled=false;
+  }
+}
+
 function usarSimulacaoNoFluxo(){
   if(!_simResults) return;
   const map={sac:{d:_simResults.dadosSAC,label:'SAC CEF'},price:{d:_simResults.dadosPrice,label:'PRICE CEF'},cfiae:{d:_simResults.dadosCFIAe,label:'CFIAe'},poupex:{d:_simResults.dadosPOUPEX,label:'POUPEX'}};
