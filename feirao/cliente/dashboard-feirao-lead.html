@@ -1220,6 +1220,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
         <div class="ph">
           <div><div class="ph-eye">Planejamento</div><div class="ph-title">Fluxo de Pagamento</div><div class="ph-sub">Confirme cada etapa do seu cronograma — tudo fica salvo automaticamente</div></div>
           <div class="ph-acts">
+            <button class="btn btn-sm btn-gold" id="btnSalvarFluxo" onclick="salvarFluxoPagamento()">💾 Salvar este fluxo</button>
             <button class="btn btn-sm" onclick="zerarFluxoPagamento()">♻️ Zerar e recomeçar</button>
             <button class="btn btn-sm" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
           </div>
@@ -1248,6 +1249,11 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
               <button class="btn btn-sm btn-teal" onclick="adicionarPagamentoIntermediario()">+ Lançar</button>
             </div>
           </div>
+        </div>
+
+        <div class="card" style="margin-top:16px">
+          <div class="card-h"><div class="card-title">💾 Meus fluxos salvos</div><span class="card-link" onclick="carregarFluxosSalvos_()">atualizar</span></div>
+          <div class="card-b" id="fluxosSalvosBox"><div class="fs11 c-muted">Consultando planilha...</div></div>
         </div>
       </div>
 
@@ -3294,6 +3300,7 @@ function garantirParcelasEntrada(){
 }
 function reservaMinima(p){ return Math.round(p.valor*0.10); }
 function renderFluxoPagamento(){
+  carregarFluxosSalvos_();
   if(!_pagamentoState){
     document.getElementById('pagamentoVazio').style.display='block';
     document.getElementById('pagamentoConteudo').style.display='none';
@@ -3484,6 +3491,70 @@ function salvarObservacoesPagamento(val){
   _pagamentoState.observacoes=val;
   salvarEstado();
 }
+/* ════════════ FLUXOS DE PAGAMENTO SALVOS (feirao_fluxo_salvar) ════════════
+   Diferente da sincronização automática (feirao_pagamento, aba
+   FLUXO_PAGAMENTO) — aqui é o "Salvar" intencional do lead: cada
+   empreendimento/unidade vira um registro à parte que ele pode revisitar,
+   e que o atendente/gerente também enxergam. Usa feiraoApiJsonp (GET, lê
+   a resposta de verdade) para confirmar de fato que salvou. */
+async function salvarFluxoPagamento(){
+  if(!_pagamentoState){ toast('Monte um fluxo de pagamento antes de salvar.','red'); return; }
+  const btn=document.getElementById('btnSalvarFluxo');
+  btn.disabled=true; btn.textContent='Salvando...';
+  const e=_pagamentoState.empId?EMPREENDIMENTOS.find(x=>x.id===_pagamentoState.empId):null;
+  const progresso=parseInt((document.getElementById('pgProgressTxt')?.textContent||'0').replace('%',''))||0;
+  const unidade=(_selectedUnidade&&_selectedUnidade.empId===_pagamentoState.empId)?_selectedUnidade.numero:'';
+  const resp=await feiraoApiJsonp('feirao_fluxo_salvar',{
+    email:LEAD.email, sessionToken:LEAD.sessionToken, nome:LEAD.nome,
+    empId:_pagamentoState.empId||'', empNome:e?e.nome:'Simulação livre', unidade,
+    estadoJson:JSON.stringify(_pagamentoState), progressoPct:progresso
+  });
+  btn.disabled=false; btn.textContent='💾 Salvar este fluxo';
+  if(resp && resp.status==='ok'){
+    toast('💾 Fluxo salvo! Você pode acessá-lo depois em "Meus fluxos salvos".','green');
+    carregarFluxosSalvos_();
+  } else {
+    toast('❌ '+((resp&&resp.message)||'Não foi possível salvar agora. O backend do Feirão pode ainda não ter esta ação publicada.'),'red');
+  }
+}
+/* Lista os fluxos salvos do próprio lead. */
+async function carregarFluxosSalvos_(){
+  const box=document.getElementById('fluxosSalvosBox'); if(!box||!LEAD) return;
+  const resp=await feiraoApiJsonp('feirao_listar_fluxos_salvos',{email:LEAD.email, sessionToken:LEAD.sessionToken});
+  if(!resp || !resp.ok){ box.innerHTML='<div class="fs11 c-red">Não foi possível carregar seus fluxos salvos agora.</div>'; return; }
+  const itens=[...(resp.itens||[])].sort((a,b)=>new Date(b.atualizadoEm)-new Date(a.atualizadoEm));
+  if(!itens.length){ box.innerHTML='<div class="fs11 c-muted">Você ainda não salvou nenhum fluxo de pagamento.</div>'; return; }
+  window._fluxosSalvosCache=itens;
+  box.innerHTML=itens.map(f=>`
+    <div class="card" style="background:var(--card2);margin-bottom:10px">
+      <div class="card-b" style="padding:12px">
+        <div class="flex-bet" style="margin-bottom:4px">
+          <span class="fs12 fw7" style="color:#fff">${f.empNome||'Simulação livre'}${f.unidade?' · Unidade '+f.unidade:''}</span>
+          <span class="bdg bo">${f.progressoPct||0}%</span>
+        </div>
+        <div class="fs10 c-muted" style="margin-bottom:8px">Atualizado em ${fmtDataHora(f.atualizadoEm)}</div>
+        <div class="quick-actions" style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-sm btn-teal" onclick="abrirFluxoSalvo_('${f.id}')">📂 Abrir e editar</button>
+          <button class="btn btn-sm" onclick="excluirFluxoSalvo_('${f.id}')">🗑️ Excluir</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function abrirFluxoSalvo_(id){
+  const f=(window._fluxosSalvosCache||[]).find(x=>x.id===id); if(!f) return;
+  _pagamentoState=f.estado;
+  _selectedPropId=f.empId||_selectedPropId;
+  renderFluxoPagamento();
+  toast('📂 Fluxo carregado — qualquer alteração pode ser salva de novo.','green');
+  salvarEstado();
+}
+async function excluirFluxoSalvo_(id){
+  if(!confirm('Excluir este fluxo salvo? Essa ação não pode ser desfeita.')) return;
+  const resp=await feiraoApiJsonp('feirao_fluxo_salvar',{operacao:'remover', id, email:LEAD.email, sessionToken:LEAD.sessionToken});
+  if(resp && resp.status==='ok'){ toast('🗑️ Fluxo excluído.',''); carregarFluxosSalvos_(); }
+  else toast('❌ '+((resp&&resp.message)||'Não foi possível excluir agora.'),'red');
+}
+
 function zerarFluxoPagamento(){
   if(!_pagamentoState){ toast('Nenhum fluxo de pagamento para zerar.',''); return; }
   if(!confirm('Tem certeza que deseja zerar todo o fluxo de pagamento e recomeçar? Os pagamentos e datas marcados serão apagados.')) return;

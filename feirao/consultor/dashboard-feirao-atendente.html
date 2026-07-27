@@ -2167,7 +2167,7 @@ async function enviarIA(){
 }
 
 /* ═══════════════ GERENTE · SOLICITAÇÃO AO VIABILIZADOR ═══════════════ */
-const TIPOS_SOLICITACAO = {desconto:'Desconto Comercial', analise_credito:'Análise de Crédito Prioritária', condicao_especial:'Condição Especial de Feirão', gerar_contrato:'Geração de Contrato', outro:'Outro'};
+const TIPOS_SOLICITACAO = {desconto:'Desconto Comercial', analise_credito:'Análise de Crédito Prioritária', condicao_especial:'Condição Especial de Feirão', fluxo_pagamento:'Encaminhar Fluxo de Pagamento', gerar_contrato:'Geração de Contrato', outro:'Outro'};
 /* Protocolos REAIS de análise de crédito — gerados pelo próprio lead ao
    enviar documentos no dashboard dele (feirao_credito_), com upload real
    no Drive. Distinto do fluxo manual abaixo (gerente pede parecer ao
@@ -2220,6 +2220,63 @@ function decidirCreditoReal(protocolo, statusAlvo){
   chamarFeiraoApi('feirao_credito_decisao', {protocolo, status:statusAlvo, valorAprovado, entradaMinima, taxa, parecer, authPin:SESSION.authPin});
   toast('Decisão registrada na planilha.');
   setTimeout(carregarAnalisesCreditoReaisEAtualizar_, 1200);
+}
+
+/* ═══════════ FLUXOS DE PAGAMENTO SALVOS PELO CLIENTE ═══════════
+   Lê feirao_listar_fluxos_salvos (Atendente e Gerente podem ver; só o
+   Gerente encaminha ao Viabilizador — reaproveita a tela "Solicitação
+   ao Viabilizador" já existente, só pré-preenchendo o formulário). */
+async function carregarFluxosSalvosDoLead_(email){
+  // não busca o elemento aqui: renderLeadDetail() ainda não terminou de
+  // montar o HTML nesse ponto (essa função é chamada antes do innerHTML
+  // ser atribuído) — só existe de verdade depois do primeiro await.
+  const r=await feiraoApiJsonp('feirao_listar_fluxos_salvos',{email, authPin:SESSION.authPin});
+  const box=document.getElementById('fluxosSalvosLeadBox');
+  if(!box) return; // gerente já saiu da tela do lead enquanto a planilha respondia
+  if(!r || !r.ok){ box.innerHTML='<div class="hint">Não foi possível carregar os fluxos salvos agora.</div>'; return; }
+  window._fluxosSalvosLeadCache = r.itens||[];
+  if(!r.itens || !r.itens.length){ box.innerHTML='<div class="empty">Este cliente ainda não salvou nenhum fluxo de pagamento no dashboard dele.</div>'; return; }
+  box.innerHTML = r.itens.map(f=>{
+    const p=f.estado||{};
+    return `<div class="card" style="background:var(--surf2);margin-bottom:10px">
+      <div class="card-h"><h3 style="font-size:13px">${f.empNome||'Simulação livre'}${f.unidade?' · Unidade '+f.unidade:''}</h3><span class="badge b-fechado">${f.progressoPct||0}% do cronograma</span></div>
+      <div class="grid2">
+        <div>
+          <div class="info-row"><span class="k">Valor do imóvel</span><span class="v">${fmtMoney(p.valor||0)}</span></div>
+          <div class="info-row"><span class="k">Entrada</span><span class="v">${fmtMoney(p.entrada||0)}</span></div>
+          <div class="info-row"><span class="k">Sistema</span><span class="v">${p.sistema||'—'}</span></div>
+        </div>
+        <div>
+          <div class="info-row"><span class="k">Prazo</span><span class="v">${p.prazo?p.prazo+' meses':'—'}</span></div>
+          <div class="info-row"><span class="k">Reserva</span><span class="v">${p.reserva?fmtMoney(p.reserva.valor)+(p.reserva.paga?' · paga':' · pendente'):'—'}</span></div>
+          <div class="info-row"><span class="k">Atualizado em</span><span class="v">${fmtDT(f.atualizadoEm)}</span></div>
+        </div>
+      </div>
+      ${SESSION.tipo==='gerente'?`<div class="quick-actions" style="margin-top:8px">
+        <button class="btn sm gold" onclick="encaminharFluxoAoViabilizador_('${f.id}')">📨 Encaminhar ao Viabilizador</button>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+function encaminharFluxoAoViabilizador_(fluxoId){
+  const f=(window._fluxosSalvosLeadCache||[]).find(x=>x.id===fluxoId); if(!f) return;
+  const lead=STATE.leads.find(l=>l.id===activeLeadId); // captura antes do goTo() zerar activeLeadId
+  const p=f.estado||{};
+  const resumo=`Fluxo de pagamento salvo pelo cliente — ${f.empNome||'Simulação livre'}${f.unidade?' · Unidade '+f.unidade:''}.\n`+
+    `Valor do imóvel: ${fmtMoney(p.valor||0)} · Entrada: ${fmtMoney(p.entrada||0)} · Sistema: ${p.sistema||'—'} · Prazo: ${p.prazo?p.prazo+' meses':'—'}\n`+
+    `Reserva: ${p.reserva?fmtMoney(p.reserva.valor)+(p.reserva.paga?' (paga)':' (pendente)'):'—'} · Progresso do cronograma: ${f.progressoPct||0}%\n`+
+    `Atualizado em ${fmtDT(f.atualizadoEm)}.`;
+  goTo('solicitacaoViabilizador');
+  setTimeout(()=>{
+    const tipoSel=document.getElementById('novaSolTipo');
+    if(!tipoSel) return;
+    tipoSel.value='fluxo_pagamento';
+    onChangeTipoSolicitacao('fluxo_pagamento');
+    if(f.empId) document.getElementById('novaSolEmp').value=f.empId;
+    if(lead) document.getElementById('novaSolLead').value=lead.id;
+    document.getElementById('novaSolDesc').value=resumo;
+    toast('Revise os dados e clique em "Enviar ao Viabilizador" para confirmar o encaminhamento.');
+  },50);
 }
 
 function renderSolicitacaoViabilizador(){
@@ -2320,7 +2377,7 @@ function renderSolicitacaoViabilizador(){
 function onChangeTipoSolicitacao(tipo){
   const wrap = document.getElementById('novaSolLeadWrap');
   if(!wrap) return;
-  if(tipo==='analise_credito') wrap.classList.remove('hidden'); else wrap.classList.add('hidden');
+  if(tipo==='analise_credito'||tipo==='fluxo_pagamento') wrap.classList.remove('hidden'); else wrap.classList.add('hidden');
 }
 /* NOTA — gap conhecido (ver documentacao-tecnica-banco-de-dados.html §5):
    este fluxo de "solicitação ao Viabilizador" (o gerente registra manualmente
@@ -2338,7 +2395,7 @@ function criarSolicitacaoViabilizador(){
   const leadSel = document.getElementById('novaSolLead');
   const leadId = leadSel ? (leadSel.value || null) : null;
   if(!descricao){ toast('Descreva a solicitação.'); return; }
-  if(tipo==='analise_credito' && !leadId){ toast('Selecione o lead/cliente para a Análise de Crédito.'); return; }
+  if((tipo==='analise_credito'||tipo==='fluxo_pagamento') && !leadId){ toast('Selecione o lead/cliente.'); return; }
   const sol = {id:uid('sv'), tipo, empId, atendenteId, leadId, descricao, status:'pendente', parecer:'', emailEnviado:false, emailEnviadoEm:null, criadoEm:nowISO(), respondidoEm:null};
   STATE.solicitacoesViabilizador.push(sol);
   if(tipo==='analise_credito' && leadId){
@@ -2822,6 +2879,7 @@ function renderMeuDesempenho(){
 function renderLeadDetail(){
   const lead = STATE.leads.find(l=>l.id===activeLeadId);
   if(!lead) return '<div class="empty">Lead não encontrado.</div>';
+  if(lead.email) carregarFluxosSalvosDoLead_(lead.email); // dispara sem esperar; preenche #fluxosSalvosLeadBox quando responder
   const emp = getEmpreendimento(lead.empreendimentoInteresse);
   const construtora = emp ? getConstrutora(emp.construtoraId) : null;
   const unidadesEmp = emp ? STATE.unidades.filter(u=>u.empreendimentoId===emp.id) : [];
@@ -2976,6 +3034,11 @@ function renderLeadDetail(){
         </div>
         <button class="btn sm" style="margin-top:8px" onclick="adicionarIntermediarioFluxo('${lead.id}')">+ Lançar pagamento intermediário</button>`:''}
       </div>`:''}
+
+      <div class="card">
+        <div class="card-h"><h3>💾 Fluxos de Pagamento Salvos pelo Cliente</h3><span class="hint">Direto do dashboard dele — feirao_listar_fluxos_salvos</span></div>
+        <div id="fluxosSalvosLeadBox"><div class="hint">Consultando planilha...</div></div>
+      </div>
 
       ${canAct?`<div class="card">
         <div class="card-h"><h3>Ações do atendimento</h3></div>

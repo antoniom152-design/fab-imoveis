@@ -108,6 +108,7 @@ var ABA_MENSAGENS       = 'MENSAGENS_CONSULTOR';
 var ABA_CHAT            = 'CHAT_MENSAGENS';
 var ABA_PIX             = 'RESERVAS_PIX_FEIRAO';
 var ABA_PAGAMENTO       = 'FLUXO_PAGAMENTO';
+var ABA_FLUXOS_SALVOS   = 'FLUXOS_PAGAMENTO_SALVOS';
 var ABA_CONSTRUTORAS    = 'CONSTRUTORAS';
 var ABA_EMPREENDIMENTOS = 'EMPREENDIMENTOS';
 var ABA_UNIDADES        = 'UNIDADES';
@@ -566,6 +567,8 @@ function doGet(e) {
       case 'feirao_status_contrato':     result = feirao_statusContrato_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
       case 'feirao_simulacao_status':    result = feirao_simulacaoStatus_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
       case 'feirao_pagamento_status':    result = feirao_pagamentoStatus_(p.email || '', p.sessionToken || '', p.authPin || ''); break;
+      case 'feirao_fluxo_salvar':        result = feirao_fluxoSalvoCrud_(p); break;
+      case 'feirao_listar_fluxos_salvos': result = feirao_listarFluxosSalvos_(p); break;
       case 'feirao_listar_agendamentos': result = feirao_listarAgendamentos_(p); break;
       case 'feirao_stats':               result = feirao_stats_(); break;
       case 'feirao_chat_buscar':         result = feirao_chatBuscar_(p.email || '', p.since || '', p.leitor || '', p.sessionToken || '', p.authPin || ''); break;
@@ -1479,6 +1482,84 @@ function feirao_pagamentoStatus_(email, sessionToken, authPin) {
     }
   }
   return { found: false };
+}
+
+/* ══════════════════════ FLUXOS DE PAGAMENTO SALVOS ═══════════════════
+   Diferente de FLUXO_PAGAMENTO (rascunho único por lead, sobrescrito a
+   cada ajuste automático) — aqui é o "Salvar" intencional do cliente:
+   cada empreendimento/unidade vira um registro à parte, que ele pode
+   revisitar e editar depois, e que o atendente/gerente também enxerga.
+   criarAbaSeNaoExiste_ cria a aba sozinha no primeiro uso — não precisa
+   de migração manual como Chave_PIX (que foi coluna nova numa aba já
+   existente; aqui é aba nova, criarAbaSeNaoExiste_ já resolve). */
+var FLUXO_SALVO_HEADERS_ = ['Id', 'Email', 'Nome', 'Emp_Id', 'Emp_Nome', 'Unidade', 'Estado_JSON', 'Progresso_Pct', 'Criado_em', 'Atualizado_em'];
+
+function feirao_fluxoSalvoCrud_(data) {
+  var pelaEquipe = autorizarAcao_(data.authPin, ['atendente', 'gerente_atendimento']).ok;
+  if (!pelaEquipe && !validarSessaoLead_(data.email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = criarAbaSeNaoExiste_(ss, ABA_FLUXOS_SALVOS, FLUXO_SALVO_HEADERS_);
+  var email = normalizarEmail_(data.email);
+
+  return comLock_(function () {
+    if (data.operacao === 'remover') {
+      var linhaDel = acharLinhaPorChave_(aba, 'Id', data.id);
+      if (linhaDel === -1) return { status: 'error', message: 'Fluxo não encontrado.' };
+      if (!pelaEquipe && normalizarEmail_(aba.getRange(linhaDel, 2).getValue()) !== email) {
+        return { status: 'error', message: 'Este fluxo não pertence a este e-mail.' };
+      }
+      aba.deleteRow(linhaDel);
+      return { status: 'ok' };
+    }
+
+    var now = agora_();
+    var linhas = lerAbaObjetos_(aba);
+    // Reaproveita o registro do mesmo empreendimento/unidade se já existir
+    // — clicar em "Salvar" de novo pro mesmo imóvel atualiza, não duplica.
+    var existente = data.id
+      ? linhas.find(function (l) { return s_(l.Id) === s_(data.id); })
+      : linhas.find(function (l) {
+          return normalizarEmail_(l.Email) === email && s_(l.Emp_Id) === s_(data.empId || '') && s_(l.Unidade) === s_(data.unidade || '');
+        });
+
+    if (existente) {
+      var row = existente._row;
+      aba.getRange(row, 3).setValue(data.nome || '');
+      aba.getRange(row, 5).setValue(data.empNome || '');
+      aba.getRange(row, 7).setValue(data.estadoJson || '{}');
+      aba.getRange(row, 8).setValue(data.progressoPct || 0);
+      aba.getRange(row, 10).setValue(now);
+      return { status: 'ok', id: s_(existente.Id) };
+    }
+
+    var id = gerarId_(aba, 'FP');
+    aba.appendRow([id, email, data.nome || '', data.empId || '', data.empNome || '', data.unidade || '', data.estadoJson || '{}', data.progressoPct || 0, now, now]);
+    return { status: 'ok', id: id };
+  });
+}
+
+/* Lead vê só os próprios fluxos (sessão OTP); atendente/gerente veem os
+   de um e-mail específico (p.email) ou todos, se p.email vier vazio. */
+function feirao_listarFluxosSalvos_(p) {
+  var pelaEquipe = autorizarAcao_(p.authPin, ['atendente', 'gerente_atendimento']).ok;
+  if (!pelaEquipe && !validarSessaoLead_(p.email, p.sessionToken)) return { ok: false, erro: 'Sessão de e-mail não verificada.' };
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = criarAbaSeNaoExiste_(ss, ABA_FLUXOS_SALVOS, FLUXO_SALVO_HEADERS_);
+  var itens = lerAbaObjetos_(aba);
+  var emailFiltro = normalizarEmail_(p.email || '');
+  if (emailFiltro) itens = itens.filter(function (l) { return normalizarEmail_(l.Email) === emailFiltro; });
+  return {
+    ok: true,
+    itens: itens.map(function (l) {
+      var estado = {};
+      try { estado = JSON.parse(s_(l.Estado_JSON) || '{}'); } catch (e) {}
+      return {
+        id: s_(l.Id), email: s_(l.Email), nome: s_(l.Nome), empId: s_(l.Emp_Id), empNome: s_(l.Emp_Nome),
+        unidade: s_(l.Unidade), estado: estado, progressoPct: Number(l.Progresso_Pct) || 0,
+        criadoEm: s_(l.Criado_em), atualizadoEm: s_(l.Atualizado_em)
+      };
+    })
+  };
 }
 
 /* ══════════════════════ CONSTRUTORAS (CRUD do Gerente/Diretor) ══════ */
