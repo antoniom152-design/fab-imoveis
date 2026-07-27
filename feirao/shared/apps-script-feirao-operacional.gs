@@ -126,6 +126,9 @@ var ABA_CONFIG          = 'CONFIG';
 
 var PASTA_DRIVE_DOCS_ID = ''; // opcional — se vazio, cria/usa a pasta "WAL Feirão — Documentos Crédito"
 var EMAIL_EQUIPE_FEIRAO = 'wal.imoveiseconsultoria@gmail.com';
+// E-mail comercial para onde vão os documentos de Análise de Crédito e os
+// pedidos de Chave PIX quando a construtora ainda não tem uma cadastrada.
+var EMAIL_COMERCIAL_FEIRAO = 'comercial@walservidor.com.br';
 var TZ = 'America/Sao_Paulo';
 
 // PINs fixos de papéis que não vêm de planilha (troque antes de publicar).
@@ -203,7 +206,7 @@ function setupPlanilhaFeirao() {
   criarAbaSeNaoExiste_(ss, ABA_CONSTRUTORAS, [
     'ID', 'Nome', 'Telefone', 'Site', 'Viabilizador', 'Telefone_Viabilizador',
     'Comissao_%', 'Link_Drive', 'Data_Inclusao', 'Estados_de_Atuacao',
-    'Cidades_de_Atuacao', 'Observacoes', 'Ativa'
+    'Cidades_de_Atuacao', 'Observacoes', 'Ativa', 'Chave_PIX'
   ]);
 
   criarAbaSeNaoExiste_(ss, ABA_EMPREENDIMENTOS, [
@@ -374,6 +377,23 @@ function verificarFase1() {
   var msg = 'Verificação Fase 1:\n' + out.join('\n');
   Logger.log(msg);
   avisar_(msg);
+}
+
+/* criarAbaSeNaoExiste_ só grava os cabeçalhos na primeira vez que a aba é
+   criada — numa aba que já existia antes desta mudança (como CONSTRUTORAS),
+   a coluna nova não aparece sozinha só de publicar o .gs. Rode esta função
+   uma vez pelo editor (▶ Executar → selecione adicionarColunaChavePix →
+   Executar) para criar a coluna Chave_PIX em CONSTRUTORAS. Depois é só
+   preencher a chave PIX de cada construtora nessa coluna, na planilha. */
+function adicionarColunaChavePix() {
+  var ss = SpreadsheetApp.openById(PLANILHA_FEIRAO_ID);
+  var aba = ss.getSheetByName(ABA_CONSTRUTORAS);
+  if (!aba) { avisar_('Aba CONSTRUTORAS não existe — rode setupPlanilhaFeirao() primeiro.'); return; }
+  var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); });
+  if (headers.indexOf('Chave_PIX') !== -1) { avisar_('A coluna Chave_PIX já existe em CONSTRUTORAS — nada a fazer.'); return; }
+  aba.getRange(1, aba.getLastColumn() + 1).setValue('Chave_PIX')
+    .setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  avisar_('Coluna Chave_PIX criada em CONSTRUTORAS! Agora preencha a chave PIX de cada construtora nessa coluna, na planilha.');
 }
 
 function criarTriggerNotificacoes() {
@@ -974,7 +994,7 @@ function feirao_credito_(data) {
     var linksDocumentos = salvarDocumentosDrive_(data.documentos || [], protocolo);
     var linha = acharLinhaPorChave_(aba, 'Protocolo', protocolo);
     var now = agora_();
-    var dataLimite = data.dataLimite || Utilities.formatDate(new Date(Date.now() + 24 * 3600000), TZ, "yyyy-MM-dd'T'HH:mm:ss");
+    var dataLimite = data.dataLimite || Utilities.formatDate(new Date(Date.now() + 48 * 3600000), TZ, "yyyy-MM-dd'T'HH:mm:ss");
     if (linha === -1) {
       aba.appendRow([
         protocolo, normalizarEmail_(data.email), limparDoc_(data.cpf), data.nome || '', data.telefone || '',
@@ -984,8 +1004,46 @@ function feirao_credito_(data) {
     } else {
       aba.getRange(linha, 10, 1, 1).setValue(JSON.stringify(linksDocumentos));
     }
-    enfileirarNotificacao_('credito_recebido', EMAIL_EQUIPE_FEIRAO, { protocolo: protocolo, nome: data.nome, telefone: data.telefone, email: data.email });
+    enfileirarNotificacaoAnaliseCredito_(data, protocolo, linksDocumentos);
     return { status: 'ok', protocolo: protocolo };
+  });
+}
+
+/* Monta o aviso de nova análise de crédito com assunto e corpo próprios
+   (via assuntoDireto/corpoDireto, o mesmo mecanismo usado pelas outras
+   notificações — ver processarFilaNotificacoes) e separa os documentos do
+   titular dos documentos do cônjuge (campos docConjId/docConjRenda) quando
+   o Estado Civil é Casado(a)/União Estável. Vão como LINKS do Drive (não
+   como anexo binário) — os documentos já são gravados no Drive por
+   salvarDocumentosDrive_ logo acima, e reanexá-los ao e-mail duplicaria
+   dados e esbarraria em limite de tamanho de anexo sem necessidade: o
+   link já abre/baixa o arquivo direto no Drive. */
+function enfileirarNotificacaoAnaliseCredito_(data, protocolo, linksDocumentos) {
+  var casado = data.estadoCivil === 'casado';
+  var campoConjuge = { docConjId: true, docConjRenda: true };
+  var docsTitular = [], docsConjuge = [];
+  (linksDocumentos || []).forEach(function (d) {
+    (campoConjuge[d.campo] ? docsConjuge : docsTitular).push(d);
+  });
+  var linhaDoc = function (d) { return '- ' + (d.nome || d.campo || 'documento') + ': ' + d.url; };
+
+  var corpo = 'Nova análise de crédito recebida no Feirão Online WAL.\n\n' +
+    'Protocolo: ' + protocolo + '\n' +
+    'Nome: ' + (data.nome || '') + '\n' +
+    'CPF: ' + (data.cpf || '') + '\n' +
+    'Telefone: ' + (data.telefone || '') + '\n' +
+    'E-mail: ' + (data.email || '') + '\n' +
+    'Estado civil: ' + (casado ? 'Casado(a) / União Estável' : (data.estadoCivil || 'não informado')) + '\n' +
+    (casado ? 'Cônjuge: ' + (data.conjugeNome || 'não informado') + '\n' : '') +
+    'Empreendimento: ' + (data.empId || '—') + ' · Unidade: ' + (data.unidade || '—') + '\n\n' +
+    'Documentos do titular (' + docsTitular.length + '):\n' +
+    (docsTitular.length ? docsTitular.map(linhaDoc).join('\n') : '(nenhum documento novo neste envio)') + '\n' +
+    (casado ? '\nDocumentos do cônjuge (' + docsConjuge.length + '):\n' +
+      (docsConjuge.length ? docsConjuge.map(linhaDoc).join('\n') : '⚠️ Nenhum documento do cônjuge anexado — confirme com o cliente.') + '\n' : '');
+
+  enfileirarNotificacao_('credito_recebido', EMAIL_COMERCIAL_FEIRAO, {
+    assuntoDireto: 'Documentos para Analise de Credito de: ' + (data.nome || 'Lead sem nome'),
+    corpoDireto: corpo
   });
 }
 
@@ -1416,7 +1474,7 @@ function feirao_construtoraCrud_(data) {
       aba.appendRow([
         id, data.nome || '', data.telefone || '', data.site || '', data.viabilizador || '',
         data.telefoneViabilizador || '', data.comissaoPct || 0, data.linkDrive || '', agora_(),
-        data.estadosAtuacao || '', data.cidadesAtuacao || '', data.observacoes || '', true
+        data.estadosAtuacao || '', data.cidadesAtuacao || '', data.observacoes || '', true, data.chavePix || ''
       ]);
       registrarLogSensivel_(auth.nome, 'feirao_construtora_criar', id);
       return { status: 'ok', id: id };
@@ -1435,8 +1493,8 @@ function feirao_construtoraCrud_(data) {
       return { status: 'ok' };
     }
     if (data.operacao === 'atualizar') {
-      var campos = ['Nome', 'Telefone', 'Site', 'Viabilizador', 'Telefone_Viabilizador', 'Comissao_%', 'Link_Drive', 'Estados_de_Atuacao', 'Cidades_de_Atuacao', 'Observacoes'];
-      var chaves = ['nome', 'telefone', 'site', 'viabilizador', 'telefoneViabilizador', 'comissaoPct', 'linkDrive', 'estadosAtuacao', 'cidadesAtuacao', 'observacoes'];
+      var campos = ['Nome', 'Telefone', 'Site', 'Viabilizador', 'Telefone_Viabilizador', 'Comissao_%', 'Link_Drive', 'Estados_de_Atuacao', 'Cidades_de_Atuacao', 'Observacoes', 'Chave_PIX'];
+      var chaves = ['nome', 'telefone', 'site', 'viabilizador', 'telefoneViabilizador', 'comissaoPct', 'linkDrive', 'estadosAtuacao', 'cidadesAtuacao', 'observacoes', 'chavePix'];
       var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
       campos.forEach(function (campoHeader, idx) {
         if (data[chaves[idx]] !== undefined) aba.getRange(linha, headers.indexOf(campoHeader) + 1).setValue(data[chaves[idx]]);
@@ -1457,7 +1515,7 @@ function feirao_listarConstrutoras_(p) {
       viabilizador: s_(c.Viabilizador), telefoneViabilizador: s_(c.Telefone_Viabilizador),
       comissaoPct: Number(c['Comissao_%']) || 0, linkDrive: s_(c.Link_Drive), dataInclusao: c.Data_Inclusao,
       estadosAtuacao: s_(c.Estados_de_Atuacao), cidadesAtuacao: s_(c.Cidades_de_Atuacao),
-      observacoes: s_(c.Observacoes), ativa: c.Ativa !== false
+      observacoes: s_(c.Observacoes), chavePix: s_(c.Chave_PIX), ativa: c.Ativa !== false
     };
   });
 }

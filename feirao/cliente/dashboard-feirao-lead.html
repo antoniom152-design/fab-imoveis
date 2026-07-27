@@ -83,7 +83,7 @@ a{text-decoration:none;color:inherit}
 
 /* ══ APP LAYOUT ══ */
 .app{display:flex;min-height:100vh;display:none}
-.sidebar{width:224px;min-height:100vh;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;border-right:1px solid var(--bdr)}
+.sidebar{width:224px;height:100vh;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;border-right:1px solid var(--bdr);overflow-y:auto}
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-b)}
 .sb-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
 .sb-mode{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 9px;border-radius:20px}
@@ -938,16 +938,19 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
             <div class="card">
               <div class="card-h"><div class="card-title">📲 Pagar via PIX</div></div>
               <div class="card-b">
-                <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
-                  <div class="qr-box"><img id="pixQrImg" src="" alt="QR Code PIX"></div>
-                  <div style="flex:1;min-width:180px">
-                    <div class="field-lbl">Chave PIX (CNPJ)</div>
-                    <div class="pix-key-row" style="margin-bottom:8px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis" id="pixChaveTxt"></span><span class="copy-mini" onclick="copiarPix('pixChaveTxt')">copiar</span></div>
-                    <div class="field-lbl">Valor a pagar</div>
-                    <div class="pix-key-row" id="pixValorTxt" style="margin-bottom:0">R$ 0,00</div>
+                <div id="pixSemChaveBox" class="alert-box alert-amber" style="display:none"></div>
+                <div id="pixChaveBox" style="display:none">
+                  <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:12px">
+                    <div class="qr-box"><img id="pixQrImg" src="" alt="QR Code PIX"></div>
+                    <div style="flex:1;min-width:180px">
+                      <div class="field-lbl">Chave PIX da construtora</div>
+                      <div class="pix-key-row" style="margin-bottom:8px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis" id="pixChaveTxt"></span><span class="copy-mini" onclick="copiarPix('pixChaveTxt')">copiar</span></div>
+                      <div class="field-lbl">Valor a pagar</div>
+                      <div class="pix-key-row" id="pixValorTxt" style="margin-bottom:0">R$ 0,00</div>
+                    </div>
                   </div>
+                  <div class="fs10 c-muted" style="margin-bottom:12px">🔑 Chave PIX real da construtora — copie e pague pelo app do seu banco. O QR Code acima é apenas ilustrativo (não segue o padrão oficial BR Code); use a chave copiada para garantir o pagamento correto.</div>
                 </div>
-                <div class="fs10 c-muted" style="margin-bottom:12px">⚠️ QR Code e chave ilustrativos para simular o feirão online — configure a integração PIX oficial (banco/PSP) antes de usar em produção.</div>
                 <label class="pay-check" style="margin-bottom:10px"><input type="checkbox" id="pixJaPago" onchange="confirmarPagamentoPix(this.checked)"> Já realizei o pagamento da reserva via PIX (aguardando confirmação da equipe WAL)</label>
                 <div id="pixConfirmadoBox" class="alert-box alert-amber" style="display:none;margin-bottom:0">⏳ Pagamento informado! A equipe WAL vai confirmar o recebimento e garantir sua unidade em breve.</div>
               </div>
@@ -1066,10 +1069,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <!-- ═══════════ ANÁLISE DE CRÉDITO ═══════════ -->
       <div class="panel" id="p-credito">
         <div class="ph">
-          <div><div class="ph-eye">Sua jornada</div><div class="ph-title">Análise de Crédito</div><div class="ph-sub">Envie sua documentação e receba o resultado em até 24 horas</div></div>
+          <div><div class="ph-eye">Sua jornada</div><div class="ph-title">Análise de Crédito</div><div class="ph-sub">Envie sua documentação e receba o resultado em até 48 horas (ou conforme demanda)</div></div>
         </div>
 
-        <div class="alert-box alert-amber">⏱️ <strong>Prazo máximo de resposta: até 24 horas</strong> a partir do envio da sua documentação completa. Você será avisado nesta tela e por e-mail assim que o resultado sair.</div>
+        <div class="alert-box alert-amber">⏱️ <strong>Prazo estimado de resposta: até 48 horas (ou conforme demanda)</strong> a partir do envio da sua documentação completa. Você será avisado nesta tela e por e-mail assim que o resultado sair.</div>
 
         <div id="creditoSemPedido">
           <div class="alert-box alert-gold" id="docsAnterioresBox" style="display:none"></div>
@@ -1169,7 +1172,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
               <div class="card-h"><div class="card-title">📋 Protocolo <span class="mono c-gold" id="crProtocoloNum"></span></div></div>
               <div class="card-b">
                 <div class="status-steps" id="statusStepsBox"></div>
-                <div class="alert-box alert-amber" id="prazoBox" style="margin-bottom:0">⏳ Prazo de resposta: <strong id="prazoTexto">até 24 horas</strong></div>
+                <div class="alert-box alert-amber" id="prazoBox" style="margin-bottom:0">⏳ Prazo de resposta: <strong id="prazoTexto">até 48 horas (ou conforme demanda)</strong></div>
               </div>
             </div>
 
@@ -1186,12 +1189,15 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
                 </div>
                 <div class="fs11 c-muted">Taxa concedida: <strong class="c-gold" id="creditoTaxa">8,3% a.a.</strong> · Condições válidas durante o período do feirão, sujeito a confirmação documental final.</div>
                 <div class="sec" style="margin:16px 0 10px">Pagar entrada mínima via PIX</div>
+                <div id="creditoPixSemChaveBox" class="alert-box alert-amber" style="display:none"></div>
+                <div id="creditoPixChaveBox" style="display:none">
                 <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap">
                   <div class="qr-box"><img id="creditoQrImg" src="" alt="QR Code PIX"></div>
                   <div style="flex:1;min-width:180px">
                     <div class="pix-key-row" style="margin-bottom:8px"><span style="flex:1;overflow:hidden;text-overflow:ellipsis" id="creditoPixChave"></span><span class="copy-mini" onclick="copiarPix('creditoPixChave')">copiar</span></div>
-                    <div class="fs10 c-muted">⚠️ QR ilustrativo para o feirão — configure a integração PIX oficial do seu banco/PSP antes de divulgar para pagamento real.</div>
+                    <div class="fs10 c-muted">🔑 Chave PIX real da construtora — copie e pague pelo app do seu banco. O QR Code é apenas ilustrativo (não segue o padrão oficial BR Code).</div>
                   </div>
+                </div>
                 </div>
                 <button class="btn btn-teal btn-full" style="margin-top:16px" onclick="nav(document.querySelector('[onclick*=pagamento]'),'pagamento')">💳 Montar fluxo de pagamento →</button>
               </div>
@@ -1492,6 +1498,7 @@ const EMPREENDIMENTOS_DEMO = [
    demonstração e é substituída pelos dados reais assim que a planilha responde. */
 let EMPREENDIMENTOS = EMPREENDIMENTOS_DEMO;
 let _fonteImoveis = 'demo'; // 'demo' | 'planilha'
+let CONSTRUTORAS = []; // aba CONSTRUTORAS — usado para achar a Chave PIX real de cada empreendimento
 
 function setDataSourceTag(){
   const el=document.getElementById('dataSourceTag'); if(!el) return;
@@ -1522,7 +1529,7 @@ function mapearEmpreendimentosApi(itens){
     const quartos=quartosMatch?quartosMatch.map(Number).filter(n=>n>0&&n<10):[];
     const preco=Number(e.valorAPartirDe)||0;
     return {
-      id: e.id, nome: e.nome, construtora: e.construtora||'WAL Imóveis',
+      id: e.id, nome: e.nome, construtora: e.construtora||'WAL Imóveis', construtoraId: e.construtoraId||'',
       uf: e.uf||'RJ', cidade: e.cidade||'Rio de Janeiro', bairro: e.bairro||'—',
       quartos: quartos.length?quartos:[2],
       precoMin: preco, precoMax: preco,
@@ -1553,6 +1560,14 @@ function recarregarImoveis(){
   toast('🔄 Atualizando catálogo do sistema...','');
   carregarImoveisDoSistema();
 }
+/* Construtoras (aba CONSTRUTORAS) — usado só para achar a Chave PIX real
+   de cada empreendimento na hora de mostrar o QR/chave de pagamento. */
+async function carregarConstrutorasDoSistema(){
+  try{
+    const data = await feiraoApiJsonp('feirao_listar_construtoras', {});
+    if(data && data.ok && Array.isArray(data.itens)) CONSTRUTORAS = data.itens;
+  }catch(e){ console.warn('Não foi possível carregar construtoras do sistema.', e); }
+}
 
 /* ════════════ VÍDEO EXPLICATIVO DO PROGRAMA DE AGENTES ════════════ */
 const VIDEO_AGENTE_URL = 'https://youtu.be/SUBSTITUA_PELO_SEU_LINK'; // troque pelo link do YouTube ou Google Drive
@@ -1561,11 +1576,45 @@ const VIDEO_AGENTE_URL = 'https://youtu.be/SUBSTITUA_PELO_SEU_LINK'; // troque p
    ATENÇÃO: a chave e o QR abaixo são ILUSTRATIVOS, apenas para dar a
    sensação de feirão online. Para uso real, substitua pela integração
    oficial do seu banco/PSP (Pix Cobrança com QR Code EMV dinâmico). */
-const PIX_KEY_WAL = '12.345.678/0001-90'; // troque pela chave PIX real da WAL Consultoria
-const PIX_BENEFICIARIO = 'WAL Consultoria Imobiliária';
-function gerarQrPixUrl(valor,identificador){
-  const payload = `PIX|Chave:${PIX_KEY_WAL}|Beneficiario:${PIX_BENEFICIARIO}|Valor:${(valor||0).toFixed(2)}|Ref:${identificador||'WAL-FEIRAO'}`;
+const PIX_BENEFICIARIO_PADRAO = 'WAL Consultoria Imobiliária';
+function gerarQrPixUrl(valor,identificador,chave,beneficiario){
+  const payload = `PIX|Chave:${chave}|Beneficiario:${beneficiario||PIX_BENEFICIARIO_PADRAO}|Valor:${(valor||0).toFixed(2)}|Ref:${identificador||'WAL-FEIRAO'}`;
   return 'https://api.qrserver.com/v1/create-qr-code/?size=170x170&margin=6&data='+encodeURIComponent(payload);
+}
+/* Acha a construtora do empreendimento (aba CONSTRUTORAS) para pegar a
+   Chave PIX real cadastrada — por construtoraId, com fallback pelo nome. */
+function obterConstrutoraDoEmpreendimento_(empId){
+  const e=EMPREENDIMENTOS.find(x=>x.id===empId); if(!e) return null;
+  return CONSTRUTORAS.find(c=>(e.construtoraId&&c.id===e.construtoraId)||c.nome===e.construtora)||null;
+}
+const AVISO_SEM_CHAVE_PIX_HTML = '⚠️ A chave PIX desta construtora ainda não foi cadastrada no sistema. Solicite ao Gerente Comercial pelo e-mail <strong>comercial@walservidor.com.br</strong> para efetuar o pagamento.';
+/* Preenche QR/chave real (aba CONSTRUTORAS) no painel "Pagamento da
+   Reserva", ou mostra o aviso de chave ausente no lugar. */
+function preencherPixReserva_(empId,valor,identificador){
+  const boxChave=document.getElementById('pixChaveBox'), boxAviso=document.getElementById('pixSemChaveBox');
+  const c=obterConstrutoraDoEmpreendimento_(empId);
+  if(c && c.chavePix){
+    boxChave.style.display='block'; boxAviso.style.display='none';
+    document.getElementById('pixChaveTxt').textContent=c.chavePix;
+    document.getElementById('pixQrImg').src=gerarQrPixUrl(valor,identificador,c.chavePix,c.nome);
+  } else {
+    boxChave.style.display='none'; boxAviso.style.display='block';
+    boxAviso.innerHTML=AVISO_SEM_CHAVE_PIX_HTML;
+  }
+}
+/* Mesma lógica para o PIX da entrada mínima no painel de Análise de Crédito. */
+function atualizarPixCredito_(valor,identificador){
+  const boxChave=document.getElementById('creditoPixChaveBox'), boxAviso=document.getElementById('creditoPixSemChaveBox');
+  if(!boxChave||!boxAviso) return;
+  const c=obterConstrutoraDoEmpreendimento_(_selectedPropId);
+  if(c && c.chavePix){
+    boxChave.style.display='block'; boxAviso.style.display='none';
+    document.getElementById('creditoPixChave').textContent=c.chavePix;
+    document.getElementById('creditoQrImg').src=gerarQrPixUrl(valor,identificador,c.chavePix,c.nome);
+  } else {
+    boxChave.style.display='none'; boxAviso.style.display='block';
+    boxAviso.innerHTML=AVISO_SEM_CHAVE_PIX_HTML;
+  }
 }
 function copiarPix(elId){
   const txt=document.getElementById(elId).textContent;
@@ -1919,6 +1968,10 @@ function iniciarApp(restaurado){
   renderHomeDestaques();
   renderVitrine();
   carregarImoveisDoSistema();
+  carregarConstrutorasDoSistema().then(()=>{
+    renderPixPanel();
+    if(_creditoState.liberado) atualizarPixCredito_(_creditoState.entradaMinima||0,_creditoState.protocolo);
+  });
   renderLiveBar();
   atualizarStatsReais();
 
@@ -1980,8 +2033,7 @@ function restaurarPainelCredito(){
       const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
       document.getElementById('creditoEmpreendimento').textContent=e?e.nome:'A definir';
       document.getElementById('creditoUnidade').textContent=(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'A definir';
-      document.getElementById('creditoPixChave').textContent=PIX_KEY_WAL;
-      document.getElementById('creditoQrImg').src=gerarQrPixUrl(_creditoState.entradaMinima||0,_creditoState.protocolo);
+      atualizarPixCredito_(_creditoState.entradaMinima||0,_creditoState.protocolo);
       document.getElementById('sbBdgCredito').style.display='none';
     } else {
       document.getElementById('sbBdgCredito').style.display='inline-flex';
@@ -2956,7 +3008,7 @@ async function enviarAnaliseCredito(){
   const idAleatorio=(window.crypto&&crypto.randomUUID)?crypto.randomUUID().slice(0,8):Date.now().toString(36)+Math.floor(Math.random()*1e6).toString(36);
   const protocolo='WAL-'+new Date().getFullYear()+'-'+idAleatorio.toUpperCase();
   const dataEnvio=new Date();
-  const dataLimite=new Date(dataEnvio.getTime()+24*60*60*1000);
+  const dataLimite=new Date(dataEnvio.getTime()+48*60*60*1000);
   _creditoState={enviado:true,protocolo,dataEnvio,dataLimite,liberado:false,valorAprovado:0,documentos:_creditoState.documentos||{}};
   document.getElementById('creditoSemPedido').style.display='none';
   document.getElementById('creditoComPedido').style.display='block';
@@ -3018,8 +3070,7 @@ async function verificarStatusCredito(){
     const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
     document.getElementById('creditoEmpreendimento').textContent=e?e.nome:'A definir';
     document.getElementById('creditoUnidade').textContent=(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'A definir';
-    document.getElementById('creditoPixChave').textContent=PIX_KEY_WAL;
-    document.getElementById('creditoQrImg').src=gerarQrPixUrl(r.entradaMinima,_creditoState.protocolo);
+    atualizarPixCredito_(r.entradaMinima,_creditoState.protocolo);
     toast('🎉 Resultado liberado! Crédito aprovado: '+fmtBRL(r.valorAprovado),'green');
     registrarJornada('credito_liberado','Crédito aprovado: '+fmtBRL(r.valorAprovado)+' · Entrada mínima: '+fmtBRL(r.entradaMinima));
     salvarEstado();
@@ -3060,8 +3111,7 @@ function demoLiberarResultado(){
   const e=_selectedPropId?EMPREENDIMENTOS.find(x=>x.id===_selectedPropId):null;
   document.getElementById('creditoEmpreendimento').textContent=e?e.nome:'A definir';
   document.getElementById('creditoUnidade').textContent=(_selectedUnidade&&_selectedUnidade.empId===_selectedPropId)?_selectedUnidade.numero:'A definir';
-  document.getElementById('creditoPixChave').textContent=PIX_KEY_WAL;
-  document.getElementById('creditoQrImg').src=gerarQrPixUrl(entradaMinima,_creditoState.protocolo);
+  atualizarPixCredito_(entradaMinima,_creditoState.protocolo);
   toast('🎉 Resultado liberado! Crédito aprovado: '+fmtBRL(valorAprovado),'green');
   registrarJornada('credito_liberado','Crédito aprovado: '+fmtBRL(valorAprovado)+' · Entrada mínima: '+fmtBRL(entradaMinima));
   salvarEstado();
@@ -3159,9 +3209,8 @@ function renderPixPanel(){
   if(!_pixState.valor) _pixState.valor=(_pagamentoState&&_pagamentoState.reserva)?_pagamentoState.reserva.valor:Math.max(minReserva,5000);
   document.getElementById('pixValor').value=fmtBRL2(_pixState.valor).replace('R$ ','');
   document.getElementById('pixValorMinHint').textContent='Mínimo exigido: '+fmtBRL(minReserva)+' (10% do valor do imóvel)';
-  document.getElementById('pixChaveTxt').textContent=PIX_KEY_WAL;
   document.getElementById('pixValorTxt').textContent=fmtBRL(_pixState.valor);
-  document.getElementById('pixQrImg').src=gerarQrPixUrl(_pixState.valor, LEAD?LEAD.cpf:'FEIRAO');
+  preencherPixReserva_(_selectedPropId, _pixState.valor, LEAD?LEAD.cpf:'FEIRAO');
   document.getElementById('pixJaPago').checked=!!_pixState.paga;
   document.getElementById('pixConfirmadoBox').style.display=_pixState.paga?'block':'none';
 }
