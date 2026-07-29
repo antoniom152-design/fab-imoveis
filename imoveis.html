@@ -12,18 +12,23 @@
     --gold: #C9A84C;
     --gold-light: #E8C97A;
     --gold-dim: #8A6E30;
+    --gold-ink: #8a6d10;
     --navy: #0A1628;
-    --navy-mid: #112240;
+    /* Tema claro (invertido em 29/07/2026): navy-mid agora é superfície CLARA
+       (filtros/cards/modais); nav e o page-hero continuam escuros de propósito. */
+    --navy-mid: #FFFFFF;
     --navy-light: #1C3461;
     --off-white: #F5F2EC;
     --text-muted: #8A96A8;
+    --ink-muted: #5c6579;
+    --surf: #F5F2EA;
     --border: rgba(201,168,76,0.2);
     --red: #DC2626;
     --red-hover: #B91C1C;
   }
 
   html { scroll-behavior: smooth; }
-  body { font-family: 'Barlow', sans-serif; background: var(--navy); color: var(--off-white); min-height: 100vh; }
+  body { font-family: 'Barlow', sans-serif; background: var(--surf); color: var(--navy); min-height: 100vh; }
 
   /* ─── NAV ─── */
   .nav-fab {
@@ -55,7 +60,7 @@
 
   /* ─── HERO ─── */
   .page-hero {
-    background: linear-gradient(135deg, var(--navy-mid), var(--navy));
+    background: linear-gradient(135deg, #112240, var(--navy));
     border-bottom: 1px solid var(--border);
     padding: 52px 48px 44px;
     text-align: center; position: relative; overflow: hidden;
@@ -97,11 +102,11 @@
   .filter-group { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 180px; }
   .filter-label {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--text-muted);
+    font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--ink-muted);
   }
   .filter-select {
-    width: 100%; background: rgba(255,255,255,.05);
-    border: 1px solid var(--border); color: var(--off-white);
+    width: 100%; background: var(--surf);
+    border: 1px solid var(--border); color: var(--navy);
     padding: 9px 32px 9px 12px; font-family: 'Barlow', sans-serif;
     font-size: 13px; outline: none; appearance: none; -webkit-appearance: none; cursor: pointer;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
@@ -109,7 +114,7 @@
     transition: border-color .2s;
   }
   .filter-select:focus { border-color: var(--gold); }
-  .filter-select option { background: #112240; }
+  .filter-select option { background: #fff; color: var(--navy); }
 
   .btn-filtrar {
     height: 38px; padding: 0 28px;
@@ -123,13 +128,13 @@
 
   .btn-limpar {
     height: 38px; padding: 0 16px;
-    background: transparent; color: var(--text-muted);
-    border: 1px solid rgba(138,150,168,.3); cursor: pointer;
+    background: transparent; color: var(--ink-muted);
+    border: 1px solid rgba(10,22,40,.2); cursor: pointer;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
     transition: color .2s, border-color .2s; white-space: nowrap; flex-shrink: 0;
   }
-  .btn-limpar:hover { color: var(--off-white); border-color: var(--text-muted); }
+  .btn-limpar:hover { color: var(--navy); border-color: var(--ink-muted); }
 
   /* ─── RESULTADOS ─── */
   .results-wrap {
@@ -142,16 +147,16 @@
   }
   .results-count {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 13px; letter-spacing: .1em; color: var(--text-muted);
+    font-size: 13px; letter-spacing: .1em; color: var(--ink-muted);
   }
-  .results-count strong { color: var(--gold); font-size: 16px; }
+  .results-count strong { color: var(--gold-ink); font-size: 16px; }
 
   .empty-state {
-    text-align: center; padding: 80px 20px; color: var(--text-muted);
+    text-align: center; padding: 80px 20px; color: var(--ink-muted);
   }
   .empty-state svg { opacity: .3; margin-bottom: 16px; }
   .empty-state p { font-size: 15px; line-height: 1.6; }
-  .empty-state strong { display: block; font-family: 'Playfair Display', serif; font-size: 22px; color: var(--off-white); margin-bottom: 8px; font-weight: 600; }
+  .empty-state strong { display: block; font-family: 'Playfair Display', serif; font-size: 22px; color: var(--navy); margin-bottom: 8px; font-weight: 600; }
 
   /* ─── GRID DE IMÓVEIS ─── */
   .imoveis-grid {
@@ -229,15 +234,15 @@
   }
   .card-faixa-label {
     font-family: 'Barlow Condensed', sans-serif;
-    font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--text-muted);
+    font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--ink-muted);
   }
   .card-faixa-val {
     font-family: 'Playfair Display', serif;
-    font-size: 18px; font-weight: 700; color: var(--gold);
+    font-size: 18px; font-weight: 700; color: var(--gold-ink);
   }
 
   .card-desc {
-    font-size: 12px; color: var(--text-muted); line-height: 1.55;
+    font-size: 12px; color: var(--ink-muted); line-height: 1.55;
     flex: 1;
   }
 
@@ -250,7 +255,7 @@
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
     text-decoration: none; transition: background .2s, color .2s;
-    background: transparent; color: var(--gold);
+    background: transparent; color: var(--gold-ink);
     border: 1px solid var(--border);
   }
   .card-btn-info:hover { background: rgba(201,168,76,.1); border-color: var(--gold); }
@@ -262,10 +267,10 @@
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
     cursor: pointer; transition: background .2s, transform .15s;
-    background: transparent; color: var(--off-white);
-    border: 1px solid rgba(255,255,255,.15);
+    background: transparent; color: var(--navy);
+    border: 1px solid rgba(10,22,40,.18);
   }
-  .card-btn-sim:hover { border-color: var(--gold); color: var(--gold); }
+  .card-btn-sim:hover { border-color: var(--gold); color: var(--gold-ink); }
 
   /* ─── MODAL SIMULADOR ─── */
   .sim-overlay{position:fixed;inset:0;background:rgba(10,22,40,0.94);z-index:1000;
@@ -276,15 +281,15 @@
   .sim-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;
     background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
   .sim-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
-    color:var(--gold);margin-bottom:6px}
-  .sim-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+    color:var(--gold-ink);margin-bottom:6px}
+  .sim-sub{font-size:13px;color:var(--ink-muted);margin-bottom:24px;line-height:1.6}
   .sim-label{display:block;font-family:'Barlow Condensed',sans-serif;font-size:11px;
-    letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
-  .sim-input{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);
-    color:var(--off-white);padding:11px 14px;font-family:'Barlow',sans-serif;
+    letter-spacing:.15em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px}
+  .sim-input{width:100%;background:var(--surf);border:1px solid rgba(10,22,40,.15);
+    color:var(--navy);padding:11px 14px;font-family:'Barlow',sans-serif;
     font-size:14px;outline:none;transition:border-color .2s;margin-bottom:14px}
-  .sim-input:focus{border-color:var(--gold);background:rgba(201,168,76,.05)}
-  .sim-input::placeholder{color:rgba(255,255,255,.2)}
+  .sim-input:focus{border-color:var(--gold);background:rgba(201,168,76,.08)}
+  .sim-input::placeholder{color:rgba(10,22,40,.35)}
   .sim-btn{width:100%;background:var(--gold);color:var(--navy);border:none;
     padding:14px;font-family:'Barlow Condensed',sans-serif;font-size:14px;
     font-weight:700;letter-spacing:.13em;text-transform:uppercase;
@@ -292,9 +297,9 @@
   .sim-btn:hover{background:var(--gold-light)}
   .sim-btn:disabled{opacity:.6;cursor:not-allowed}
   .sim-erro{font-size:11px;color:#DC2626;margin-top:-10px;margin-bottom:10px;display:none}
-  .sim-loading{text-align:center;color:var(--text-muted);font-size:13px;padding:8px 0;display:none}
+  .sim-loading{text-align:center;color:var(--ink-muted);font-size:13px;padding:8px 0;display:none}
   .sim-close{position:absolute;top:14px;right:16px;background:none;border:none;
-    color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1}
+    color:var(--ink-muted);font-size:20px;cursor:pointer;line-height:1}
   .sim-close:hover{color:var(--gold)}
 
   .card-btn-reserva {
@@ -330,7 +335,7 @@
     display: none;
     width: 100%; padding: 11px 16px;
     background: var(--navy-mid); border: none; border-bottom: 1px solid var(--border);
-    color: var(--off-white); cursor: pointer;
+    color: var(--navy); cursor: pointer;
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
     align-items: center; justify-content: space-between;
@@ -380,7 +385,7 @@
 
   /* ─── LOADING / FONTE ─── */
   .loading-overlay {
-    text-align: center; padding: 80px 20px; color: var(--text-muted);
+    text-align: center; padding: 80px 20px; color: var(--ink-muted);
   }
   .loading-overlay svg { animation: spin 1s linear infinite; display: block; margin: 0 auto 16px; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -391,11 +396,11 @@
     padding: 3px 10px; border-radius: 2px;
   }
   .fonte-sheet {
-    background: rgba(34,197,94,.12); color: #86efac;
-    border: 1px solid rgba(34,197,94,.2);
+    background: rgba(34,197,94,.12); color: #1f7a52;
+    border: 1px solid rgba(34,197,94,.3);
   }
   .fonte-local {
-    background: rgba(201,168,76,.1); color: var(--gold);
+    background: rgba(201,168,76,.1); color: var(--gold-ink);
     border: 1px solid var(--border);
   }
 </style>
@@ -510,8 +515,8 @@
   <div class="imoveis-grid" id="imoveis-grid"></div>
   <div class="empty-state" id="empty-state" style="display:none">
     <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-      <rect x="6" y="10" width="36" height="36" rx="3" stroke="#F5F2EC" stroke-width="2"/>
-      <path d="M14 22h20M14 30h20M14 38h12" stroke="#F5F2EC" stroke-width="2" stroke-linecap="round"/>
+      <rect x="6" y="10" width="36" height="36" rx="3" stroke="#0A1628" stroke-width="2"/>
+      <path d="M14 22h20M14 30h20M14 38h12" stroke="#0A1628" stroke-width="2" stroke-linecap="round"/>
       <circle cx="44" cy="44" r="10" fill="#C9A84C" opacity=".7"/>
       <path d="M40 44h8M44 40v8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
     </svg>
@@ -865,7 +870,7 @@ function renderCard(im) {
           </div>
           <button onclick="compartilharImovelCatalogo('${im.nome}','${im.cidade}','${im.uf}','${im.valor}','${im.id}')"
             style="width:100%;margin-top:8px;padding:9px 0;background:transparent;
-                   border:1px solid rgba(201,168,76,.35);color:var(--gold);cursor:pointer;
+                   border:1px solid rgba(201,168,76,.35);color:var(--gold-ink);cursor:pointer;
                    font-family:'Barlow Condensed',sans-serif;font-size:12px;
                    font-weight:700;letter-spacing:.12em;text-transform:uppercase;
                    transition:border-color .2s,background .2s"
@@ -907,12 +912,12 @@ function compartilharImovelCatalogo(nome, cidade, uf, valor, id) {
 
   modal.innerHTML =
     '<div style="background:var(--navy-mid);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative">' +
-      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--text-muted);font-size:18px;cursor:pointer">✕</button>' +
-      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px">Compartilhar Imóvel</div>' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--ink-muted);font-size:18px;cursor:pointer">✕</button>' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:16px">Compartilhar Imóvel</div>' +
       '<div style="display:flex;flex-direction:column;gap:10px">' +
         '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
-        '<a href="' + mailHref + '" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);">✉️ Enviar por E-mail</a>' +
-        '<button onclick="copiarLinkCompartilhado(this)" style="' + btnStyle + 'background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--off-white);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
+        '<a href="' + mailHref + '" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);">✉️ Enviar por E-mail</a>' +
+        '<button onclick="copiarLinkCompartilhado(this)" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
       '</div>' +
     '</div>';
 
@@ -1132,7 +1137,7 @@ async function salvarESimularIm() {
     <div id="simStep1Im">
       <div class="sim-title">Simulador Gratuito</div>
       <p class="sim-sub">Informe seu WhatsApp para acessar o simulador de financiamento.</p>
-      <label class="sim-label">Telefone / WhatsApp <span style="color:var(--gold)">*</span></label>
+      <label class="sim-label">Telefone / WhatsApp <span style="color:var(--gold-ink)">*</span></label>
       <input class="sim-input" type="tel" id="simFoneIm" placeholder="(00) 00000-0000" maxlength="15">
       <div class="sim-erro" id="simFoneErroIm">Informe um telefone válido com DDD.</div>
       <div class="sim-loading" id="simLoadingIm">Verificando...</div>
@@ -1142,10 +1147,10 @@ async function salvarESimularIm() {
     <div id="simStep2Im" style="display:none">
       <div class="sim-title">Quase lá!</div>
       <p class="sim-sub">Informe seus dados para liberar o acesso ao simulador.</p>
-      <label class="sim-label">Nome Completo <span style="color:var(--gold)">*</span></label>
+      <label class="sim-label">Nome Completo <span style="color:var(--gold-ink)">*</span></label>
       <input class="sim-input" type="text" id="simNomeIm" placeholder="Seu nome completo">
       <div class="sim-erro" id="simNomeErroIm">Informe seu nome completo.</div>
-      <label class="sim-label">E-mail <span style="color:var(--gold)">*</span></label>
+      <label class="sim-label">E-mail <span style="color:var(--gold-ink)">*</span></label>
       <input class="sim-input" type="email" id="simEmailIm" placeholder="seuemail@email.com">
       <div class="sim-erro" id="simEmailErroIm">Informe um e-mail válido.</div>
       <button class="sim-btn" id="simBtnSimIm" onclick="salvarESimularIm()">Simular Grátis! →</button>

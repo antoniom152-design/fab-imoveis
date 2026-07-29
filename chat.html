@@ -12,22 +12,28 @@
   --gold:      #C9A84C;
   --gold-light:#E8C97A;
   --gold-dim:  #8A6E30;
+  --gold-ink:  #8a6d10;
   --navy:      #0A1628;
-  --navy-mid:  #112240;
-  --navy-light:#1C3461;
+  /* Tema claro (invertido em 29/07/2026): navy-mid/navy-light agora são
+     superfícies CLARAS (bolhas, cartões); header e input-area continuam
+     escuros de propósito (chrome fixo, como o cabeçalho de um app). */
+  --navy-mid:  #FFFFFF;
+  --navy-light:#EFEAD9;
   --off-white: #F5F2EC;
   --cream:     #EDE8DF;
   --text-muted:#8A96A8;
+  --ink-muted: #5c6579;
+  --surf:      #F5F2EA;
   --border:    rgba(201,168,76,0.2);
-  --bubble-user:   #1C3461;
-  --bubble-bot:    #112240;
+  --bubble-user:   #F7F1DD;
+  --bubble-bot:    #FFFFFF;
 }
 
 html, body {
   height: 100%;
   font-family: 'Barlow', sans-serif;
-  background: var(--navy);
-  color: var(--off-white);
+  background: var(--surf);
+  color: var(--navy);
   overflow: hidden;
 }
 
@@ -70,7 +76,7 @@ header {
 .avatar {
   width: 40px; height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--navy-light), var(--gold-dim));
+  background: linear-gradient(135deg, #1C3461, var(--gold-dim));
   border: 1.5px solid var(--gold);
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
@@ -155,7 +161,7 @@ header {
   font-size: 10px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   font-family: 'Barlow Condensed', sans-serif;
   display: flex; align-items: center; gap: 12px;
 }
@@ -200,24 +206,24 @@ header {
   background: var(--bubble-bot);
   border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
-  color: var(--off-white);
+  color: var(--navy);
 }
 .msg-row.user .bubble {
   background: var(--bubble-user);
-  border: 1px solid rgba(201,168,76,0.25);
+  border: 1px solid rgba(201,168,76,0.35);
   border-bottom-right-radius: 4px;
-  color: var(--off-white);
+  color: var(--navy);
 }
 .bubble-time {
   font-size: 10px;
-  color: var(--text-muted);
+  color: var(--ink-muted);
   margin-top: 5px;
   font-family: 'Barlow Condensed', sans-serif;
   letter-spacing: 0.05em;
   text-align: right;
 }
-.bubble strong { color: var(--gold-light); font-weight: 600; }
-.bubble em { font-style: italic; color: var(--cream); }
+.bubble strong { color: var(--gold-ink); font-weight: 600; }
+.bubble em { font-style: italic; color: var(--ink-muted); }
 .bubble ul { padding-left: 18px; margin: 6px 0; }
 .bubble ul li { margin-bottom: 4px; }
 .bubble p { margin-bottom: 8px; }
@@ -245,7 +251,7 @@ header {
   display: inline-flex; align-items: center; gap: 5px;
   background: none;
   border: 1px solid var(--border);
-  color: var(--gold);
+  color: var(--gold-ink);
   padding: 5px 12px;
   font-size: 12px;
   font-family: 'Barlow Condensed', sans-serif;
@@ -280,14 +286,14 @@ header {
 .suggestions-wrap { padding: 0 20px 8px; }
 .suggestions-label {
   font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--text-muted); font-family: 'Barlow Condensed', sans-serif;
+  color: var(--ink-muted); font-family: 'Barlow Condensed', sans-serif;
   margin-bottom: 8px;
 }
 .suggestions { display: flex; flex-wrap: wrap; gap: 7px; }
 .suggestion-btn {
   background: none;
   border: 1px solid var(--border);
-  color: var(--text-muted);
+  color: var(--ink-muted);
   padding: 7px 14px;
   font-size: 12.5px;
   font-family: 'Barlow', sans-serif;
@@ -298,7 +304,7 @@ header {
 }
 .suggestion-btn:hover {
   border-color: var(--gold);
-  color: var(--gold);
+  color: var(--gold-ink);
   background: rgba(201,168,76,0.07);
 }
 
@@ -316,7 +322,7 @@ header {
   flex: 1;
   background: var(--navy-mid);
   border: 1px solid var(--border);
-  color: var(--off-white);
+  color: var(--navy);
   padding: 12px 16px;
   font-size: 14px;
   font-family: 'Barlow', sans-serif;
@@ -328,7 +334,7 @@ header {
   border-radius: 4px;
   transition: border-color .2s;
 }
-#userInput::placeholder { color: var(--text-muted); }
+#userInput::placeholder { color: var(--ink-muted); }
 #userInput:focus { border-color: var(--gold); }
 
 .btn-send {
@@ -392,23 +398,23 @@ header {
 .prechat-logo img { height: 52px; }
 .prechat-title {
   font-family: 'Playfair Display', serif;
-  font-size: 20px; color: var(--gold-light);
+  font-size: 20px; color: var(--gold-ink);
   text-align: center; margin-bottom: 6px;
 }
 .prechat-sub {
-  font-size: 13px; color: var(--text-muted);
+  font-size: 13px; color: var(--ink-muted);
   text-align: center; margin-bottom: 28px; line-height: 1.5;
 }
 .prechat-field { margin-bottom: 16px; }
 .prechat-field label {
   display: block; font-size: 11px; letter-spacing: .08em;
-  text-transform: uppercase; color: var(--gold-dim);
+  text-transform: uppercase; color: var(--gold-ink);
   margin-bottom: 6px; font-family: 'Barlow Condensed', sans-serif;
 }
 .prechat-field input {
   width: 100%; background: var(--navy-light);
   border: 1px solid var(--border); border-radius: 8px;
-  color: var(--off-white); font-family: 'Barlow', sans-serif;
+  color: var(--navy); font-family: 'Barlow', sans-serif;
   font-size: 15px; padding: 11px 14px; outline: none;
   transition: border-color .2s;
 }
@@ -428,7 +434,7 @@ header {
 .prechat-btn:hover { opacity: .88; }
 .prechat-btn:disabled { opacity: .5; cursor: not-allowed; }
 .prechat-privacy {
-  font-size: 11px; color: var(--text-muted);
+  font-size: 11px; color: var(--ink-muted);
   text-align: center; margin-top: 16px; line-height: 1.5;
 }
 </style>

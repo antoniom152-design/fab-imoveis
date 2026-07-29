@@ -12,11 +12,17 @@
     --gold: #C9A84C;
     --gold-light: #E8C97A;
     --gold-dim: #8A6E30;
+    --gold-ink: #8a6d10;
     --navy: #0A1628;
-    --navy-mid: #112240;
+    /* Tema claro (invertido em 29/07/2026): navy-mid agora é superfície CLARA
+       (cards de formulário/sucesso); nav/page-header/footer continuam escuros
+       de propósito (chrome fixo). */
+    --navy-mid: #FFFFFF;
     --navy-light: #1C3461;
     --off-white: #F5F2EC;
     --text-muted: #8A96A8;
+    --ink-muted: #5c6579;
+    --surf: #F5F2EA;
     --border: rgba(201,168,76,0.2);
     --red: #DC2626;
   }
@@ -25,8 +31,8 @@
 
   body {
     font-family: 'Barlow', sans-serif;
-    background: var(--navy);
-    color: var(--off-white);
+    background: var(--surf);
+    color: var(--navy);
     overflow-x: hidden;
   }
 
@@ -169,7 +175,7 @@
     font-size: 10px;
     letter-spacing: 0.25em;
     text-transform: uppercase;
-    color: var(--gold-dim);
+    color: var(--gold-ink);
     margin-bottom: 4px;
   }
 
@@ -177,7 +183,7 @@
     font-family: 'Playfair Display', serif;
     font-size: 19px;
     font-weight: 700;
-    color: var(--off-white);
+    color: var(--navy);
     margin-bottom: 28px;
     padding-bottom: 14px;
     border-bottom: 1px solid var(--border);
@@ -196,17 +202,17 @@
     font-size: 11px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     margin-bottom: 6px;
   }
 
-  .form-label .req { color: var(--gold); margin-left: 2px; }
+  .form-label .req { color: var(--gold-ink); margin-left: 2px; }
 
   .form-input, .form-select, .form-textarea {
     width: 100%;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid rgba(201,168,76,0.15);
-    color: var(--off-white);
+    background: var(--surf);
+    border: 1px solid rgba(10,22,40,0.15);
+    color: var(--navy);
     padding: 11px 14px;
     font-family: 'Barlow', sans-serif;
     font-size: 14px;
@@ -214,11 +220,11 @@
     transition: border-color 0.2s, background 0.2s;
   }
 
-  .form-input::placeholder, .form-textarea::placeholder { color: rgba(255,255,255,0.2); }
+  .form-input::placeholder, .form-textarea::placeholder { color: rgba(10,22,40,0.35); }
 
   .form-input:focus, .form-select:focus, .form-textarea:focus {
     border-color: var(--gold);
-    background: rgba(201,168,76,0.05);
+    background: rgba(201,168,76,0.08);
   }
 
   .form-select {
@@ -227,12 +233,12 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 14px center;
-    background-color: rgba(255,255,255,0.04);
+    background-color: var(--surf);
     padding-right: 36px;
     cursor: pointer;
   }
 
-  .form-select option { background: #112240; }
+  .form-select option { background: #fff; color: var(--navy); }
 
   .form-textarea {
     resize: vertical;
@@ -258,8 +264,8 @@
     font-size: 11px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text-muted);
-    background: rgba(255,255,255,0.02);
+    color: var(--ink-muted);
+    background: rgba(10,22,40,0.03);
     padding: 10px 14px;
     border-right: 1px solid rgba(201,168,76,0.15);
     min-width: 230px;
@@ -269,7 +275,7 @@
     line-height: 1.4;
   }
 
-  .file-row-label .req { color: var(--gold); margin-left: 4px; font-size: 10px; }
+  .file-row-label .req { color: var(--gold-ink); margin-left: 4px; font-size: 10px; }
 
   .file-row-right {
     flex: 1;
@@ -288,7 +294,7 @@
     letter-spacing: 0.1em;
     text-transform: uppercase;
     background: rgba(201,168,76,0.12);
-    color: var(--gold);
+    color: var(--gold-ink);
     border: 1px solid var(--border);
     padding: 5px 12px;
     cursor: pointer;
@@ -301,7 +307,7 @@
 
   .file-name-display {
     font-size: 12px;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-weight: 300;
     flex: 1;
     overflow: hidden;
@@ -309,7 +315,7 @@
     white-space: nowrap;
   }
 
-  .file-name-display.ok { color: var(--off-white); }
+  .file-name-display.ok { color: var(--navy); }
 
   .file-check {
     width: 18px; height: 18px;
@@ -326,13 +332,13 @@
 
   .file-note {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-weight: 300;
     margin-top: 10px;
     line-height: 1.6;
   }
 
-  .file-note em { color: var(--gold); font-style: normal; }
+  .file-note em { color: var(--gold-ink); font-style: normal; }
 
   /* ─── SUBMIT ─── */
   .btn-submit-reserva {
@@ -369,7 +375,7 @@
 
   .form-privacy {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     text-align: center;
     margin-top: 12px;
     line-height: 1.6;
@@ -417,25 +423,25 @@
     margin: 0 auto 24px;
   }
 
-  .success-icon svg { width: 30px; fill: none; stroke: var(--gold); stroke-width: 2; stroke-linecap: round; }
+  .success-icon svg { width: 30px; fill: none; stroke: var(--gold-ink); stroke-width: 2; stroke-linecap: round; }
 
   .success-title {
     font-family: 'Playfair Display', serif;
     font-size: 24px;
     font-weight: 700;
-    color: var(--gold);
+    color: var(--gold-ink);
     margin-bottom: 14px;
   }
 
   .success-text {
     font-size: 15px;
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-weight: 300;
     line-height: 1.85;
     margin-bottom: 30px;
   }
 
-  .success-text strong { color: var(--gold); font-weight: 600; }
+  .success-text strong { color: var(--gold-ink); font-weight: 600; }
 
   .wa-btns { display: flex; flex-direction: column; gap: 10px; }
 
@@ -462,7 +468,7 @@
   .wa-btn-voltar {
     background: transparent;
     border: 1px solid var(--border);
-    color: var(--text-muted);
+    color: var(--ink-muted);
     font-family: 'Barlow Condensed', sans-serif;
     font-size: 13px;
     font-weight: 600;
@@ -474,7 +480,7 @@
     display: block;
     transition: color 0.2s, border-color 0.2s;
   }
-  .wa-btn-voltar:hover { color: var(--off-white); border-color: var(--gold); }
+  .wa-btn-voltar:hover { color: var(--navy); border-color: var(--gold); }
 
   /* ─── FOOTER ─── */
   footer {
@@ -616,7 +622,7 @@
     <!-- SEÇÃO 1-B — CÔNJUGE / COMPANHEIRO(A) -->
     <div class="form-section" id="secao-conjuge" style="display:none;">
       <div class="section-step">Dados do Cônjuge / Companheiro(a)</div>
-      <div class="section-heading" style="color:var(--gold)">
+      <div class="section-heading" style="color:var(--gold-ink)">
         ★ Cônjuge / Companheiro(a)
       </div>
 
@@ -782,7 +788,7 @@
                     background:rgba(201,168,76,0.07);
                     border-left:3px solid var(--gold);border-radius:2px">
           <span style="font-family:'Barlow Condensed',sans-serif;font-size:11px;
-                       letter-spacing:.15em;text-transform:uppercase;color:var(--gold)">
+                       letter-spacing:.15em;text-transform:uppercase;color:var(--gold-ink)">
             ★ Documentos do Cônjuge / Companheiro(a)
           </span>
         </div>
@@ -1211,9 +1217,9 @@
 
     const progressHTML = `
       <div id="progressBar" style="margin-top:16px;display:none">
-        <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px"
+        <div style="font-size:12px;color:var(--ink-muted);margin-bottom:6px"
              id="progressText">Preparando envio…</div>
-        <div style="height:4px;background:rgba(255,255,255,.1);border-radius:2px">
+        <div style="height:4px;background:rgba(10,22,40,.1);border-radius:2px">
           <div id="progressFill" style="height:100%;background:var(--gold);
                border-radius:2px;transition:width .4s;width:0%"></div>
         </div>

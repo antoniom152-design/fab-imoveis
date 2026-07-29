@@ -8,13 +8,18 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:#8A6E30;
-    --navy:#0A1628;--navy-mid:#112240;--navy-light:#1C3461;
-    --off-white:#F5F2EC;--text-muted:#8A96A8;--border:rgba(201,168,76,0.2);
+    --gold:#C9A84C;--gold-light:#E8C97A;--gold-dim:#8A6E30;--gold-ink:#8a6d10;
+    --navy:#0A1628;
+    /* Tema claro (invertido em 29/07/2026): navy-mid agora é superfície CLARA
+       (cards/tabelas/modais); nav, page-header e tabs-bar continuam escuros
+       de propósito (chrome fixo), assim como o bloco de código (.code-wrap). */
+    --navy-mid:#FFFFFF;--navy-light:#1C3461;
+    --off-white:#F5F2EC;--text-muted:#8A96A8;--ink-muted:#5c6579;--surf:#F5F2EA;
+    --border:rgba(201,168,76,0.2);
     --green:#22C55E;--red:#DC2626;--amber:#F59E0B;
   }
   html{scroll-behavior:smooth}
-  body{font-family:'Barlow',sans-serif;background:var(--navy);color:var(--off-white);min-height:100vh}
+  body{font-family:'Barlow',sans-serif;background:var(--surf);color:var(--navy);min-height:100vh}
 
   /* ─── NAV ─── */
   nav{
@@ -45,7 +50,7 @@
 
   /* ─── HEADER ─── */
   .page-header{
-    background:linear-gradient(135deg,var(--navy-mid),var(--navy));
+    background:linear-gradient(135deg,#112240,var(--navy));
     border-bottom:1px solid var(--border);
     padding:40px 48px 36px;
     display:flex;align-items:center;justify-content:space-between;
@@ -74,7 +79,7 @@
 
   /* ─── TABS ─── */
   .tabs-bar{
-    background:var(--navy-mid);border-bottom:1px solid var(--border);
+    background:#112240;border-bottom:1px solid var(--border);
     padding:0 48px;display:flex;gap:0;
   }
   .tab-btn{
@@ -110,9 +115,9 @@
     background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim));
   }
   .stat-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;
-    letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px}
-  .stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold);line-height:1}
-  .stat-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:6px}
+  .stat-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold-ink);line-height:1}
+  .stat-sub{font-size:11px;color:var(--ink-muted);margin-top:4px}
 
   /* ─── CONEXÃO CARD ─── */
   .conn-card{
@@ -129,17 +134,17 @@
   .conn-dot.warn{background:var(--amber)}
   .conn-dot.err{background:var(--red)}
   .conn-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
-    letter-spacing:.12em;text-transform:uppercase;color:var(--off-white)}
-  .conn-sub{font-size:12px;color:var(--text-muted);margin-left:auto}
+    letter-spacing:.12em;text-transform:uppercase;color:var(--navy)}
+  .conn-sub{font-size:12px;color:var(--ink-muted);margin-left:auto}
   .conn-input-row{display:flex;gap:10px;flex-wrap:wrap}
   .conn-input{
     flex:1;min-width:280px;
-    background:rgba(255,255,255,.04);border:1px solid var(--border);
-    color:var(--off-white);padding:10px 14px;font-family:'Barlow',sans-serif;font-size:13px;
+    background:var(--surf);border:1px solid var(--border);
+    color:var(--navy);padding:10px 14px;font-family:'Barlow',sans-serif;font-size:13px;
     outline:none;transition:border-color .2s;
   }
   .conn-input:focus{border-color:var(--gold)}
-  .conn-input::placeholder{color:rgba(255,255,255,.25)}
+  .conn-input::placeholder{color:rgba(10,22,40,.35)}
   .btn-conn{
     height:40px;padding:0 20px;background:var(--gold);color:var(--navy);border:none;
     font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
@@ -148,15 +153,15 @@
   }
   .btn-conn:hover{background:var(--gold-light)}
   .btn-conn-test{
-    height:40px;padding:0 16px;background:transparent;color:var(--text-muted);
-    border:1px solid rgba(138,150,168,.3);
+    height:40px;padding:0 16px;background:transparent;color:var(--ink-muted);
+    border:1px solid rgba(138,150,168,.4);
     font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:600;
     letter-spacing:.12em;text-transform:uppercase;cursor:pointer;
     transition:all .2s;white-space:nowrap;
   }
-  .btn-conn-test:hover{color:var(--off-white);border-color:var(--text-muted)}
-  .conn-help{font-size:11px;color:var(--text-muted);margin-top:10px;line-height:1.6}
-  .conn-help a{color:var(--gold-dim);text-decoration:none}
+  .btn-conn-test:hover{color:var(--navy);border-color:var(--ink-muted)}
+  .conn-help{font-size:11px;color:var(--ink-muted);margin-top:10px;line-height:1.6}
+  .conn-help a{color:var(--gold-ink);text-decoration:none}
   .conn-help a:hover{color:var(--gold)}
 
   /* ─── TABLE PREVIEW ─── */
@@ -174,20 +179,20 @@
   }
   .table-wrap-inner{overflow-x:auto}
   .table-wrap-inner::-webkit-scrollbar{height:5px}
-  .table-wrap-inner::-webkit-scrollbar-track{background:var(--navy)}
+  .table-wrap-inner::-webkit-scrollbar-track{background:var(--surf)}
   .table-wrap-inner::-webkit-scrollbar-thumb{background:var(--navy-light);border-radius:2px}
   table{width:100%;border-collapse:collapse;font-size:12px;min-width:900px}
   thead th{
-    background:var(--navy);padding:10px 12px;text-align:left;
+    background:var(--navy-mid);padding:10px 12px;text-align:left;
     font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
-    letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);
     border-bottom:1px solid var(--border);white-space:nowrap;
   }
   tbody tr{border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s}
   tbody tr:hover{background:rgba(201,168,76,.04)}
-  tbody td{padding:10px 12px;color:var(--text-muted);vertical-align:middle}
-  td.td-nome{color:var(--off-white);font-weight:500}
-  td.td-valor{font-family:'Playfair Display',serif;color:var(--gold);font-size:13px}
+  tbody td{padding:10px 12px;color:var(--ink-muted);vertical-align:middle}
+  td.td-nome{color:var(--navy);font-weight:500}
+  td.td-valor{font-family:'Playfair Display',serif;color:var(--gold-ink);font-size:13px}
   .badge-tipo{
     display:inline-block;font-family:'Barlow Condensed',sans-serif;
     font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
@@ -198,12 +203,12 @@
   .bt-lancamento{background:#5C1A1A;color:#FFAAAA}
   .bt-construcao{background:#4A3A10;color:#E8C97A}
   .pill-ativo  {display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green)}
-  .pill-inativo{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text-muted)}
-  .td-link a{color:var(--gold-dim);font-size:11px;text-decoration:none}
+  .pill-inativo{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ink-muted)}
+  .td-link a{color:var(--gold-ink);font-size:11px;text-decoration:none}
   .td-link a:hover{color:var(--gold)}
   .td-img img{width:48px;height:34px;object-fit:cover;border-radius:2px;border:1px solid var(--border)}
-  .empty-table{padding:60px;text-align:center;color:var(--text-muted);font-size:13px}
-  .loading-row{padding:40px;text-align:center;color:var(--text-muted);font-size:13px;
+  .empty-table{padding:60px;text-align:center;color:var(--ink-muted);font-size:13px}
+  .loading-row{padding:40px;text-align:center;color:var(--ink-muted);font-size:13px;
     display:flex;align-items:center;justify-content:center;gap:10px}
 
   /* ─── SETUP GUIDE ─── */
@@ -221,12 +226,12 @@
   .step-num{
     width:32px;height:32px;border:1px solid var(--gold);
     display:flex;align-items:center;justify-content:center;flex-shrink:0;
-    font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--gold);
+    font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--gold-ink);
   }
   .step-title{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;
-    letter-spacing:.1em;text-transform:uppercase;color:var(--off-white)}
-  .step-desc{font-size:12px;color:var(--text-muted);margin-top:2px}
-  .step-arrow{margin-left:auto;color:var(--text-muted);font-size:18px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--navy)}
+  .step-desc{font-size:12px;color:var(--ink-muted);margin-top:2px}
+  .step-arrow{margin-left:auto;color:var(--ink-muted);font-size:18px;
     transition:transform .2s;flex-shrink:0}
   .step.open .step-arrow{transform:rotate(90deg)}
   .step-body{
@@ -234,14 +239,14 @@
     border-top:1px solid var(--border);
   }
   .step.open .step-body{display:block}
-  .step-body p{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:12px}
+  .step-body p{font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:12px}
   .step-body p:last-child{margin-bottom:0}
-  .step-body strong{color:var(--off-white)}
+  .step-body strong{color:var(--navy)}
   .step-body ol,.step-body ul{padding-left:18px;margin-bottom:12px}
-  .step-body li{font-size:13px;color:var(--text-muted);line-height:1.7;margin-bottom:4px}
-  .step-body li strong{color:var(--off-white)}
+  .step-body li{font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:4px}
+  .step-body li strong{color:var(--navy)}
   .chip{
-    display:inline-block;background:rgba(201,168,76,.12);color:var(--gold);
+    display:inline-block;background:rgba(201,168,76,.12);color:var(--gold-ink);
     border:1px solid var(--border);padding:2px 10px;font-size:11px;
     font-family:'Barlow Condensed',sans-serif;letter-spacing:.1em;
     border-radius:2px;margin:0 2px;
@@ -273,9 +278,9 @@
   .btn-copy.copied{background:rgba(34,197,94,.15);color:var(--green);border-color:rgba(34,197,94,.3)}
 
   .alert{padding:12px 16px;font-size:12px;line-height:1.6;margin-bottom:14px;border-left:3px solid}
-  .alert-info{background:rgba(201,168,76,.08);border-color:var(--gold);color:var(--gold-light)}
-  .alert-ok  {background:rgba(34,197,94,.08);border-color:var(--green);color:#86efac}
-  .alert-warn{background:rgba(245,158,11,.08);border-color:var(--amber);color:#fcd34d}
+  .alert-info{background:rgba(201,168,76,.08);border-color:var(--gold);color:var(--gold-ink)}
+  .alert-ok  {background:rgba(34,197,94,.08);border-color:var(--green);color:#1f7a52}
+  .alert-warn{background:rgba(245,158,11,.08);border-color:var(--amber);color:#9a6b0a}
 
   /* ─── MODAL CADASTRO ─── */
   .cad-overlay{
@@ -289,14 +294,14 @@
     background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
   .cad-header{display:flex;align-items:center;justify-content:space-between;
     padding:22px 28px;border-bottom:1px solid var(--border)}
-  .cad-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold)}
-  .cad-close{background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1;padding:4px}
-  .cad-close:hover{color:var(--off-white)}
+  .cad-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold-ink)}
+  .cad-close{background:none;border:none;color:var(--ink-muted);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+  .cad-close:hover{color:var(--navy)}
   .cad-body{padding:28px}
   .cad-section{margin-bottom:24px}
   .cad-section-title{
     font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.2em;
-    text-transform:uppercase;color:var(--gold-dim);
+    text-transform:uppercase;color:var(--gold-ink);
     margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);
   }
   .cad-grid{display:grid;gap:14px}
@@ -304,28 +309,28 @@
   .cad-grid-3{grid-template-columns:1fr 1fr 1fr}
   .cad-field{display:flex;flex-direction:column;gap:6px}
   .cad-label{font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--text-muted)}
-  .cad-label .req{color:var(--gold);margin-left:2px}
+    text-transform:uppercase;color:var(--ink-muted)}
+  .cad-label .req{color:var(--gold-ink);margin-left:2px}
   .cad-input,.cad-select,.cad-textarea{
-    background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);
-    color:var(--off-white);padding:10px 12px;font-family:'Barlow',sans-serif;
+    background:var(--surf);border:1px solid rgba(10,22,40,.15);
+    color:var(--navy);padding:10px 12px;font-family:'Barlow',sans-serif;
     font-size:13px;outline:none;transition:border-color .2s;width:100%;
   }
-  .cad-input:focus,.cad-select:focus,.cad-textarea:focus{border-color:var(--gold);background:rgba(201,168,76,.05)}
-  .cad-input::placeholder,.cad-textarea::placeholder{color:rgba(255,255,255,.2)}
+  .cad-input:focus,.cad-select:focus,.cad-textarea:focus{border-color:var(--gold);background:rgba(201,168,76,.08)}
+  .cad-input::placeholder,.cad-textarea::placeholder{color:rgba(10,22,40,.35)}
   .cad-select{appearance:none;-webkit-appearance:none;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M0 0l6 8 6-8z' fill='%23C9A84C'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;
-    background-color:rgba(255,255,255,.04);padding-right:34px;cursor:pointer}
-  .cad-select option{background:#112240}
+    background-color:var(--surf);padding-right:34px;cursor:pointer}
+  .cad-select option{background:#fff;color:var(--navy)}
   .cad-textarea{resize:vertical;min-height:80px;line-height:1.6}
   /* Toggles */
   .toggle-row{display:flex;gap:28px;flex-wrap:wrap}
   .toggle-item{display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
-  .toggle-label{font-size:13px;color:var(--off-white)}
+  .toggle-label{font-size:13px;color:var(--navy)}
   .toggle-input{display:none}
-  .toggle-track{width:42px;height:22px;background:rgba(255,255,255,.1);border-radius:11px;
-    position:relative;transition:background .2s;border:1px solid rgba(201,168,76,.2);flex-shrink:0}
+  .toggle-track{width:42px;height:22px;background:rgba(10,22,40,.15);border-radius:11px;
+    position:relative;transition:background .2s;border:1px solid rgba(201,168,76,.3);flex-shrink:0}
   .toggle-input:checked + .toggle-track{background:var(--gold)}
   .toggle-track::after{content:'';position:absolute;top:3px;left:3px;
     width:14px;height:14px;background:white;border-radius:50%;transition:transform .2s}
@@ -337,12 +342,12 @@
   .cad-footer{display:flex;justify-content:flex-end;gap:10px;
     padding:18px 28px;border-top:1px solid var(--border)}
   .btn-cad-cancel{
-    height:40px;padding:0 20px;background:transparent;color:var(--text-muted);
-    border:1px solid rgba(138,150,168,.3);
+    height:40px;padding:0 20px;background:transparent;color:var(--ink-muted);
+    border:1px solid rgba(138,150,168,.4);
     font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
     letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all .2s;
   }
-  .btn-cad-cancel:hover{color:var(--off-white);border-color:var(--text-muted)}
+  .btn-cad-cancel:hover{color:var(--navy);border-color:var(--ink-muted)}
   .btn-cad-save{
     height:40px;padding:0 24px;background:var(--gold);color:var(--navy);border:none;
     font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
@@ -357,18 +362,18 @@
     letter-spacing:.1em;text-transform:uppercase;padding:4px 10px;
     border:none;cursor:pointer;transition:all .2s;white-space:nowrap;
   }
-  .btn-tbl-edit{background:rgba(201,168,76,.15);color:var(--gold)}
+  .btn-tbl-edit{background:rgba(201,168,76,.15);color:var(--gold-ink)}
   .btn-tbl-edit:hover{background:var(--gold);color:var(--navy)}
-  .btn-tbl-on{background:rgba(34,197,94,.12);color:var(--green)}
+  .btn-tbl-on{background:rgba(34,197,94,.12);color:#1f7a52}
   .btn-tbl-on:hover{background:var(--green);color:white}
-  .btn-tbl-off{background:rgba(220,38,38,.1);color:#F87171}
+  .btn-tbl-off{background:rgba(220,38,38,.1);color:#b03a2e}
   .btn-tbl-off:hover{background:#DC2626;color:white}
   /* Toast */
   .toast{
     position:fixed;bottom:28px;right:28px;z-index:2000;
     background:var(--navy-mid);border:1px solid var(--border);
     border-left:4px solid var(--green);
-    padding:14px 20px;font-size:13px;color:var(--off-white);
+    padding:14px 20px;font-size:13px;color:var(--navy);
     display:none;align-items:center;gap:10px;
     box-shadow:0 8px 32px rgba(0,0,0,.5);max-width:380px;line-height:1.4;
   }
@@ -382,14 +387,14 @@
   /* ─── COLUMNS REFERENCE ─── */
   .cols-table{width:100%;border-collapse:collapse;font-size:12px;margin:12px 0}
   .cols-table th{
-    background:var(--navy);padding:8px 10px;text-align:left;
+    background:var(--navy-mid);padding:8px 10px;text-align:left;
     font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
-    letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);
+    letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);
     border-bottom:1px solid var(--border);
   }
-  .cols-table td{padding:7px 10px;border-bottom:1px solid rgba(201,168,76,.06);color:var(--text-muted)}
-  .cols-table td:first-child{font-family:'Barlow Condensed',sans-serif;color:var(--gold);font-weight:700;font-size:13px}
-  .cols-table td:nth-child(2){color:var(--off-white)}
+  .cols-table td{padding:7px 10px;border-bottom:1px solid rgba(201,168,76,.06);color:var(--ink-muted)}
+  .cols-table td:first-child{font-family:'Barlow Condensed',sans-serif;color:var(--gold-ink);font-weight:700;font-size:13px}
+  .cols-table td:nth-child(2){color:var(--navy)}
 
   /* ─── PIN OVERLAY ─── */
   .pin-overlay{
@@ -399,11 +404,11 @@
   }
   .pin-box{background:var(--navy-mid);border:1px solid var(--border);padding:40px 48px;text-align:center;max-width:400px;width:90%}
   .pin-box::before{content:'';display:block;height:3px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim));margin:-40px -48px 28px}
-  .pin-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--off-white);margin-bottom:8px}
-  .pin-sub{font-size:13px;color:var(--text-muted);margin-bottom:24px;line-height:1.6}
+  .pin-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:8px}
+  .pin-sub{font-size:13px;color:var(--ink-muted);margin-bottom:24px;line-height:1.6}
   .pin-input{
-    width:100%;background:rgba(255,255,255,.04);border:1px solid var(--border);
-    color:var(--off-white);padding:12px 16px;font-family:'Barlow',sans-serif;
+    width:100%;background:var(--surf);border:1px solid var(--border);
+    color:var(--navy);padding:12px 16px;font-family:'Barlow',sans-serif;
     font-size:16px;text-align:center;letter-spacing:.2em;outline:none;margin-bottom:12px;
     transition:border-color .2s;
   }
@@ -421,17 +426,17 @@
     display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-end;
   }
   .tbl-filter-grp{display:flex;flex-direction:column;gap:4px;flex:1;min-width:140px;}
-  .tbl-filter-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted)}
+  .tbl-filter-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--ink-muted)}
   .tbl-filter-sel{
-    background:rgba(255,255,255,.04);border:1px solid var(--border);
-    color:var(--off-white);padding:8px 28px 8px 10px;font-family:'Barlow',sans-serif;font-size:12px;
+    background:var(--surf);border:1px solid var(--border);
+    color:var(--navy);padding:8px 28px 8px 10px;font-family:'Barlow',sans-serif;font-size:12px;
     outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 9px center;
     transition:border-color .2s;
   }
   .tbl-filter-sel:focus{border-color:var(--gold)}
-  .tbl-filter-sel option{background:#112240}
+  .tbl-filter-sel option{background:#fff;color:var(--navy)}
 
   @media(max-width:768px){
     nav,.page-header,.tabs-bar,.main{padding-left:16px;padding-right:16px}
@@ -487,44 +492,44 @@
   .crm-stat-pill:hover{border-color:var(--gold);background:rgba(201,168,76,.05)}
   .crm-stat-pill.active{border-bottom-color:var(--gold);background:rgba(201,168,76,.07)}
   .crm-stat-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;line-height:1}
-  .crm-stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--text-muted);margin-top:4px}
+  .crm-stat-lbl{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);margin-top:4px}
   .crm-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
   .crm-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;flex:1}
   .crm-search{
-    height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);
-    color:var(--off-white);padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;
+    height:36px;background:var(--surf);border:1px solid var(--border);
+    color:var(--navy);padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;
     outline:none;transition:border-color .2s;min-width:200px;
   }
   .crm-search:focus{border-color:var(--gold)}
-  .crm-search::placeholder{color:rgba(255,255,255,.25)}
+  .crm-search::placeholder{color:rgba(10,22,40,.35)}
   .crm-sel{
-    height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);
-    color:var(--off-white);padding:0 28px 0 10px;font-family:'Barlow',sans-serif;font-size:12px;
+    height:36px;background:var(--surf);border:1px solid var(--border);
+    color:var(--navy);padding:0 28px 0 10px;font-family:'Barlow',sans-serif;font-size:12px;
     outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 9px center;
     transition:border-color .2s;
   }
   .crm-sel:focus{border-color:var(--gold)}
-  .crm-sel option{background:#112240}
+  .crm-sel option{background:#fff;color:var(--navy)}
 
   /* Lead cards */
   .crm-lead-table{width:100%;border-collapse:collapse;font-size:12px}
   .crm-lead-table thead th{
-    background:var(--navy);padding:10px 14px;text-align:left;
+    background:var(--navy-mid);padding:10px 14px;text-align:left;
     font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
-    letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);
     border-bottom:1px solid var(--border);white-space:nowrap;
   }
   .crm-lead-table tbody tr{border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s;cursor:pointer}
   .crm-lead-table tbody tr:hover{background:rgba(201,168,76,.05)}
-  .crm-lead-table tbody td{padding:12px 14px;color:var(--text-muted);vertical-align:middle}
-  .crm-nome{color:var(--off-white)!important;font-weight:600;font-size:13px}
-  .crm-acao-pendente{color:var(--gold)!important;font-size:11px;font-style:italic}
+  .crm-lead-table tbody td{padding:12px 14px;color:var(--ink-muted);vertical-align:middle}
+  .crm-nome{color:var(--navy)!important;font-weight:600;font-size:13px}
+  .crm-acao-pendente{color:var(--gold-ink)!important;font-size:11px;font-style:italic}
   .crm-prox-data{font-size:11px}
-  .crm-prox-data.vencida{color:#F87171!important}
-  .crm-prox-data.hoje{color:#FCD34D!important}
-  .crm-prox-data.ok{color:#86EFAC!important}
+  .crm-prox-data.vencida{color:#b03a2e!important}
+  .crm-prox-data.hoje{color:#9a6b0a!important}
+  .crm-prox-data.ok{color:#1f7a52!important}
 
   /* Status badges */
   .crm-badge{
@@ -544,9 +549,9 @@
   .crm-badge-dot{background:var(--dot)}
 
   /* Priority badge */
-  .p-alta  {color:#F87171;font-size:10px;font-weight:700;letter-spacing:.05em}
-  .p-media {color:#FCD34D;font-size:10px;font-weight:700;letter-spacing:.05em}
-  .p-baixa {color:var(--text-muted);font-size:10px;font-weight:700;letter-spacing:.05em}
+  .p-alta  {color:#b03a2e;font-size:10px;font-weight:700;letter-spacing:.05em}
+  .p-media {color:#9a6b0a;font-size:10px;font-weight:700;letter-spacing:.05em}
+  .p-baixa {color:var(--ink-muted);font-size:10px;font-weight:700;letter-spacing:.05em}
 
   /* CRM Modal layout */
   .crm-modal-body{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:500px}
@@ -681,12 +686,12 @@
                 <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
                   <button type="button" id="cadUFConfirm"
                           onclick="confirmarOutraBtn('cadUF','cadUFOutra','cadUFVal','cadUFConfirm')"
-                          style="font-size:11px;color:var(--gold);background:none;border:1px solid var(--gold);
+                          style="font-size:11px;color:var(--gold-ink);background:none;border:1px solid var(--gold);
                                  border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
                     ✓ Usar este valor
                   </button>
                   <button type="button" onclick="voltarCadSelect('cadUF','cadUFOutraWrap')"
-                          style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0">
+                          style="font-size:11px;color:var(--ink-muted);background:none;border:none;cursor:pointer;padding:0">
                     ✕ Voltar para a lista
                   </button>
                 </div>
@@ -705,12 +710,12 @@
                 <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
                   <button type="button" id="cadCidadeConfirm"
                           onclick="confirmarOutraBtn('cadCidade','cadCidadeOutra','cadCidadeVal','cadCidadeConfirm')"
-                          style="font-size:11px;color:var(--gold);background:none;border:1px solid var(--gold);
+                          style="font-size:11px;color:var(--gold-ink);background:none;border:1px solid var(--gold);
                                  border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
                     ✓ Usar este valor
                   </button>
                   <button type="button" onclick="voltarCadSelect('cadCidade','cadCidadeOutraWrap')"
-                          style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0">
+                          style="font-size:11px;color:var(--ink-muted);background:none;border:none;cursor:pointer;padding:0">
                     ✕ Voltar para a lista
                   </button>
                 </div>
@@ -729,12 +734,12 @@
                 <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
                   <button type="button" id="cadBairroConfirm"
                           onclick="confirmarOutraBtn('cadBairro','cadBairroOutra','cadBairroVal','cadBairroConfirm')"
-                          style="font-size:11px;color:var(--gold);background:none;border:1px solid var(--gold);
+                          style="font-size:11px;color:var(--gold-ink);background:none;border:1px solid var(--gold);
                                  border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
                     ✓ Usar este valor
                   </button>
                   <button type="button" onclick="voltarCadSelect('cadBairro','cadBairroOutraWrap')"
-                          style="font-size:11px;color:var(--text-muted);background:none;border:none;cursor:pointer;padding:0">
+                          style="font-size:11px;color:var(--ink-muted);background:none;border:none;cursor:pointer;padding:0">
                     ✕ Voltar para a lista
                   </button>
                 </div>
@@ -838,7 +843,7 @@
             <div class="cad-field">
               <label class="cad-label">Link Blogger / Página Descritiva</label>
               <input class="cad-input" type="url" id="cadBlog" placeholder="https://...">
-              <span style="font-size:11px;color:var(--text-muted);margin-top:2px">
+              <span style="font-size:11px;color:var(--ink-muted);margin-top:2px">
                 Página do imóvel no blog / site descritivo
               </span>
             </div>
@@ -847,7 +852,7 @@
             <label class="cad-label">Link Drive — Pasta de Fotos e Vídeos</label>
             <input class="cad-input" type="url" id="cadLinkDrive"
               placeholder="https://drive.google.com/drive/folders/...">
-            <span style="font-size:11px;color:var(--text-muted);margin-top:2px">
+            <span style="font-size:11px;color:var(--ink-muted);margin-top:2px">
               Pasta do Google Drive com as fotos e vídeos do empreendimento (permissão: qualquer pessoa com o link)
             </span>
           </div>
@@ -1145,8 +1150,8 @@
             <th>Status</th><th>Imagem</th><th>Nome do Empreendimento</th>
             <th>Tipo</th><th>Construtora</th><th>Cidade</th><th>Bairro</th>
             <th>Faixa de Valor</th><th>Unid.</th><th>Blog</th>
-            <th style="color:var(--gold)">★</th>
-            <th style="color:var(--gold)">Ações</th>
+            <th style="color:var(--gold-ink)">★</th>
+            <th style="color:var(--gold-ink)">Ações</th>
           </tr>
         </thead>
         <tbody id="tbl-body">
@@ -1183,7 +1188,7 @@
         <span class="step-arrow">›</span>
       </div>
       <div class="step-body">
-        <p>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--gold)">sheets.new</a> para criar uma nova planilha Google Sheets em branco.</p>
+        <p>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--gold-ink)">sheets.new</a> para criar uma nova planilha Google Sheets em branco.</p>
         <ol>
           <li>Clique no título <strong>"Planilha sem título"</strong> e renomeie para <strong>WAL Imóveis — Portfólio</strong></li>
           <li>Clique com o botão direito na aba inferior (Plan1) e renomeie para <strong>IMOVEISDISPONIVEIS</strong></li>
@@ -1377,27 +1382,27 @@ function onEdit(e) {
   .query-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim))}
   .query-filters{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
   .qf-group{display:flex;flex-direction:column;gap:5px}
-  .qf-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-muted)}
-  .qf-input{height:36px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--off-white);padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .2s;min-width:140px}
+  .qf-label{font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-muted)}
+  .qf-input{height:36px;background:var(--surf);border:1px solid var(--border);color:var(--navy);padding:0 12px;font-family:'Barlow',sans-serif;font-size:13px;outline:none;transition:border-color .2s;min-width:140px}
   .qf-input:focus{border-color:var(--gold)}
   .btn-query{height:36px;padding:0 20px;background:var(--gold);color:var(--navy);border:none;font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:background .2s}
   .btn-query:hover{background:var(--gold-light)}
-  .query-count{font-size:12px;color:var(--text-muted);margin-top:10px}
+  .query-count{font-size:12px;color:var(--ink-muted);margin-top:10px}
   .query-table-wrap{overflow-x:auto;margin-top:12px}
   .query-table-wrap table{width:100%;border-collapse:collapse;font-size:12px;min-width:600px}
-  .query-table-wrap thead th{background:var(--navy);padding:9px 12px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap}
+  .query-table-wrap thead th{background:var(--navy-mid);padding:9px 12px;text-align:left;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);border-bottom:1px solid var(--border);white-space:nowrap}
   .query-table-wrap tbody tr{border-bottom:1px solid rgba(201,168,76,.06)}
   .query-table-wrap tbody tr:hover{background:rgba(201,168,76,.04)}
-  .query-table-wrap tbody td{padding:9px 12px;color:var(--text-muted);vertical-align:middle}
+  .query-table-wrap tbody td{padding:9px 12px;color:var(--ink-muted);vertical-align:middle}
   .vis-stat{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
   .vis-card{background:var(--navy-mid);border:1px solid var(--border);padding:18px;text-align:center}
-  .vis-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gold);line-height:1}
-  .vis-lbl{font-size:11px;color:var(--text-muted);margin-top:6px}
+  .vis-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;color:var(--gold-ink);line-height:1}
+  .vis-lbl{font-size:11px;color:var(--ink-muted);margin-top:6px}
   .vis-subtab{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
     background:none;border:none;border-bottom:3px solid transparent;padding:10px 22px;cursor:pointer;
-    color:var(--text-muted);transition:color .2s,border-color .2s;margin-bottom:-2px}
-  .vis-subtab:hover{color:var(--off-white)}
-  .vis-subtab.active{color:var(--gold);border-bottom-color:var(--gold)}
+    color:var(--ink-muted);transition:color .2s,border-color .2s;margin-bottom:-2px}
+  .vis-subtab:hover{color:var(--navy)}
+  .vis-subtab.active{color:var(--gold-ink);border-bottom-color:var(--gold)}
 </style>
 
 <!-- LEADS -->
@@ -1411,7 +1416,7 @@ function onEdit(e) {
     </div>
     <div class="query-count" id="leads-count"></div>
     <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
-      <button class="btn-query" onclick="imprimirTabela('Leads','leads-table-wrap',document.getElementById('leads-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+      <button class="btn-query" onclick="imprimirTabela('Leads','leads-table-wrap',document.getElementById('leads-count').textContent)" style="background:var(--navy-mid);color:var(--navy);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
       <button class="btn-query" onclick="abrirEmpreendimentos()" style="background:var(--gold);color:var(--navy);border:none;font-weight:700">🏠 Ver Empreendimentos Disponíveis</button>
     </div>
   </div>
@@ -1442,7 +1447,7 @@ function onEdit(e) {
       <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarReservas()">&#128269; Consultar</button></div>
     </div>
     <div class="query-count" id="res-count"></div>
-    <button class="btn-query" onclick="imprimirTabela('Reservas','res-table-wrap',document.getElementById('res-count').textContent)" style="margin-top:10px;background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+    <button class="btn-query" onclick="imprimirTabela('Reservas','res-table-wrap',document.getElementById('res-count').textContent)" style="margin-top:10px;background:var(--navy-mid);color:var(--navy);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
   </div>
   <div class="query-table-wrap" id="res-table-wrap">
     <div class="empty-table">Selecione o período e clique em Consultar.</div>
@@ -1460,7 +1465,7 @@ function onEdit(e) {
       <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarSimulacoes()">&#128269; Consultar</button></div>
     </div>
     <div class="query-count" id="sim-count"></div>
-    <button class="btn-query" onclick="imprimirTabela('Simulações','sim-table-wrap',document.getElementById('sim-count').textContent)" style="margin-top:10px;background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+    <button class="btn-query" onclick="imprimirTabela('Simulações','sim-table-wrap',document.getElementById('sim-count').textContent)" style="margin-top:10px;background:var(--navy-mid);color:var(--navy);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
   </div>
   <div class="query-table-wrap" id="sim-table-wrap">
     <div class="empty-table">Selecione o período e clique em Consultar.</div>
@@ -1502,7 +1507,7 @@ function onEdit(e) {
       </div>
       <div class="query-count" id="vis-count"></div>
       <div style="display:flex;gap:10px;margin-top:10px">
-        <button class="btn-query" onclick="imprimirTabela('Visitas por Empreendimento','vis-table-wrap',document.getElementById('vis-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+        <button class="btn-query" onclick="imprimirTabela('Visitas por Empreendimento','vis-table-wrap',document.getElementById('vis-count').textContent)" style="background:var(--navy-mid);color:var(--navy);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
       </div>
     </div>
     <div class="query-table-wrap" id="vis-table-wrap">
@@ -1529,7 +1534,7 @@ function onEdit(e) {
       </div>
       <div class="query-count" id="lp-count"></div>
       <div style="display:flex;gap:10px;margin-top:10px">
-        <button class="btn-query" onclick="imprimirTabela('Visitas Landing Page','lp-table-wrap',document.getElementById('lp-count').textContent)" style="background:var(--navy-mid);color:var(--off-white);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
+        <button class="btn-query" onclick="imprimirTabela('Visitas Landing Page','lp-table-wrap',document.getElementById('lp-count').textContent)" style="background:var(--navy-mid);color:var(--navy);border:1px solid var(--border)">🖨 Imprimir / PDF</button>
       </div>
     </div>
     <div class="query-table-wrap" id="lp-table-wrap">
@@ -1546,7 +1551,7 @@ function onEdit(e) {
 
   <!-- BARRA DE AÇÕES -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px">
-    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--text-muted)" id="const-count-label">—</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-muted)" id="const-count-label">—</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <input type="text" id="const-search" class="cad-input" placeholder="🔍 Buscar por nome, cidade ou estado…" style="width:280px;margin:0" oninput="filtrarConstrutoras()">
       <button class="btn-cad-save" type="button" onclick="abrirFormConstrutora()" style="padding:9px 18px">+ Nova Construtora</button>
@@ -1556,7 +1561,7 @@ function onEdit(e) {
   <!-- FORMULÁRIO CADASTRO / EDIÇÃO -->
   <div id="const-form-wrap" style="display:none">
     <div class="query-card" style="margin-bottom:20px">
-      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:18px" id="const-form-titulo">Nova Construtora</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:18px" id="const-form-titulo">Nova Construtora</div>
       <form id="constForm" autocomplete="off" onsubmit="return false">
         <input type="hidden" id="constId">
 
@@ -1609,13 +1614,13 @@ function onEdit(e) {
           <div>
             <label class="cad-label">Estados de Atuação</label>
             <input class="cad-input" id="constEstados" placeholder="Ex: RJ, SP, MG">
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Separe por vírgula</div>
+            <div style="font-size:10px;color:var(--ink-muted);margin-top:4px">Separe por vírgula</div>
           </div>
 
           <div>
             <label class="cad-label">Cidades de Atuação</label>
             <input class="cad-input" id="constCidades" placeholder="Ex: Rio de Janeiro, Niterói, São Paulo">
-            <div style="font-size:10px;color:var(--text-muted);margin-top:4px">Separe por vírgula</div>
+            <div style="font-size:10px;color:var(--ink-muted);margin-top:4px">Separe por vírgula</div>
           </div>
 
         </div>
@@ -1673,7 +1678,7 @@ function onEdit(e) {
           <tr><td>N</td><td>Observações</td><td>Texto</td><td>Não</td><td>Notas internas — não aparece no site</td></tr>
           <tr style="background:rgba(201,168,76,0.08);border-top:2px solid var(--gold)">
             <td>O</td>
-            <td style="color:var(--gold);font-weight:600">Destaque — Página Principal</td>
+            <td style="color:var(--gold-ink);font-weight:600">Destaque — Página Principal</td>
             <td>Checkbox</td><td>Não</td>
             <td>TRUE = aparece na seção <strong>Empreendimentos Selecionados</strong> do index.html · Máx. recomendado: 3 imóveis</td>
           </tr>
@@ -1724,7 +1729,7 @@ function onEdit(e) {
       </div>
       <div class="step-body">
         <ol>
-          <li>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--gold)">sheets.new</a> e crie uma planilha em branco</li>
+          <li>Acesse <a href="https://sheets.new" target="_blank" style="color:var(--gold-ink)">sheets.new</a> e crie uma planilha em branco</li>
           <li>Renomeie o título para <strong>WAL — CRM de Leads</strong></li>
           <li>Renomeie a aba inferior (Plan1) para <strong>LEADS</strong></li>
           <li>Clique em <span class="chip">Extensões</span> → <span class="chip">Apps Script</span></li>
@@ -1948,35 +1953,35 @@ function jsonOut(obj) {
   <!-- STATS -->
   <div class="crm-stats-row" id="crm-stats-row">
     <div class="crm-stat-pill active" onclick="crmFiltrarStatus('')" id="crm-pill-all">
-      <span class="crm-stat-num" id="crm-n-all" style="color:var(--gold)">0</span>
+      <span class="crm-stat-num" id="crm-n-all" style="color:var(--gold-ink)">0</span>
       <span class="crm-stat-lbl">Total</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('novo')" id="crm-pill-novo">
-      <span class="crm-stat-num" id="crm-n-novo" style="color:#86EFAC">0</span>
+      <span class="crm-stat-num" id="crm-n-novo" style="color:#1f7a52">0</span>
       <span class="crm-stat-lbl">Novo Lead</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('contato')" id="crm-pill-contato">
-      <span class="crm-stat-num" id="crm-n-contato" style="color:#93C5FD">0</span>
+      <span class="crm-stat-num" id="crm-n-contato" style="color:#1e40af">0</span>
       <span class="crm-stat-lbl">Em Contato</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('proposta')" id="crm-pill-proposta">
-      <span class="crm-stat-num" id="crm-n-proposta" style="color:#C4B5FD">0</span>
+      <span class="crm-stat-num" id="crm-n-proposta" style="color:#6d4fa0">0</span>
       <span class="crm-stat-lbl">Proposta</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('aguardando')" id="crm-pill-aguardando">
-      <span class="crm-stat-num" id="crm-n-aguardando" style="color:#FCD34D">0</span>
+      <span class="crm-stat-num" id="crm-n-aguardando" style="color:#9a6b0a">0</span>
       <span class="crm-stat-lbl">Aguardando</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('visita')" id="crm-pill-visita">
-      <span class="crm-stat-num" id="crm-n-visita" style="color:#5EEAD4">0</span>
+      <span class="crm-stat-num" id="crm-n-visita" style="color:#0e7490">0</span>
       <span class="crm-stat-lbl">Visita</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('fechado')" id="crm-pill-fechado">
-      <span class="crm-stat-num" id="crm-n-fechado" style="color:#6EE7B7">0</span>
+      <span class="crm-stat-num" id="crm-n-fechado" style="color:#166534">0</span>
       <span class="crm-stat-lbl">Fechado ✓</span>
     </div>
     <div class="crm-stat-pill" onclick="crmFiltrarStatus('perdido')" id="crm-pill-perdido">
-      <span class="crm-stat-num" id="crm-n-perdido" style="color:#FCA5A5">0</span>
+      <span class="crm-stat-num" id="crm-n-perdido" style="color:#b03a2e">0</span>
       <span class="crm-stat-lbl">Perdido ✗</span>
     </div>
   </div>
@@ -2005,14 +2010,14 @@ function jsonOut(obj) {
       </select>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-      <span id="crm-last-update" style="font-size:13px;color:var(--gold-light);font-family:'Barlow Condensed',sans-serif;letter-spacing:.12em;font-weight:600;white-space:nowrap"></span>
+      <span id="crm-last-update" style="font-size:13px;color:var(--gold-ink);font-family:'Barlow Condensed',sans-serif;letter-spacing:.12em;font-weight:600;white-space:nowrap"></span>
       <input type="date" id="crm-fil-dt-ini" title="Data inicial (Criado em)" onchange="crmRenderLista()"
         style="height:36px;padding:0 8px;background:var(--navy-light);border:1px solid var(--border);border-radius:6px;color:var(--off-white);font-size:12px;font-family:'Barlow',sans-serif;cursor:pointer">
-      <span style="color:var(--text-muted);font-size:12px">até</span>
+      <span style="color:var(--ink-muted);font-size:12px">até</span>
       <input type="date" id="crm-fil-dt-fim" title="Data final (Criado em)" onchange="crmRenderLista()"
         style="height:36px;padding:0 8px;background:var(--navy-light);border:1px solid var(--border);border-radius:6px;color:var(--off-white);font-size:12px;font-family:'Barlow',sans-serif;cursor:pointer">
-      <button class="btn-header btn-outline" onclick="crmLimparDatas()" title="Limpar período" style="height:36px;padding:0 10px;font-size:13px;line-height:1">✕</button>
-      <button class="btn-header btn-outline" onclick="crmExportar()" style="height:36px;padding:0 14px;font-size:11px">
+      <button class="btn-header btn-outline" onclick="crmLimparDatas()" title="Limpar período" style="height:36px;padding:0 10px;font-size:13px;line-height:1;color:var(--navy)">✕</button>
+      <button class="btn-header btn-outline" onclick="crmExportar()" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">
         🖨 Exportar
       </button>
       <button class="btn-header btn-primary" onclick="crmAbrirNovoLead()" style="height:36px;padding:0 16px;font-size:11px">
@@ -2043,7 +2048,7 @@ function jsonOut(obj) {
             <th>Próxima Ação</th>
             <th>Data/Prazo</th>
             <th>Última Interação</th>
-            <th style="color:var(--gold)">Ações</th>
+            <th style="color:var(--gold-ink)">Ações</th>
           </tr>
         </thead>
         <tbody id="crm-tbody">
@@ -2065,12 +2070,12 @@ function jsonOut(obj) {
     <div class="cad-header" style="gap:14px;flex-wrap:wrap">
       <div style="flex:1;min-width:0">
         <div class="cad-title" id="crm-modal-titulo">Novo Lead</div>
-        <div id="crm-modal-sub" style="font-size:12px;color:var(--text-muted);margin-top:2px"></div>
+        <div id="crm-modal-sub" style="font-size:12px;color:var(--ink-muted);margin-top:2px"></div>
       </div>
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <select id="crm-modal-status" onchange="crmOnStatusChange()"
-          style="height:34px;background:rgba(255,255,255,.04);border:1px solid var(--border);
-                 color:var(--off-white);padding:0 28px 0 10px;font-family:'Barlow Condensed',sans-serif;
+          style="height:34px;background:var(--surf);border:1px solid var(--border);
+                 color:var(--navy);padding:0 28px 0 10px;font-family:'Barlow Condensed',sans-serif;
                  font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
                  outline:none;appearance:none;-webkit-appearance:none;cursor:pointer;
                  background-image:url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E\");
@@ -2223,7 +2228,7 @@ function jsonOut(obj) {
         <button type="button" id="crm-btn-excluir"
           onclick="crmExcluirLead()"
           style="display:none;height:36px;padding:0 16px;background:rgba(220,38,38,.1);
-                 color:#F87171;border:1px solid rgba(220,38,38,.3);
+                 color:#b03a2e;border:1px solid rgba(220,38,38,.3);
                  font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
                  letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:all .2s">
           🗑 Excluir Lead
@@ -2588,8 +2593,8 @@ function renderTable() {
         ? `<a href="${d.blog}" target="_blank" rel="noopener">Abrir →</a>`
         : '—'}</td>
       <td style="text-align:center">${d.destaque
-        ? '<span style="color:var(--gold);font-size:16px">★</span>'
-        : '<span style="color:var(--text-muted)">—</span>'}</td>
+        ? '<span style="color:var(--gold-ink);font-size:16px">★</span>'
+        : '<span style="color:var(--ink-muted)">—</span>'}</td>
       <td>
         <div style="display:flex;gap:5px;white-space:nowrap">
           <button class="btn-tbl btn-tbl-edit" onclick="abrirFormEdit('${d.id}')">✏ Editar</button>
@@ -3110,19 +3115,19 @@ function renderTabelaConstrutoras(lista) {
 
   const linhas = lista.map(c => `
     <tr>
-      <td><strong style="color:var(--off-white)">${esc(c.nome)}</strong></td>
+      <td><strong style="color:var(--navy)">${esc(c.nome)}</strong></td>
       <td>${esc(c.telefone)}</td>
-      <td>${c.site ? `<a href="${esc(c.site)}" target="_blank" style="color:var(--gold);text-decoration:none">${esc(c.site)}</a>` : '—'}</td>
-      <td>${esc(c.viabilizador)}<br><span style="color:var(--text-muted);font-size:11px">${esc(c.tel_viab)}</span></td>
+      <td>${c.site ? `<a href="${esc(c.site)}" target="_blank" style="color:var(--gold-ink);text-decoration:none">${esc(c.site)}</a>` : '—'}</td>
+      <td>${esc(c.viabilizador)}<br><span style="color:var(--ink-muted);font-size:11px">${esc(c.tel_viab)}</span></td>
       <td>${esc(c.estados) || '—'}</td>
       <td>${esc(c.cidades) || '—'}</td>
-      <td style="color:var(--gold);font-weight:600">${c.comissao ? c.comissao + '%' : '—'}</td>
-      <td>${c.drive ? `<a href="${esc(c.drive)}" target="_blank" style="color:var(--gold);text-decoration:none">📁 Drive</a>` : '—'}</td>
+      <td style="color:var(--gold-ink);font-weight:600">${c.comissao ? c.comissao + '%' : '—'}</td>
+      <td>${c.drive ? `<a href="${esc(c.drive)}" target="_blank" style="color:var(--gold-ink);text-decoration:none">📁 Drive</a>` : '—'}</td>
       <td>${esc(c.data) || '—'}</td>
       <td style="max-width:180px;white-space:normal">${esc(c.obs) || '—'}</td>
       <td style="white-space:nowrap">
-        <button onclick="abrirFormConstrutora('${c.id}')" style="background:rgba(201,168,76,.15);border:1px solid var(--border);color:var(--gold);padding:4px 10px;cursor:pointer;font-size:11px;margin-right:4px">✏ Editar</button>
-        <button onclick="excluirConstrutora('${c.id}')" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:#f87171;padding:4px 10px;cursor:pointer;font-size:11px">🗑</button>
+        <button onclick="abrirFormConstrutora('${c.id}')" style="background:rgba(201,168,76,.15);border:1px solid var(--border);color:var(--gold-ink);padding:4px 10px;cursor:pointer;font-size:11px;margin-right:4px">✏ Editar</button>
+        <button onclick="excluirConstrutora('${c.id}')" style="background:rgba(220,38,38,.1);border:1px solid rgba(220,38,38,.3);color:#b03a2e;padding:4px 10px;cursor:pointer;font-size:11px">🗑</button>
       </td>
     </tr>`).join('');
 
@@ -3208,7 +3213,7 @@ function mostrarToastConst(msg) {
   div.textContent = msg;
   Object.assign(div.style, {
     position:'fixed', bottom:'24px', left:'50%', transform:'translateX(-50%)',
-    background:'var(--navy-mid)', border:'1px solid var(--gold)', color:'var(--off-white)',
+    background:'var(--navy-mid)', border:'1px solid var(--gold)', color:'var(--navy)',
     padding:'12px 24px', fontFamily:"'Barlow Condensed',sans-serif", fontSize:'13px',
     letterSpacing:'.06em', zIndex:'9999', borderRadius:'2px', whiteSpace:'nowrap'
   });
@@ -3614,7 +3619,7 @@ function crmRenderLista() {
   if (vencidas.length) {
     alertEl.style.display = 'block';
     alertEl.innerHTML = `⚠️ <strong>${vencidas.length} lead(s) com ação vencida:</strong> ` +
-      vencidas.slice(0,3).map(l => `<a href="#" onclick="crmAbrirLead('${l.id}');return false" style="color:var(--gold)">${esc(l.nome)}</a>`).join(', ') +
+      vencidas.slice(0,3).map(l => `<a href="#" onclick="crmAbrirLead('${l.id}');return false" style="color:var(--gold-ink)">${esc(l.nome)}</a>`).join(', ') +
       (vencidas.length > 3 ? ` e mais ${vencidas.length - 3}…` : '');
   } else {
     alertEl.style.display = 'none';
@@ -3647,13 +3652,13 @@ function crmRenderLista() {
       ? l.historico[l.historico.length-1]
       : null;
     const ultimaHtml = ultimaInt
-      ? `<span style="font-size:11px">${ultimaInt.tipo}<br><span style="color:var(--text-muted)">${fmtData(ultimaInt.data)}</span></span>`
-      : '<span style="color:var(--text-muted);font-size:11px">—</span>';
+      ? `<span style="font-size:11px">${ultimaInt.tipo}<br><span style="color:var(--ink-muted)">${fmtData(ultimaInt.data)}</span></span>`
+      : '<span style="color:var(--ink-muted);font-size:11px">—</span>';
 
     const telStr = String(l.telefone || '').trim();
     const contatoHtml = [
-      telStr ? `<a href="https://wa.me/55${telStr.replace(/\D/g,'')}" target="_blank" style="color:var(--gold);text-decoration:none;font-size:11px">📱 ${esc(telStr)}</a>` : '',
-      l.email ? `<span style="font-size:11px;color:var(--text-muted)">${esc(String(l.email))}</span>` : ''
+      telStr ? `<a href="https://wa.me/55${telStr.replace(/\D/g,'')}" target="_blank" style="color:var(--gold-ink);text-decoration:none;font-size:11px">📱 ${esc(telStr)}</a>` : '',
+      l.email ? `<span style="font-size:11px;color:var(--ink-muted)">${esc(String(l.email))}</span>` : ''
     ].filter(Boolean).join('<br>');
 
     const criadoHtml = l.criado_em ? fmtDataHora(l.criado_em) : '—';
@@ -3675,8 +3680,8 @@ function crmRenderLista() {
         <button class="btn-tbl btn-tbl-edit" onclick="crmAbrirLead('${l.id}')" style="margin-bottom:4px">✏ Abrir</button><br>
         <select onchange="crmMudarStatus('${l.id}',this.value);this.blur()"
           style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
-                 letter-spacing:.08em;background:rgba(255,255,255,.04);border:1px solid var(--border);
-                 color:var(--text-muted);padding:3px 6px;cursor:pointer;width:100%;
+                 letter-spacing:.08em;background:var(--surf);border:1px solid var(--border);
+                 color:var(--navy);padding:3px 6px;cursor:pointer;width:100%;
                  outline:none;appearance:none;-webkit-appearance:none">
           <option value="" disabled selected>↕ Status</option>
           <option value="novo"      ${l.status==='novo'      ?'selected':''}>🟢 Novo Lead</option>
