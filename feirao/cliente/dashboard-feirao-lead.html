@@ -10,6 +10,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
 <style>
 :root{
+  /* Tema claro (padrão do dashboard-diretor/acompanhamento-pre-cadastro) —
+     fundo do conteúdo principal virou claro, texto escuro. --navy/--gold/
+     --teal/--green/--red/--amber/--purple/--coral/-2/-dim NÃO mudam: a
+     sidebar, a topbar, o banner do Feirão e a tela de login continuam com
+     fundo azul-marinho escuro de propósito (mesmo padrão da referência),
+     e essas variáveis seguem sendo as corretas (claras sobre escuro) ali.
+     Para texto de destaque (verde/vermelho/âmbar/roxo/coral/teal) usado
+     DENTRO das áreas agora claras (cards, tabelas, badges), use as novas
+     variantes "-ink" abaixo — mais escuras, com contraste adequado sobre
+     fundo branco/creme; as variáveis "2" (--green2 etc.) permanecem só
+     para uso em fundo escuro. */
   --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
   --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
   --teal:#0E7490;--teal2:#22D3EE;--teal-dim:rgba(14,116,144,.15);
@@ -18,10 +29,12 @@
   --amber:#D97706;--amber-dim:rgba(217,119,6,.10);
   --purple:#7C3AED;--purple-dim:rgba(124,58,237,.10);
   --coral:#EA4C89;--coral-dim:rgba(234,76,137,.10);
-  --surf:#0D1B2E;--surf2:#111F35;--surf3:#152844;
-  --card:#152540;--card2:#1A2E50;
-  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
-  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --teal-ink:#0e7490;--green-ink:#1f7a52;--red-ink:#b03a2e;
+  --amber-ink:#9a6b0a;--purple-ink:#6d4fa0;--coral-ink:#a8305f;--gold-ink:#8a6d10;
+  --surf:#f5f2ea;--surf2:#eeebe0;--surf3:#e6e1d1;
+  --card:#ffffff;--card2:#f7f4ec;
+  --bdr:rgba(20,32,58,.10);--bdr2:rgba(20,32,58,.18);
+  --txt:#1b2434;--muted:#5c6579;--light:#8892a6;
   --r:10px;--mono:'JetBrains Mono',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -39,7 +52,7 @@ a{text-decoration:none;color:inherit}
 .auth-wrap{width:100%;max-width:480px;position:relative}
 .auth-logo-area{text-align:center;margin-bottom:24px}
 .auth-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold)}
-.auth-tagline{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.auth-tagline{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-top:4px} /* texto solto sobre o fundo escuro da tela de login — não usa --muted (esse agora é escuro, para dentro dos cards claros) */
 .auth-badge{display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:var(--gold-dim);border:1px solid var(--gold-b);color:var(--gold2);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:4px 12px;border-radius:20px}
 .auth-box{background:var(--card);border:1px solid var(--gold-b);border-radius:14px;overflow:hidden}
 .auth-tabs{display:flex;border-bottom:1px solid var(--bdr)}
@@ -47,14 +60,14 @@ a{text-decoration:none;color:inherit}
 .auth-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(201,168,76,.05)}
 .auth-panel{display:none;padding:28px}
 .auth-panel.active{display:block}
-.auth-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#fff;margin-bottom:4px}
+.auth-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--txt);margin-bottom:4px}
 .auth-sub{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.5}
 .field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
 .field-inp,.field-sel,.field-ta{width:100%;padding:10px 13px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;font-size:13px;outline:none;transition:border-color .2s}
 .field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--gold)}
-.field-inp::placeholder,.field-ta::placeholder{color:rgba(255,255,255,.2)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(20,32,58,.35)}
 .field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
-.field-sel option{background:#152540}
+.field-sel option{background:#fff;color:var(--txt)}
 .field-ta{resize:vertical;min-height:60px;line-height:1.5}
 .field-row{display:grid;gap:12px;margin-bottom:14px}
 .field-2{grid-template-columns:1fr 1fr}
@@ -62,8 +75,8 @@ a{text-decoration:none;color:inherit}
 .f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
 .auth-btn{width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);margin-top:6px;transition:opacity .2s,transform .2s}
 .auth-btn:hover{opacity:.9;transform:translateY(-1px)}
-.auth-err{color:#F87171;font-size:11px;margin-top:8px;display:none;text-align:center}
-.auth-ok{color:#34D399;font-size:12px;margin-top:10px;display:none;text-align:center;background:rgba(5,150,105,.1);border:1px solid rgba(52,211,153,.2);border-radius:7px;padding:10px}
+.auth-err{color:var(--red-ink);font-size:11px;margin-top:8px;display:none;text-align:center}
+.auth-ok{color:var(--green-ink);font-size:12px;margin-top:10px;display:none;text-align:center;background:rgba(5,150,105,.1);border:1px solid rgba(31,122,82,.25);border-radius:7px;padding:10px}
 .terms-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
 .terms-check input{accent-color:var(--gold);margin-top:2px;flex-shrink:0}
 .terms-check label{font-size:11px;color:var(--muted);line-height:1.5}
@@ -72,7 +85,7 @@ a{text-decoration:none;color:inherit}
 .upload-area.ok{border-color:var(--green2);border-style:solid;background:var(--green-dim)}
 .upload-area input[type=file]{display:none}
 .upload-lbl{font-size:10px;color:var(--muted);margin-top:6px}
-.upload-name{font-size:11px;color:var(--gold2);margin-top:4px;font-weight:600;word-break:break-all}
+.upload-name{font-size:11px;color:var(--gold-ink);margin-top:4px;font-weight:600;word-break:break-all}
 
 /* ══ TOAST ══ */
 #toast{position:fixed;bottom:24px;right:24px;z-index:5000;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;padding:12px 18px;font-size:12px;color:var(--txt);box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;border-left:3px solid var(--gold);max-width:340px}
@@ -121,20 +134,20 @@ a{text-decoration:none;color:inherit}
 .panel{display:none}.panel.active{display:block}
 
 .ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:10px}
-.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:5px}
-.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal-ink);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--txt);line-height:1.2}
 .ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
 .ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
 
 .btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
-.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.2)}
+.btn:hover{color:var(--txt);border-color:var(--bdr2)}
 .btn-sm{padding:5px 10px;font-size:10px}
-.btn-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2);font-weight:700}
+.btn-teal{background:var(--teal-dim);border-color:rgba(14,116,144,.25);color:var(--teal-ink);font-weight:700}
 .btn-teal:hover{opacity:.85;transform:translateY(-1px)}
 .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
 .btn-gold:hover{opacity:.9;transform:translateY(-1px)}
-.btn-green{background:rgba(5,150,105,.15);border-color:rgba(52,211,153,.2);color:#34D399}
-.btn-red{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.25);color:#F87171}
+.btn-green{background:rgba(5,150,105,.12);border-color:rgba(31,122,82,.25);color:var(--green-ink)}
+.btn-red{background:rgba(220,38,38,.10);border-color:rgba(176,58,46,.25);color:var(--red-ink)}
 .btn-full{width:100%;justify-content:center;padding:11px}
 .btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
 
@@ -147,7 +160,7 @@ a{text-decoration:none;color:inherit}
 .kpi.green::after{background:var(--green)}
 .kpi.purple::after{background:var(--purple)}
 .kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.kpi-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1}
+.kpi-val{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--txt);line-height:1}
 .kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
 
 .sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -159,34 +172,34 @@ a{text-decoration:none;color:inherit}
 .mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
 .card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
 .card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-title{font-size:12px;font-weight:700;color:var(--txt);display:flex;align-items:center;gap:7px}
 .card-sub{font-size:10px;color:var(--muted);margin-top:1px}
 .card-b{padding:16px}
-.card-link{font-size:10px;color:var(--teal2);font-weight:600;cursor:pointer}
+.card-link{font-size:10px;color:var(--teal-ink);font-weight:600;cursor:pointer}
 .card-link:hover{opacity:.8}
 
 .bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
-.bg{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
-.br{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
-.ba{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
-.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-b)}
-.bt{background:rgba(14,116,144,.2);color:#22D3EE;border:1px solid rgba(34,211,238,.15)}
-.bp{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.15)}
-.bz{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--bdr)}
-.bc{background:rgba(234,76,137,.12);color:#F472B6;border:1px solid rgba(244,114,182,.2)}
+.bg{background:rgba(5,150,105,.12);color:var(--green-ink);border:1px solid rgba(31,122,82,.2)}
+.br{background:rgba(220,38,38,.10);color:var(--red-ink);border:1px solid rgba(176,58,46,.2)}
+.ba{background:rgba(217,119,6,.12);color:var(--amber-ink);border:1px solid rgba(154,107,10,.2)}
+.bo{background:rgba(201,168,76,.14);color:var(--gold-ink);border:1px solid var(--gold-b)}
+.bt{background:rgba(14,116,144,.12);color:var(--teal-ink);border:1px solid rgba(14,116,144,.2)}
+.bp{background:rgba(124,58,237,.12);color:var(--purple-ink);border:1px solid rgba(109,79,160,.2)}
+.bz{background:rgba(20,32,58,.06);color:var(--muted);border:1px solid var(--bdr)}
+.bc{background:rgba(234,76,137,.12);color:var(--coral-ink);border:1px solid rgba(168,48,95,.2)}
 
 .tbl{width:100%;border-collapse:collapse}
-.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(0,0,0,.15)}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(20,32,58,.035)}
 .tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr.clk{cursor:pointer}
-.tbl tr.clk:hover td{background:rgba(255,255,255,.02)}
+.tbl tr.clk:hover td{background:rgba(20,32,58,.03)}
 
 .modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
 .modal-ov.show{display:flex}
 .modal-box{width:100%;max-width:780px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);border-top:2px solid var(--gold)}
 .modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
-.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold2)}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold-ink)}
 .modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
 .modal-close:hover{color:var(--txt)}
 .modal-body{padding:24px;max-height:74vh;overflow-y:auto}
@@ -196,23 +209,23 @@ a{text-decoration:none;color:inherit}
 .tl-line{position:absolute;left:10px;top:4px;bottom:4px;width:1px;background:var(--bdr)}
 .tl-item{position:relative;margin-bottom:18px}
 .tl-dot{position:absolute;left:-26px;top:2px;width:20px;height:20px;border-radius:50%;border:1px solid var(--bdr2);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:10px}
-.tl-tipo{font-size:11px;font-weight:700;color:#fff;margin-bottom:2px}
+.tl-tipo{font-size:11px;font-weight:700;color:var(--txt);margin-bottom:2px}
 .tl-data{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
 .tl-nota{font-size:12px;color:var(--txt);line-height:1.5}
 
 .mono{font-family:var(--mono)}
 .fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}.fs14{font-size:14px}.fs16{font-size:16px}
-.c-muted{color:var(--muted)}.c-teal{color:var(--teal2)}.c-gold{color:var(--gold2)}
-.c-green{color:#34D399}.c-red{color:#F87171}.c-amber{color:#FCD34D}
+.c-muted{color:var(--muted)}.c-teal{color:var(--teal-ink)}.c-gold{color:var(--gold-ink)}
+.c-green{color:var(--green-ink)}.c-red{color:var(--red-ink)}.c-amber{color:var(--amber-ink)}
 .fw6{font-weight:600}.fw7{font-weight:700}
 .flex-bet{display:flex;align-items:center;justify-content:space-between}
 .flex{display:flex;align-items:center}
 .sp{display:flex;flex-wrap:wrap;gap:6px}
 .alert-box{padding:12px 14px;border-radius:8px;border:1px solid;font-size:12px;line-height:1.5;margin-bottom:12px}
-.alert-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:#FCD34D}
-.alert-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
-.alert-teal{background:var(--teal-dim);border-color:rgba(34,211,238,.2);color:var(--teal2)}
-.alert-gold{background:var(--gold-dim);border-color:var(--gold-b);color:var(--gold2)}
+.alert-amber{background:var(--amber-dim);border-color:rgba(154,107,10,.3);color:var(--amber-ink)}
+.alert-green{background:var(--green-dim);border-color:rgba(31,122,82,.25);color:var(--green-ink)}
+.alert-teal{background:var(--teal-dim);border-color:rgba(14,116,144,.25);color:var(--teal-ink)}
+.alert-gold{background:var(--gold-dim);border-color:var(--gold-b);color:var(--gold-ink)}
 
 /* ══ HERO FEIRÃO ══ */
 .feirao-hero{position:relative;border-radius:14px;overflow:hidden;background:linear-gradient(135deg,var(--navy) 0%,#0a2647 55%,#0d3358 100%);border:1px solid var(--gold-b);padding:26px 28px;margin-bottom:22px}
@@ -243,7 +256,7 @@ a{text-decoration:none;color:inherit}
 .prop-banner-badges{position:absolute;top:8px;left:8px;right:8px;display:flex;justify-content:space-between;z-index:1}
 .prop-banner-price{position:absolute;bottom:8px;left:10px;z-index:1;font-family:var(--mono);font-weight:700;color:#fff;font-size:13px}
 .prop-body{padding:13px 14px;flex:1;display:flex;flex-direction:column}
-.prop-nome{font-size:13px;font-weight:700;color:#fff;margin-bottom:2px}
+.prop-nome{font-size:13px;font-weight:700;color:var(--txt);margin-bottom:2px}
 .prop-loc{font-size:10.5px;color:var(--muted);margin-bottom:10px}
 .prop-tags{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
 .prop-vant{font-size:10.5px;color:var(--txt);display:flex;align-items:flex-start;gap:6px;margin-bottom:4px}
@@ -261,15 +274,15 @@ a{text-decoration:none;color:inherit}
 .simtab-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
 .simtab{padding:.8rem .9rem;border-radius:8px;border:2px solid transparent;cursor:pointer;transition:all .15s;background:var(--card2)}
 .simtab-lbl{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;color:var(--muted)}
-.simtab-val{font-family:'Playfair Display',serif;font-size:1.1rem;color:#fff}
+.simtab-val{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--txt)}
 .simtab-sub{font-size:10px;color:var(--muted);margin-top:2px}
 .simtab.active{border-color:var(--gold)}
-.simtab.active .simtab-lbl{color:var(--gold2)}
+.simtab.active .simtab-lbl{color:var(--gold-ink)}
 
 .slider-row{display:flex;align-items:center;gap:10px;margin-top:6px}
 input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:var(--bdr2);border-radius:2px;border:none;padding:0;cursor:pointer}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;background:var(--gold);border-radius:50%;cursor:pointer}
-.slider-val{font-size:12px;font-weight:700;color:var(--gold2);min-width:46px;text-align:right;font-family:var(--mono)}
+.slider-val{font-size:12px;font-weight:700;color:var(--gold-ink);min-width:46px;text-align:right;font-family:var(--mono)}
 
 /* ══ STATUS STEPS ══ */
 .status-steps{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
@@ -280,7 +293,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .status-step.next{opacity:.4}
 
 /* ══ MISC ══ */
-.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+.spinner{display:inline-block;width:13px;height:13px;border:2px solid rgba(8,25,46,.25);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite} /* usado só no botão dourado do chat IA — cores casam com o texto navy do botão */
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ══ AI CHAT ══ */
@@ -295,7 +308,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .ai-bubble-u{background:var(--teal-dim);border:1px solid rgba(34,211,238,.2)}
 .ai-chips{padding:8px 10px 0;display:flex;flex-wrap:wrap;gap:5px}
 .ai-chip{font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;background:var(--card2);border:1px solid var(--bdr2);color:var(--muted);transition:all .15s}
-.ai-chip:hover{border-color:var(--gold-b);color:var(--gold2)}
+.ai-chip:hover{border-color:var(--gold-b);color:var(--gold-ink)}
 .ai-inp-row{padding:10px;border-top:1px solid var(--bdr);display:flex;gap:8px}
 .ai-inp{flex:1;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:7px;padding:8px 12px;font-size:12px;outline:none;transition:border-color .2s;resize:none;min-height:36px;max-height:80px;overflow:auto}
 .ai-inp:focus{border-color:var(--gold)}
@@ -307,7 +320,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .feat-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:13px 14px;display:flex;gap:10px}
 .feat-ico{font-size:18px;flex-shrink:0}
-.feat-name{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
+.feat-name{font-size:12px;font-weight:700;color:var(--txt);margin-bottom:2px}
 .feat-desc{font-size:10.5px;color:var(--muted);line-height:1.5}
 
 /* ══ JORNADA DO CLIENTE ══ */
@@ -315,12 +328,12 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .jmini-dot{flex:1;height:4px;border-radius:2px;background:rgba(255,255,255,.1);transition:background .2s}
 .jmini-dot.done{background:var(--gold2)}
 .jmini-dot.curr{background:var(--teal2);animation:pulse 1.6s infinite}
-.jmini-lbl{font-size:9px;color:var(--muted);margin-top:6px}
+.jmini-lbl{font-size:9px;color:rgba(255,255,255,.4);margin-top:6px} /* dentro do resumo do lead na sidebar escura — não usa --muted (esse agora é escuro) */
 .jstage-card{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:9px;background:var(--card2);border:1px solid var(--bdr);margin-bottom:8px}
 .jstage-card.done{border-color:rgba(52,211,153,.25)}
 .jstage-card.curr{border-color:rgba(34,211,238,.3);background:rgba(14,116,144,.08)}
 .jstage-ico{font-size:18px;width:30px;text-align:center;flex-shrink:0}
-.jstage-name{font-size:12px;font-weight:700;color:#fff}
+.jstage-name{font-size:12px;font-weight:700;color:var(--txt)}
 .jstage-desc{font-size:10.5px;color:var(--muted);margin-top:1px}
 .jstage-time{margin-left:auto;font-size:9.5px;color:var(--muted);font-family:var(--mono);white-space:nowrap}
 
@@ -328,17 +341,17 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .pay-step{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;padding:14px 16px;margin-bottom:10px;transition:border-color .15s}
 .pay-step.complete{border-color:rgba(52,211,153,.3);background:rgba(5,150,105,.05)}
 .pay-step-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px;flex-wrap:wrap}
-.pay-step-title{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:#fff}
+.pay-step-title{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:700;color:var(--txt)}
 .pay-step-num{width:22px;height:22px;border-radius:50%;background:var(--surf2);border:1px solid var(--bdr2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0}
 .pay-step.complete .pay-step-num{background:var(--green2);border-color:transparent;color:#06281b}
-.pay-step-val{font-family:var(--mono);font-weight:700;color:var(--gold2);font-size:13px}
+.pay-step-val{font-family:var(--mono);font-weight:700;color:var(--gold-ink);font-size:13px}
 .pay-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:6px}
 .pay-check{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--txt);cursor:pointer}
 .pay-check input{accent-color:var(--green2);width:15px;height:15px;cursor:pointer}
 .pay-date{background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:6px;padding:6px 9px;font-size:11px;outline:none}
 .pay-date:focus{border-color:var(--gold)}
 .pay-progress-wrap{margin-bottom:16px}
-.pay-progress-bar{height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden}
+.pay-progress-bar{height:7px;background:rgba(20,32,58,.08);border-radius:4px;overflow:hidden}
 .pay-progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--green2));border-radius:4px;transition:width .3s}
 .pay-sub-list{display:flex;flex-direction:column;gap:7px;margin-top:8px}
 .pay-sub-row{display:flex;align-items:center;gap:8px;font-size:11px;background:var(--surf2);border-radius:7px;padding:7px 10px}
@@ -365,33 +378,33 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .unit-card:hover{border-color:var(--gold-b)}
 .unit-card.selecionada{border-color:var(--gold);background:rgba(201,168,76,.08)}
 .unit-card.indisponivel{opacity:.45;cursor:not-allowed}
-.unit-num{font-size:13px;font-weight:700;color:#fff}
+.unit-num{font-size:13px;font-weight:700;color:var(--txt)}
 .unit-meta{font-size:9.5px;color:var(--muted);margin:3px 0 6px}
-.unit-val{font-size:11px;font-weight:700;color:var(--gold2);font-family:var(--mono)}
+.unit-val{font-size:11px;font-weight:700;color:var(--gold-ink);font-family:var(--mono)}
 
 /* ══ QR CODE / PIX ══ */
-.qr-box{background:#fff;border-radius:10px;padding:12px;display:inline-flex;align-items:center;justify-content:center}
+.qr-box{background:#fff;border-radius:10px;padding:12px;display:inline-flex;align-items:center;justify-content:center} /* precisa continuar branco sempre — leitura de QR code */
 .qr-box img{display:block;width:170px;height:170px}
-.pix-key-row{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--gold2)}
+.pix-key-row{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--gold-ink)}
 .copy-mini{font-size:9px;padding:3px 8px;border-radius:5px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--muted);cursor:pointer}
 .copy-mini:hover{color:var(--txt)}
 
 /* ══ FLUXO DE PAGAMENTO — CAMPOS EDITÁVEIS ══ */
-.pay-inp{background:var(--surf2);border:1px solid var(--bdr2);color:var(--gold2);font-family:var(--mono);font-weight:700;border-radius:6px;padding:6px 9px;font-size:12px;outline:none;width:130px}
+.pay-inp{background:var(--surf2);border:1px solid var(--bdr2);color:var(--gold-ink);font-family:var(--mono);font-weight:700;border-radius:6px;padding:6px 9px;font-size:12px;outline:none;width:130px}
 .pay-inp:focus{border-color:var(--gold)}
-.pay-warn{font-size:10px;color:#FCD34D;margin-top:4px}
+.pay-warn{font-size:10px;color:var(--amber-ink);margin-top:4px}
 .pay-intermed-row{display:grid;grid-template-columns:1.6fr 1fr 1fr auto;gap:8px;align-items:center;background:var(--surf2);border-radius:7px;padding:8px 10px;margin-bottom:6px}
 
 /* ══ FOOTER AGENTE ══ */
 .agent-footer{margin-top:30px;background:linear-gradient(135deg,var(--card) 0%,var(--card2) 100%);border:1px solid var(--teal-dim);border-top:2px solid var(--teal2);border-radius:14px;padding:26px 28px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
 .agent-footer-left{flex:1;min-width:280px}
-.af-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal2);margin-bottom:6px}
-.af-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#fff;margin-bottom:6px}
+.af-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal-ink);margin-bottom:6px}
+.af-title{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--txt);margin-bottom:6px}
 .af-sub{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:10px;max-width:480px}
 .af-bullets{display:flex;flex-wrap:wrap;gap:14px}
 .af-bullet{font-size:11px;color:var(--txt);display:flex;align-items:center;gap:6px}
 
-.mobile-nav-toggle{display:none;background:var(--surf2);border:1px solid var(--bdr2);color:var(--gold2);width:34px;height:34px;border-radius:8px;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0}
+.mobile-nav-toggle{display:none;background:var(--surf2);border:1px solid var(--bdr2);color:var(--gold-ink);width:34px;height:34px;border-radius:8px;align-items:center;justify-content:center;font-size:16px;cursor:pointer;flex-shrink:0}
 .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(4,10,20,.62);z-index:150;backdrop-filter:blur(1px)}
 .sidebar-backdrop.show{display:block}
 .card-b{overflow-x:auto}
@@ -578,16 +591,16 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
       <!-- ETAPA 2: código de 6 dígitos -->
       <div class="auth-panel" id="stepCodigo">
         <div class="auth-title">Confira seu e-mail</div>
-        <div class="auth-sub">Enviamos um código de 6 dígitos para <strong id="codigoEmailAlvo" style="color:var(--gold2)"></strong>. Ele vale por 10 minutos.</div>
+        <div class="auth-sub">Enviamos um código de 6 dígitos para <strong id="codigoEmailAlvo" style="color:var(--gold-ink)"></strong>. Ele vale por 10 minutos.</div>
         <div class="field-row mb14">
           <div><div class="field-lbl">Código de 6 dígitos</div><input class="field-inp" id="loginCodigo" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')doVerificarCodigo()"></div>
         </div>
         <button class="auth-btn" id="btnVerificarCodigo" onclick="doVerificarCodigo()">Confirmar e entrar →</button>
         <div class="auth-err" id="codigoErr">Código incorreto ou expirado.</div>
         <div style="font-size:11px;color:var(--muted);margin-top:16px;text-align:center">
-          <a href="#" onclick="event.preventDefault();voltarParaEmail()" style="color:var(--gold2);text-decoration:none">Trocar e-mail</a>
+          <a href="#" onclick="event.preventDefault();voltarParaEmail()" style="color:var(--gold-ink);text-decoration:none">Trocar e-mail</a>
           &nbsp;·&nbsp;
-          <a href="#" onclick="event.preventDefault();doSolicitarCodigo(true)" style="color:var(--gold2);text-decoration:none">Reenviar código</a>
+          <a href="#" onclick="event.preventDefault();doSolicitarCodigo(true)" style="color:var(--gold-ink);text-decoration:none">Reenviar código</a>
         </div>
       </div>
 
@@ -668,7 +681,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
     <div class="sb-footer">
       <div class="sf-av2">W</div>
-      <div style="font-size:10px;color:var(--muted)">WAL Consultoria<br>CRECI 12261-J</div>
+      <div style="font-size:10px;color:rgba(255,255,255,.4)">WAL Consultoria<br>CRECI 12261-J</div>
       <div class="sf-out" onclick="doSair()" title="Sair">⏻</div>
     </div>
   </nav>
@@ -729,7 +742,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
           <div class="card">
             <div class="card-h"><div class="card-title">🏆 Vantagens exclusivas do Feirão</div></div>
             <div class="card-b">
-              <div class="prop-vant">✅ Taxa CFIAe -  <strong style="color:#fff">8,3% a.a.</strong> + TR</div>
+              <div class="prop-vant">✅ Taxa CFIAe -  <strong style="color:var(--txt)">8,3% a.a.</strong> + TR</div>
               <div class="prop-vant">✅ Entrada parcelada - conforme análise de crédito</div>
               <div class="prop-vant">✅ Análise de crédito prioritária — resultado em até 48 horas</div>
               <div class="prop-vant">✅ FGTS pode ser aceito em alguns casos como parte da entrada</div>
@@ -853,7 +866,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
             <div class="card-h"><div class="card-title">📐 Dados da simulação</div></div>
             <div class="card-b">
               <div class="field-row mb14">
-                <div><div class="field-lbl">Imóvel selecionado</div><div class="field-inp" id="simEmpNome" style="background:var(--card2);color:var(--gold2);font-weight:700">Nenhum — simulação livre</div></div>
+                <div><div class="field-lbl">Imóvel selecionado</div><div class="field-inp" id="simEmpNome" style="background:var(--card2);color:var(--gold-ink);font-weight:700">Nenhum — simulação livre</div></div>
               </div>
               <div class="field-row mb14">
                 <div><div class="field-lbl">Valor do imóvel (R$)</div><input class="field-inp" id="simValor" value="500.000,00" oninput="fmtSimInput(this);simSincEntrada()"></div>
@@ -982,7 +995,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
               <div class="card-h"><div class="card-title">📅 Dados da visita</div></div>
               <div class="card-b">
                 <div class="field-row mb14">
-                  <div><div class="field-lbl">Empreendimento</div><div class="field-inp" id="agEmpNome" style="background:var(--card2);color:var(--gold2);font-weight:700">Nenhum imóvel escolhido ainda</div></div>
+                  <div><div class="field-lbl">Empreendimento</div><div class="field-inp" id="agEmpNome" style="background:var(--card2);color:var(--gold-ink);font-weight:700">Nenhum imóvel escolhido ainda</div></div>
                 </div>
                 <div class="field-row field-2 mb14">
                   <div><div class="field-lbl">Data preferida</div><input class="field-inp" type="date" id="agData"></div>
@@ -1049,7 +1062,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
               <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
                 <div class="sba-av" style="width:52px;height:52px;font-size:20px">WC</div>
                 <div>
-                  <div class="fs14 fw7" style="color:#fff">Equipe WAL Consultoria</div>
+                  <div class="fs14 fw7" style="color:var(--txt)">Equipe WAL Consultoria</div>
                   <div class="fs11 c-muted">CRECI 12261-J · Especialistas em FAB e Servidores Públicos</div>
                 </div>
               </div>
@@ -2778,10 +2791,10 @@ function selecionarSistema(sis){
    colunas de TR e Idade para o CFIAe, como no simulador.html). */
 function renderSimDetalhe(){
   if(!_simResults) return;
-  const map={sac:{d:_simResults.dadosSAC,label:'SAC CEF — Amortização Constante',cor:'#34D399'},
-             price:{d:_simResults.dadosPrice,label:'PRICE CEF — Parcela Fixa',cor:'#22D3EE'},
-             cfiae:{d:_simResults.dadosCFIAe,label:'CFIAe — Aeronáutica (taxa do feirão)',cor:'var(--gold2)'},
-             poupex:{d:_simResults.dadosPOUPEX,label:'POUPEX — SAC',cor:'#A78BFA'}};
+  const map={sac:{d:_simResults.dadosSAC,label:'SAC CEF — Amortização Constante',cor:'var(--green-ink)'},
+             price:{d:_simResults.dadosPrice,label:'PRICE CEF — Parcela Fixa',cor:'var(--teal-ink)'},
+             cfiae:{d:_simResults.dadosCFIAe,label:'CFIAe — Aeronáutica (taxa do feirão)',cor:'var(--gold-ink)'},
+             poupex:{d:_simResults.dadosPOUPEX,label:'POUPEX — SAC',cor:'var(--purple-ink)'}};
   const sel=map[_simSistemaAtivo], d=sel.d;
   const isPoupex=_simSistemaAtivo==='poupex', isCfiae=_simSistemaAtivo==='cfiae';
 
@@ -3145,7 +3158,7 @@ function renderStatusSteps(){
   const c=_creditoState;
   document.getElementById('statusStepsBox').innerHTML=`
     <div class="status-step done"><div class="status-step-ico">✅</div><div><strong>Documentos recebidos</strong><div class="fs10 c-muted">Protocolo ${c.protocolo}</div></div></div>
-    <div class="status-step ${c.liberado?'done':'curr'}"><div class="status-step-ico">${c.liberado?'✅':'🔍'}</div><div><strong style="${c.liberado?'':'color:#FCD34D'}">Análise de crédito</strong><div class="fs10 c-muted">${c.liberado?'Concluída':'Em andamento · prazo de até 24h'}</div></div></div>
+    <div class="status-step ${c.liberado?'done':'curr'}"><div class="status-step-ico">${c.liberado?'✅':'🔍'}</div><div><strong style="${c.liberado?'':'color:var(--amber-ink)'}">Análise de crédito</strong><div class="fs10 c-muted">${c.liberado?'Concluída':'Em andamento · prazo de até 24h'}</div></div></div>
     <div class="status-step ${c.liberado?'done':'next'}"><div class="status-step-ico">${c.liberado?'✅':'✉️'}</div><div><strong>Resultado liberado</strong><div class="fs10 c-muted">${c.liberado?'Confira o valor aprovado abaixo':'Você será avisado nesta tela e por e-mail'}</div></div></div>
   `;
 }
@@ -3273,7 +3286,7 @@ async function carregarHistoricoMensagensConsultor_(){
     <div class="card" style="background:var(--card2);margin-bottom:10px">
       <div class="card-b" style="padding:12px">
         <div class="flex-bet" style="margin-bottom:4px">
-          <span class="fs11 fw7" style="color:#fff">${m.assunto||'—'}</span>
+          <span class="fs11 fw7" style="color:var(--txt)">${m.assunto||'—'}</span>
           <span class="bdg ${m.status==='respondida'?'bg':'ba'}">${m.status==='respondida'?'Respondida':'Aguardando'}</span>
         </div>
         <div class="fs10 c-muted" style="margin-bottom:6px">${fmtDataHora(m.timestamp)}</div>
@@ -3581,7 +3594,7 @@ async function carregarFluxosSalvos_(){
     <div class="card" style="background:var(--card2);margin-bottom:10px">
       <div class="card-b" style="padding:12px">
         <div class="flex-bet" style="margin-bottom:4px">
-          <span class="fs12 fw7" style="color:#fff">${f.empNome||'Simulação livre'}${f.unidade?' · Unidade '+f.unidade:''}</span>
+          <span class="fs12 fw7" style="color:var(--txt)">${f.empNome||'Simulação livre'}${f.unidade?' · Unidade '+f.unidade:''}</span>
           <span class="bdg bo">${f.progressoPct||0}%</span>
         </div>
         <div class="fs10 c-muted" style="margin-bottom:8px">Atualizado em ${fmtDataHora(f.atualizadoEm)}</div>
