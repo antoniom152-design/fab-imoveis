@@ -1102,12 +1102,16 @@
         <form onsubmit="handleSubmit(event)">
           <div class="form-group">
             <label class="form-label">Nome completo</label>
-            <input class="form-input" id="f-nome" type="text" placeholder="Ex: Ten. João Silva" required>
+            <input class="form-input" id="f-nome" type="text" placeholder="Ex: Ten. João Silva" required
+                   oninput="limparErroCampo('f-nome')" onblur="validarNomeCampo()">
+            <span id="f-nome-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe seu nome completo (nome e sobrenome, sem números).</span>
           </div>
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">WhatsApp</label>
-              <input class="form-input" id="f-wpp" type="tel" placeholder="(21) 99726-3950" required>
+              <input class="form-input" id="f-wpp" type="tel" placeholder="(21) 99726-3950" maxlength="15" required
+                     oninput="mascaraTelefoneForm(this);limparErroCampo('f-wpp')" onblur="validarWppCampo()">
+              <span id="f-wpp-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe um WhatsApp válido com DDD.</span>
             </div>
             <div class="form-group">
               <label class="form-label">Posto / Cargo</label>
@@ -1136,7 +1140,9 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label">Unidade / Organização</label>
-              <input class="form-input" id="f-base" type="text" placeholder="Ex: Galeão, Santa Cruz, Cumbica..." required>
+              <input class="form-input" id="f-base" type="text" placeholder="Ex: Galeão, Santa Cruz, Cumbica..." required
+                     oninput="limparErroCampo('f-base')" onblur="validarBaseCampo()">
+              <span id="f-base-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe uma unidade/organização válida (mín. 3 letras).</span>
             </div>
             <div class="form-group">
               <label class="form-label">Estado desejado (UF)</label>
@@ -1203,6 +1209,7 @@
             </div>
           </div>
           <button type="submit" class="btn-submit">Quero conhecer as opções →</button>
+          <button type="button" onclick="limparCamposForm()" style="width:100%;margin-top:10px;background:transparent;border:1px solid var(--border);color:var(--ink-muted);padding:12px;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--navy)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--ink-muted)'">✕ Limpar Campos</button>
           <p class="form-privacy">Seus dados estão seguros. Não compartilhamos suas informações com terceiros. <a href="#">Política de privacidade</a></p>
         </form>
       </div>
@@ -2121,8 +2128,98 @@
     if (el) el.value = val;
   }
 
+  /* ─── VALIDAÇÃO DOS CAMPOS DO FORMULÁRIO "QUERO CONHECER AS OPÇÕES" ─── */
+  function mascaraTelefoneForm(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 10)     v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+    else if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+    else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+    el.value = v;
+  }
+
+  function limparErroCampo(id) {
+    const erro = document.getElementById(id + '-erro');
+    const campo = document.getElementById(id);
+    if (erro) erro.style.display = 'none';
+    if (campo) campo.style.borderColor = '';
+  }
+
+  function marcarErroCampo(id, mostrar) {
+    const erro = document.getElementById(id + '-erro');
+    const campo = document.getElementById(id);
+    if (erro)  erro.style.display  = mostrar ? 'block' : 'none';
+    if (campo) campo.style.borderColor = mostrar ? '#DC2626' : '';
+    return !mostrar;
+  }
+
+  // Nome completo: exige nome + sobrenome, só letras/acentos/espaços/pontuação de patente (ex: "Ten.")
+  function validarNomeCompleto(nome) {
+    const limpo = (nome || '').trim();
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+    const partes = limpo.split(/\s+/).filter(Boolean);
+    return partes.length >= 2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length >= 4;
+  }
+
+  // WhatsApp: DDD (11-99) + número com 8 ou 9 dígitos
+  function validarWhatsAppForm(tel) {
+    const digitos = (tel || '').replace(/\D/g, '');
+    if (digitos.length < 10 || digitos.length > 11) return false;
+    const ddd = parseInt(digitos.slice(0,2), 10);
+    return ddd >= 11 && ddd <= 99;
+  }
+
+  // Unidade/Organização: mínimo de letras reais, não pode ser só números/símbolos ou caractere repetido
+  function validarUnidadeOrg(texto) {
+    const limpo = (texto || '').trim();
+    const soLetras = limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '');
+    if (soLetras.length < 3) return false;
+    if (/^(.)\1+$/.test(limpo.replace(/\s/g,''))) return false;
+    return true;
+  }
+
+  function validarNomeCampo() {
+    const val = document.getElementById('f-nome').value;
+    if (!val.trim()) { limparErroCampo('f-nome'); return true; }
+    return marcarErroCampo('f-nome', !validarNomeCompleto(val));
+  }
+
+  function validarWppCampo() {
+    const val = document.getElementById('f-wpp').value;
+    if (!val.trim()) { limparErroCampo('f-wpp'); return true; }
+    return marcarErroCampo('f-wpp', !validarWhatsAppForm(val));
+  }
+
+  function validarBaseCampo() {
+    const val = document.getElementById('f-base').value;
+    if (!val.trim()) { limparErroCampo('f-base'); return true; }
+    return marcarErroCampo('f-base', !validarUnidadeOrg(val));
+  }
+
+  /* ─── LIMPAR CAMPOS DO FORMULÁRIO ─── */
+  function limparCamposForm() {
+    const form = document.getElementById('f-nome').closest('form');
+    form.reset();
+    ['h-estado','h-cidade','h-bairro','h-faixa','h-imovel'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    ['f-cidade-form','f-bairro-form','f-faixa-form','f-imovel-form'].forEach(id => {
+      const sel = document.getElementById(id);
+      if (sel) sel.innerHTML = '<option value="" disabled selected>Selecione primeiro o campo anterior</option>';
+    });
+    ['f-nome','f-wpp','f-base'].forEach(limparErroCampo);
+    document.getElementById('f-nome').focus();
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
+
+    const nomeOk = marcarErroCampo('f-nome', !validarNomeCompleto(document.getElementById('f-nome').value));
+    const wppOk  = marcarErroCampo('f-wpp',  !validarWhatsAppForm(document.getElementById('f-wpp').value));
+    const baseOk = marcarErroCampo('f-base', !validarUnidadeOrg(document.getElementById('f-base').value));
+    if (!nomeOk) { document.getElementById('f-nome').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-nome').focus(); return; }
+    if (!wppOk)  { document.getElementById('f-wpp').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-wpp').focus(); return; }
+    if (!baseOk) { document.getElementById('f-base').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-base').focus(); return; }
 
     const btn = e.target.querySelector('.btn-submit');
     btn.textContent = 'Enviando...';
