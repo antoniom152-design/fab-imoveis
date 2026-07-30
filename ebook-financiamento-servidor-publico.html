@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financiamento Imobiliário para Servidores Públicos e Militares</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --cor-primaria: #0f3b7f;
+            --cor-secundaria: #d4a951;
+            --cor-texto: #333;
+            --cor-fundo-claro: #f5f5f5;
+            --cor-destaque: #e8f4f8;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--cor-texto);
+            background-color: #fff;
+        }
+
+        /* ===== CAPA ===== */
+        .capa {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #1a4d9a 100%);
+            color: white;
+            padding: 80px 40px;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            page-break-after: always;
+        }
+
+        .capa-logo {
+            font-size: 3em;
+            margin-bottom: 30px;
+        }
+
+        .capa h1 {
+            font-size: 3.5em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .capa h1 span {
+            color: var(--cor-secundaria);
+        }
+
+        .capa-subtitulo {
+            font-size: 1.3em;
+            margin-bottom: 50px;
+            opacity: 0.95;
+            max-width: 600px;
+        }
+
+        .capa-publicos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 60px;
+        }
+
+        .badge-publico {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 25px;
+            font-size: 0.95em;
+            font-weight: 500;
+        }
+
+        .capa-autor {
+            margin-top: 60px;
+            font-size: 1.1em;
+        }
+
+        .capa-autor strong {
+            color: var(--cor-secundaria);
+        }
+
+        .capa-contato {
+            margin-top: 15px;
+            font-size: 0.95em;
+        }
+
+        /* ===== LAYOUT GERAL ===== */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 30px;
+        }
+
+        /* ===== CAPÍTULOS ===== */
+        .capitulo {
+            page-break-before: always;
+            margin-bottom: 60px;
+        }
+
+        .capitulo-numero {
+            font-size: 4em;
+            font-weight: 700;
+            color: var(--cor-secundaria);
+            opacity: 0.3;
+            margin-bottom: -20px;
+            font-family: 'Georgia', serif;
+        }
+
+        .capitulo-label {
+            color: var(--cor-primaria);
+            font-size: 0.85em;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .capitulo h2 {
+            font-size: 2.8em;
+            color: var(--cor-primaria);
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        .capitulo p {
+            font-size: 1.05em;
+            margin-bottom: 20px;
+            line-height: 1.7;
+            text-align: justify;
+        }
+
+        /* ===== CARDS ===== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .card {
+            border-radius: 12px;
+            padding: 25px;
+            background-color: white;
+            border-top: 5px solid var(--cor-primaria);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card.destaque {
+            border-left: 5px solid var(--cor-secundaria);
+            border-top: none;
+            background-color: var(--cor-destaque);
+        }
+
+        .card h3 {
+            color: var(--cor-primaria);
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+
+        /* ===== DESTAQUE / BANNER ===== */
+        .destaque-banner {
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #1a4d9a 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin: 30px 0;
+            font-size: 1.05em;
+            line-height: 1.8;
+        }
+
+        .destaque-banner strong {
+            color: var(--cor-secundaria);
+        }
+
+        /* ===== LISTAS ===== */
+        .lista-itens {
+            list-style: none;
+            margin: 20px 0;
+            padding-left: 0;
+        }
+
+        .lista-itens li {
+            padding-left: 40px;
+            margin-bottom: 15px;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        .lista-itens li:before {
+            content: "✈";
+            position: absolute;
+            left: 0;
+            color: var(--cor-secundaria);
+            font-size: 1.2em;
+        }
+
+        /* ===== TABELAS ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+
+        th {
+            background-color: var(--cor-primaria);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background-color: var(--cor-destaque);
+        }
+
+        /* ===== BOXES INFORMATIVOS ===== */
+        .box-info {
+            margin: 25px 0;
+            padding: 20px;
+            border-left: 5px solid var(--cor-secundaria);
+            background-color: rgba(212, 169, 81, 0.05);
+            border-radius: 4px;
+        }
+
+        .box-info strong {
+            color: var(--cor-primaria);
+        }
+
+        .box-alerta {
+            margin: 25px 0;
+            padding: 20px;
+            border-left: 5px solid #d32f2f;
+            background-color: rgba(211, 47, 47, 0.05);
+            border-radius: 4px;
+        }
+
+        .box-alerta strong {
+            color: #d32f2f;
+        }
+
+        /* ===== NÚMEROS DESTAQUE ===== */
+        .numero-destaque {
+            display: inline-block;
+            background-color: var(--cor-primaria);
+            color: white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3em;
+            margin-right: 15px;
+            vertical-align: middle;
+        }
+
+        .item-numerado {
+            margin-bottom: 20px;
+            line-height: 1.7;
+        }
+
+        /* ===== STATS ===== */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 25px;
+            background: linear-gradient(135deg, var(--cor-primaria) 0%, #1a4d9a 100%);
+            color: white;
+            border-radius: 8px;
+        }
+
+        .stat-numero {
+            font-size: 2.5em;
+            font-weight: 700;
+            color: var(--cor-secundaria);
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        /* ===== PROCESSO/FLUXO ===== */
+        .processo {
+            margin: 40px 0;
+        }
+
+        .passo {
+            display: flex;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .passo-numero {
+            width: 50px;
+            height: 50px;
+            background-color: var(--cor-primaria);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.3em;
+            flex-shrink: 0;
+            margin-right: 20px;
+        }
+
+        .passo-conteudo h4 {
+            color: var(--cor-primaria);
+            font-size: 1.2em;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .passo-conteudo p {
+            font-size: 0.95em;
+            margin-bottom: 0;
+        }
+
+        .passo:not(:last-child)::before {
+            content: "";
+            position: absolute;
+            left: 25px;
+            top: 50px;
+            width: 2px;
+            height: 25px;
+            background-color: var(--cor-primaria);
+        }
+
+        /* ===== RODAPÉ ===== */
+        .rodape {
+            background: var(--cor-primaria);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            margin-top: 60px;
+            page-break-before: always;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+
+        .rodape h3 {
+            color: var(--cor-secundaria);
+            font-size: 1.3em;
+            margin-bottom: 15px;
+        }
+
+        .rodape p {
+            margin-bottom: 10px;
+            opacity: 0.95;
+        }
+
+        .rodape a {
+            color: var(--cor-secundaria);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-container {
+                grid-template-columns: 1fr;
+            }
+
+            .capa h1 {
+                font-size: 2.2em;
+            }
+
+            .capitulo h2 {
+                font-size: 2em;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* ===== IMPRESSÃO / PDF ===== */
+        @media print {
+            body {
+                background-color: white;
+            }
+
+            .capitulo {
+                page-break-before: always;
+            }
+
+            a {
+                text-decoration: none;
+                color: inherit;
+            }
+
+            .rodape {
+                page-break-before: always;
+            }
+        }
+
+        /* ===== ÍNDICE ===== */
+        .indice {
+            background-color: var(--cor-destaque);
+            padding: 30px;
+            border-radius: 8px;
+            page-break-after: always;
+            margin-bottom: 40px;
+        }
+
+        .indice h3 {
+            color: var(--cor-primaria);
+            font-size: 1.8em;
+            margin-bottom: 20px;
+        }
+
+        .indice ol {
+            margin-left: 20px;
+            line-height: 2;
+        }
+
+        .indice li {
+            color: var(--cor-primaria);
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ===== CAPA ===== -->
+<section class="capa">
+    <div class="capa-logo">✈️</div>
+    <h1>Financiamento Imobiliário para <span>Servidores Públicos e Militares</span></h1>
+    <p class="capa-subtitulo">Tudo o que você precisa saber para conquistar seu imóvel com segurança e inteligência financeira</p>
+    
+    <div class="capa-publicos">
+        <span class="badge-publico">✓ Militares da FAB</span>
+        <span class="badge-publico">✓ Marinha</span>
+        <span class="badge-publico">✓ Exército</span>
+        <span class="badge-publico">✓ Polícia Militar</span>
+        <span class="badge-publico">✓ Bombeiros</span>
+        <span class="badge-publico">✓ Servidores Federais</span>
+        <span class="badge-publico">✓ Servidores Estaduais</span>
+        <span class="badge-publico">✓ Servidores Municipais</span>
+        <span class="badge-publico">✓ Ministério Público</span>
+    </div>
+
+    <div class="capa-autor">
+        <strong>Antônio Araújo</strong> | WAL Consultoria, Intermediação de Imóveis e Serviços
+    </div>
+    <div class="capa-contato">
+        📧 comercial@walservidor.com.br • Atendimento 24h, todos os dias
+    </div>
+</section>
+
+<!-- ===== ÍNDICE ===== -->
+<section class="container indice">
+    <h3>📋 Índice de Conteúdos</h3>
+    <ol>
+        <li>Introdução</li>
+        <li>O Sonho do Imóvel Próprio</li>
+        <li>Como Funciona o Financiamento Imobiliário</li>
+        <li>Principais Bancos que Financiam Imóveis</li>
+        <li>O que os Bancos Analisam</li>
+        <li>Entrada, FGTS e Composição de Renda</li>
+        <li>Sistemas de Parcelas: SAC e Tabela Price</li>
+        <li>Imóvel Novo, Usado ou na Planta?</li>
+        <li>Vantagens Exclusivas dos Servidores Públicos e Militares</li>
+        <li>Como Aumentar suas Chances de Aprovação</li>
+        <li>Erros que Devem ser Evitados</li>
+        <li>Estratégias Inteligentes para Servidores Públicos e Militares</li>
+        <li>Financiamento para Investimento Imobiliário</li>
+        <li>Planejamento Financeiro para Compra do Imóvel</li>
+        <li>CET e Custos Totais do Financiamento</li>
+        <li>Serviços da WAL Consultoria</li>
+    </ol>
+</section>
+
+<!-- ===== CAPÍTULO 1: INTRODUÇÃO ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">01</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Introdução</h2>
+        
+        <p>Comprar um imóvel é uma das decisões mais importantes da vida. Mas a realidade é que muitos servidores públicos e militares ainda têm dúvidas sobre o processo — e este e-book foi criado exatamente para isso.</p>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>💰 Quanto de entrada?</h3>
+                <p>Entenda qual valor mínimo é exigido e como o FGTS pode complementar sua entrada.</p>
+            </div>
+            <div class="card">
+                <h3>🏦 Quais bancos aprovam mais?</h3>
+                <p>Conheça as instituições que possuem maior facilidade para o perfil de servidor público e militar.</p>
+            </div>
+            <div class="card">
+                <h3>📊 Quais as melhores taxas?</h3>
+                <p>Compare as taxas e condições para tomar a decisão mais inteligente.</p>
+            </div>
+            <div class="card">
+                <h3>⭐ Vantagens exclusivas</h3>
+                <p>Descubra os benefícios que você tem como servidor público ou militar.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 2: O SONHO DO IMÓVEL ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">02</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>O Sonho do Imóvel Próprio</h2>
+        
+        <p>O imóvel próprio representa muito mais do que quatro paredes. Para o servidor público e militar, é também uma estratégia inteligente de construção patrimonial.</p>
+
+        <div class="stats-container">
+            <div class="stat-box">
+                <div class="stat-numero">+90%</div>
+                <div class="stat-label">dos financiamentos aprovados para servidores com nome limpo</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-numero">35a</div>
+                <div class="stat-label">prazo máximo de financiamento disponível</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-numero">90%</div>
+                <div class="stat-label">do valor do imóvel pode ser financiado</div>
+            </div>
+        </div>
+
+        <h3 style="color: var(--cor-primaria); font-size: 1.5em; margin-top: 40px; margin-bottom: 20px;">Por que os Bancos Adoram o Perfil de Servidor Público e Militar?</h3>
+
+        <div class="destaque-banner">
+            Os bancos avaliam risco. E os servidores públicos e militares apresentam as características mais valorizadas pelo sistema financeiro: <strong>estabilidade profissional, renda previsível, baixo índice histórico de inadimplência e vínculo empregatício sólido</strong>. Isso se traduz diretamente em melhores condições de crédito.
+        </div>
+
+        <h3 style="color: var(--cor-primaria); font-size: 1.3em; margin-top: 30px; margin-bottom: 15px;">Na prática, isso significa:</h3>
+
+        <ul class="lista-itens">
+            <li>Aprovação mais rápida e facilitada</li>
+            <li>Taxas de juros mais competitivas</li>
+            <li>Maior percentual financiado (menos entrada)</li>
+            <li>Melhores condições de negociação</li>
+            <li>Prazos maiores para pagamento</li>
+            <li>Análise facilitada do contracheque (padronizado e transparente)</li>
+        </ul>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 3: COMO FUNCIONA ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">03</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Como Funciona o Financiamento Imobiliário</h2>
+        
+        <p>O financiamento imobiliário é uma modalidade de crédito em que o banco empresta o dinheiro para a compra do imóvel, e você devolve esse valor em parcelas mensais ao longo de anos.</p>
+
+        <div class="processo">
+            <div class="passo">
+                <div class="passo-numero">1</div>
+                <div class="passo-conteudo">
+                    <h4>Escolha do Imóvel</h4>
+                    <p>Novo, usado, na planta, residencial ou comercial. Após a escolha, o banco inicia a análise da operação.</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">2</div>
+                <div class="passo-conteudo">
+                    <h4>Análise de Crédito</h4>
+                    <p>O banco avalia renda, score, estabilidade profissional, histórico financeiro e capacidade de pagamento. Para servidores públicos e militares, essa etapa é muito favorecida.</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">3</div>
+                <div class="passo-conteudo">
+                    <h4>Avaliação do Imóvel</h4>
+                    <p>O banco contrata um avaliador para confirmar o valor de mercado e verificar a situação documental do imóvel.</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">4</div>
+                <div class="passo-conteudo">
+                    <h4>Aprovação e Proposta</h4>
+                    <p>O banco informa o valor aprovado, a taxa de juros, o prazo, as parcelas e o percentual financiado. Vale comparar diferentes bancos!</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">5</div>
+                <div class="passo-conteudo">
+                    <h4>Assinatura do Contrato</h4>
+                    <p>Após a aprovação, é assinado o contrato com todas as regras: valor, prazo, juros, seguros obrigatórios e direitos de ambas as partes.</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">6</div>
+                <div class="passo-conteudo">
+                    <h4>Banco Paga o Vendedor</h4>
+                    <p>O banco realiza o pagamento ao vendedor e o comprador inicia o uso do imóvel.</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">7</div>
+                <div class="passo-conteudo">
+                    <h4>Você Paga as Parcelas</h4>
+                    <p>Parcelas mensais compostas por: amortização da dívida + juros + seguros obrigatórios. Prazos de até 35 anos.</p>
+                </div>
+            </div>
+
+            <div class="passo">
+                <div class="passo-numero">8</div>
+                <div class="passo-conteudo">
+                    <h4>Quitação e Liberdade</h4>
+                    <p>Ao pagar todas as parcelas, o imóvel fica totalmente livre e você torna-se proprietário pleno.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="destaque-banner">
+            <strong>💡 Alienação Fiduciária</strong><br>
+            Durante o financiamento, o imóvel fica vinculado ao banco como garantia. Você pode morar, alugar e usar normalmente — mas a propriedade plena só é transferida após a quitação total. Isso é chamado de Alienação Fiduciária e é o mecanismo padrão no Brasil.
+        </div>
+
+        <div class="box-info">
+            <strong>💡 Quitação Antecipada</strong><br>
+            Você pode antecipar parcelas, amortizar o saldo devedor ou quitar antecipadamente. Muitos servidores públicos e militares utilizam férias, 13º salário, adicional de férias e FGTS para amortizar a dívida e reduzir drasticamente o prazo.
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 4: PRINCIPAIS BANCOS ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">04</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Principais Bancos que Financiam Imóveis</h2>
+        
+        <p>No Brasil existem diversas instituições com boas opções de crédito imobiliário. Para servidores públicos e militares, alguns se destacam pela experiência com esse perfil.</p>
+
+        <div style="margin: 30px 0;">
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🏦 Caixa Econômica Federal</h3>
+                <p>Principal banco financiador do Brasil. Aceita FGTS, trabalha com programas habitacionais como Minha Casa Minha Vida, oferece prazos de até 35 anos e é muito utilizado por militares e servidores públicos. Taxas a partir de ~8,5% a.a. (SFH).</p>
+            </div>
+
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🟡 Banco do Brasil</h3>
+                <p>Muito forte no relacionamento com militares. Possui domicílio de muitos contracheques de servidores públicos federais, o que facilita análise e aprovação. Taxas competitivas para correntistas. Aceita FGTS.</p>
+            </div>
+
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🟠 Itaú</h3>
+                <p>Excelente para imóveis de médio e alto padrão. Processo digital avançado, aprovações mais rápidas. Muito utilizado por oficiais e servidores de renda maior.</p>
+            </div>
+
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🔴 Santander</h3>
+                <p>Banco altamente competitivo. Costuma lançar campanhas agressivas de taxa. Vale muito a pena solicitar proposta para comparar com outros bancos.</p>
+            </div>
+
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🔵 Bradesco</h3>
+                <p>Tradicional e sólido. Muito utilizado para financiamento residencial, imóveis comerciais e construção. Rede ampla de atendimento.</p>
+            </div>
+
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🟢 CFIAe, CCCPM e POUPEX (Forças Armadas)</h3>
+                <p>Instituições financeiras vinculadas às Forças Armadas. Podem oferecer condições diferenciadas específicas para militares, servidores e pensionistas.</p>
+            </div>
+
+            <div class="card destaque" style="margin-bottom: 20px;">
+                <h3>🤝 Cooperativas (Sicredi, Sicoob)</h3>
+                <p>Menos burocracia, atendimento personalizado e condições frequentemente competitivas. Ótima opção especialmente em regiões onde são bem estabelecidas.</p>
+            </div>
+        </div>
+
+        <div class="box-info">
+            <strong>💡 Dica WAL</strong><br>
+            Nunca aceite a primeira proposta sem comparar. A WAL Consultoria realiza simulações em múltiplos bancos ao mesmo tempo, identificando a melhor condição para o seu perfil específico.
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 5: O QUE OS BANCOS ANALISAM ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">05</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>O que os Bancos Analisam</h2>
+        
+        <p>Entender os critérios de análise bancária é fundamental para chegar bem preparado ao processo de aprovação.</p>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>💵 Renda Comprovada</h3>
+                <p>O contracheque de servidor é altamente valorizado pela padronização e transparência. A parcela não deve ultrapassar 30–35% da renda bruta mensal.</p>
+            </div>
+            <div class="card">
+                <h3>📈 Score de Crédito</h3>
+                <p>Score acima de 700 é considerado bom. Acima de 900, excelente. Manter nome limpo e pagar contas em dia aumenta o score progressivamente.</p>
+            </div>
+            <div class="card">
+                <h3>🏛 Estabilidade Profissional</h3>
+                <p>Servidores públicos e militares da ativa têm estabilidade plena — isso é um dos maiores diferenciais na análise. Temporários devem apresentar contrato vigente.</p>
+            </div>
+            <div class="card">
+                <h3>📋 Histórico Financeiro</h3>
+                <p>O banco analisa os últimos 3 a 6 meses de movimentação bancária. Receitas regulares e gastos controlados demonstram organização.</p>
+            </div>
+            <div class="card">
+                <h3>🏦 Relacionamento Bancário</h3>
+                <p>Ser correntista do banco, ter investimentos ou outros produtos pode gerar condições melhores. O BB e Caixa, por exemplo, valorizam isso para servidores.</p>
+            </div>
+            <div class="card">
+                <h3>⚖️ Comprometimento de Renda</h3>
+                <p>Os bancos calculam se todas as suas dívidas somadas não ultrapassam o limite de comprometimento. Evite financiamentos desnecessários antes de comprar o imóvel.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 6: ENTRADA, FGTS E COMPOSIÇÃO ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">06</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Entrada, FGTS e Composição de Renda</h2>
+        
+        <p>Esta é uma das partes mais importantes. Entender como funciona a entrada, o FGTS e a composição de renda pode ser a diferença entre conseguir ou não o imóvel desejado.</p>
+
+        <h3 style="color: var(--cor-primaria); font-size: 1.4em; margin-top: 30px; margin-bottom: 20px;">💵 A Entrada</h3>
+        <p>Os bancos normalmente não financiam 100% do imóvel. O percentual financiado costuma ser entre 70% e 90%, e o restante é a entrada que você precisa pagar.</p>
+
+        <div class="destaque-banner" style="margin: 25px 0;">
+            <strong>Exemplo Prático:</strong><br>
+            Imóvel: R$ 400.000 · Financiamento aprovado: 80%<br>
+            <strong style="font-size: 1.3em; color: var(--cor-secundaria);">R$ 320.000</strong> financiado pelo banco. Você entra com os outros <strong>R$ 80.000</strong> de entrada.
+        </div>
+
+        <h3 style="color: var(--cor-primaria); font-size: 1.4em; margin-top: 30px; margin-bottom: 20px;">🟢 FGTS: Seu Aliado Poderoso</h3>
+        <p>O FGTS pode ser utilizado para reduzir drasticamente sua necessidade de entrada própria:</p>
+
+        <ul class="lista-itens">
+            <li>Pagamento total ou parcial da entrada</li>
+            <li>Amortização do saldo devedor (reduz parcelas ou prazo)</li>
+            <li>Redução do saldo devedor a cada 2 anos (no SFH)</li>
+        </ul>
+
+        <div class="box-info">
+            <strong>Requisitos principais para usar o FGTS:</strong><br>
+            • Mínimo de 3 anos de trabalho sob regime FGTS<br>
+            • Não ter financiamento ativo no SFH na mesma cidade/estado<br>
+            • O imóvel deve ser residencial e atender as regras do sistema habitacional
+        </div>
+
+        <h3 style="color: var(--cor-primaria); font-size: 1.4em; margin-top: 30px; margin-bottom: 20px;">👥 Composição de Renda</h3>
+        <p>É possível somar a renda de cônjuge, pais, filhos ou familiares próximos para aumentar a capacidade de financiamento.</p>
+
+        <div class="cards-grid" style="margin-top: 25px;">
+            <div class="card">
+                <h3>👫 Renda Combinada</h3>
+                <p><strong>Servidor público: R$ 6.000</strong><br>
+                <strong>Cônjuge: R$ 5.000</strong><br>
+                <strong>Renda conjunta: R$ 11.000</strong><br>
+                → Capacidade de financiamento muito maior.</p>
+            </div>
+            <div class="card">
+                <h3>🎯 Crédito CFIAe</h3>
+                <p>Em operações específicas (imóveis na planta, empreendimentos parceiros), servidores públicos e militares podem acessar linha de crédito de até <strong>R$ 100.000</strong> para cobrir entrada, ITBI, cartório e documentação.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 7: SAC E TABELA PRICE ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">07</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Sistemas de Parcelas: SAC e Tabela Price</h2>
+        
+        <p>O sistema de amortização que você escolhe impacta diretamente o valor das parcelas, o custo total e sua estratégia financeira ao longo do contrato.</p>
+
+        <div class="cards-grid" style="margin-top: 30px;">
+            <div class="card" style="border-top-color: #2196F3;">
+                <h3>📊 Sistema SAC (Mais Utilizado)</h3>
+                <p><strong>Sistema de Amortização Constante</strong></p>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>Parcelas começam maiores e diminuem ao longo do tempo</li>
+                    <li>Menor custo total do financiamento</li>
+                    <li>Amortização mais rápida da dívida</li>
+                    <li>Menor pagamento total de juros</li>
+                    <li>Maior sensação de evolução patrimonial</li>
+                </ul>
+                <p><strong style="color: #2196F3;">Ideal para:</strong> Tem renda suficiente para as parcelas iniciais mais altas e quer pagar menos juros no total.</p>
+            </div>
+
+            <div class="card" style="border-top-color: #F59E0B;">
+                <h3>💳 Tabela Price (Parcela Fixa)</h3>
+                <p><strong>Parcelas Praticamente Fixas</strong></p>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>Parcelas praticamente iguais por toda a duração</li>
+                    <li>Maior previsibilidade orçamentária</li>
+                    <li>Custo total mais alto (mais juros pagos)</li>
+                    <li>No início: muito juro, pouca amortização</li>
+                    <li>Dívida diminui mais lentamente</li>
+                </ul>
+                <p><strong style="color: #F59E0B;">Atenção:</strong> Na Price, nos primeiros anos você paga principalmente juros, não amortiza bem a dívida.</p>
+            </div>
+        </div>
+
+        <div class="destaque-banner" style="margin-top: 30px;">
+            <strong>Qual escolher?</strong><br>
+            Para servidores públicos e militares com carreira estável e renda crescente ao longo dos anos, o SAC é geralmente a escolha mais inteligente: você paga mais no início mas economiza muito em juros e quita o imóvel mais rapidamente. A Tabela Price é interessante se sua renda for mais apertada no momento da contratação e precisar de previsibilidade.
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 8: NOVO, USADO OU NA PLANTA ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">08</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Imóvel Novo, Usado ou na Planta?</h2>
+        
+        <p>Cada modalidade tem vantagens específicas. Entender as diferenças ajuda a tomar a decisão mais alinhada com seus objetivos.</p>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>🏠 Imóvel Novo (Pronto)</h3>
+                <p><strong>Vantagens:</strong></p>
+                <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95em;">
+                    <li>Entrada imediata</li>
+                    <li>Sem reformas necessárias</li>
+                    <li>Documentação mais simples</li>
+                    <li>Garantia construtora</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>🏚 Imóvel Usado</h3>
+                <p><strong>Vantagens:</strong></p>
+                <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95em;">
+                    <li>Melhor custo-benefício</li>
+                    <li>Localização consolidada</li>
+                    <li>Negociação direta</li>
+                    <li>Histórico do imóvel visível</li>
+                </ul>
+                <p style="margin-top: 15px; color: #d32f2f;"><strong>⚠️ Atenção:</strong> Verifique documentação e estrutura com cuidado.</p>
+            </div>
+
+            <div class="card">
+                <h3>🏗 Imóvel na Planta</h3>
+                <p><strong>Vantagens:</strong></p>
+                <ul style="margin: 15px 0; padding-left: 20px; font-size: 0.95em;">
+                    <li>Preço de lançamento (mais baixo)</li>
+                    <li>Valorização até a entrega</li>
+                    <li>Parcelas menores durante obra</li>
+                    <li>Parcelamento da entrada</li>
+                    <li>Customização da planta</li>
+                </ul>
+                <p style="margin-top: 15px; color: #2196F3;"><strong>Ideal para:</strong> Servidores públicos e militares pela estabilidade financeira de longo prazo.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 9: VANTAGENS EXCLUSIVAS ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">09</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Vantagens Exclusivas dos Servidores Públicos e Militares</h2>
+        
+        <p>Os servidores públicos e militares possuem um perfil financeiro privilegiado que se traduz em vantagens concretas no mercado imobiliário.</p>
+
+        <div style="margin: 30px 0;">
+            <div class="item-numerado">
+                <span class="numero-destaque">1</span>
+                <strong>Maior facilidade de aprovação</strong> — O contracheque padronizado, a estabilidade e o histórico de baixa inadimplência tornam a análise muito mais favorável.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">2</span>
+                <strong>Taxas de juros mais competitivas</strong> — Em muitos casos, os bancos oferecem condições diferenciadas para militares e servidores públicos.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">3</span>
+                <strong>Maior percentual financiado</strong> — Alguns bancos podem aprovar até 90% do valor do imóvel, reduzindo a necessidade de entrada própria.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">4</span>
+                <strong>Acesso ao CCCPM, CFIAe e POUPEX</strong> — Instituições financeiras vinculadas às Forças Armadas com condições especialmente desenhadas para este público.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">5</span>
+                <strong>Comprovação de renda simplificada</strong> — O contracheque militar e de servidor tem grande aceitação e credibilidade bancária.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">6</span>
+                <strong>Composição de renda familiar</strong> — Facilidade para incluir cônjuge ou familiares na renda, ampliando o poder de compra.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">7</span>
+                <strong>Compra estratégica em transferências</strong> — Militares transferidos podem comprar imóveis em cidades estratégicas para investimento ou renda com aluguel.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">8</span>
+                <strong>Minha Casa, Minha Vida — seu perfil pode abrir novas possibilidades</strong> — Servidores públicos civis e militares podem verificar se atendem aos critérios 
+				do Minha Casa, Minha Vida. De acordo com a renda familiar, o valor e as características do imóvel e as regras vigentes do programa, podem existir condições diferenciadas 
+				de financiamento e, para os perfis elegíveis, descontos ou subsídios que ajudam a reduzir o custo da aquisição do imóvel.
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 10: AUMENTAR CHANCES ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">10</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Como Aumentar suas Chances de Aprovação</h2>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>🎯 Mantenha o Nome Limpo</h3>
+                <p>Restrições no CPF são o principal motivo de reprovação. Quite dívidas pendentes antes de solicitar o financiamento.</p>
+            </div>
+            <div class="card">
+                <h3>📱 Melhore seu Score</h3>
+                <p>Pague contas antes do vencimento, mantenha cadastro positivo ativo e evite consultas excessivas ao CPF.</p>
+            </div>
+            <div class="card">
+                <h3>💳 Evite Novas Dívidas</h3>
+                <p>Nos 6 meses antes da solicitação, evite financiar carro, empréstimos pessoais ou aumentar limite de cartão.</p>
+            </div>
+            <div class="card">
+                <h3>🏦 Movimentação Bancária</h3>
+                <p>Mantenha conta ativa com movimentação regular. Depósitos consistentes e saques controlados passam confiança ao banco.</p>
+            </div>
+            <div class="card">
+                <h3>💰 Tenha Reserva</h3>
+                <p>Ter uma reserva além do valor da entrada demonstra organização financeira e reduz o risco percebido pelo banco.</p>
+            </div>
+            <div class="card">
+                <h3>👥 Use um Correspondente</h3>
+                <p>Um correspondente bancário especializado em crédito para servidores, como a WAL Consultoria, conhece quais bancos aprovam mais facilmente o seu perfil.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 11: ERROS A EVITAR ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">11</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Erros que Devem ser Evitados</h2>
+        
+        <p>Pequenos erros podem custar anos de pagamentos desnecessários ou até a reprovação do financiamento.</p>
+
+        <div style="margin: 30px 0;">
+            <div class="box-alerta">
+                <strong>❌ Comprar por Impulso</strong><br>
+                O imóvel precisa fazer sentido financeiro. Calcule o custo total (parcelas por 30 anos) e compare com alugar e investir a diferença.
+            </div>
+
+            <div class="box-alerta">
+                <strong>❌ Ignorar Custos Extras</strong><br>
+                Além das parcelas, existem: ITBI (2–4% do valor), cartório (~1%), condomínio, IPTU, seguros e eventuais reformas. Inclua tudo no planejamento.
+            </div>
+
+            <div class="box-alerta">
+                <strong>❌ Não Comparar Bancos</strong><br>
+                Uma diferença de 0,5% na taxa anual pode significar dezenas de milhares de reais a mais ou a menos ao final do contrato.
+            </div>
+
+            <div class="box-alerta">
+                <strong>❌ Comprometer Toda a Renda</strong><br>
+                A parcela ideal é aquela que permite manter qualidade de vida, reserva de emergência e outros objetivos financeiros.
+            </div>
+
+            <div class="box-alerta">
+                <strong>❌ Ignorar a Documentação</strong><br>
+                Imóveis com documentação irregular não podem ser financiados por bancos tradicionais. Verifique matrículas, certidões e situação fiscal antes de assinar qualquer contrato.
+            </div>
+
+            <div class="box-alerta">
+                <strong>❌ Não Usar o FGTS</strong><br>
+                Muitos servidores esquecem de consultar o saldo do FGTS. Esse recurso pode reduzir significativamente o valor necessário de entrada própria.
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 12: ESTRATÉGIAS INTELIGENTES ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">12</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Estratégias Inteligentes para Servidores Públicos e Militares</h2>
+
+        <div style="margin: 30px 0;">
+            <div class="item-numerado">
+                <span class="numero-destaque">✈</span>
+                <strong>Aproveitar as transferências</strong> — Militares transferidos para bases estratégicas podem comprar imóveis com excelente potencial de valorização e renda de aluguel.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">📈</span>
+                <strong>Começar cedo</strong> — Quanto mais cedo o primeiro imóvel, maior o patrimônio acumulado ao final da carreira. Um tenente que financia um imóvel com 26 anos pode quitá-lo antes da reserva.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">💰</span>
+                <strong>Usar extras estrategicamente</strong> — Férias, 13º salário e adicional de férias são excelentes para amortizar o saldo devedor. Uma amortização anual pode reduzir o prazo em vários anos.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">🏘</span>
+                <strong>Imóvel como renda passiva</strong> — Muitos servidores compram um imóvel para alugar enquanto residem em alojamento ou imóvel funcional. Isso constrói patrimônio sem custo próprio.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">📊</span>
+                <strong>Diversificar geograficamente</strong> — Imóveis em cidades estratégicas (Rio de Janeiro, São Paulo, Brasília) tendem a ter maior liquidez e valorização.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">🏗</span>
+                <strong>Investir na planta para valorizar</strong> — **Invista com estratégia — Comprar um imóvel na planta pode ser uma alternativa para servidores públicos 
+				civis e militares que desejam construir patrimônio e buscar potencial de valorização ao longo do tempo. Com uma análise cuidadosa do empreendimento, 
+				da localização e das condições de compra, é possível identificar oportunidades que estejam alinhadas aos seus objetivos financeiros.**
+
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 13: INVESTIMENTO IMOBILIÁRIO ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">13</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Financiamento para Investimento Imobiliário</h2>
+        
+        <p>O financiamento imobiliário não é apenas para moradia — é uma das ferramentas mais poderosas para construção de patrimônio de longo prazo.</p>
+
+        <div class="destaque-banner" style="margin: 30px 0;">
+            <strong>A Lógica do Investimento Alavancado</strong><br>
+            Você investe apenas 20–30% do valor (entrada) e controla 100% do ativo. Se o imóvel valorizar 20%, seu retorno sobre o capital investido pode ser de 60–100%. Isso é o poder da alavancagem imobiliária — e o servidor público e militar tem acesso privilegiado a ela.
+        </div>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>🏠 Imóvel para Locação</h3>
+                <p>Aluguel mensal pode cobrir as parcelas do financiamento. Em algumas regiões, o aluguel supera a parcela, gerando renda positiva desde o início.</p>
+            </div>
+            <div class="card">
+                <h3>🏗 Compra na Planta para Venda</h3>
+                <p>Valorização média durante a obra pode ser de 15–40% dependendo do empreendimento. Com alavancagem, o retorno sobre capital investido é muito maior.</p>
+            </div>
+            <div class="card">
+                <h3>📅 Plano de Aposentadoria</h3>
+                <p>Imóvel quitado na reserva = renda garantida sem depender do mercado financeiro. Muitos militares estruturam isso durante a carreira ativa.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 14: PLANEJAMENTO FINANCEIRO ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">14</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Planejamento Financeiro para Compra do Imóvel</h2>
+        
+        <p>Antes de tomar a decisão, é fundamental fazer as contas com responsabilidade.</p>
+
+        <div style="margin: 30px 0;">
+            <div class="item-numerado">
+                <span class="numero-destaque">1</span>
+                <strong>Calcule a parcela máxima segura:</strong> Não ultrapasse 30% da sua renda líquida mensal com a prestação do financiamento.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">2</span>
+                <strong>Mapeie todos os custos:</strong> Parcela + IPTU + condomínio + manutenção + seguro. O custo mensal real do imóvel é sempre maior que a parcela sozinha.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">3</span>
+                <strong>Reserve para imprevistos:</strong> Mantenha 3 a 6 meses de despesas em reserva de emergência antes de financiar.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">4</span>
+                <strong>Considere a evolução salarial:</strong> No SAC, as parcelas diminuem enquanto sua renda tende a crescer. Isso melhora progressivamente seu conforto financeiro.
+            </div>
+
+            <div class="item-numerado">
+                <span class="numero-destaque">5</span>
+                <strong>Simule cenários:</strong> O que acontece se você atrasar 3 meses? E se precisar vender antes de quitar? Tenha planos de contingência.
+            </div>
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 15: CET E CUSTOS TOTAIS ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">15</div>
+        <div class="capitulo-label">Conteúdo Adicional</div>
+        <h2>CET e Custos Totais do Financiamento</h2>
+        
+        <p>Muitas pessoas comparam apenas a taxa de juros. Mas o que realmente importa é o <strong>CET — Custo Efetivo Total</strong> — que inclui todos os encargos do financiamento.</p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Componente</th>
+                    <th>O que é</th>
+                    <th>Impacto</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Taxa de Juros</strong></td>
+                    <td>Remuneração do banco pelo empréstimo</td>
+                    <td>Alto</td>
+                </tr>
+                <tr>
+                    <td><strong>TR (Taxa Referencial)</strong></td>
+                    <td>Índice de correção monetária (Caixa/BB)</td>
+                    <td>Médio</td>
+                </tr>
+                <tr>
+                    <td><strong>MIP (Seguro de Vida)</strong></td>
+                    <td>Seguro de morte e invalidez do tomador</td>
+                    <td>Médio</td>
+                </tr>
+                <tr>
+                    <td><strong>DFI (Seguro do Imóvel)</strong></td>
+                    <td>Seguro contra danos físicos ao imóvel</td>
+                    <td>Baixo</td>
+                </tr>
+                <tr>
+                    <td><strong>Taxa de Administração</strong></td>
+                    <td>Custo administrativo do contrato</td>
+                    <td>Baixo</td>
+                </tr>
+                <tr>
+                    <td><strong>ITBI</strong></td>
+                    <td>Imposto de Transmissão (2–4% do valor)</td>
+                    <td>Alto (único)</td>
+                </tr>
+                <tr>
+                    <td><strong>Cartório</strong></td>
+                    <td>Escritura e registro (~1% do valor)</td>
+                    <td>Médio (único)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="box-info">
+            <strong>💡 Sempre peça o CET na comparação</strong><br>
+            Dois bancos com a mesma taxa de juros podem ter CET muito diferentes por causa dos seguros e taxas administrativas. Ao comparar propostas, sempre peça o CET anual e o valor total pago ao final do contrato.
+        </div>
+    </section>
+</div>
+
+<!-- ===== CAPÍTULO 16: SERVIÇOS WAL ===== -->
+<div class="container">
+    <section class="capitulo">
+        <div class="capitulo-numero">16</div>
+        <div class="capitulo-label">Capítulo</div>
+        <h2>Serviços da WAL Consultoria</h2>
+        
+        <p>A WAL Consultoria é especializada no atendimento a militares, servidores civis e pensionistas de órgãos públicos, com atuação nos clusters do Rio de Janeiro e São Paulo, com visão de expansão nacional.</p>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>🔍 Busca do Imóvel Ideal</h3>
+                <p>Novo, usado, lançamentos e construção — adequado ao seu perfil e orçamento.</p>
+            </div>
+            <div class="card">
+                <h3>🤝 Parceria com Construtoras</h3>
+                <p>Trabalha com as melhores construtoras do Brasil, negociando as melhores condições.</p>
+            </div>
+            <div class="card">
+                <h3>📊 Análise e Simulações</h3>
+                <p>Análise de perfil e simulação de financiamento em múltiplos bancos para escolher a melhor opção.</p>
+            </div>
+            <div class="card">
+                <h3>✅ Aprovação de Crédito</h3>
+                <p>Acompanhamento documental completo durante todo o processo de aprovação.</p>
+            </div>
+            <div class="card">
+                <h3>🏦 Relacionamento Bancário</h3>
+                <p>Trabalha diretamente com Caixa, BB, Itaú, Santander, Bradesco, CFIAe e POUPEX.</p>
+            </div>
+            <div class="card">
+                <h3>⚖️ Análise Jurídica</h3>
+                <p>Análise completa do imóvel, comprador e vendedor para proteger seus direitos.</p>
+            </div>
+            <div class="card">
+                <h3>📝 Assinatura de Escritura</h3>
+                <p>Acompanhamento na assinatura e geração de ITBI sem complicações.</p>
+            </div>
+            <div class="card">
+                <h3>📋 Suporte Pós-Compra</h3>
+                <p>Registro de imóvel e suporte completo após a aquisição.</p>
+            </div>
+        </div>
+
+        <div class="destaque-banner" style="margin-top: 40px;">
+            <strong>Também atendemos:</strong><br>
+            Militares da Marinha · Militares do Exército · Militares da FAB· Servidores Públicos Federais / Estaduais / Municipais 
+        </div>
+    </section>
+</div>
+
+<!-- ===== CONCLUSÃO ===== -->
+<div class="container">
+    <section class="capitulo">
+        <h2 style="text-align: center; color: var(--cor-primaria); margin-top: 40px;">⭐ Conclusão</h2>
+        
+        <p style="text-align: center; font-size: 1.1em; margin-top: 30px;">O financiamento imobiliário é uma ferramenta poderosa para transformar sonhos em patrimônio. Com informação correta e planejamento adequado, é possível comprar com segurança, reduzir riscos e construir um legado financeiro para sua família.</p>
+
+        <div class="destaque-banner" style="margin-top: 40px; text-align: left;">
+            <strong style="display: block; margin-bottom: 15px;">Transforme sua estabilidade em patrimônio</strong>
+            A estabilidade profissional pode ser muito mais do que segurança no presente. Para servidores públicos civis e militares, ela também pode contribuir para um planejamento financeiro de longo prazo e para a construção de patrimônio. 
+            Com informação, planejamento e orientação especializada, você pode avaliar as melhores possibilidades para adquirir seu imóvel, investir com mais segurança e construir um futuro mais tranquilo para você e sua família.
+        </div>
+
+        <h3 style="text-align: center; color: var(--cor-secundaria); font-size: 2em; margin-top: 50px; margin-bottom: 20px;">Pronto para Conquistar seu Imóvel?</h3>
+        
+        <p style="text-align: center; font-size: 1.05em; line-height: 1.8;">
+            Fale agora com a WAL Consultoria e receba uma análise personalizada do seu perfil, simulações em múltiplos bancos e orientação profissional em cada etapa do processo.
+        </p>
+    </section>
+</div>
+
+<!-- ===== RODAPÉ ===== -->
+<footer class="rodape">
+    <h3>WAL Consultoria, Intermediação de Imóveis e Serviços</h3>
+    <p><strong>Atendimento especializado para servidores públicos civis e militares</strong></p>
+    <p><strong>Rio de Janeiro e São Paulo</strong></p>
+    
+    <div style="margin-top: 25px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.2);">
+        <p><strong>Produção e conteúdo:</strong> Antônio Araújo</p>
+        <p><strong>Contato:</strong> <a href="mailto:comercial@walservidor.com.br">comercial@walservidor.com.br</a></p>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.9em; opacity: 0.9;">
+        <p><strong>Sobre este e-book:</strong></p>
+        <p>Este e-book tem caráter exclusivamente informativo e foi desenvolvido para ajudar servidores públicos civis e militares a compreender melhor as possibilidades de aquisição e financiamento de imóveis.</p>
+        <p style="margin-top: 15px;">As informações apresentadas, incluindo taxas, condições de crédito, benefícios e modalidades de financiamento, são orientativas e podem variar de acordo com a instituição financeira, o perfil do cliente, as regras vigentes e o cenário econômico no momento da contratação.</p>
+        <p style="margin-top: 15px;">Para uma análise personalizada e orientação adequada ao seu perfil, entre em contato com a WAL Consultoria, Intermediação de Imóveis e Serviços.</p>
+    </div>
+</footer>
+
+</body>
+</html>
