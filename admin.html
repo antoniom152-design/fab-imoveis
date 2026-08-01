@@ -1116,6 +1116,12 @@
       </select>
     </div>
     <div class="tbl-filter-grp">
+      <span class="tbl-filter-lbl">Bairro</span>
+      <select class="tbl-filter-sel" id="tf-bairro" onchange="renderTable()">
+        <option value="">Todos</option>
+      </select>
+    </div>
+    <div class="tbl-filter-grp">
       <span class="tbl-filter-lbl">Construtora</span>
       <input class="tbl-filter-sel" type="text" id="tf-construtora"
              placeholder="Buscar..." oninput="renderTable()"
@@ -1271,13 +1277,12 @@ function configurarPlanilha() {
        'Acima de 2.500 mil'], true)
       .setAllowInvalid(false).build());
 
-  sheet.getRange('B2:B500')
-    .setDataValidation(dv().requireCheckbox().build())
-    .setValue(true);  // todos ativos por padrão
-
-  sheet.getRange('O2:O500')
-    .setDataValidation(dv().requireCheckbox().build())
-    .setValue(false); // nenhum em destaque por padrão
+  // Somente a validação (checkbox) é aplicada — sem .setValue() em massa,
+  // que gravaria TRUE/FALSE em todas as 499 linhas e faria o Sheets
+  // considerá-las "com conteúdo", empurrando os próximos cadastros para
+  // depois da linha 500 mesmo estando vazias.
+  sheet.getRange('B2:B500').setDataValidation(dv().requireCheckbox().build());
+  sheet.getRange('O2:O500').setDataValidation(dv().requireCheckbox().build());
 
   // ── Formatação de data ───────────────────────────────────
   sheet.getRange('M2:M500').setNumberFormat('dd/mm/yyyy');
@@ -2550,10 +2555,30 @@ function onCadBairro() {
 /* getCidadeValue mantido para compatibilidade */
 function getCidadeValue() { return document.getElementById('cadCidadeVal').value; }
 
+function atualizarBairrosFiltroTabela() {
+  const uf     = document.getElementById('tf-uf').value;
+  const cidade = document.getElementById('tf-cidade').value;
+  const selEl  = document.getElementById('tf-bairro');
+  const atual  = selEl.value;
+  const bairros = [...new Set(
+    sheetData.filter(d =>
+      (!uf     || (d.uf||'').toUpperCase() === uf.toUpperCase()) &&
+      (!cidade || d.cidade === cidade) &&
+      d.bairro
+    ).map(d => d.bairro)
+  )].sort();
+  selEl.innerHTML = '<option value="">Todos</option>' +
+    bairros.map(b => `<option value="${b}">${b}</option>`).join('');
+  if (bairros.includes(atual)) selEl.value = atual;
+}
+
 function renderTable() {
+  atualizarBairrosFiltroTabela();
+
   const uf         = document.getElementById('tf-uf').value;
   const tipo       = document.getElementById('tf-tipo').value;
   const cidade     = document.getElementById('tf-cidade').value;
+  const bairro     = document.getElementById('tf-bairro').value;
   const construtEl = document.getElementById('tf-construtora');
   const construtora = construtEl ? construtEl.value.trim().toLowerCase() : '';
   const ativo      = document.getElementById('tf-ativo').value;
@@ -2562,6 +2587,7 @@ function renderTable() {
     if (uf     && (d.uf||'').toUpperCase() !== uf.toUpperCase()) return false;
     if (tipo   && d.tipo   !== tipo)   return false;
     if (cidade && d.cidade !== cidade) return false;
+    if (bairro && d.bairro !== bairro) return false;
     if (construtora && !(d.construtora||'').toLowerCase().includes(construtora)) return false;
     if (ativo === '1' && !d.ativo)     return false;
     if (ativo === '0' && d.ativo)      return false;
@@ -2807,8 +2833,12 @@ async function toggleAtivo(id, ativoAtual) {
         tipo: 'imovel', operacao: 'editar', id,
         ativo: !ativoAtual, destaque: d.destaque,
         nome: d.nome, tipo_imovel: d.tipo, construtora: d.construtora,
+        uf: d.uf, bairro: d.bairro,
         cidade: d.cidade, faixa: d.faixa, valor: d.valor, qtd: d.qtd,
-        descricao: d.descricao, imagem: d.imagem, blog: d.blog, obs: d.obs,
+        quartos: d.quartos, preco_min: d.precoMin, preco_max: d.precoMax, entrega: d.entrega,
+        descricao: d.descricao, imagem: d.imagem, blog: d.blog,
+        link_drive: d.linkDrive, obs: d.obs,
+        feirao_on_line: d.feiraoOnLine,
       })
     });
   } catch(e) { /* no-cors */ }
