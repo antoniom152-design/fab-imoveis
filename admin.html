@@ -879,6 +879,87 @@
   </div>
 </div>
 
+<!-- MODAL CADASTRO/EDIÇÃO DE BANNER -->
+<div class="cad-overlay" id="bannerCadOverlay">
+  <div class="cad-box">
+    <div class="cad-header">
+      <div class="cad-title" id="bannerCadTitle">Novo Banner</div>
+      <button class="cad-close" onclick="fecharFormBanner()">✕</button>
+    </div>
+    <div class="cad-body">
+      <form id="bannerCadForm" autocomplete="off" onsubmit="return false">
+
+        <!-- VISIBILIDADE -->
+        <div class="cad-section">
+          <div class="cad-section-title">Visibilidade</div>
+          <div class="toggle-row">
+            <label class="toggle-item">
+              <input type="checkbox" class="toggle-input" id="bannerCadAtivo" checked>
+              <span class="toggle-track"></span>
+              <span class="toggle-label">Ativo — aparece no site</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- CONTEÚDO -->
+        <div class="cad-section">
+          <div class="cad-section-title">Conteúdo</div>
+          <div class="cad-grid" style="grid-template-columns:1fr 120px;margin-bottom:14px">
+            <div class="cad-field">
+              <label class="cad-label">Título <span class="req">*</span></label>
+              <input class="cad-input" type="text" id="bannerCadTitulo" placeholder="Ex: Condições especiais até 30/09">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Ordem</label>
+              <input class="cad-input" type="number" id="bannerCadOrdem" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="cad-field" style="margin-bottom:14px">
+            <label class="cad-label">Subtítulo</label>
+            <input class="cad-input" type="text" id="bannerCadSubtitulo" placeholder="Complemento curto do título">
+          </div>
+          <div class="cad-field">
+            <label class="cad-label">Imagem de Fundo <span class="req">*</span></label>
+            <input class="cad-input" type="url" id="bannerCadImagem"
+              placeholder="https://..." oninput="atualizarBannerImgPreview()">
+            <img class="img-preview" id="bannerImgPreview" alt="Preview da imagem">
+          </div>
+        </div>
+
+        <!-- BOTÃO -->
+        <div class="cad-section">
+          <div class="cad-section-title">Botão de Ação (opcional)</div>
+          <div class="cad-grid cad-grid-2">
+            <div class="cad-field">
+              <label class="cad-label">Texto do Botão</label>
+              <input class="cad-input" type="text" id="bannerCadBotaoTexto" placeholder="Ex: Saiba mais">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Link do Botão</label>
+              <input class="cad-input" type="url" id="bannerCadBotaoLink" placeholder="https:// ou imoveis.html">
+            </div>
+          </div>
+          <span style="font-size:11px;color:var(--ink-muted);margin-top:2px;display:block">
+            Se preencher o texto do botão, o link é obrigatório.
+          </span>
+        </div>
+
+      </form>
+    </div>
+    <div class="cad-footer">
+      <button type="button" class="btn-cad-cancel" onclick="fecharFormBanner()">Cancelar</button>
+      <button type="button" class="btn-cad-save" id="btnSalvarBanner" onclick="salvarBanner()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/>
+          <polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Salvar Banner
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST NOTIFICAÇÃO -->
 <div class="toast" id="adminToast"></div>
 
@@ -954,6 +1035,11 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
     Imóveis Cadastrados
     <span class="tb-count" id="count-badge">—</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('banners')" id="tab-banners">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18"/></svg>
+    Banners
+    <span class="tb-count" id="banners-count-badge">—</span>
   </button>
   <button class="tab-btn" onclick="switchTab('leads')" id="tab-leads">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1171,6 +1257,45 @@
 
 </div><!-- .main -->
 </div><!-- tab preview -->
+
+<!-- ══════════════ TAB: BANNERS ══════════════ -->
+<div class="tab-panel" id="panel-banners">
+<div class="main">
+
+  <div class="alert alert-info">
+    Os banners aparecem na página principal, logo abaixo do topo, em rotação automática quando houver mais de um Ativo. Se nenhum estiver Ativo, a seção some do site.
+  </div>
+
+  <div class="table-wrap">
+    <div class="table-head-row">
+      <span>Banners Promocionais</span>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+        <span id="banners-fonte"></span>
+        <button class="btn-conn-test" onclick="abrirFormNovoBanner()"
+                style="height:32px;padding:0 14px;font-size:11px;background:var(--gold);color:var(--navy);border:none">
+          + Novo Banner
+        </button>
+      </div>
+    </div>
+    <div class="table-wrap-inner">
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th><th>Imagem</th><th>Ordem</th><th>Título</th>
+            <th>Botão</th><th style="color:var(--gold-ink)">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="banners-tbl-body">
+          <tr><td colspan="6"><div class="loading-row">
+            Carregando banners… configure a conexão na aba Imóveis Cadastrados.
+          </div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- .main -->
+</div><!-- tab banners -->
 
 <!-- ══════════════ TAB: SETUP ══════════════ -->
 <div class="tab-panel" id="panel-setup">
@@ -2290,6 +2415,7 @@ function switchTab(name) {
   if (name === 'construtoras') carregarConstrutoras();
   if (name === 'visitas') consultarVisitas();
   if (name === 'crm') { crmCarregar(); crmAtualizarStats(); crmRenderLista(); }
+  if (name === 'banners') carregarBanners();
 }
 
 /* ── STEPS ── */
@@ -2845,6 +2971,197 @@ async function toggleAtivo(id, ativoAtual) {
 
   mostrarToast(`${!ativoAtual ? '✅ Ativado' : '⏸ Desativado'}: "${d.nome}". Recarregando em 3s...`);
   setTimeout(() => fetchPreview(), 3000);
+}
+
+/* ══════════════ BANNERS ══════════════ */
+let bannersData      = [];
+let editandoBannerId = null;
+
+function parseGvizToBanners(table) {
+  if (!table || !table.rows) return [];
+  // Google Sheets (gviz) não retorna erro quando a aba "sheet=BANNERS" não
+  // existe — devolve dados de outra aba silenciosamente. Confirma pelo
+  // cabeçalho da coluna D em table.cols (o gviz remove a linha de
+  // cabeçalho de table.rows automaticamente — não sobra em rows[0]).
+  if (!table.cols || !table.cols[3] || table.cols[3].label !== 'Título') {
+    throw new Error('Aba "BANNERS" não encontrada na planilha');
+  }
+  return table.rows.map(row => {
+    const g = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
+    return {
+      id: g(0), ativo: row.c && row.c[1] && row.c[1].v === true,
+      ordem: parseInt(g(2), 10) || 0,
+      titulo: g(3), subtitulo: g(4), imagem: g(5),
+      botaoTexto: g(6), botaoLink: g(7), data: g(8)
+    };
+  }).filter(r => r.titulo);
+}
+
+async function carregarBanners() {
+  const url = localStorage.getItem('fab_sheet_url') || DEFAULT_SHEET_URL;
+  const id  = extractSheetId(url);
+  if (!id) return;
+
+  document.getElementById('banners-tbl-body').innerHTML =
+    '<tr><td colspan="6"><div class="loading-row">⏳ Carregando banners…</div></td></tr>';
+
+  try {
+    const json = await gvizJsonp(id, 'BANNERS');
+    bannersData = parseGvizToBanners(json.table);
+    document.getElementById('banners-count-badge').textContent = bannersData.filter(b => b.ativo).length;
+    document.getElementById('banners-fonte').textContent = 'Fonte: Google Sheets';
+    renderBannersTable();
+  } catch(e) {
+    document.getElementById('banners-tbl-body').innerHTML =
+      `<tr><td colspan="6"><div class="empty-table">❌ ${e.message}<br>
+        Confirme se a aba "BANNERS" existe na planilha (rode configurarBanners() no Apps Script para criá-la).
+      </div></td></tr>`;
+  }
+}
+
+function renderBannersTable() {
+  const tbody = document.getElementById('banners-tbl-body');
+  if (!bannersData.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty-table">Nenhum banner cadastrado ainda.</div></td></tr>';
+    return;
+  }
+  const ordenados = [...bannersData].sort((a,b) => (a.ordem - b.ordem) || String(a.id).localeCompare(String(b.id)));
+  tbody.innerHTML = ordenados.map(b => `
+    <tr>
+      <td>${b.ativo
+        ? '<span class="pill-ativo"></span> Ativo'
+        : '<span class="pill-inativo"></span> Inativo'}</td>
+      <td class="td-img"><img src="${b.imagem||''}" onerror="this.style.display='none'" alt=""></td>
+      <td>${b.ordem}</td>
+      <td class="td-nome">${b.titulo}</td>
+      <td class="td-link">${b.botaoLink
+        ? `<a href="${b.botaoLink}" target="_blank" rel="noopener">${b.botaoTexto || 'Abrir'} →</a>`
+        : '—'}</td>
+      <td>
+        <div style="display:flex;gap:5px;white-space:nowrap">
+          <button class="btn-tbl btn-tbl-edit" onclick="abrirFormEditBanner('${b.id}')">✏ Editar</button>
+          <button class="btn-tbl ${b.ativo ? 'btn-tbl-on' : 'btn-tbl-off'}"
+                  onclick="toggleAtivoBanner('${b.id}',${b.ativo})">
+            ${b.ativo ? '⏸ Desativar' : '▶ Ativar'}
+          </button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function abrirFormNovoBanner() {
+  editandoBannerId = null;
+  document.getElementById('bannerCadTitle').textContent = 'Novo Banner';
+  document.getElementById('bannerCadForm').reset();
+  document.getElementById('bannerCadAtivo').checked = true;
+  document.getElementById('bannerImgPreview').style.display = 'none';
+  document.getElementById('bannerCadOverlay').classList.add('show');
+  setTimeout(() => document.getElementById('bannerCadTitulo').focus(), 100);
+}
+
+function abrirFormEditBanner(id) {
+  const b = bannersData.find(x => x.id === id);
+  if (!b) return;
+  editandoBannerId = id;
+  document.getElementById('bannerCadTitle').textContent = 'Editar Banner';
+
+  document.getElementById('bannerCadAtivo').checked    = b.ativo;
+  document.getElementById('bannerCadOrdem').value      = b.ordem || '';
+  document.getElementById('bannerCadTitulo').value     = b.titulo || '';
+  document.getElementById('bannerCadSubtitulo').value  = b.subtitulo || '';
+  document.getElementById('bannerCadImagem').value     = b.imagem || '';
+  document.getElementById('bannerCadBotaoTexto').value = b.botaoTexto || '';
+  document.getElementById('bannerCadBotaoLink').value  = b.botaoLink || '';
+  atualizarBannerImgPreview();
+
+  document.getElementById('bannerCadOverlay').classList.add('show');
+  document.getElementById('bannerCadOverlay').scrollTop = 0;
+}
+
+function fecharFormBanner() {
+  document.getElementById('bannerCadOverlay').classList.remove('show');
+}
+
+function atualizarBannerImgPreview() {
+  const url = document.getElementById('bannerCadImagem').value.trim();
+  const img = document.getElementById('bannerImgPreview');
+  if (url) { img.src = url; img.style.display = 'block'; }
+  else img.style.display = 'none';
+}
+
+function coletarDadosFormBanner() {
+  return {
+    tipo:        'banner',
+    id:          editandoBannerId || '',
+    ativo:       document.getElementById('bannerCadAtivo').checked,
+    ordem:       parseInt(document.getElementById('bannerCadOrdem').value, 10) || 0,
+    titulo:      document.getElementById('bannerCadTitulo').value.trim(),
+    subtitulo:   document.getElementById('bannerCadSubtitulo').value.trim(),
+    imagem:      document.getElementById('bannerCadImagem').value.trim(),
+    botao_texto: document.getElementById('bannerCadBotaoTexto').value.trim(),
+    botao_link:  document.getElementById('bannerCadBotaoLink').value.trim(),
+    operacao:    editandoBannerId ? 'editar' : 'criar',
+  };
+}
+
+async function salvarBanner() {
+  const d = coletarDadosFormBanner();
+
+  if (!d.titulo) { alert('O título do banner é obrigatório.'); document.getElementById('bannerCadTitulo').focus(); return; }
+  if (!d.imagem) { alert('A imagem de fundo é obrigatória.');   document.getElementById('bannerCadImagem').focus(); return; }
+  if (d.botao_texto && !d.botao_link) {
+    alert('Preencheu o texto do botão — informe também o link do botão.');
+    document.getElementById('bannerCadBotaoLink').focus();
+    return;
+  }
+
+  const btn = document.getElementById('btnSalvarBanner');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Salvando...';
+  btn.disabled  = true;
+
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(d)
+    });
+  } catch(e) { /* no-cors — assume ok */ }
+
+  fecharFormBanner();
+  btn.innerHTML = orig;
+  btn.disabled  = false;
+
+  mostrarToast(editandoBannerId
+    ? `✅ Banner "${d.titulo}" atualizado! Recarregando em 3s...`
+    : `✅ Banner "${d.titulo}" cadastrado! Recarregando em 3s...`);
+
+  setTimeout(() => carregarBanners(), 3000);
+}
+
+async function toggleAtivoBanner(id, ativoAtual) {
+  const b = bannersData.find(x => x.id === id);
+  if (!b) return;
+
+  // Envia TODOS os campos que processarBanner espera — um payload parcial
+  // aqui apagaria os campos ausentes na planilha (mesmo bug já corrigido
+  // em toggleAtivo() para imóveis).
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        tipo: 'banner', operacao: 'editar', id,
+        ativo: !ativoAtual, ordem: b.ordem,
+        titulo: b.titulo, subtitulo: b.subtitulo, imagem: b.imagem,
+        botao_texto: b.botaoTexto, botao_link: b.botaoLink,
+      })
+    });
+  } catch(e) { /* no-cors */ }
+
+  mostrarToast(`${!ativoAtual ? '✅ Ativado' : '⏸ Desativado'}: "${b.titulo}". Recarregando em 3s...`);
+  setTimeout(() => carregarBanners(), 3000);
 }
 
 function mostrarToast(msg) {

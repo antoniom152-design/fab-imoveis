@@ -326,6 +326,77 @@
 
   .form-privacy a { color: var(--gold-ink); text-decoration: none; }
 
+  /* ─── BANNERS PROMOCIONAIS ─── */
+  .banners-section {
+    position: relative; overflow: hidden;
+    background: var(--navy);
+    border-bottom: 1px solid var(--border);
+  }
+  .banner-slides { position: relative; width: 100%; min-height: 380px; }
+  .banner-slide {
+    position: absolute; inset: 0;
+    background-size: cover; background-position: center;
+    opacity: 0; transition: opacity .7s ease;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .banner-slide.active { opacity: 1; }
+  .banner-slide::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,22,40,.55) 0%, rgba(10,22,40,.78) 100%);
+  }
+  .banner-content {
+    position: relative; z-index: 2;
+    max-width: 720px; margin: 0 auto; text-align: center;
+    padding: 64px 24px;
+  }
+  .banner-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 16px;
+    border: 1px solid rgba(201,168,76,.4); padding: 6px 16px;
+  }
+  .banner-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(24px, 3.4vw, 40px); font-weight: 900;
+    color: var(--off-white); line-height: 1.2; margin-bottom: 10px;
+  }
+  .banner-sub {
+    font-size: 15px; font-weight: 300; color: rgba(245,242,236,.82);
+    line-height: 1.6; margin-bottom: 26px;
+  }
+  .banner-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--gold); color: var(--navy);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    padding: 14px 32px; text-decoration: none;
+    transition: background .2s, transform .2s;
+  }
+  .banner-cta:hover { background: var(--gold-light); transform: translateY(-2px); }
+  .banner-dots {
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; z-index: 3;
+  }
+  .banner-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(245,242,236,.35); cursor: pointer; border: none; padding: 0;
+    transition: background .3s, transform .2s;
+  }
+  .banner-dot.active { background: var(--gold); transform: scale(1.2); }
+  .banner-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    z-index: 3; width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(10,22,40,.5); border: 1px solid var(--border);
+    color: var(--gold); cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .2s;
+  }
+  .banner-nav:hover { background: rgba(201,168,76,.2); }
+  .banner-nav-prev { left: 20px; }
+  .banner-nav-next { right: 20px; }
+
   /* ─── SECTION BASE ─── */
   section {
     position: relative;
@@ -998,6 +1069,10 @@
     .hero-stats { flex-direction: column; gap: 16px; margin-bottom: 28px; }
     .stat-num { font-size: 22px; }
 
+    .banner-slides { min-height: 300px; }
+    .banner-content { padding: 44px 20px; }
+    .banner-nav { display: none; }
+
     .section-inner { padding: 0 16px; }
     section { padding: 48px 0 !important; }
 
@@ -1232,6 +1307,9 @@
     </div>
   </div>
 </section>
+
+<!-- BANNERS PROMOCIONAIS (preenchido via JS — fica ausente se não houver banner ativo) -->
+<section class="banners-section" id="banners-section" style="display:none"></section>
 
 <!-- DIFERENCIAIS -->
 <section class="benefits">
@@ -2654,6 +2732,98 @@ function gvizJsonpIndex(sheetId, sheet) {
     console.warn('Destaques: falha ao carregar planilha', e.message);
   }
 })();
+
+/* ─── BANNERS PROMOCIONAIS ───
+   Seção só ganha conteúdo e fica visível se houver ao menos 1 banner
+   Ativo na aba BANNERS. Sem fallback estático — se a busca falhar ou
+   vier vazia, a seção permanece ausente (display:none, sem filhos). */
+let bannerCurrentSlide = 0;
+let bannerTotalSlides  = 1;
+
+(async function initBanners() {
+  const SHEET_IMOVEIS = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+  const urlSalva = localStorage.getItem('fab_sheet_url');
+  const match    = urlSalva && urlSalva.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const sheetId  = (match && match[1]) || SHEET_IMOVEIS;
+
+  const section = document.getElementById('banners-section');
+  if (!section) return;
+
+  try {
+    const json  = await gvizJsonpIndex(sheetId, 'BANNERS');
+    const table = json.table;
+    if (!table || !table.rows || !table.rows.length) return;
+
+    const g = (row, i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
+
+    // Google Sheets (gviz) não retorna erro quando a aba "sheet=BANNERS" não
+    // existe — ele silenciosamente devolve dados de outra aba da planilha.
+    // Confirma pelo cabeçalho da coluna D (table.cols — o gviz remove a
+    // linha de cabeçalho de table.rows automaticamente, não sobra em [0])
+    // que a resposta é mesmo da aba BANNERS antes de aceitar os dados.
+    if (!table.cols || !table.cols[3] || table.cols[3].label !== 'Título') return;
+
+    const banners = table.rows
+      .filter(row => row.c && row.c[1] && row.c[1].v === true && g(row, 3)) // Ativo (B) + Título (D)
+      .map(row => ({
+        ordem:      parseInt(g(row, 2), 10) || 0,
+        titulo:     g(row, 3),
+        subtitulo:  g(row, 4),
+        imagem:     fixDriveUrl(g(row, 5)),
+        botaoTexto: g(row, 6),
+        botaoLink:  g(row, 7)
+      }))
+      .filter(b => /^https?:\/\//.test(b.imagem)) // ignora linhas sem imagem válida
+      .sort((a, b) => a.ordem - b.ordem);
+
+    if (!banners.length) return; // nenhum banner ativo → seção permanece ausente
+
+    const slidesHtml = banners.map((b, i) => `
+      <div class="banner-slide${i === 0 ? ' active' : ''}" style="background-image:url('${b.imagem}')">
+        <div class="banner-content">
+          <h2 class="banner-title">${b.titulo}</h2>
+          ${b.subtitulo ? `<p class="banner-sub">${b.subtitulo}</p>` : ''}
+          ${(b.botaoTexto && b.botaoLink) ? `<a class="banner-cta" href="${b.botaoLink}">${b.botaoTexto}</a>` : ''}
+        </div>
+      </div>`).join('');
+
+    let controlsHtml = '';
+    bannerTotalSlides = banners.length;
+    if (banners.length > 1) {
+      controlsHtml = `
+        <button class="banner-nav banner-nav-prev" onclick="prevBannerSlide()" title="Anterior">&#8249;</button>
+        <button class="banner-nav banner-nav-next" onclick="nextBannerSlide()" title="Próximo">&#8250;</button>
+        <div class="banner-dots" id="banner-dots">
+          ${banners.map((_, i) => `<button class="banner-dot${i === 0 ? ' active' : ''}" onclick="goBannerSlide(${i})"></button>`).join('')}
+        </div>`;
+    }
+
+    section.innerHTML = `<div class="banner-slides">${slidesHtml}</div>${controlsHtml}`;
+    section.style.display = '';
+
+    if (banners.length > 1) {
+      let bannerInterval = setInterval(nextBannerSlide, 6000);
+      section.addEventListener('mouseenter', () => clearInterval(bannerInterval));
+      section.addEventListener('mouseleave', () => { bannerInterval = setInterval(nextBannerSlide, 6000); });
+    }
+
+  } catch(e) {
+    console.warn('Banners: falha ao carregar planilha', e.message);
+  }
+})();
+
+function goBannerSlide(idx) {
+  const slides = document.querySelectorAll('.banner-slide');
+  const dots   = document.querySelectorAll('.banner-dot');
+  if (!slides.length) return;
+  slides[bannerCurrentSlide].classList.remove('active');
+  if (dots[bannerCurrentSlide]) dots[bannerCurrentSlide].classList.remove('active');
+  bannerCurrentSlide = (idx + bannerTotalSlides) % bannerTotalSlides;
+  slides[bannerCurrentSlide].classList.add('active');
+  if (dots[bannerCurrentSlide]) dots[bannerCurrentSlide].classList.add('active');
+}
+function nextBannerSlide() { goBannerSlide(bannerCurrentSlide + 1); }
+function prevBannerSlide() { goBannerSlide(bannerCurrentSlide - 1); }
 
   /* ─── E-BOOK ─── */
   const EBOOK_URL = 'ebook-financiamento-servidor-publico.html';
