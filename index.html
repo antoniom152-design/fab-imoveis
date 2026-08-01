@@ -2641,7 +2641,11 @@ function fixDriveUrl(url) {
 // JSONP — sem problema de CORS para leitura do Google Sheets
 function gvizJsonpIndex(sheetId, sheet) {
   return new Promise(function(resolve, reject) {
-    var cbName = 'idx_' + Date.now();
+    // Sufixo aleatório além do timestamp — duas chamadas desta função no
+    // mesmo carregamento de página (ex: initDestaques + initBanners) podem
+    // cair no mesmo milissegundo, colidindo o nome do callback e travando
+    // uma das duas até estourar o timeout.
+    var cbName = 'idx_' + Date.now() + '_' + Math.random().toString(36).slice(2);
     var script  = document.createElement('script');
     var timer   = setTimeout(function() {
       cleanup(); reject(new Error('timeout'));
