@@ -559,6 +559,10 @@ const FAIXA_LABEL_MAP = {
 // ID fixo da planilha de imóveis (fallback — não depende do admin)
 const SHEET_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 
+// Apps Script principal (mesmo do admin.html/index.html) — usado aqui só
+// para o envio real de e-mail no Compartilhar Imóvel (ver processarCompartilharEmail).
+const SHARE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxwklDy6PqzVdn1J2tRYmuLcbuBOx56YmLf4Agg3oKDeJwwLz8c482R6-eZwns0Ddolsw/exec';
+
 // Converte URLs do Google Drive para formato de imagem direta
 function fixDriveUrl(url) {
   if (!url || !url.includes('drive.google.com')) return url;
@@ -893,6 +897,8 @@ function copiarLinkCompartilhado(btn) {
   });
 }
 
+let _compartilharEmailDadosCatalogo = null;
+
 function compartilharImovelCatalogo(nome, cidade, uf, valor, id) {
   const link    = SITE_BASE_URL ? SITE_BASE_URL + 'imovel.html?id=' + id : 'imovel.html?id=' + id;
   _linkCompartilhado = link;
@@ -902,27 +908,87 @@ function compartilharImovelCatalogo(nome, cidade, uf, valor, id) {
                   'A partir de ' + preco + '\n' +
                   'Saiba mais: ' + link;
   const assunto = 'Imóvel interessante — ' + nome;
+  _compartilharEmailDadosCatalogo = { assunto, corpo: texto };
 
   const modal = document.createElement('div');
+  modal.id = 'compartilharModalCatalogo';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:9000;display:flex;align-items:center;justify-content:center';
 
   const wppHref   = 'https://wa.me/?text=' + encodeURIComponent(texto);
-  const mailHref  = 'mailto:?subject=' + encodeURIComponent(assunto) + '&body=' + encodeURIComponent(texto);
   const btnStyle  = 'display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-decoration:none;';
 
   modal.innerHTML =
     '<div style="background:var(--navy-mid);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative">' +
       '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--ink-muted);font-size:18px;cursor:pointer">✕</button>' +
       '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:16px">Compartilhar Imóvel</div>' +
-      '<div style="display:flex;flex-direction:column;gap:10px">' +
+      '<div id="compartilharOpcoesCatalogo" style="display:flex;flex-direction:column;gap:10px">' +
         '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
-        '<a href="' + mailHref + '" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);">✉️ Enviar por E-mail</a>' +
+        '<button onclick="mostrarFormEmailCatalogo()" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);cursor:pointer;width:100%;">✉️ Enviar por E-mail</button>' +
         '<button onclick="copiarLinkCompartilhado(this)" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
+      '</div>' +
+      '<div id="compartilharFormEmailCatalogo" style="display:none;flex-direction:column;gap:10px">' +
+        '<label style="font-size:11px;color:var(--ink-muted)">E-mail do destinatário</label>' +
+        '<input type="email" id="compartilharEmailInputCatalogo" placeholder="nome@email.com" style="padding:11px 14px;border:1px solid var(--border);font-family:\'Barlow\',sans-serif;font-size:14px;background:var(--surf);color:var(--navy);outline:none">' +
+        '<div id="compartilharEmailErrCatalogo" style="display:none;font-size:11px;color:#DC2626"></div>' +
+        '<button id="btnEnviarEmailCatalogo" onclick="enviarEmailCatalogo()" style="' + btnStyle + 'justify-content:center;background:var(--gold);color:var(--navy);border:none;cursor:pointer;width:100%">Enviar →</button>' +
+        '<button onclick="voltarOpcoesCatalogo()" style="background:none;border:none;color:var(--ink-muted);font-size:12px;cursor:pointer;text-align:center;padding:4px">← Voltar</button>' +
       '</div>' +
     '</div>';
 
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function mostrarFormEmailCatalogo() {
+  document.getElementById('compartilharOpcoesCatalogo').style.display = 'none';
+  const form = document.getElementById('compartilharFormEmailCatalogo');
+  form.style.display = 'flex';
+  document.getElementById('compartilharEmailErrCatalogo').style.display = 'none';
+  const inp = document.getElementById('compartilharEmailInputCatalogo');
+  inp.value = ''; inp.focus();
+}
+
+function voltarOpcoesCatalogo() {
+  document.getElementById('compartilharFormEmailCatalogo').style.display = 'none';
+  document.getElementById('compartilharOpcoesCatalogo').style.display = 'flex';
+}
+
+async function enviarEmailCatalogo() {
+  const inp = document.getElementById('compartilharEmailInputCatalogo');
+  const destinatario = (inp.value || '').trim();
+  const errEl = document.getElementById('compartilharEmailErrCatalogo');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinatario)) {
+    errEl.textContent = 'Digite um e-mail válido.'; errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  const btn = document.getElementById('btnEnviarEmailCatalogo');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    const res  = await fetch(SHARE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        tipo: 'compartilhar_email', destinatario,
+        assunto: _compartilharEmailDadosCatalogo.assunto,
+        corpo:   _compartilharEmailDadosCatalogo.corpo
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      document.getElementById('compartilharFormEmailCatalogo').innerHTML =
+        '<div style="text-align:center;padding:16px 0;color:var(--gold-ink);font-weight:700">✅ E-mail enviado para ' + destinatario + '!</div>';
+      setTimeout(() => { document.getElementById('compartilharModalCatalogo')?.remove(); }, 2200);
+    } else {
+      errEl.textContent = data.message || 'Não foi possível enviar agora. Tente novamente.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar →';
+    }
+  } catch(e) {
+    errEl.textContent = 'Falha na conexão. Tente novamente.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Enviar →';
+  }
 }
 
 function faixaMatch(valor, faixaId) {
