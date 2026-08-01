@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pré-Cadastro — Feirão Online WAL</title>
+
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '408029114553523');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=408029114553523&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0a1f3d;
+    --navy-black:#071026;
+    --gold:#c9a15a;
+    --gold-bright:#e2ba6c;
+    --paper:#f6f3ec;
+    --card:#ffffff;
+    --ink:#1c1e24;
+    --ink-soft:#5a5f6b;
+    --line:#e3ddce;
+    --ok:#3f6b52;
+    --ok-bg:#eef3ee;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:'Inter',sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .wrap{max-width:480px;margin:0 auto;padding:0 22px;}
+
+  /* HERO */
+  header.hero{
+    background:radial-gradient(900px 420px at 20% -15%, #142c53 0%, var(--navy-deep) 55%, var(--navy-black) 100%);
+    color:#f4efe2;padding:44px 0 40px;border-bottom:4px solid var(--gold);
+    text-align:center;
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold-bright);margin-bottom:16px;
+  }
+  h1.title{font-size:30px;font-weight:600;line-height:1.18;}
+  h1.title em{font-style:normal;color:var(--gold-bright);}
+  .subtitle{margin-top:14px;color:#c9d0dd;font-size:14.5px;}
+  .countdown{
+    margin-top:24px;display:inline-flex;gap:10px;
+  }
+  .cd-box{
+    background:rgba(255,255,255,.07);border:1px solid rgba(226,186,108,.35);border-radius:6px;
+    padding:10px 14px;min-width:58px;
+  }
+  .cd-box b{display:block;font-family:'Fraunces',serif;font-size:22px;color:var(--gold-bright);font-weight:600;}
+  .cd-box span{font-size:10px;color:#aeb6c4;text-transform:uppercase;letter-spacing:.06em;}
+  .cta-scroll{
+    display:inline-block;margin-top:26px;background:var(--gold);color:var(--navy-black);
+    font-weight:700;font-size:14.5px;padding:14px 26px;border-radius:5px;text-decoration:none;
+    box-shadow:0 6px 18px rgba(0,0,0,.25);
+  }
+
+  /* VIDEO */
+  section.video-section{padding:34px 0 6px;}
+  .video-card{
+    background:var(--navy-deep);border-radius:12px;padding:16px;
+    box-shadow:0 12px 28px rgba(10,31,61,.18);
+  }
+  .video-eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold-bright);text-align:center;margin-bottom:12px;
+  }
+  .video-frame{
+    position:relative;width:100%;aspect-ratio:16/9;border-radius:7px;overflow:hidden;background:#08152c;
+  }
+  .video-frame video, .video-frame iframe{
+    width:100%;height:100%;display:block;border:none;object-fit:cover;
+  }
+  .video-caption{
+    display:flex;align-items:center;gap:10px;margin-top:14px;padding:0 4px;
+  }
+  .video-avatar{
+    flex:0 0 38px;height:38px;border-radius:50%;background:var(--gold);color:var(--navy-black);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:700;font-size:15px;
+  }
+  .video-caption strong{display:block;font-size:13.5px;color:#f4efe2;}
+  .video-caption span{font-size:12px;color:#aeb6c4;}
+
+  /* BENEFITS */
+  section.benefits{padding:38px 0 8px;}
+  .b-item{
+    display:flex;gap:14px;padding:16px 0;border-bottom:1px solid var(--line);
+  }
+  .b-item:last-child{border-bottom:none;}
+  .b-icon{
+    flex:0 0 34px;height:34px;border-radius:50%;background:var(--navy-deep);color:var(--gold-bright);
+    display:flex;align-items:center;justify-content:center;font-family:'Fraunces',serif;font-weight:600;font-size:15px;
+  }
+  .b-text strong{display:block;font-size:14.5px;color:var(--navy-deep);}
+  .b-text span{font-size:13px;color:var(--ink-soft);}
+
+  /* FORM */
+  section.form-section{padding:20px 0 54px;}
+  .form-card{
+    background:var(--card);border:1px solid var(--line);border-radius:10px;padding:26px 22px;
+    box-shadow:0 10px 30px rgba(10,31,61,.06);
+  }
+  .form-card h2{font-size:20px;color:var(--navy-deep);margin-bottom:6px;}
+  .form-card .lead-in{font-size:13.5px;color:var(--ink-soft);margin-bottom:20px;}
+  label{
+    display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:6px;margin-top:16px;
+  }
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=tel], input[type=email], select{
+    width:100%;padding:12px 13px;border:1.5px solid var(--line);border-radius:6px;
+    font-family:'Inter',sans-serif;font-size:14.5px;color:var(--ink);background:#fdfcf9;
+    appearance:none;-webkit-appearance:none;
+  }
+  select{
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235a5f6b' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:16px;
+  }
+  input:focus, select:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,161,90,.18);}
+  .consent{
+    display:flex;gap:10px;margin-top:20px;align-items:flex-start;
+  }
+  .consent input{width:16px;height:16px;margin-top:3px;accent-color:var(--gold);flex:0 0 16px;}
+  .consent p{font-size:12.5px;color:var(--ink-soft);margin:0;}
+  .consent a{color:var(--navy-deep);}
+  button.submit{
+    width:100%;margin-top:22px;background:var(--navy-deep);color:#f4efe2;border:none;
+    padding:15px;border-radius:6px;font-size:15.5px;font-weight:700;cursor:pointer;
+    transition:background .15s ease;
+  }
+  button.submit:hover{background:#0e2a52;}
+  button.submit:disabled{opacity:.6;cursor:default;}
+  .fine-print{text-align:center;font-size:11.5px;color:var(--ink-soft);margin-top:14px;}
+
+  /* SUCCESS STATE */
+  .success{display:none;text-align:center;padding:10px 4px 6px;}
+  .success .check{
+    width:56px;height:56px;border-radius:50%;background:var(--ok-bg);color:var(--ok);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:26px;
+  }
+  .success h2{font-size:20px;color:var(--navy-deep);}
+  .success p{font-size:14px;color:var(--ink-soft);margin-top:8px;}
+  .wa-btn{
+    display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:#25D366;color:#fff;
+    text-decoration:none;padding:13px 22px;border-radius:6px;font-weight:700;font-size:14.5px;
+  }
+
+  footer{padding:30px 0 50px;text-align:center;}
+  footer p{font-size:11.5px;color:var(--ink-soft);}
+  footer b{color:var(--navy-deep);}
+  footer .dev-credit{margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);opacity:.8;}
+  footer .dev-credit b{font-weight:600;color:var(--ink-soft);}
+  footer .dev-credit span{color:var(--gold);font-weight:700;}
+
+  /* ============================================================
+     RESPONSIVO — desktop, notebook, iPad/tablet e celular.
+     Mobile-first: o layout original (coluna única até 480px) é
+     preservado; a partir daqui só ampliamos a coluna central e
+     ajustamos tipografia em telas maiores. Nenhum id, classe
+     estrutural ou comportamento de formulário foi alterado.
+  ============================================================ */
+
+  /* Celulares bem pequenos (<=360px) — pequenos ajustes de folga */
+  @media (max-width:360px){
+    .wrap{padding:0 16px;}
+    h1.title{font-size:26px;}
+    .cd-box{padding:9px 10px;min-width:50px;}
+    .cd-box b{font-size:19px;}
+    .form-card{padding:22px 16px;}
+  }
+
+  /* Tablets em pé (iPad portrait) e celulares grandes em paisagem */
+  @media (min-width:640px){
+    .wrap{max-width:600px;padding:0 28px;}
+    h1.title{font-size:34px;}
+    .subtitle{font-size:15px;}
+  }
+
+  /* iPad landscape / notebooks */
+  @media (min-width:900px){
+    .wrap{max-width:760px;padding:0 32px;}
+    h1.title{font-size:40px;}
+    .subtitle{font-size:16px;max-width:520px;margin-left:auto;margin-right:auto;}
+    header.hero{padding:64px 0 56px;}
+    .video-card{padding:22px;}
+    section.benefits .wrap{display:grid;grid-template-columns:1fr 1fr;column-gap:44px;}
+    .b-item{border-bottom:none;padding:16px 0;}
+    .form-card{max-width:560px;margin:0 auto;padding:34px 40px;}
+  }
+
+  /* Desktops grandes */
+  @media (min-width:1200px){
+    .wrap{max-width:860px;}
+    h1.title{font-size:46px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     WAL · CONTROLE REMOTO DO FEIRÃO (Torre de Controle da Diretoria)
+     Não remova nem mova este bloco. Ele verifica, a cada carregamento
+     e a cada 20s, se a Diretoria suspendeu o Feirão inteiro ou este
+     painel especificamente (dashboard-diretor-wal.html) e exibe uma
+     tela de manutenção quando necessário.
+     Chave deste painel: 'precadastro'
+============================================================ -->
+<div id="walOverlayManutencao" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 30% 20%,#15294a 0%,#08192E 65%);display:none;align-items:center;justify-content:center;padding:24px;font-family:'Inter',Arial,sans-serif;color:#E8EDF5;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px">🛠️</div>
+    <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:8px">WAL Imóveis</div>
+    <div id="walOverlayTitulo" style="font-size:15px;font-weight:700;margin-bottom:10px">Estamos em manutenção rápida</div>
+    <div id="walOverlayMsg" style="font-size:13px;color:#9db1c8;line-height:1.6">Volte em instantes. Já estamos de olho e o Feirão retorna em breve.</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var WAL_CONTROLE_KEY = 'precadastro';
+  // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
+  var WAL_CONTROLE_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+  var LS_KEY = 'wal_diretor_v1';
+
+  function lerLocal(){{
+    try{{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }}catch(e){{ return null; }}
+  }}
+  function aplicarEstado(ctrl){{
+    if(!ctrl) return;
+    var overlay = document.getElementById('walOverlayManutencao');
+    if(!overlay) return;
+    var bloqueado = ctrl.fairStatus==='suspenso' || ctrl.fairStatus==='nao_iniciado' || (ctrl.modulos && ctrl.modulos[WAL_CONTROLE_KEY]===false);
+    if(bloqueado){{
+      document.getElementById('walOverlayTitulo').textContent = ctrl.fairStatus==='nao_iniciado' ? 'O Feirão ainda não começou' : 'Estamos em manutenção rápida';
+      document.getElementById('walOverlayMsg').textContent = ctrl.mensagem || ctrl.mensagemVisitante || 'Volte em instantes. Já estamos de olho e retornamos em breve.';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }} else {{
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }}
+  }}
+  function consultarRemoto(){{
+    if(!WAL_CONTROLE_API_URL || WAL_CONTROLE_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+    var cb = 'walCtrlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var s = document.createElement('script');
+    var timeout = setTimeout(function(){{ limpar(); }}, 10000);
+    function limpar(){{ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }}
+    window[cb] = function(data){{
+      limpar();
+      if(data && data.ok && data.controle){{
+        localStorage.setItem(LS_KEY, JSON.stringify(data.controle));
+        aplicarEstado(data.controle);
+      }}
+    }};
+    s.onerror = limpar;
+    s.src = WAL_CONTROLE_API_URL + '?action=feirao_get_controle&callback=' + cb;
+    document.body.appendChild(s);
+  }}
+  aplicarEstado(lerLocal());
+  consultarRemoto();
+  setInterval(consultarRemoto, 20000);
+}})();
+</script>
+<!-- ===== FIM DO BLOCO DE CONTROLE REMOTO DA DIRETORIA ===== -->
+
+
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">WAL Consultoria Imobiliária</div>
+    <h1 class="title">Garanta seu lugar no <em>Feirão Online</em> antes de todo mundo</h1>
+    <p class="subtitle">Imóveis das melhores construtoras do Rio, com condições especiais para militares, servidores, policiais, bombeiros e pensionistas.</p>
+    <div class="countdown" id="countdown">
+      <div class="cd-box"><b id="cd-days">--</b><span>dias</span></div>
+      <div class="cd-box"><b id="cd-hours">--</b><span>horas</span></div>
+      <div class="cd-box"><b id="cd-mins">--</b><span>min</span></div>
+    </div><br>
+    <a href="#form" class="cta-scroll">Quero garantir minha vaga →</a>
+  </div>
+</header>
+
+<section class="video-section">
+  <div class="wrap">
+    <div class="video-card">
+      <div class="video-eyebrow">Uma palavra do diretor</div>
+      <div class="video-frame">
+        <iframe src="https://www.youtube.com/embed/kXG_Vz_PVpU" title="Mensagem do Diretor" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+      </div>
+      <div class="video-caption">
+        <div class="video-avatar">A</div>
+        <div>
+          <strong>Antonio — Diretor da WAL Consultoria Imobiliária</strong>
+          <span>CRECI 12261-J · fala direto com você sobre o feirão</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="benefits">
+  <div class="wrap">
+    <div class="b-item">
+      <div class="b-icon">1</div>
+      <div class="b-text"><strong>Prioridade no atendimento</strong><span>Quem se cadastra antes é atendido primeiro nas horas iniciais do feirão, com corretor dedicado.</span></div>
+    </div>
+    <div class="b-item">
+      <div class="b-icon">2</div>
+      <div class="b-text"><strong>Condições reveladas em primeira mão</strong><span>Tabelas e promoções das construtoras chegam para você antes do público geral.</span></div>
+    </div>
+    <div class="b-item">
+      <div class="b-icon">3</div>
+      <div class="b-text"><strong>Canal VIP no WhatsApp</strong><span>Novidades, lembretes e bastidores do feirão direto no seu WhatsApp — sem que outros participantes vejam seu número.</span></div>
+    </div>
+    <div class="b-item">
+      <div class="b-icon">4</div>
+      <div class="b-text"><strong>Simulação personalizada pronta</strong><span>Chegamos ao dia 13/08 já sabendo seu perfil, prontos com a melhor simulação para você.</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="form-section" id="form">
+  <div class="wrap">
+    <div class="form-card">
+
+      <div id="formState">
+        <h2>Pré-cadastro gratuito</h2>
+        <p class="lead-in">Leva menos de 1 minuto. Nenhum pagamento é necessário para participar do feirão.</p>
+
+        <form id="preCadastroForm">
+          <label for="nome">Nome completo</label>
+          <input type="text" id="nome" name="nome" required placeholder="Seu nome">
+
+          <label for="whatsapp">WhatsApp (com DDD)</label>
+          <input type="tel" id="whatsapp" name="whatsapp" required placeholder="(21) 90000-0000">
+
+          <label for="email">E-mail</label>
+          <input type="email" id="email" name="email" required placeholder="seuemail@exemplo.com">
+
+          <label for="categoria">Você é...</label>
+          <select id="categoria" name="categoria" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="FAB">FAB</option>
+            <option value="Marinha">Marinha</option>
+            <option value="Exército">Exército</option>
+            <option value="PM">PM</option>
+            <option value="Bombeiro">Bombeiro</option>
+            <option value="Polícia Civil">Polícia Civil</option>
+            <option value="Funcionário Público Federal">Funcionário Público Federal</option>
+            <option value="Funcionário Público Estadual">Funcionário Público Estadual</option>
+            <option value="Funcionário Público Municipal">Funcionário Público Municipal</option>
+            <option value="Ministério Público">Ministério Público</option>
+            <option value="Outro">Outro</option>
+          </select>
+
+          <label for="regiao">Região de interesse</label>
+          <select id="regiao" name="regiao" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="Barra da Tijuca">Barra da Tijuca</option>
+            <option value="Barra Olímpica">Barra Olímpica</option>
+            <option value="Recreio">Recreio</option>
+            <option value="Jacarepaguá">Jacarepaguá</option>
+            <option value="Pechincha">Pechincha</option>
+            <option value="Curicica">Curicica</option>
+            <option value="Porto Maravilha">Porto Maravilha</option>
+            <option value="São Cristóvão">São Cristóvão</option>
+            <option value="Vila Valqueire">Vila Valqueire</option>
+            <option value="São Pedro da Aldeia">São Pedro da Aldeia</option>
+            <option value="Campo Grande">Campo Grande</option>
+            <option value="Duque de Caxias">Duque de Caxias</option>
+            <option value="Outra">Outra região / ainda não sei</option>
+          </select>
+
+          <label for="fgts">Já tem FGTS disponível para usar na entrada?</label>
+          <select id="fgts" name="fgts" required>
+            <option value="" disabled selected>Selecione</option>
+            <option value="Sim">Sim</option>
+            <option value="Não">Não</option>
+            <option value="Não sei">Não sei ainda</option>
+          </select>
+
+          <label for="codigoAgente">Código do Agente (opcional)</label>
+          <input type="text" id="codigoAgente" name="codigoAgente" placeholder="Ex.: AG0001">
+
+          <div class="consent">
+            <input type="checkbox" id="consent" required>
+            <p>Autorizo a WAL Consultoria Imobiliária a entrar em contato via WhatsApp/e-mail sobre o feirão e concordo com a <a href="#">Política de Privacidade</a>.</p>
+          </div>
+
+          <button type="submit" class="submit" id="submitBtn">Quero garantir minha vaga</button>
+          <p class="fine-print">Você poderá cancelar o recebimento de mensagens a qualquer momento.</p>
+        </form>
+      </div>
+
+      <div class="success" id="successState">
+        <div class="check">✓</div>
+        <h2>Cadastro confirmado!</h2>
+        <p>Você garantiu prioridade no Feirão Online WAL, de 13/08 a 16/08. Você será redirecionado agora para o Canal "Feirão WAL — Grupo VIP" no WhatsApp.</p>
+        <p style="font-size:12px;color:var(--ink-soft);margin-top:10px;">É um Canal oficial: os administradores e outros seguidores não têm acesso ao seu número de telefone — sua privacidade fica preservada.</p>
+        <a class="wa-btn" id="waLink" href="#" target="_blank">Entrar no Canal VIP do WhatsApp</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p><b>WAL Consultoria Imobiliária</b> · CRECI 12261-J<br>Feirão Online — 13 a 16 de agosto de 2026</p>
+    <p class="dev-credit">Desenvolvido por <b>PRO TECH <span>IMOB</span></b></p>
+  </div>
+</footer>
+
+<script>
+  /* ======================================================
+     CONFIGURAÇÃO — ajustar antes de publicar em produção
+     ====================================================== */
+  const APPS_SCRIPT_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwRZnZCKrLkxhwGqH2BLh3PMwq-n41BwkYEzVDhDt9gKDBL5pszVt9UD5FzfbcMGpu2_Q/exec"; // planilha "Pre Cadastro 1 Feirao WAL" (conta wal@walservidor.com.br)
+  const WHATSAPP_CHANNEL_LINK = "https://whatsapp.com/channel/0029VbCtVci1XquQdNHpSq1G"; // Canal "Feirão WAL — Grupo VIP"
+  const EVENT_START = new Date("2026-08-13T09:00:00-03:00");
+
+  /* Countdown */
+  function updateCountdown(){
+    const now = new Date();
+    const diff = EVENT_START - now;
+    if (diff <= 0){
+      document.getElementById('countdown').innerHTML = '<div class="cd-box"><b>É hoje!</b></div>';
+      return;
+    }
+    const days = Math.floor(diff / (1000*60*60*24));
+    const hours = Math.floor((diff / (1000*60*60)) % 24);
+    const mins = Math.floor((diff / (1000*60)) % 60);
+    document.getElementById('cd-days').textContent = days;
+    document.getElementById('cd-hours').textContent = hours;
+    document.getElementById('cd-mins').textContent = mins;
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 60000);
+
+  /* Captura de UTM da URL do anúncio/rede social */
+  function getUTMs(){
+    const params = new URLSearchParams(window.location.search);
+    return {
+      utm_source: params.get('utm_source') || 'direto',
+      utm_medium: params.get('utm_medium') || '',
+      utm_campaign: params.get('utm_campaign') || ''
+    };
+  }
+
+  /* Envio do formulário */
+  const form = document.getElementById('preCadastroForm');
+  const submitBtn = document.getElementById('submitBtn');
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Enviando...';
+
+    const payload = {
+      nome: document.getElementById('nome').value,
+      whatsapp: document.getElementById('whatsapp').value,
+      email: document.getElementById('email').value,
+      categoria: document.getElementById('categoria').value,
+      regiao: document.getElementById('regiao').value,
+      fgts: document.getElementById('fgts').value,
+      codigoAgente: document.getElementById('codigoAgente').value,
+      autorizaContato: document.getElementById('consent').checked,
+      origem: 'pre-cadastro-feirao',
+      dataCadastro: new Date().toISOString(),
+      ...getUTMs()
+    };
+
+    // Backup local (mesmo padrão usado nos outros dashboards)
+    try{
+      const leads = JSON.parse(localStorage.getItem('wal_precadastro_leads') || '[]');
+      leads.push(payload);
+      localStorage.setItem('wal_precadastro_leads', JSON.stringify(leads));
+    }catch(err){ console.warn('Não foi possível salvar backup local', err); }
+
+    // Envio ao Apps Script (Google Sheets)
+    fetch(APPS_SCRIPT_WEBHOOK_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    .catch(function(err){ console.warn('Erro no envio ao Apps Script', err); })
+    .finally(function(){
+      if (typeof fbq === 'function') {
+        fbq('track', 'Lead', { content_name: 'pre-cadastro-feirao', content_category: payload.categoria });
+      }
+      document.getElementById('formState').style.display = 'none';
+      document.getElementById('successState').style.display = 'block';
+      document.getElementById('waLink').href = WHATSAPP_CHANNEL_LINK;
+
+      // Redireciona automaticamente para o Canal do WhatsApp após uma breve pausa,
+      // dando tempo do usuário ler a confirmação e a nota de privacidade.
+      setTimeout(function(){
+        window.location.href = WHATSAPP_CHANNEL_LINK;
+      }, 1800);
+    });
+  });
+</script>
+
+</body>
+</html>

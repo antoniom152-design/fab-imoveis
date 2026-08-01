@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Command Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:     #08192E;
+  --navy2:    #0F2545;
+  --navy3:    #16335E;
+  --gold:     #C9A84C;
+  --gold2:    #E8C96A;
+  --gold-dim: rgba(201,168,76,.10);
+  --gold-border: rgba(201,168,76,.22);
+  --teal:     #0E7490;
+  --teal2:    #22D3EE;
+  --green:    #059669;
+  --green2:   #34D399;
+  --green-dim:rgba(5,150,105,.10);
+  --red:      #DC2626;
+  --red-dim:  rgba(220,38,38,.10);
+  --amber:    #D97706;
+  --amber-dim:rgba(217,119,6,.10);
+  --purple:   #7C3AED;
+  --purple-dim:rgba(124,58,237,.10);
+  --surface:  #0D1B2E;
+  --surface2: #111F35;
+  --surface3: #152844;
+  --card:     #152540;
+  --card2:    #1A2E50;
+  --border:   rgba(255,255,255,.07);
+  --border2:  rgba(255,255,255,.12);
+  --text:     #E8EDF5;
+  --muted:    #7A90A8;
+  --light:    #4A6280;
+  --r:        10px;
+  --sh:       0 2px 16px rgba(0,0,0,.3);
+  --sh-lg:    0 8px 32px rgba(0,0,0,.5);
+  --mono:     'JetBrains Mono', monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);font-size:13px;line-height:1.5;min-height:100vh}
+button{cursor:pointer;font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:220px;min-height:100vh;background:var(--navy);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
+  border-right:1px solid var(--border);
+}
+.sidebar-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-border)}
+.logo-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700;letter-spacing:.5px}
+.logo-mode{
+  display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  background:rgba(124,58,237,.15);border:1px solid rgba(124,58,237,.3);
+  color:#A78BFA;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  padding:3px 9px;border-radius:20px;
+}
+.logo-dot{width:5px;height:5px;background:#A78BFA;border-radius:50%}
+
+.nav-group{padding:14px 8px 2px}
+.nav-label{color:rgba(255,255,255,.2);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 9px 6px;font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.5);
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;
+  margin-bottom:1px;border:1px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(201,168,76,.10);color:var(--gold);border-color:var(--gold-border)}
+.nav-ico{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;
+}
+.nb-red{background:rgba(220,38,38,.2);color:#F87171}
+.nb-green{background:rgba(5,150,105,.2);color:#34D399}
+.nb-amber{background:rgba(217,119,6,.2);color:#FCD34D}
+.nb-purple{background:rgba(124,58,237,.2);color:#A78BFA}
+
+.sidebar-footer{
+  margin-top:auto;padding:14px 12px;border-top:1px solid var(--border);
+}
+.sf-owner{
+  display:flex;align-items:center;gap:9px;
+}
+.sf-av{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:12px;color:var(--navy);
+}
+.sf-name{color:rgba(255,255,255,.8);font-size:12px;font-weight:600}
+.sf-role{color:rgba(255,255,255,.3);font-size:10px;margin-top:1px}
+
+/* ── MAIN ── */
+.main{margin-left:220px;flex:1;display:flex;flex-direction:column}
+
+/* topbar */
+.topbar{
+  background:var(--navy2);border-bottom:1px solid var(--border);
+  padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-breadcrumb{display:flex;align-items:center;gap:6px;flex:1}
+.tb-section{color:rgba(255,255,255,.3);font-size:11px;font-weight:500}
+.tb-sep{color:rgba(255,255,255,.15);font-size:11px}
+.tb-page{color:var(--gold);font-size:12px;font-weight:600}
+.topbar-meta{display:flex;align-items:center;gap:10px}
+.tb-meta-item{
+  display:flex;align-items:center;gap:5px;
+  color:rgba(255,255,255,.35);font-size:11px;font-weight:500;
+}
+.tb-meta-item .dot{width:6px;height:6px;border-radius:50%}
+.dot-green{background:#34D399}
+.dot-amber{background:#FCD34D}
+.dot-red{background:#F87171}
+.tb-time{color:rgba(255,255,255,.25);font-size:10px;font-family:var(--mono)}
+
+/* ── CONTENT ── */
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* page header */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-left{}
+.ph-eyebrow{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-actions{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--border2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--text);border-color:rgba(255,255,255,.2)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.92}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px}
+.kpi{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+  padding:14px 16px;position:relative;overflow:hidden;
+  transition:transform .15s,border-color .15s;cursor:default;
+}
+.kpi:hover{transform:translateY(-2px);border-color:var(--border2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::after{background:var(--green)}
+.kpi.red::after{background:var(--red)}
+.kpi.purple::after{background:var(--purple)}
+.kpi.amber::after{background:var(--amber)}
+.kpi-label{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-value{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1}
+.kpi-sub{font-size:10px;margin-top:5px;color:var(--muted)}
+.kpi-delta{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;margin-top:4px;padding:1px 6px;border-radius:4px}
+.delta-up{background:rgba(5,150,105,.15);color:#34D399}
+.delta-down{background:rgba(220,38,38,.15);color:#F87171}
+.delta-flat{background:rgba(122,144,168,.12);color:var(--muted)}
+
+/* ── SECTION TITLE ── */
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── GRID ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.col-span-2{grid-column:span 2}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.card-body{padding:16px}
+.card-action{font-size:10px;color:var(--gold);font-weight:600;cursor:pointer;display:flex;align-items:center;gap:3px}
+.card-action:hover{opacity:.8}
+
+/* ── TABLES ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--border);text-align:left}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--border);font-size:12px;color:var(--text)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+
+/* ── BADGES / PILLS ── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
+.b-green{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
+.b-red{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
+.b-amber{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
+.b-gold{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-border)}
+.b-teal{background:rgba(14,116,144,.2);color:#22D3EE;border:1px solid rgba(34,211,238,.15)}
+.b-purple{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.15)}
+.b-gray{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--border)}
+
+/* ── PROGRESS BARS ── */
+.prog-wrap{margin-bottom:10px}
+.prog-meta{display:flex;justify-content:space-between;margin-bottom:4px;font-size:11px}
+.prog-label{color:var(--text)}
+.prog-val{color:var(--muted);font-family:var(--mono);font-size:10px}
+.prog-bar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.pf-teal{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.pf-green{background:var(--green)}
+.pf-purple{background:var(--purple)}
+.pf-red{background:var(--red)}
+.pf-amber{background:var(--amber)}
+
+/* ── STATUS LIST ── */
+.status-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)}
+.status-row:last-child{border-bottom:none}
+.status-label{font-size:12px;color:var(--text);display:flex;align-items:center;gap:7px}
+.status-ico{font-size:13px}
+.status-right{display:flex;align-items:center;gap:8px}
+
+/* ── PIPELINE FUNNEL ── */
+.funnel-step{
+  display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;
+  margin-bottom:6px;background:var(--card2);border:1px solid var(--border);
+  transition:border-color .15s;cursor:default;
+}
+.funnel-step:hover{border-color:var(--border2)}
+.fs-num{font-family:var(--mono);font-size:18px;font-weight:500;color:#fff;min-width:36px}
+.fs-label{flex:1;font-size:12px;color:var(--text)}
+.fs-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.fs-bar{flex:2;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.fs-fill{height:100%;border-radius:3px}
+.fs-pct{font-size:11px;color:var(--muted);font-family:var(--mono);min-width:32px;text-align:right}
+
+/* ── ACTIVITY FEED ── */
+.activity-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.activity-item:last-child{border-bottom:none}
+.a-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;margin-top:1px}
+.a-body{flex:1;min-width:0}
+.a-title{font-size:12px;color:var(--text);font-weight:500}
+.a-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;gap:8px;align-items:center}
+.a-time{font-family:var(--mono)}
+
+/* ── SYSTEM HEALTH ── */
+.health-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.health-item{
+  background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:12px;text-align:center;
+}
+.hi-icon{font-size:20px;margin-bottom:6px}
+.hi-label{font-size:10px;color:var(--muted);margin-bottom:4px}
+.hi-val{font-size:12px;font-weight:600;font-family:var(--mono)}
+.hi-ok{color:#34D399}
+.hi-warn{color:#FCD34D}
+.hi-err{color:#F87171}
+
+/* ── ALERTS ── */
+.alert-strip{display:flex;flex-direction:column;gap:8px;margin-bottom:20px}
+.alert{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:10px 14px;border-radius:8px;border:1px solid;
+}
+.alert-red{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.2)}
+.alert-amber{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.2)}
+.alert-green{background:rgba(5,150,105,.08);border-color:rgba(5,150,105,.2)}
+.alert-ico{font-size:15px;flex-shrink:0;margin-top:1px}
+.alert-body{flex:1}
+.alert-title{font-size:12px;font-weight:600}
+.alert-title-red{color:#F87171}
+.alert-title-amber{color:#FCD34D}
+.alert-title-green{color:#34D399}
+.alert-msg{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* ── AGENT PANEL ── */
+.agent-chat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;max-height:200px;overflow-y:auto}
+.msg-row{display:flex;gap:8px;margin-bottom:10px}
+.msg-av{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.msg-av-ai{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy)}
+.msg-av-u{background:var(--card2);color:var(--muted);border:1px solid var(--border)}
+.msg-text{flex:1;font-size:11px;color:var(--text);line-height:1.5;padding:7px 10px;border-radius:6px}
+.msg-ai{background:var(--card2);border:1px solid var(--border)}
+.msg-user{background:rgba(201,168,76,.08);border:1px solid var(--gold-border)}
+
+/* ── EMPREENDIMENTOS ── */
+.emp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.emp-card{
+  background:var(--card2);border:1px solid var(--border);border-radius:8px;
+  padding:12px;transition:border-color .15s;cursor:default;
+}
+.emp-card:hover{border-color:var(--border2)}
+.emp-nome{font-size:12px;font-weight:600;color:#fff;margin-bottom:3px}
+.emp-construtora{font-size:10px;color:var(--muted);margin-bottom:8px}
+.emp-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.emp-stat{font-size:10px;color:var(--muted)}
+.emp-stat-val{font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono)}
+
+/* ── VERSIONS TABLE ── */
+.ver-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.ver-row:last-child{border-bottom:none}
+.ver-name{font-size:12px;color:var(--text);font-weight:600;flex:1}
+.ver-tag{font-family:var(--mono);font-size:10px;color:var(--gold2);background:var(--gold-dim);border:1px solid var(--gold-border);padding:1px 6px;border-radius:4px}
+.ver-date{font-size:10px;color:var(--muted);font-family:var(--mono);min-width:90px;text-align:right}
+
+/* ── MISC ── */
+.mb14{margin-bottom:14px}
+.mb20{margin-bottom:20px}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}
+.fs11{font-size:11px}
+.fs12{font-size:12px}
+.c-muted{color:var(--muted)}
+.c-gold{color:var(--gold)}
+.c-green{color:#34D399}
+.c-red{color:#F87171}
+.c-amber{color:#FCD34D}
+.c-purple{color:#A78BFA}
+.c-teal{color:#22D3EE}
+.fw6{font-weight:600}
+.fw7{font-weight:700}
+
+/* ── CHART CONTAINERS ── */
+.chart-wrap{position:relative;width:100%}
+.chart-h180{height:180px}
+.chart-h140{height:140px}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-brand">WAL Consultoria</div>
+    <div class="logo-mode"><div class="logo-dot"></div> Owner / Dev Mode</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Visão Geral</div>
+    <div class="nav-item active" onclick="nav(this,'home')">
+      <span class="nav-ico">🏠</span> Command Center
+    </div>
+    <div class="nav-item" onclick="nav(this,'vendas')">
+      <span class="nav-ico">💰</span> Vendas & Pipeline
+      <span class="nav-badge nb-green">4 ativos</span>
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Operações</div>
+    <div class="nav-item" onclick="nav(this,'leads')">
+      <span class="nav-ico">🎯</span> Leads & Funil
+      <span class="nav-badge nb-amber">12 novos</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'corretores')">
+      <span class="nav-ico">👤</span> Corretores
+      <span class="nav-badge nb-purple">3</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'empreendimentos')">
+      <span class="nav-ico">🏗️</span> Empreendimentos
+    </div>
+    <div class="nav-item" onclick="nav(this,'construtoras')">
+      <span class="nav-ico">🏢</span> Construtoras
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Crescimento</div>
+    <div class="nav-item" onclick="nav(this,'marketing')">
+      <span class="nav-ico">📣</span> Marketing
+      <span class="nav-badge nb-amber">Jul em curso</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'financeiro')">
+      <span class="nav-ico">📊</span> Financeiro
+    </div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-label">Tecnologia</div>
+    <div class="nav-item" onclick="nav(this,'sistemas')">
+      <span class="nav-ico">⚙️</span> Sistemas & Versões
+      <span class="nav-badge nb-green">v1.0 live</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'agente')">
+      <span class="nav-ico">🤖</span> Agente IA
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sf-owner">
+      <div class="sf-av">AW</div>
+      <div>
+        <div class="sf-name">Antonio · Dono</div>
+        <div class="sf-role">Dev + Founder WAL</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ── MAIN ── -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-breadcrumb">
+      <span class="tb-section">WAL Consultoria</span>
+      <span class="tb-sep">›</span>
+      <span class="tb-page" id="topbar-title">Command Center</span>
+    </div>
+    <div class="topbar-meta">
+      <div class="tb-meta-item"><div class="dot dot-green"></div> Sistema Online</div>
+      <div class="tb-meta-item"><div class="dot dot-green"></div> IA Ativa</div>
+      <div class="tb-meta-item"><div class="dot dot-amber"></div> Planilha Sync</div>
+      <div class="tb-time" id="clock">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ══════════════════════════════════
+         PANEL: HOME — COMMAND CENTER
+    ═══════════════════════════════════ -->
+    <div class="panel active" id="panel-home">
+
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">🧭 Visão 360°</div>
+          <div class="ph-title">Command Center</div>
+          <div class="ph-sub">Todos os indicadores do negócio em tempo real · Meta: 50–60 unidades até dez/2026</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn">⬇ Exportar</button>
+          <button class="btn btn-gold">+ Nova ação</button>
+        </div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="alert-strip">
+        <div class="alert alert-amber">
+          <span class="alert-ico">⚠️</span>
+          <div class="alert-body">
+            <div class="alert-title alert-title-amber">Campanha de Julho não finalizada</div>
+            <div class="alert-msg">Briefing Orla Recreio / Ilha Mar / ICONYC criado — falta agendar disparos no Meta Ads e Google Ads.</div>
+          </div>
+        </div>
+        <div class="alert alert-green">
+          <span class="alert-ico">✅</span>
+          <div class="alert-body">
+            <div class="alert-title alert-title-green">walservidor.com.br online · GitHub Pages + DNS configurado</div>
+            <div class="alert-msg">5 arquivos estáticos servindo · Google Sheets via JSONP · Apps Script ativo para leads.</div>
+          </div>
+        </div>
+        <div class="alert alert-red">
+          <span class="alert-ico">🔑</span>
+          <div class="alert-body">
+            <div class="alert-title alert-title-red">API Key Anthropic ainda exposta no cliente</div>
+            <div class="alert-msg">chat.html usa header direto. Migrar para proxy via Google Apps Script (V2 roadmap — prioridade alta).</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs principais -->
+      <div class="kpi-strip mb20">
+        <div class="kpi gold">
+          <div class="kpi-label">Meta Anual</div>
+          <div class="kpi-value">8</div>
+          <div class="kpi-sub">de 50–60 unidades</div>
+          <div class="kpi-delta delta-up">▲ 16% meta</div>
+        </div>
+        <div class="kpi teal">
+          <div class="kpi-label">Leads Ativos</div>
+          <div class="kpi-value">34</div>
+          <div class="kpi-sub">12 novos esta semana</div>
+          <div class="kpi-delta delta-up">▲ 41%</div>
+        </div>
+        <div class="kpi green">
+          <div class="kpi-label">Comissão Acum.</div>
+          <div class="kpi-value">R$72k</div>
+          <div class="kpi-sub">6 meses · média R$12k/mês</div>
+          <div class="kpi-delta delta-up">▲ 18%</div>
+        </div>
+        <div class="kpi purple">
+          <div class="kpi-label">Corretores Rede</div>
+          <div class="kpi-value">3</div>
+          <div class="kpi-sub">modelo revenue share</div>
+          <div class="kpi-delta delta-flat">→ crescendo</div>
+        </div>
+        <div class="kpi amber">
+          <div class="kpi-label">Empreendimentos</div>
+          <div class="kpi-value">7</div>
+          <div class="kpi-sub">ativos no portfólio</div>
+          <div class="kpi-delta delta-flat">→ 2 lançamentos Q3</div>
+        </div>
+        <div class="kpi red">
+          <div class="kpi-label">Ticket Médio</div>
+          <div class="kpi-value">R$480k</div>
+          <div class="kpi-sub">imóveis FAB/militar</div>
+          <div class="kpi-delta delta-up">▲ 6%</div>
+        </div>
+      </div>
+
+      <!-- ROW 1: Pipeline + Atividade + Sistema -->
+      <div class="grid-3 mb20">
+
+        <!-- PIPELINE FUNIL -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🎯 Funil de Vendas</div>
+              <div class="card-sub">Leads → Contratos · mês atual</div>
+            </div>
+            <span class="card-action" onclick="nav(document.querySelector('[onclick*=leads]'),'leads')">Ver funil ›</span>
+          </div>
+          <div class="card-body">
+            <div class="funnel-step">
+              <div class="fs-num">34</div>
+              <div style="flex:1"><div class="fs-label">Leads Ativos</div><div class="fs-sub">12 qualificados FAB</div></div>
+              <div class="fs-bar"><div class="fs-fill pf-teal" style="width:100%"></div></div>
+              <div class="fs-pct">100%</div>
+            </div>
+            <div class="funnel-step">
+              <div class="fs-num">21</div>
+              <div style="flex:1"><div class="fs-label">Em Contato</div><div class="fs-sub">whatsapp / reunião</div></div>
+              <div class="fs-bar"><div class="fs-fill pf-gold" style="width:62%"></div></div>
+              <div class="fs-pct">62%</div>
+            </div>
+            <div class="funnel-step">
+              <div class="fs-num">11</div>
+              <div style="flex:1"><div class="fs-label">Simulação feita</div><div class="fs-sub">CFIAe simulado</div></div>
+              <div class="fs-bar"><div class="fs-fill pf-purple" style="width:32%"></div></div>
+              <div class="fs-pct">32%</div>
+            </div>
+            <div class="funnel-step">
+              <div class="fs-num">5</div>
+              <div style="flex:1"><div class="fs-label">Proposta Enviada</div><div class="fs-sub">aguardando aprovação</div></div>
+              <div class="fs-bar"><div class="fs-fill pf-amber" style="width:15%"></div></div>
+              <div class="fs-pct">15%</div>
+            </div>
+            <div class="funnel-step">
+              <div class="fs-num">8</div>
+              <div style="flex:1"><div class="fs-label fw6 c-green">Contratos Fechados</div><div class="fs-sub">no ano</div></div>
+              <div class="fs-bar"><div class="fs-fill pf-green" style="width:24%"></div></div>
+              <div class="fs-pct c-green">24%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATIVIDADE RECENTE -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">⚡ Atividade Recente</div>
+              <div class="card-sub">Últimas 24h · todos os módulos</div>
+            </div>
+          </div>
+          <div class="card-body" style="padding:10px 16px">
+            <div class="activity-item">
+              <div class="a-icon" style="background:var(--green-dim)">🤝</div>
+              <div class="a-body">
+                <div class="a-title">Lead qualificado · Cap. Henrique (T-Cav)</div>
+                <div class="a-meta"><span class="a-time">09:14</span><span class="badge b-green">FAB</span></div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon" style="background:var(--gold-dim)">🤖</div>
+              <div class="a-body">
+                <div class="a-title">IA respondeu 3 perguntas sobre Orla Recreio</div>
+                <div class="a-meta"><span class="a-time">08:52</span><span class="badge b-teal">Agente</span></div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon" style="background:var(--purple-dim)">📣</div>
+              <div class="a-body">
+                <div class="a-title">Briefing Campanha Jul/26 gerado (3 empreendimentos)</div>
+                <div class="a-meta"><span class="a-time">ontem</span><span class="badge b-purple">Marketing</span></div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon" style="background:var(--red-dim)">🔑</div>
+              <div class="a-body">
+                <div class="a-title">API proxy (Apps Script) pendente de deploy</div>
+                <div class="a-meta"><span class="a-time">ontem</span><span class="badge b-red">Dev</span></div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="a-icon" style="background:var(--green-dim)">💰</div>
+              <div class="a-body">
+                <div class="a-title">Contrato #8 assinado · Ilha Mar Beach — CURY</div>
+                <div class="a-meta"><span class="a-time">2 dias</span><span class="badge b-gold">Venda</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATUS SISTEMAS -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">⚙️ Saúde do Sistema</div>
+              <div class="card-sub">walservidor.com.br · v1.0</div>
+            </div>
+            <span class="card-action" onclick="nav(document.querySelector('[onclick*=sistemas]'),'sistemas')">Dev ›</span>
+          </div>
+          <div class="card-body">
+            <div class="health-grid mb14">
+              <div class="health-item">
+                <div class="hi-icon">🌐</div>
+                <div class="hi-label">GitHub Pages</div>
+                <div class="hi-val hi-ok">Online</div>
+              </div>
+              <div class="health-item">
+                <div class="hi-icon">📊</div>
+                <div class="hi-label">Google Sheets</div>
+                <div class="hi-val hi-warn">Sync</div>
+              </div>
+              <div class="health-item">
+                <div class="hi-icon">⚡</div>
+                <div class="hi-label">Apps Script</div>
+                <div class="hi-val hi-ok">Ativo</div>
+              </div>
+              <div class="health-item">
+                <div class="hi-icon">🤖</div>
+                <div class="hi-label">Claude API</div>
+                <div class="hi-val hi-warn">Exposto</div>
+              </div>
+              <div class="health-item">
+                <div class="hi-icon">🔒</div>
+                <div class="hi-label">DNS / SSL</div>
+                <div class="hi-val hi-ok">OK</div>
+              </div>
+              <div class="health-item">
+                <div class="hi-icon">📱</div>
+                <div class="hi-label">Mobile</div>
+                <div class="hi-val hi-ok">Responsivo</div>
+              </div>
+            </div>
+            <div class="sec-title" style="margin-bottom:8px">Módulos</div>
+            <div class="status-row">
+              <div class="status-label"><span>📄</span>index.html</div>
+              <span class="badge b-green">Live</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>🏠</span>imoveis.html</div>
+              <span class="badge b-green">Live</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>🧮</span>simulador.html</div>
+              <span class="badge b-green">Live</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>💬</span>chat.html</div>
+              <span class="badge b-amber">Parcial</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>🔐</span>admin.html</div>
+              <span class="badge b-teal">Restrito</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ROW 2: Meta anual + Marketing + Financeiro rápido -->
+      <div class="grid-3 mb20">
+        <!-- META ANUAL -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🎯 Meta 2026 — 50 unidades</div>
+              <div class="card-sub">Progresso mensal</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="text-align:center;padding:10px 0 16px">
+              <div style="font-size:46px;font-family:'Playfair Display',serif;font-weight:700;color:#fff;line-height:1">8</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:4px">unidades vendidas · meta 50</div>
+              <div style="margin:12px auto;width:80%;height:8px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+                <div style="height:100%;width:16%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px"></div>
+              </div>
+              <div style="font-size:11px;color:var(--gold);font-weight:600">16% da meta · precisa acelerar</div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">Jan–Mar</span><span class="prog-val mono">3 un</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-gold" style="width:40%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">Abr–Jun</span><span class="prog-val mono">5 un</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-gold" style="width:65%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">Jul–Set (projeção)</span><span class="prog-val mono">18 un</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-teal" style="width:50%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">Out–Dez (projeção)</span><span class="prog-val mono">24 un</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-purple" style="width:30%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MARKETING -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">📣 Marketing · Jul/2026</div>
+              <div class="card-sub">Campanhas ativas e em preparo</div>
+            </div>
+            <span class="card-action" onclick="nav(document.querySelector('[onclick*=marketing]'),'marketing')">Ver ›</span>
+          </div>
+          <div class="card-body">
+            <div class="status-row">
+              <div class="status-label"><span>📸</span>Instagram WAL</div>
+              <span class="badge b-green">Ativo</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>🔗</span>Linktree</div>
+              <span class="badge b-green">Publicado</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>📱</span>Meta Ads — Jul</div>
+              <span class="badge b-amber">Planejando</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>🔍</span>Google Ads</div>
+              <span class="badge b-amber">Planejando</span>
+            </div>
+            <div class="status-row">
+              <div class="status-label"><span>📧</span>Ebook FAB + LP</div>
+              <span class="badge b-green">Publicado</span>
+            </div>
+            <div style="margin-top:14px">
+              <div class="sec-title" style="margin-bottom:8px">Empreendimentos em campanha</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span class="badge b-teal">Orla Recreio Reserva</span>
+                <span class="badge b-gold">Ilha Mar Beach</span>
+                <span class="badge b-purple">ICONYC by YOO</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FINANCEIRO RÁPIDO -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">💰 Financeiro · 2026</div>
+              <div class="card-sub">Comissões estimadas</div>
+            </div>
+            <span class="card-action" onclick="nav(document.querySelector('[onclick*=financeiro]'),'financeiro')">Ver ›</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+              <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+                <div class="fs10 c-muted" style="margin-bottom:4px">Recebido</div>
+                <div style="font-size:18px;font-weight:700;color:#34D399;font-family:'Playfair Display',serif">R$72k</div>
+              </div>
+              <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center">
+                <div class="fs10 c-muted" style="margin-bottom:4px">Projeção Ano</div>
+                <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif">R$360k</div>
+              </div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">RIVA</span><span class="prog-val mono">R$28k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-gold" style="width:72%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">CURY</span><span class="prog-val mono">R$24k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-teal" style="width:60%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label">EMCAMP / CALPER</span><span class="prog-val mono">R$20k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-purple" style="width:50%"></div></div>
+            </div>
+            <div style="margin-top:12px;padding:10px;background:var(--gold-dim);border:1px solid var(--gold-border);border-radius:7px">
+              <div class="fs11 c-gold fw6">Próxima comissão estimada</div>
+              <div style="font-size:15px;font-weight:700;color:#fff;margin-top:3px">R$14.400 · Cap. Henrique — Ilha Mar</div>
+              <div class="fs10 c-muted" style="margin-top:2px">Contrato em finalização · previsto 15/Jul</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Construtoras + Agente IA preview -->
+      <div class="grid-2 mb20">
+        <!-- CONSTRUTORAS -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🏢 Parceiros Construtoras</div>
+              <div class="card-sub">Performance da rede</div>
+            </div>
+            <span class="card-action" onclick="nav(document.querySelector('[onclick*=construtoras]'),'construtoras')">Ver ›</span>
+          </div>
+          <div class="card-body">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th>Construtora</th>
+                  <th>Empreend.</th>
+                  <th>Unid. Vendidas</th>
+                  <th>Comissão</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw6">RIVA</td>
+                  <td>Orla Recreio Reserva</td>
+                  <td class="mono">3</td>
+                  <td class="c-green mono">R$28k</td>
+                  <td><span class="badge b-green">Ativo</span></td>
+                </tr>
+                <tr>
+                  <td class="fw6">CURY</td>
+                  <td>Ilha Mar Beach · 2 empr.</td>
+                  <td class="mono">3</td>
+                  <td class="c-green mono">R$24k</td>
+                  <td><span class="badge b-green">Ativo</span></td>
+                </tr>
+                <tr>
+                  <td class="fw6">EMCAMP</td>
+                  <td>ICONYC by YOO</td>
+                  <td class="mono">1</td>
+                  <td class="c-amber mono">R$11k</td>
+                  <td><span class="badge b-green">Ativo</span></td>
+                </tr>
+                <tr>
+                  <td class="fw6">CALPER</td>
+                  <td>—</td>
+                  <td class="mono">1</td>
+                  <td class="c-amber mono">R$9k</td>
+                  <td><span class="badge b-amber">Negociando</span></td>
+                </tr>
+                <tr>
+                  <td class="fw6">REFLORA</td>
+                  <td>—</td>
+                  <td class="mono">0</td>
+                  <td class="c-muted mono">—</td>
+                  <td><span class="badge b-gray">Integrar</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- AGENTE IA -->
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🤖 Agente IA · chat.html</div>
+              <div class="card-sub">claude-sonnet-4-5 · base de conhecimento FAB</div>
+            </div>
+            <span class="card-action" onclick="nav(document.querySelector('[onclick*=agente]'),'agente')">Painel ›</span>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px">
+              <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center">
+                <div class="fs10 c-muted">Chats hoje</div>
+                <div style="font-size:18px;font-weight:700;color:#fff;font-family:'Playfair Display',serif">7</div>
+              </div>
+              <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center">
+                <div class="fs10 c-muted">Leads gerados</div>
+                <div style="font-size:18px;font-weight:700;color:#34D399;font-family:'Playfair Display',serif">2</div>
+              </div>
+              <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center">
+                <div class="fs10 c-muted">Tokens/mês</div>
+                <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif">1.2M</div>
+              </div>
+              <div style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:10px;text-align:center">
+                <div class="fs10 c-muted">Custo/mês</div>
+                <div style="font-size:18px;font-weight:700;color:#F87171;font-family:'Playfair Display',serif">$18</div>
+              </div>
+            </div>
+            <div class="agent-chat">
+              <div class="msg-row">
+                <div class="msg-av msg-av-u">U</div>
+                <div class="msg-text msg-user">Qual a taxa de financiamento FAB pelo CFIAe?</div>
+              </div>
+              <div class="msg-row">
+                <div class="msg-av msg-av-ai">W</div>
+                <div class="msg-text msg-ai">Para militares da Aeronáutica (FAB), a taxa CFIAe é <strong>8,5% ao ano + TR</strong>, com prazo até 35 anos e até 90% do valor do imóvel. MIP 0,051200% sobre saldo devedor + DFI fixo 0,008036%. Quer que eu calcule uma simulação?</div>
+              </div>
+            </div>
+            <div style="margin-top:10px;padding:9px 12px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.2);border-radius:7px">
+              <div class="fs11 c-amber fw6">🔑 Ação necessária: Proxy Apps Script</div>
+              <div class="fs10 c-muted" style="margin-top:2px">A API Key está exposta no cliente. Deploy do proxy protege a chave e adiciona rate limiting por usuário.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panel-home -->
+
+    <!-- ══════════════════════════════════
+         PANEL: VENDAS
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-vendas">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">💰 Pipeline</div>
+          <div class="ph-title">Vendas & Contratos</div>
+          <div class="ph-sub">Acompanhamento de negociações em andamento</div>
+        </div>
+      </div>
+
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi gold"><div class="kpi-label">Contratos 2026</div><div class="kpi-value">8</div><div class="kpi-delta delta-up">▲ meta 50</div></div>
+        <div class="kpi green"><div class="kpi-label">Em Negociação</div><div class="kpi-value">5</div><div class="kpi-delta delta-flat">→ ativas</div></div>
+        <div class="kpi teal"><div class="kpi-label">VGV Fechado</div><div class="kpi-value">R$3,84M</div><div class="kpi-delta delta-up">▲ 18%</div></div>
+        <div class="kpi purple"><div class="kpi-label">Comissão Total</div><div class="kpi-value">R$72k</div><div class="kpi-delta delta-up">▲ média 3%</div></div>
+      </div>
+
+      <div class="card mb20">
+        <div class="card-head"><div class="card-title">📋 Negociações Ativas</div></div>
+        <div class="card-body" style="padding:0">
+          <table class="tbl">
+            <thead>
+              <tr><th>Cliente</th><th>Posto</th><th>Empreendimento</th><th>Valor</th><th>Etapa</th><th>Previsão</th><th>Ação</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fw6">Cap. Henrique S.</td>
+                <td><span class="badge b-teal">✈️ FAB</span></td>
+                <td>Ilha Mar Beach · CURY</td>
+                <td class="mono">R$480k</td>
+                <td><span class="badge b-amber">Contrato</span></td>
+                <td class="mono fs11">15/Jul</td>
+                <td><span class="card-action">Finalizar ›</span></td>
+              </tr>
+              <tr>
+                <td class="fw6">Maj. Roberto A.</td>
+                <td><span class="badge b-teal">✈️ FAB</span></td>
+                <td>Orla Recreio Reserva · RIVA</td>
+                <td class="mono">R$620k</td>
+                <td><span class="badge b-purple">Proposta</span></td>
+                <td class="mono fs11">22/Jul</td>
+                <td><span class="card-action">Acompanhar ›</span></td>
+              </tr>
+              <tr>
+                <td class="fw6">Sgt. Marcos L.</td>
+                <td><span class="badge b-teal">✈️ FAB</span></td>
+                <td>ICONYC by YOO · EMCAMP</td>
+                <td class="mono">R$390k</td>
+                <td><span class="badge b-gold">Simulação</span></td>
+                <td class="mono fs11">Ago/26</td>
+                <td><span class="card-action">Simular ›</span></td>
+              </tr>
+              <tr>
+                <td class="fw6">Cb. Fernanda M.</td>
+                <td><span class="badge b-teal">✈️ FAB</span></td>
+                <td>Ilha Mar Beach 2 · CURY</td>
+                <td class="mono">R$320k</td>
+                <td><span class="badge b-teal">Qualificado</span></td>
+                <td class="mono fs11">Set/26</td>
+                <td><span class="card-action">Contatar ›</span></td>
+              </tr>
+              <tr>
+                <td class="fw6">Cel. Augusto P.</td>
+                <td><span class="badge b-teal">✈️ FAB</span></td>
+                <td>Orla Recreio Reserva · RIVA</td>
+                <td class="mono">R$890k</td>
+                <td><span class="badge b-gray">Primeiro contato</span></td>
+                <td class="mono fs11">—</td>
+                <td><span class="card-action">Engajar ›</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: LEADS
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-leads">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">🎯 CRM</div>
+          <div class="ph-title">Leads & Funil</div>
+          <div class="ph-sub">Todos os leads capturados via site, Instagram e indicação</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi teal"><div class="kpi-label">Total Leads</div><div class="kpi-value">34</div><div class="kpi-delta delta-up">▲ 41% sem</div></div>
+        <div class="kpi gold"><div class="kpi-label">FAB / Militar</div><div class="kpi-value">27</div><div class="kpi-delta delta-up">▲ 79%</div></div>
+        <div class="kpi purple"><div class="kpi-label">Civil / Funcional.</div><div class="kpi-value">7</div><div class="kpi-delta delta-flat">→ 21%</div></div>
+        <div class="kpi green"><div class="kpi-label">Taxa Conversão</div><div class="kpi-value">23,5%</div><div class="kpi-delta delta-up">▲ mercado é 8%</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">📥 Leads Recentes</div></div>
+        <div class="card-body" style="padding:0">
+          <table class="tbl">
+            <thead>
+              <tr><th>Nome</th><th>Origem</th><th>Posto / Função</th><th>Interesse</th><th>Score</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td class="fw6">Cap. Henrique S.</td><td>Instagram</td><td><span class="badge b-teal">T-Cav FAB</span></td><td>Ilha Mar Beach</td><td class="c-green mono fw6">92</td><td><span class="badge b-amber">Contrato</span></td></tr>
+              <tr><td class="fw6">Maj. Roberto A.</td><td>Site WAL</td><td><span class="badge b-teal">FAB RJ</span></td><td>Orla Recreio</td><td class="c-green mono fw6">88</td><td><span class="badge b-purple">Proposta</span></td></tr>
+              <tr><td class="fw6">Ana Paula F.</td><td>Indicação</td><td><span class="badge b-gray">Servidora TJ-RJ</span></td><td>Orla Recreio</td><td class="c-amber mono fw6">71</td><td><span class="badge b-gold">Simulação</span></td></tr>
+              <tr><td class="fw6">Sgt. Marcos L.</td><td>WhatsApp</td><td><span class="badge b-teal">FAB SP</span></td><td>ICONYC</td><td class="c-amber mono fw6">65</td><td><span class="badge b-gold">Simulação</span></td></tr>
+              <tr><td class="fw6">Carlos Eduardo M.</td><td>Google Ads</td><td><span class="badge b-gray">Civil</span></td><td>Ilha Mar</td><td class="c-muted mono">44</td><td><span class="badge b-gray">Novo</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: CORRETORES
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-corretores">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">👤 Rede</div>
+          <div class="ph-title">Corretores Parceiros</div>
+          <div class="ph-sub">Modelo revenue share · gestão da rede de agentes</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn btn-gold">+ Adicionar corretor</button>
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:20px">
+            <div style="width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:var(--navy);margin:0 auto 12px">MR</div>
+            <div class="fw6" style="font-size:14px;color:#fff">Marcos Ribeiro</div>
+            <div class="fs11 c-muted">CRECI-RJ · São Paulo cluster</div>
+            <div style="margin:12px 0;display:flex;gap:6px;justify-content:center">
+              <span class="badge b-green">4 vendas</span>
+              <span class="badge b-gold">R$36k</span>
+            </div>
+            <div class="prog-bar" style="margin-bottom:6px"><div class="prog-fill pf-gold" style="width:80%"></div></div>
+            <div class="fs10 c-muted">Meta mensal: 80%</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body" style="text-align:center;padding:20px">
+            <div style="width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:18px;color:#fff;margin:0 auto 12px">PL</div>
+            <div class="fw6" style="font-size:14px;color:#fff">Patricia Lima</div>
+            <div class="fs11 c-muted">CRECI-SP · Rio cluster</div>
+            <div style="margin:12px 0;display:flex;gap:6px;justify-content:center">
+              <span class="badge b-green">3 vendas</span>
+              <span class="badge b-gold">R$27k</span>
+            </div>
+            <div class="prog-bar" style="margin-bottom:6px"><div class="prog-fill pf-teal" style="width:60%"></div></div>
+            <div class="fs10 c-muted">Meta mensal: 60%</div>
+          </div>
+        </div>
+        <div class="card" style="border:1px dashed rgba(255,255,255,.12);background:transparent">
+          <div class="card-body" style="text-align:center;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px">
+            <div style="font-size:28px;margin-bottom:8px;opacity:.3">+</div>
+            <div class="fs12 c-muted">Novo corretor parceiro</div>
+            <div class="fs11 c-muted" style="margin-top:4px">Expanda a rede para outras cidades</div>
+            <button class="btn" style="margin-top:14px">Convidar ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: EMPREENDIMENTOS
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-empreendimentos">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">🏗️ Portfólio</div>
+          <div class="ph-title">Empreendimentos à Venda</div>
+          <div class="ph-sub">7 empreendimentos ativos nos clusters RJ e SP</div>
+        </div>
+      </div>
+      <div class="emp-grid">
+        <div class="emp-card">
+          <div class="emp-nome">Orla Recreio Reserva</div>
+          <div class="emp-construtora"><span class="badge b-gold" style="margin-right:4px">RIVA</span> Recreio · RJ</div>
+          <div class="emp-stats">
+            <div><div class="emp-stat">Unid. disponíveis</div><div class="emp-stat-val">42</div></div>
+            <div><div class="emp-stat">Vendidas WAL</div><div class="emp-stat-val c-green">3</div></div>
+            <div><div class="emp-stat">Ticket médio</div><div class="emp-stat-val">R$580k</div></div>
+            <div><div class="emp-stat">Entrega</div><div class="emp-stat-val">Dez/27</div></div>
+          </div>
+          <div style="margin-top:8px"><span class="badge b-green">Campanha ativa</span></div>
+        </div>
+        <div class="emp-card">
+          <div class="emp-nome">Ilha Mar Beach & Home</div>
+          <div class="emp-construtora"><span class="badge b-gold" style="margin-right:4px">CURY</span> Barra · RJ</div>
+          <div class="emp-stats">
+            <div><div class="emp-stat">Unid. disponíveis</div><div class="emp-stat-val">28</div></div>
+            <div><div class="emp-stat">Vendidas WAL</div><div class="emp-stat-val c-green">2</div></div>
+            <div><div class="emp-stat">Ticket médio</div><div class="emp-stat-val">R$460k</div></div>
+            <div><div class="emp-stat">Entrega</div><div class="emp-stat-val">Jun/28</div></div>
+          </div>
+          <div style="margin-top:8px"><span class="badge b-green">Campanha ativa</span></div>
+        </div>
+        <div class="emp-card">
+          <div class="emp-nome">ICONYC by YOO</div>
+          <div class="emp-construtora"><span class="badge b-gold" style="margin-right:4px">EMCAMP</span> Barra · RJ</div>
+          <div class="emp-stats">
+            <div><div class="emp-stat">Unid. disponíveis</div><div class="emp-stat-val">15</div></div>
+            <div><div class="emp-stat">Vendidas WAL</div><div class="emp-stat-val c-green">1</div></div>
+            <div><div class="emp-stat">Ticket médio</div><div class="emp-stat-val">R$890k</div></div>
+            <div><div class="emp-stat">Entrega</div><div class="emp-stat-val">Mar/28</div></div>
+          </div>
+          <div style="margin-top:8px"><span class="badge b-green">Campanha ativa</span></div>
+        </div>
+        <div class="emp-card">
+          <div class="emp-nome">Ilha Mar Beach 2</div>
+          <div class="emp-construtora"><span class="badge b-gold" style="margin-right:4px">CURY</span> Barra · RJ</div>
+          <div class="emp-stats">
+            <div><div class="emp-stat">Unid. disponíveis</div><div class="emp-stat-val">35</div></div>
+            <div><div class="emp-stat">Vendidas WAL</div><div class="emp-stat-val c-green">1</div></div>
+            <div><div class="emp-stat">Ticket médio</div><div class="emp-stat-val">R$320k</div></div>
+            <div><div class="emp-stat">Entrega</div><div class="emp-stat-val">Dez/28</div></div>
+          </div>
+          <div style="margin-top:8px"><span class="badge b-amber">Em preparação</span></div>
+        </div>
+        <div class="emp-card">
+          <div class="emp-nome">CALPER Residencial SP</div>
+          <div class="emp-construtora"><span class="badge b-gold" style="margin-right:4px">CALPER</span> São Paulo · SP</div>
+          <div class="emp-stats">
+            <div><div class="emp-stat">Unid. disponíveis</div><div class="emp-stat-val">60</div></div>
+            <div><div class="emp-stat">Vendidas WAL</div><div class="emp-stat-val c-amber">1</div></div>
+            <div><div class="emp-stat">Ticket médio</div><div class="emp-stat-val">R$390k</div></div>
+            <div><div class="emp-stat">Entrega</div><div class="emp-stat-val">Out/27</div></div>
+          </div>
+          <div style="margin-top:8px"><span class="badge b-gray">Integrar ao site</span></div>
+        </div>
+        <div class="emp-card" style="border:1px dashed rgba(255,255,255,.12);background:transparent;display:flex;align-items:center;justify-content:center;text-align:center">
+          <div>
+            <div style="font-size:24px;opacity:.3;margin-bottom:8px">+</div>
+            <div class="fs12 c-muted">Adicionar empreendimento</div>
+            <div class="fs10 c-muted" style="margin-top:4px">REFLORA ou novo parceiro</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: CONSTRUTORAS
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-construtoras">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">🏢 Parceiros</div>
+          <div class="ph-title">Construtoras & Parcerias</div>
+          <div class="ph-sub">Gestão dos acordos comerciais e comissões</div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-head"><div class="card-title">📄 Acordos Comerciais</div></div>
+        <div class="card-body" style="padding:0">
+          <table class="tbl">
+            <thead><tr><th>Construtora</th><th>% Comissão</th><th>Empreend.</th><th>Vendas</th><th>Total Pago</th><th>Prazo</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td class="fw6">RIVA</td><td class="mono">1,5%</td><td>1</td><td class="mono">3</td><td class="c-green mono">R$28k</td><td class="mono fs11">Dez/26</td><td><span class="badge b-green">Contrato ativo</span></td></tr>
+              <tr><td class="fw6">CURY</td><td class="mono">1,5%</td><td>2</td><td class="mono">3</td><td class="c-green mono">R$24k</td><td class="mono fs11">Jun/27</td><td><span class="badge b-green">Contrato ativo</span></td></tr>
+              <tr><td class="fw6">EMCAMP</td><td class="mono">1,2%</td><td>1</td><td class="mono">1</td><td class="c-amber mono">R$11k</td><td class="mono fs11">Mar/27</td><td><span class="badge b-green">Contrato ativo</span></td></tr>
+              <tr><td class="fw6">CALPER</td><td class="mono">1,0%</td><td>1</td><td class="mono">1</td><td class="c-amber mono">R$9k</td><td class="mono fs11">—</td><td><span class="badge b-amber">Negociando</span></td></tr>
+              <tr><td class="fw6">REFLORA</td><td class="mono">—</td><td>0</td><td class="mono">0</td><td class="c-muted mono">—</td><td class="mono fs11">—</td><td><span class="badge b-gray">Prospectar</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="alert alert-amber" style="margin-bottom:0">
+        <span class="alert-ico">⚠️</span>
+        <div class="alert-body">
+          <div class="alert-title alert-title-amber">Alerta estratégico: construtora com investidores europeus</div>
+          <div class="alert-msg">Parceiro prospectando base FAB da WAL. Proteger funil com cláusula non-compete na negociação. Não compartilhar dados de leads sem contrato assinado.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: MARKETING
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-marketing">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">📣 Growth</div>
+          <div class="ph-title">Marketing & Campanhas</div>
+          <div class="ph-sub">Orgânico + pago · campanha de julho em execução</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi teal"><div class="kpi-label">Seguidores IG</div><div class="kpi-value">1.240</div><div class="kpi-delta delta-up">▲ 18% mês</div></div>
+        <div class="kpi gold"><div class="kpi-label">Leads Orgânico</div><div class="kpi-value">19</div><div class="kpi-delta delta-up">▲ Instagram</div></div>
+        <div class="kpi purple"><div class="kpi-label">Leads Pago</div><div class="kpi-value">15</div><div class="kpi-delta delta-flat">→ Google Ads</div></div>
+        <div class="kpi amber"><div class="kpi-label">Custo/Lead</div><div class="kpi-value">R$87</div><div class="kpi-delta delta-down">▼ Meta Ads</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📅 Campanha Julho 2026</div></div>
+          <div class="card-body">
+            <div class="status-row"><div class="status-label">🏖️ Orla Recreio Reserva · RIVA</div><span class="badge b-amber">Planejando</span></div>
+            <div class="status-row"><div class="status-label">🌊 Ilha Mar Beach · CURY</div><span class="badge b-amber">Planejando</span></div>
+            <div class="status-row"><div class="status-label">🏙️ ICONYC by YOO · EMCAMP</div><span class="badge b-amber">Planejando</span></div>
+            <div class="status-row"><div class="status-label">📸 Posts Instagram</div><span class="badge b-green">Briefing OK</span></div>
+            <div class="status-row"><div class="status-label">📱 Meta Ads</div><span class="badge b-red">Pendente</span></div>
+            <div class="status-row"><div class="status-label">🔍 Google Ads</div><span class="badge b-red">Pendente</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">📌 Conteúdo & Canais</div></div>
+          <div class="card-body">
+            <div class="status-row"><div class="status-label">🔗 Linktree WAL</div><span class="badge b-green">Publicado</span></div>
+            <div class="status-row"><div class="status-label">📧 Ebook FAB Financiamento</div><span class="badge b-green">Publicado</span></div>
+            <div class="status-row"><div class="status-label">🌐 Landing Page Ebook</div><span class="badge b-green">Online</span></div>
+            <div class="status-row"><div class="status-label">📊 Plano Marketing 7 fases</div><span class="badge b-green">Criado</span></div>
+            <div class="status-row"><div class="status-label">🎥 Tours Virtuais 360°</div><span class="badge b-green">Integrado</span></div>
+            <div class="status-row"><div class="status-label">🤝 Sicredi / Sicoob parceria</div><span class="badge b-amber">Pesquisando</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: FINANCEIRO
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-financeiro">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">💵 Finanças</div>
+          <div class="ph-title">Financeiro WAL</div>
+          <div class="ph-sub">Comissões recebidas e projeção 2026</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi green"><div class="kpi-label">Recebido 2026</div><div class="kpi-value">R$72k</div><div class="kpi-delta delta-up">▲ 18% vs 2025</div></div>
+        <div class="kpi gold"><div class="kpi-label">Projeção Anual</div><div class="kpi-value">R$360k</div><div class="kpi-delta delta-up">▲ 50 un</div></div>
+        <div class="kpi amber"><div class="kpi-label">À Receber</div><div class="kpi-value">R$62k</div><div class="kpi-delta delta-flat">→ 5 negoc. ativas</div></div>
+        <div class="kpi teal"><div class="kpi-label">Comiss. Média</div><div class="kpi-value">R$9k</div><div class="kpi-delta delta-flat">→ 1,87% ticket</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📊 Comissões por Construtora</div></div>
+          <div class="card-body">
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label fw6">RIVA</span><span class="prog-val mono">R$28k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-gold" style="width:72%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label fw6">CURY</span><span class="prog-val mono">R$24k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-teal" style="width:60%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label fw6">EMCAMP</span><span class="prog-val mono">R$11k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-purple" style="width:28%"></div></div>
+            </div>
+            <div class="prog-wrap">
+              <div class="prog-meta"><span class="prog-label fw6">CALPER</span><span class="prog-val mono">R$9k</span></div>
+              <div class="prog-bar"><div class="prog-fill pf-amber" style="width:23%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">🔮 Próximos Recebimentos</div></div>
+          <div class="card-body">
+            <table class="tbl">
+              <thead><tr><th>Cliente</th><th>Empreend.</th><th>Valor</th><th>Previsão</th></tr></thead>
+              <tbody>
+                <tr><td class="fw6">Cap. Henrique</td><td>Ilha Mar</td><td class="c-green mono">R$14.4k</td><td class="mono fs11">15/Jul</td></tr>
+                <tr><td class="fw6">Maj. Roberto</td><td>Orla Recreio</td><td class="c-green mono">R$18.6k</td><td class="mono fs11">22/Jul</td></tr>
+                <tr><td class="fw6">Sgt. Marcos</td><td>ICONYC</td><td class="c-amber mono">R$11.7k</td><td class="mono fs11">Ago</td></tr>
+                <tr><td class="fw6">Cb. Fernanda</td><td>Ilha Mar 2</td><td class="c-amber mono">R$9.6k</td><td class="mono fs11">Set</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: SISTEMAS & VERSÕES
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-sistemas">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">⚙️ Dev</div>
+          <div class="ph-title">Sistemas & Versões</div>
+          <div class="ph-sub">walservidor.com.br · arquitetura zero-server · roadmap V2</div>
+        </div>
+        <div class="ph-actions">
+          <button class="btn">📋 Roadmap V2</button>
+          <button class="btn btn-gold">🚀 Deploy</button>
+        </div>
+      </div>
+
+      <div class="grid-2 mb20">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📦 Versões dos Módulos</div></div>
+          <div class="card-body">
+            <div class="ver-row"><span class="ver-name">index.html</span><span class="ver-tag">v1.2</span><span class="badge b-green" style="margin-left:8px">Live</span><span class="ver-date">Jun/26</span></div>
+            <div class="ver-row"><span class="ver-name">imoveis.html</span><span class="ver-tag">v1.1</span><span class="badge b-green" style="margin-left:8px">Live</span><span class="ver-date">Jun/26</span></div>
+            <div class="ver-row"><span class="ver-name">simulador.html</span><span class="ver-tag">v1.3</span><span class="badge b-green" style="margin-left:8px">Live</span><span class="ver-date">Jun/26</span></div>
+            <div class="ver-row"><span class="ver-name">chat.html</span><span class="ver-tag">v1.1</span><span class="badge b-amber" style="margin-left:8px">Parcial</span><span class="ver-date">Jun/26</span></div>
+            <div class="ver-row"><span class="ver-name">admin.html</span><span class="ver-tag">v1.0</span><span class="badge b-teal" style="margin-left:8px">Restrito</span><span class="ver-date">Mai/26</span></div>
+            <div class="ver-row"><span class="ver-name">reserva.html</span><span class="ver-tag">v0.9</span><span class="badge b-gray" style="margin-left:8px">Beta</span><span class="ver-date">Mai/26</span></div>
+            <div class="ver-row"><span class="ver-name">Apps Script (leads)</span><span class="ver-tag">v2.1</span><span class="badge b-green" style="margin-left:8px">Ativo</span><span class="ver-date">Jun/26</span></div>
+            <div class="ver-row"><span class="ver-name">Apps Script (proxy IA)</span><span class="ver-tag">v0.1</span><span class="badge b-red" style="margin-left:8px">Pendente</span><span class="ver-date">—</span></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><div class="card-title">🗺️ Roadmap V2</div></div>
+          <div class="card-body">
+            <div class="status-row"><div class="status-label">🔑 Proxy API Key via Apps Script</div><span class="badge b-red">Prioridade 1</span></div>
+            <div class="status-row"><div class="status-label">📋 CRM proprietário (Sheets→DB)</div><span class="badge b-amber">Prioridade 2</span></div>
+            <div class="status-row"><div class="status-label">👤 Multi-agente revenue share</div><span class="badge b-amber">Prioridade 3</span></div>
+            <div class="status-row"><div class="status-label">📱 PWA offline-first</div><span class="badge b-gray">V3</span></div>
+            <div class="status-row"><div class="status-label">🪖 Expansão Exército / Marinha</div><span class="badge b-gray">V3</span></div>
+            <div class="status-row"><div class="status-label">🔔 Notificações push</div><span class="badge b-gray">V3</span></div>
+            <div style="margin-top:14px;padding:10px;background:var(--purple-dim);border:1px solid rgba(124,58,237,.2);border-radius:7px">
+              <div class="fs11 c-purple fw6">🎯 Visão LP — The Real Brokerage</div>
+              <div class="fs10 c-muted" style="margin-top:2px">Modelo nacional: PWA para todas as Forças Armadas brasileiras + rede de corretores em revenue share, como referência de escala.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mb20">
+        <div class="card-head"><div class="card-title">🏗️ Arquitetura Atual · V1.0</div></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;text-align:center">
+            <div style="padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:20px;margin-bottom:6px">🌐</div>
+              <div class="fs11 fw6">GitHub Pages</div>
+              <div class="fs10 c-muted">walservidor.com.br</div>
+              <div class="fs10 c-muted">5 HTML estáticos</div>
+            </div>
+            <div style="padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:20px;margin-bottom:6px">📊</div>
+              <div class="fs11 fw6">Google Sheets</div>
+              <div class="fs10 c-muted">JSONP / gviz</div>
+              <div class="fs10 c-muted">Portfólio + Leads</div>
+            </div>
+            <div style="padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:20px;margin-bottom:6px">⚡</div>
+              <div class="fs11 fw6">Apps Script</div>
+              <div class="fs10 c-muted">2 endpoints</div>
+              <div class="fs10 c-muted">Leitura + Escrita</div>
+            </div>
+            <div style="padding:12px;background:var(--card2);border:1px solid rgba(220,38,38,.2);border-radius:8px;border-color:rgba(220,38,38,.2)">
+              <div style="font-size:20px;margin-bottom:6px">🤖</div>
+              <div class="fs11 fw6 c-red">Claude API</div>
+              <div class="fs10 c-muted">sonnet-4-5</div>
+              <div class="fs10 c-red">⚠ Key exposta</div>
+            </div>
+            <div style="padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:8px">
+              <div style="font-size:20px;margin-bottom:6px">🔒</div>
+              <div class="fs11 fw6">DNS / SSL</div>
+              <div class="fs10 c-muted">Cloudflare</div>
+              <div class="fs10 c-green">✓ Configurado</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════
+         PANEL: AGENTE IA
+    ═══════════════════════════════════ -->
+    <div class="panel" id="panel-agente">
+      <div class="ph">
+        <div class="ph-left">
+          <div class="ph-eyebrow">🤖 IA</div>
+          <div class="ph-title">Agente IA WAL</div>
+          <div class="ph-sub">claude-sonnet-4-5 · base de conhecimento FAB · 18 tópicos</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi teal"><div class="kpi-label">Chats / dia</div><div class="kpi-value">7</div><div class="kpi-delta delta-up">▲ 40%</div></div>
+        <div class="kpi green"><div class="kpi-label">Leads gerados</div><div class="kpi-value">2</div><div class="kpi-delta delta-up">▲ por IA hoje</div></div>
+        <div class="kpi amber"><div class="kpi-label">Custo mensal</div><div class="kpi-value">US$18</div><div class="kpi-delta delta-flat">→ 1,2M tokens</div></div>
+        <div class="kpi red"><div class="kpi-label">Segurança</div><div class="kpi-value">⚠️</div><div class="kpi-delta delta-down">▼ Key exposta</div></div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-head"><div class="card-title">📚 Base de Conhecimento</div><div class="card-sub">18 tópicos · PDF gerado</div></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">✈️ CFIAe Financiamento</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">📊 Tabela SAC / Price</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">🏠 Empreendimentos RJ/SP</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">📋 Documentação necessária</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">💰 MIP / DFI / TR</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">🏦 FGTS na entrada</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">🪖 Patentes e benefícios</div>
+              <div style="padding:8px;background:var(--card2);border:1px solid var(--border);border-radius:6px;font-size:11px">⚖️ Pré-análise 48h</div>
+            </div>
+            <div class="fs10 c-muted" style="margin-top:10px;text-align:center">+ 10 outros tópicos no PDF completo</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">⚙️ Configuração Técnica</div></div>
+          <div class="card-body">
+            <div class="status-row"><div class="status-label">Modelo</div><span class="badge b-gold">claude-sonnet-4-5</span></div>
+            <div class="status-row"><div class="status-label">Max tokens resposta</div><span class="mono fs11 c-muted">1.024</span></div>
+            <div class="status-row"><div class="status-label">System prompt</div><span class="badge b-teal">FAB Especializado</span></div>
+            <div class="status-row"><div class="status-label">Header especial</div><span class="badge b-amber">dangerous-direct-browser</span></div>
+            <div class="status-row"><div class="status-label">Rate limit proteção</div><span class="badge b-red">Ausente</span></div>
+            <div class="status-row"><div class="status-label">Modo Corretor</div><span class="badge b-green">Implementado</span></div>
+            <div class="status-row"><div class="status-label">Modo Lead/Visitante</div><span class="badge b-green">Implementado</span></div>
+            <div class="status-row"><div class="status-label">Dados ao vivo (Sheets)</div><span class="badge b-green">Integrado</span></div>
+            <div style="margin-top:12px;padding:10px;background:var(--red-dim);border:1px solid rgba(220,38,38,.2);border-radius:7px">
+              <div class="fs11 c-red fw6">🔑 Próximo passo obrigatório</div>
+              <div class="fs10 c-muted" style="margin-top:3px">Deploy do proxy Apps Script: nunca expor API Key no browser. Adicionar rate limiting por sessão e logging de uso.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+/* CLOCK */
+function tick(){
+  const now=new Date();
+  const h=String(now.getHours()).padStart(2,'0');
+  const m=String(now.getMinutes()).padStart(2,'0');
+  const s=String(now.getSeconds()).padStart(2,'0');
+  const el=document.getElementById('clock');
+  if(el) el.textContent = h+':'+m+':'+s+' BRT';
+}
+tick(); setInterval(tick,1000);
+
+/* NAVIGATION */
+const titles = {
+  home:'Command Center',
+  vendas:'Vendas & Pipeline',
+  leads:'Leads & Funil',
+  corretores:'Corretores',
+  empreendimentos:'Empreendimentos',
+  construtoras:'Construtoras',
+  marketing:'Marketing',
+  financeiro:'Financeiro',
+  sistemas:'Sistemas & Versões',
+  agente:'Agente IA',
+};
+function nav(el, panelId) {
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el && el.classList) el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const target = document.getElementById('panel-'+panelId);
+  if(target) target.classList.add('active');
+  const title = document.getElementById('topbar-title');
+  if(title) title.textContent = titles[panelId]||panelId;
+}
+</script>
+</body>
+</html>

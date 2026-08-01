@@ -1,0 +1,1954 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Consultor Autônomo IA</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ══ TOKENS ══ */
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+  --teal:#0E7490;--teal2:#22D3EE;--teal-dim:rgba(14,116,144,.15);
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.10);
+  --purple:#7C3AED;--purple2:#A78BFA;--purple-dim:rgba(124,58,237,.10);
+  --ai:#6366F1;--ai2:#818CF8;--ai-dim:rgba(99,102,241,.12);--ai-b:rgba(99,102,241,.25);
+  --surf:#0D1B2E;--surf2:#111F35;
+  --card:#152540;--card2:#1A2E50;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.14);
+  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ══ LOGIN DO DIRETOR ══ */
+#lockScreen{position:fixed;inset:0;z-index:9999;background:var(--navy);display:flex;align-items:center;justify-content:center}
+.lock-wrap{width:420px;text-align:center}
+.lock-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.lock-sub{font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.lock-badge{
+  display:inline-flex;align-items:center;gap:6px;margin-bottom:28px;
+  background:var(--ai-dim);border:1px solid var(--ai-b);
+  color:var(--ai2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  padding:4px 12px;border-radius:20px;
+}
+.lock-box{background:var(--card);border:1px solid var(--gold-b);border-radius:var(--r);padding:36px 36px 28px}
+.lock-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;text-align:left}
+.lock-inp{width:100%;padding:11px 14px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;color:var(--txt);font-size:14px;outline:none;transition:border-color .2s;margin-bottom:14px}
+.lock-inp:focus{border-color:var(--gold)}
+.lock-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .2s}
+.lock-btn:hover{opacity:.9}
+.lock-err{color:#F87171;font-size:11px;margin-top:8px;display:none}
+.lock-demo{font-size:10px;color:var(--muted);margin-top:14px}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;bottom:24px;right:24px;z-index:5000;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;padding:12px 18px;font-size:12px;color:var(--txt);box-shadow:0 8px 32px rgba(0,0,0,.5);transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;border-left:3px solid var(--gold);max-width:340px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.t-green{border-left-color:var(--green2)}
+#toast.t-red{border-left-color:#F87171}
+#toast.t-amber{border-left-color:#FCD34D}
+#toast.t-ai{border-left-color:var(--ai2)}
+
+/* ══ APP LAYOUT ══ */
+.app{display:flex;min-height:100vh;display:none}
+
+/* ══ SIDEBAR ══ */
+.sidebar{width:228px;min-height:100vh;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;border-right:1px solid var(--bdr)}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-b)}
+.sb-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.sb-tag{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--ai-dim);border:1px solid var(--ai-b);color:var(--ai2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 9px;border-radius:20px}
+.sb-dot{width:5px;height:5px;background:var(--ai2);border-radius:50%}
+
+/* status widget IA */
+.sb-ai-status{margin:14px 12px 0;padding:14px;border:1px solid var(--ai-b);border-radius:10px;background:var(--ai-dim)}
+.sai-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sai-av{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--ai),var(--ai2));display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;position:relative}
+.sai-pulse{position:absolute;inset:0;border-radius:10px;border:2px solid var(--ai2);animation:aiPulse 2s infinite}
+@keyframes aiPulse{0%,100%{opacity:.3;transform:scale(1)}50%{opacity:.8;transform:scale(1.08)}}
+.sai-name{color:#fff;font-size:13px;font-weight:700}
+.sai-model{color:var(--muted);font-size:10px;margin-top:1px}
+.sai-toggle{display:flex;align-items:center;justify-content:space-between}
+.sai-toggle-lbl{font-size:11px;color:var(--txt);font-weight:600}
+.toggle-sw{position:relative;width:44px;height:24px;flex-shrink:0;cursor:pointer}
+.toggle-sw input{display:none}
+.toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:12px;border:1px solid var(--bdr2);transition:all .3s}
+.toggle-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;border-radius:50%;transition:transform .3s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.toggle-sw input:checked+.toggle-track{background:var(--green);border-color:transparent}
+.toggle-sw input:checked~.toggle-thumb{transform:translateX(20px)}
+.sai-last{font-size:9px;color:var(--muted);margin-top:8px;font-family:var(--mono)}
+
+/* ── nav ── */
+.nav-grp{padding:12px 8px 2px}
+.nav-lbl{color:rgba(255,255,255,.2);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 9px 5px;font-weight:600}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.5);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:1px;border:1px solid transparent}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--ai-dim);color:var(--ai2);border-color:var(--ai-b)}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-bdg{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.nb-ai{background:rgba(99,102,241,.25);color:var(--ai2)}
+.nb-r{background:rgba(220,38,38,.2);color:#F87171}
+.nb-g{background:rgba(5,150,105,.2);color:#34D399}
+.nb-a{background:rgba(217,119,6,.2);color:#FCD34D}
+
+.sb-footer{margin-top:auto;padding:14px 12px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.sf-av{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--navy);flex-shrink:0}
+.sf-out{margin-left:auto;width:28px;height:28px;border-radius:6px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s}
+.sf-out:hover{color:var(--txt);border-color:var(--bdr2)}
+
+/* ══ MAIN ══ */
+.main{margin-left:228px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--navy2);border-bottom:1px solid var(--bdr);padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.tb-bread{display:flex;align-items:center;gap:6px;flex:1}
+.tb-sec{color:rgba(255,255,255,.3);font-size:11px}
+.tb-sep{color:rgba(255,255,255,.15)}
+.tb-page{color:var(--ai2);font-size:12px;font-weight:600}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-status-pill{display:flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid}
+.tb-on{background:rgba(5,150,105,.12);border-color:rgba(52,211,153,.25);color:#34D399}
+.tb-off{background:rgba(220,38,38,.1);border-color:rgba(248,113,113,.2);color:#F87171}
+.tb-live-dot{width:7px;height:7px;border-radius:50%}
+.tb-clock{color:rgba(255,255,255,.3);font-size:10px;font-family:var(--mono)}
+
+/* ══ CONTENT ══ */
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* ══ PAGE HEADER ══ */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ai2);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.2)}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-ai{background:linear-gradient(135deg,var(--ai),var(--ai2));color:#fff;border-color:transparent;font-weight:700}
+.btn-ai:hover{opacity:.9;transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.9}
+.btn-red{background:var(--red-dim);border-color:rgba(220,38,38,.3);color:#F87171}
+.btn-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
+.btn-full{width:100%;justify-content:center}
+
+/* ══ KPI STRIP ══ */
+.kpi-strip{display:grid;gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s}
+.kpi:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.ai::after{background:linear-gradient(90deg,var(--ai),var(--ai2))}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.green::after{background:var(--green)}
+.kpi.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.purple::after{background:var(--purple)}
+.kpi.amber::after{background:var(--amber)}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;line-height:1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-dlt{display:inline-flex;align-items:center;font-size:10px;font-weight:600;margin-top:4px;padding:1px 6px;border-radius:4px}
+.up{background:rgba(5,150,105,.15);color:#34D399}
+.fl{background:rgba(122,144,168,.12);color:var(--muted)}
+.dn{background:rgba(220,38,38,.15);color:#F87171}
+
+/* ══ SECTION ══ */
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* ══ GRIDS / CARDS ══ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.cs2{grid-column:span 2}.cs3{grid-column:span 3}
+.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.card-b{padding:16px}
+.card-link{font-size:10px;color:var(--ai2);font-weight:600;cursor:pointer}
+.card-link:hover{opacity:.8}
+
+/* ══ BADGES ══ */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
+.bg{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
+.br{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
+.ba{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
+.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-b)}
+.bt{background:rgba(14,116,144,.2);color:#22D3EE;border:1px solid rgba(34,211,238,.15)}
+.bp{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.15)}
+.bai{background:var(--ai-dim);color:var(--ai2);border:1px solid var(--ai-b)}
+.bz{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--bdr)}
+
+/* ══ TABLE ══ */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(0,0,0,.15)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.clk{cursor:pointer}
+.tbl tr.clk:hover td{background:rgba(255,255,255,.02)}
+
+/* ══ PROGRESS ══ */
+.prog-w{margin-bottom:9px}
+.prog-m{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.prog-bar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px}
+.pf-ai{background:linear-gradient(90deg,var(--ai),var(--ai2))}
+.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.pf-green{background:var(--green)}
+.pf-teal{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.pf-amber{background:var(--amber)}
+.pf-purple{background:var(--purple)}
+
+/* ══ LOG FEED ══ */
+.log-feed{display:flex;flex-direction:column;gap:0}
+.log-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid var(--bdr);position:relative}
+.log-item:last-child{border-bottom:none}
+.log-time{font-size:9px;color:var(--muted);font-family:var(--mono);min-width:42px;padding-top:2px;flex-shrink:0}
+.log-ico{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;border:1px solid var(--bdr)}
+.log-body{flex:1;min-width:0}
+.log-title{font-size:12px;color:var(--txt);font-weight:500;line-height:1.4}
+.log-meta{font-size:10px;color:var(--muted);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.log-detail{font-size:11px;color:rgba(232,237,245,.7);margin-top:5px;padding:8px 10px;background:rgba(0,0,0,.2);border-radius:6px;border-left:2px solid var(--ai-b);line-height:1.5;white-space:pre-wrap;display:none}
+.log-item.expanded .log-detail{display:block}
+.log-expand{font-size:10px;color:var(--ai2);cursor:pointer;margin-top:4px;display:inline-block}
+
+/* ══ CHAT VIEWER ══ */
+.chat-viewer{background:var(--surf);border-radius:9px;padding:14px;max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:10px}
+.cv-msg{display:flex;gap:8px}
+.cv-av{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.av-ai{background:linear-gradient(135deg,var(--ai),var(--ai2));color:#fff}
+.av-u{background:var(--card2);color:var(--muted);border:1px solid var(--bdr)}
+.cv-bubble{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.55}
+.cv-ai{background:var(--card2);border:1px solid var(--bdr)}
+.cv-u{background:var(--ai-dim);border:1px solid var(--ai-b)}
+.cv-time{font-size:9px;color:var(--muted);margin-top:4px;font-family:var(--mono)}
+
+/* ══ CONTROL PANEL — SWITCHES ══ */
+.ctrl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-bottom:20px}
+.ctrl-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:14px;transition:border-color .15s}
+.ctrl-card.enabled{border-color:var(--ai-b)}
+.ctrl-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.ctrl-icon{font-size:20px;margin-bottom:6px}
+.ctrl-name{font-size:12px;font-weight:700;color:#fff}
+.ctrl-desc{font-size:10px;color:var(--muted);line-height:1.5;margin-top:3px}
+.ctrl-stat{font-size:10px;margin-top:8px;color:var(--muted)}
+.ctrl-stat span{color:var(--txt)}
+
+/* toggle */
+.sw{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;flex-shrink:0}
+.sw input{display:none}
+.sw-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:11px;border:1px solid var(--bdr2);transition:all .25s}
+.sw-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sw input:checked+.sw-track{background:var(--green);border-color:transparent}
+.sw input:checked~.sw-thumb{transform:translateX(18px)}
+
+/* ══ LEAD DETAIL MODAL ══ */
+.modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-ov.show{display:flex}
+.modal-box{width:100%;max-width:880px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);border-top:2px solid var(--ai2)}
+.modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--ai2)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--txt)}
+.modal-body{display:grid;grid-template-columns:1fr 380px;max-height:75vh}
+.modal-left{padding:24px;border-right:1px solid var(--bdr);overflow-y:auto}
+.modal-right{padding:20px;overflow-y:auto;background:rgba(8,25,46,.3);display:flex;flex-direction:column;gap:14px}
+.modal-f{padding:14px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end}
+
+/* ══ CONFIG PANEL ══ */
+.cfg-section{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:16px;margin-bottom:14px}
+.cfg-title{font-size:12px;font-weight:700;color:#fff;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field-inp,.field-sel,.field-ta{width:100%;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;font-size:12px;outline:none;transition:border-color .2s}
+.field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--ai2)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(255,255,255,.2)}
+.field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23818CF8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field-sel option{background:#152540}
+.field-ta{resize:vertical;min-height:80px;line-height:1.5;font-family:var(--mono);font-size:11px}
+.field-row{display:grid;gap:12px;margin-bottom:14px}
+.field-2{grid-template-columns:1fr 1fr}
+.field-3{grid-template-columns:1fr 1fr 1fr}
+
+/* ══ LIVE TICKER ══ */
+.live-ticker{background:var(--ai-dim);border:1px solid var(--ai-b);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.lt-dot{width:8px;height:8px;border-radius:50%;background:var(--ai2);flex-shrink:0;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.lt-text{font-size:11px;color:var(--ai2);font-weight:600;flex:1}
+.lt-counter{font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+/* ══ PERFORMANCE RING ══ */
+.perf-ring-wrap{display:flex;flex-direction:column;align-items:center;padding:16px 0}
+.perf-ring{position:relative;width:120px;height:120px}
+.perf-ring svg{transform:rotate(-90deg)}
+.perf-ring-val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.perf-ring-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#fff;line-height:1}
+.perf-ring-lbl{font-size:9px;color:var(--muted);margin-top:2px}
+
+/* ══ FSTEP ══ */
+.fstep{display:flex;align-items:center;gap:12px;padding:9px 14px;border-radius:8px;margin-bottom:6px;background:var(--card2);border:1px solid var(--bdr)}
+.fstep-n{font-family:var(--mono);font-size:17px;font-weight:500;color:#fff;min-width:30px}
+.fstep-bar{flex:2;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.fstep-fill{height:100%;border-radius:3px}
+.fstep-pct{font-size:10px;color:var(--muted);font-family:var(--mono);min-width:30px;text-align:right}
+
+/* ══ MISC ══ */
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}.fs14{font-size:14px}
+.c-muted{color:var(--muted)}.c-ai{color:var(--ai2)}.c-gold{color:var(--gold)}
+.c-green{color:#34D399}.c-red{color:#F87171}.c-amber{color:#FCD34D}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.flex-bet{display:flex;align-items:center;justify-content:space-between}
+.flex{display:flex;align-items:center}
+.sp{display:flex;flex-wrap:wrap;gap:6px}
+.alert-box{padding:11px 14px;border-radius:8px;border:1px solid;font-size:12px;line-height:1.5;margin-bottom:14px}
+.ab-ai{background:var(--ai-dim);border-color:var(--ai-b);color:var(--ai2)}
+.ab-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:#FCD34D}
+.ab-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
+.ab-red{background:var(--red-dim);border-color:rgba(220,38,38,.3);color:#F87171}
+
+/* ══ SCORE BAR ══ */
+.score-wrap{display:flex;align-items:center;gap:8px}
+.score-bar{flex:1;height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.score-fill{height:100%;border-radius:2px}
+
+/* ══ MODO AGENTE ══ */
+/* rótulo de origem na tag do lead */
+.orig-agente{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  padding:2px 7px;border-radius:4px;
+  background:rgba(201,168,76,.14);color:var(--gold2);border:1px solid var(--gold-b);
+}
+.orig-sistema{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
+  padding:2px 7px;border-radius:4px;
+  background:var(--ai-dim);color:var(--ai2);border:1px solid var(--ai-b);
+}
+/* card de agente no painel de roteamento */
+.agente-routing-card{
+  background:var(--card2);border:1px solid var(--bdr);border-radius:9px;
+  padding:14px;transition:border-color .15s;
+}
+.agente-routing-card.priority{border-color:var(--gold-b);background:rgba(201,168,76,.05)}
+/* fila de leads no painel de roteamento */
+.queue-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:7px;
+  border:1px solid var(--bdr);background:var(--surf2);
+  margin-bottom:6px;cursor:pointer;transition:border-color .15s;
+}
+.queue-item:hover{border-color:var(--bdr2)}
+.queue-item.agente-item{border-left:3px solid var(--gold);background:rgba(201,168,76,.04)}
+.queue-item.sistema-item{border-left:3px solid var(--ai-b)}
+.queue-rank{
+  width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;flex-shrink:0;
+}
+.rank-gold{background:rgba(201,168,76,.2);color:var(--gold2)}
+.rank-ai{background:var(--ai-dim);color:var(--ai2)}
+/* mode indicator badge in topbar */
+.mode-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.8px;border:1px solid;
+}
+.mode-agente{background:rgba(201,168,76,.12);border-color:var(--gold-b);color:var(--gold2)}
+.mode-livre{background:var(--ai-dim);border-color:var(--ai-b);color:var(--ai2)}
+/* corretor toggle row */
+.corretor-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 12px;border-radius:7px;border:1px solid var(--bdr);
+  background:var(--card);margin-bottom:6px;transition:border-color .15s;
+}
+.corretor-row.active{border-color:rgba(52,211,153,.25);background:rgba(5,150,105,.06)}
+.corretor-av{
+  width:30px;height:30px;border-radius:7px;display:flex;align-items:center;
+  justify-content:center;font-weight:700;font-size:11px;flex-shrink:0;
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOCK — DIRETOR ══ -->
+<div id="lockScreen">
+  <div class="lock-wrap">
+    <div class="lock-logo">WAL Consultoria</div>
+    <div class="lock-sub">Módulo de Automação</div>
+    <div class="lock-badge"><div class="sb-dot"></div>Consultor Autônomo IA</div>
+    <div class="lock-box">
+      <div class="lock-lbl">Acesso restrito — Direção</div>
+      <input class="lock-inp" type="email" id="lEmail" placeholder="diretor@walimóveis.com.br" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="lock-lbl">Senha master</div>
+      <input class="lock-inp" type="password" id="lSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="lock-btn" onclick="doLogin()">Acessar Painel do Diretor</button>
+      <div class="lock-err" id="lockErr">Credenciais inválidas.</div>
+      <div class="lock-demo">Demo: <strong style="color:var(--ai2)">diretor@wal.com.br</strong> / <strong style="color:var(--ai2)">master</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="appWrap">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">WAL Consultoria</div>
+      <div class="sb-tag"><div class="sb-dot"></div> Consultor Autônomo</div>
+    </div>
+
+    <!-- STATUS CARD IA -->
+    <div class="sb-ai-status">
+      <div class="sai-header">
+        <div class="sai-av" id="sbAiAv">🤖<div class="sai-pulse" id="sbPulse" style="display:none"></div></div>
+        <div>
+          <div class="sai-name">WAL·AI</div>
+          <div class="sai-model">claude-sonnet-4-6</div>
+        </div>
+      </div>
+      <div class="sai-toggle">
+        <div class="sai-toggle-lbl" id="sbAiLbl">Desativado</div>
+        <label class="toggle-sw">
+          <input type="checkbox" id="globalToggle" onchange="toggleAI(this.checked)">
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+      <div class="sai-last" id="sbLastAction">Última ação: —</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Controle</div>
+      <div class="nav-item active" onclick="nav(this,'home')"><span class="nav-ico">🏠</span>Command Center</div>
+      <div class="nav-item" onclick="nav(this,'logs')">
+        <span class="nav-ico">📋</span>Log de Atendimentos
+        <span class="nav-bdg nb-ai" id="sbBdgLogs">0</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'leads')">
+        <span class="nav-ico">🎯</span>Leads em Atendimento
+        <span class="nav-bdg nb-a" id="sbBdgLeads">0</span>
+      </div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Análise</div>
+      <div class="nav-item" onclick="nav(this,'funil')"><span class="nav-ico">📊</span>Funil Autônomo</div>
+      <div class="nav-item" onclick="nav(this,'performance')"><span class="nav-ico">📈</span>Performance da IA</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Roteamento</div>
+      <div class="nav-item" onclick="nav(this,'roteamento')"><span class="nav-ico">🤝</span>Modo Agente
+        <span class="nav-bdg nb-a" id="sbBdgAgente">0</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'corretores')"><span class="nav-ico">👤</span>Corretores
+        <span class="nav-bdg nb-g" id="sbBdgCorretores">0</span>
+      </div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Configuração</div>
+      <div class="nav-item" onclick="nav(this,'config')"><span class="nav-ico">⚙️</span>Parâmetros da IA</div>
+      <div class="nav-item" onclick="nav(this,'prompt')"><span class="nav-ico">📝</span>Prompt & Personalidade</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sf-av">AW</div>
+      <div>
+        <div style="color:#fff;font-size:12px;font-weight:600">Antonio · Diretor</div>
+        <div style="color:var(--muted);font-size:10px">Acesso master</div>
+      </div>
+      <div class="sf-out" onclick="doLogout()" title="Sair">🚪</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-bread">
+        <span class="tb-sec">WAL · Direção</span>
+        <span class="tb-sep">›</span>
+        <span class="tb-page" id="topbarTitle">Command Center</span>
+      </div>
+      <div class="tb-right">
+        <div class="tb-status-pill tb-off" id="topStatusPill">
+          <div class="tb-live-dot" style="background:#F87171"></div>
+          <span id="topStatusTxt">IA Desativada</span>
+        </div>
+        <div class="mode-badge mode-livre" id="topModeBadge" style="display:none">🤝 Modo Agente</div>
+        <div class="tb-clock" id="clock">—</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+    <!-- ══ HOME / COMMAND CENTER ══ -->
+    <div class="panel active" id="panel-home">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🎛️ Direção · Controle Total</div>
+          <div class="ph-title">Command Center</div>
+          <div class="ph-sub" id="phData">—</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn" onclick="nav(document.querySelector('[onclick*=logs]'),'logs')">📋 Ver todos os logs</button>
+          <button class="btn-ai btn" id="mainToggleBtn" onclick="toggleAIFromBtn()">▶ Ativar Consultor</button>
+        </div>
+      </div>
+
+      <!-- LIVE TICKER -->
+      <div class="live-ticker" id="liveTicker" style="display:none">
+        <div class="lt-dot"></div>
+        <div class="lt-text" id="liveTickerTxt">WAL·AI processando leads...</div>
+        <div class="lt-counter" id="liveCounter">0 ações hoje</div>
+      </div>
+
+      <div class="alert-box ab-amber mb20" id="homeAlertOff">
+        ⚠️ O Consultor Autônomo está <strong>desativado</strong>. Ative o toggle na sidebar para que a IA comece a atender os leads automaticamente 24h por dia.
+      </div>
+      <div class="alert-box ab-green mb20" id="homeAlertOn" style="display:none">
+        ✅ Consultor Autônomo <strong>ativo</strong> — atendendo leads em tempo real, qualificando, movendo no funil e registrando cada ação no log.
+      </div>
+      <div class="alert-box mb20" id="homeAlertAgente" style="display:none;background:rgba(201,168,76,.08);border:1px solid var(--gold-b);color:var(--gold2)">
+        🤝 <strong>Modo Agente ATIVADO</strong> — leads indicados por agentes parceiros têm <strong>prioridade absoluta</strong> na fila de atendimento da IA. Leads do sistema são atendidos somente quando não há indicações pendentes. Se um corretor estiver habilitado, ele recebe os leads de agente após a IA qualificar; caso contrário, a IA conduz todo o processo.
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(6,1fr)">
+        <div class="kpi ai"><div class="kpi-lbl">Ações IA Hoje</div><div class="kpi-val" id="kpiAcoes">0</div><div class="kpi-dlt fl" id="kpiAcoesDlt">→ aguardando</div></div>
+        <div class="kpi teal"><div class="kpi-lbl">Leads Atendidos</div><div class="kpi-val" id="kpiAtendidos">0</div><div class="kpi-dlt fl">→ hoje</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Qualificados</div><div class="kpi-val" id="kpiQual">0</div><div class="kpi-dlt fl">→ pelo robô</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Propostas IA</div><div class="kpi-val" id="kpiProp">0</div><div class="kpi-dlt fl">→ enviadas</div></div>
+        <div class="kpi purple"><div class="kpi-lbl">Taxa Resposta</div><div class="kpi-val" id="kpiResp">0%</div><div class="kpi-dlt fl">→ leads respondidos</div></div>
+        <div class="kpi amber"><div class="kpi-lbl">Uptime IA</div><div class="kpi-val" id="kpiUptime">0h</div><div class="kpi-dlt fl">→ ativa hoje</div></div>
+      </div>
+
+      <div class="g3 mb20">
+
+        <!-- CONTROLES RÁPIDOS -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎛️ Controles da IA</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:10px">
+
+            <div class="ctrl-card" id="ctrlQualif">
+              <div class="ctrl-top">
+                <div><div class="ctrl-icon">🔍</div><div class="ctrl-name">Qualificação Automática</div><div class="ctrl-desc">IA analisa cada novo lead e atribui score de qualificação com base em posto, orçamento e interesse.</div></div>
+                <label class="sw"><input type="checkbox" id="sw1" checked onchange="toggleCtrl(this,'ctrlQualif','Qualificação Automática')"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="ctrl-stat">Leads qualificados hoje: <span id="cq1">0</span></div>
+            </div>
+
+            <div class="ctrl-card" id="ctrlAtend">
+              <div class="ctrl-top">
+                <div><div class="ctrl-icon">💬</div><div class="ctrl-name">Atendimento e Dúvidas</div><div class="ctrl-desc">Responde perguntas sobre empreendimentos, financiamento CFIAe, FGTS e documentação 24h/dia.</div></div>
+                <label class="sw"><input type="checkbox" id="sw2" checked onchange="toggleCtrl(this,'ctrlAtend','Atendimento 24h')"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="ctrl-stat">Dúvidas respondidas: <span id="cq2">0</span></div>
+            </div>
+
+            <div class="ctrl-card" id="ctrlFunil">
+              <div class="ctrl-top">
+                <div><div class="ctrl-icon">📊</div><div class="ctrl-name">Avanço no Funil</div><div class="ctrl-desc">Move automaticamente os leads pelas etapas quando critérios de avanço são atingidos.</div></div>
+                <label class="sw"><input type="checkbox" id="sw3" checked onchange="toggleCtrl(this,'ctrlFunil','Avanço no Funil')"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="ctrl-stat">Movimentações hoje: <span id="cq3">0</span></div>
+            </div>
+
+            <div class="ctrl-card" id="ctrlFollowup">
+              <div class="ctrl-top">
+                <div><div class="ctrl-icon">🔔</div><div class="ctrl-name">Follow-up Automático</div><div class="ctrl-desc">Envia mensagens de acompanhamento para leads que não responderam após X horas.</div></div>
+                <label class="sw"><input type="checkbox" id="sw4" onchange="toggleCtrl(this,'ctrlFollowup','Follow-up Automático')"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="ctrl-stat">Follow-ups enviados: <span id="cq4">0</span></div>
+            </div>
+
+            <div class="ctrl-card" id="ctrlProposta">
+              <div class="ctrl-top">
+                <div><div class="ctrl-icon">📋</div><div class="ctrl-name">Envio de Propostas</div><div class="ctrl-desc">Gera e envia propostas personalizadas quando o lead atinge score ≥ 75.</div></div>
+                <label class="sw"><input type="checkbox" id="sw5" onchange="toggleCtrl(this,'ctrlProposta','Envio de Propostas')"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="ctrl-stat">Propostas geradas: <span id="cq5">0</span></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- LOG AO VIVO -->
+        <div class="card cs2">
+          <div class="card-h">
+            <div>
+              <div class="card-title">⚡ Log ao Vivo</div>
+              <div class="card-sub">Últimas ações do Consultor Autônomo em tempo real</div>
+            </div>
+            <div class="flex" style="gap:8px">
+              <span class="bdg bai" id="logLiveBdg" style="display:none">● AO VIVO</span>
+              <span class="card-link" onclick="nav(document.querySelector('[onclick*=logs]'),'logs')">Ver tudo ›</span>
+            </div>
+          </div>
+          <div class="card-b" style="padding:10px 16px;max-height:440px;overflow-y:auto">
+            <div class="log-feed" id="logFeedHome">
+              <div style="padding:24px;text-align:center;color:var(--muted);font-size:12px">Ative o Consultor para ver as ações em tempo real aqui.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUNIL RÁPIDO + LEADS ATIVOS -->
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">📊 Funil Automático</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=funil]'),'funil')">Ver ›</span></div>
+          <div class="card-b" id="homeFunilMini"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎯 Leads em Atendimento Agora</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=leads]'),'leads')">Ver todos ›</span></div>
+          <div class="card-b" style="padding:0"><div id="homeLeadsMini"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LOG DE ATENDIMENTOS ══ -->
+    <div class="panel" id="panel-logs">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📋 Auditoria Completa</div>
+          <div class="ph-title">Log de Atendimentos</div>
+          <div class="ph-sub">Cada ação realizada pelo Consultor Autônomo · clique para expandir</div>
+        </div>
+        <div class="ph-acts">
+          <select class="field-sel" id="logFiltTipo" style="width:160px" onchange="renderLogs()">
+            <option value="">Todos os tipos</option>
+            <option value="qualificacao">Qualificação</option>
+            <option value="atendimento">Atendimento</option>
+            <option value="funil">Funil</option>
+            <option value="proposta">Proposta</option>
+            <option value="followup">Follow-up</option>
+          </select>
+          <select class="field-sel" id="logFiltLead" style="width:160px" onchange="renderLogs()">
+            <option value="">Todos os leads</option>
+          </select>
+          <button class="btn" onclick="exportarLogs()">⬇ Exportar</button>
+        </div>
+      </div>
+      <div class="alert-box ab-ai mb20" id="logsEmpty" style="display:none">
+        🤖 Nenhuma ação registrada ainda. Ative o Consultor Autônomo para que os atendimentos comecem.
+      </div>
+      <div class="card mb20">
+        <div class="card-b" style="padding:10px 16px">
+          <div class="log-feed" id="logFeedFull"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ LEADS EM ATENDIMENTO ══ -->
+    <div class="panel" id="panel-leads">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🎯 CRM Autônomo</div>
+          <div class="ph-title">Leads em Atendimento</div>
+          <div class="ph-sub">Todos os leads sendo gerenciados pelo Consultor Autônomo</div>
+        </div>
+        <div class="ph-acts">
+          <select class="field-sel" id="leadFiltStatus" style="width:auto" onchange="renderLeadsPanel()">
+            <option value="">Todos</option>
+            <option value="novo">Novo</option>
+            <option value="contato">Em contato</option>
+            <option value="qualificado">Qualificado</option>
+            <option value="proposta">Proposta</option>
+            <option value="fechado">Fechado</option>
+          </select>
+          <input class="field-inp" type="text" id="leadBusca" placeholder="🔍 Buscar..." style="width:180px" oninput="renderLeadsPanel()">
+        </div>
+      </div>
+      <div style="overflow-x:auto" class="card mb20">
+        <table class="tbl" id="leadsTable"></table>
+      </div>
+    </div>
+
+    <!-- ══ FUNIL AUTÔNOMO ══ -->
+    <div class="panel" id="panel-funil">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📊 Pipeline IA</div>
+          <div class="ph-title">Funil Autônomo</div>
+          <div class="ph-sub">Movimentação automática de leads gerenciada pelo Consultor IA</div>
+        </div>
+      </div>
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">📉 Etapas do Funil</div></div>
+          <div class="card-b" id="funilVisual"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🔄 Critérios de Avanço</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
+            <div style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div class="fs11 fw6 c-ai">Novo → Em contato</div>
+              <div class="fs10 c-muted" style="margin-top:3px;line-height:1.6">IA envia mensagem de boas-vindas + pergunta qualificadora. Lead responde qualquer coisa → avança automaticamente.</div>
+            </div>
+            <div style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div class="fs11 fw6 c-ai">Em contato → Qualificado</div>
+              <div class="fs10 c-muted" style="margin-top:3px;line-height:1.6">Score ≥ 60 após análise de renda, posto, interesse e empreendimento. IA identifica automaticamente.</div>
+            </div>
+            <div style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div class="fs11 fw6 c-ai">Qualificado → Proposta</div>
+              <div class="fs10 c-muted" style="margin-top:3px;line-height:1.6">Score ≥ 75 + empreendimento definido. IA gera e envia proposta personalizada com simulação CFIAe.</div>
+            </div>
+            <div style="padding:10px;background:rgba(201,168,76,.08);border:1px solid var(--gold-b);border-radius:8px">
+              <div class="fs11 fw6 c-gold">Proposta → Fechado</div>
+              <div class="fs10 c-muted" style="margin-top:3px;line-height:1.6">⚠️ Esta etapa requer ação humana. A IA registra o interesse e notifica o corretor para finalizar a venda.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">📋 Leads por Etapa</div></div>
+        <div style="overflow-x:auto"><table class="tbl" id="funilTabela"></table></div>
+      </div>
+    </div>
+
+    <!-- ══ PERFORMANCE ══ -->
+    <div class="panel" id="panel-performance">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📈 Analytics</div>
+          <div class="ph-title">Performance do Consultor IA</div>
+          <div class="ph-sub">Métricas de eficiência, qualidade de atendimento e resultados</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi ai"><div class="kpi-lbl">Score Médio Qualif.</div><div class="kpi-val" id="perfScoreMed">—</div><div class="kpi-sub">leads analisados pela IA</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Taxa Conversão IA</div><div class="kpi-val" id="perfConv">—</div><div class="kpi-sub">leads → proposta</div></div>
+        <div class="kpi teal"><div class="kpi-lbl">Tempo Médio Resposta</div><div class="kpi-val" id="perfTempo">—</div><div class="kpi-sub">vs 4h humano</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Custo por Atendimento</div><div class="kpi-val" id="perfCusto">—</div><div class="kpi-sub">API tokens</div></div>
+        <div class="kpi purple"><div class="kpi-lbl">NPS Estimado IA</div><div class="kpi-val" id="perfNPS">—</div><div class="kpi-sub">baseado em respostas</div></div>
+      </div>
+      <div class="g3 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🏆 Distribuição de Scores</div></div>
+          <div class="card-b" id="perfScoreDist"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">📊 Ações por Tipo</div></div>
+          <div class="card-b" id="perfAcoesTipo"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🕐 Atividade por Hora</div></div>
+          <div class="card-b" id="perfHora"></div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">💬 Amostra de Atendimentos</div></div>
+        <div class="card-b" id="perfAmostra"></div>
+      </div>
+    </div>
+
+    <!-- ══ CONFIG ══ -->
+    <div class="panel" id="panel-config">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">⚙️ Parâmetros</div>
+          <div class="ph-title">Configuração da IA</div>
+          <div class="ph-sub">Defina as regras de comportamento do Consultor Autônomo</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-gold btn" onclick="salvarConfig()">💾 Salvar configuração</button>
+        </div>
+      </div>
+
+      <div class="g2 mb20">
+        <div>
+          <div class="cfg-section">
+            <div class="cfg-title">🤖 Modelo e Limites</div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Modelo IA</div>
+                <select class="field-sel" id="cfgModelo">
+                  <option selected>claude-sonnet-4-6</option>
+                  <option>claude-haiku-4-5</option>
+                  <option>claude-opus-4-6</option>
+                </select>
+              </div>
+              <div><div class="field-lbl">Max tokens / resposta</div>
+                <input class="field-inp" type="number" id="cfgTokens" value="800" min="200" max="2000">
+              </div>
+            </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Temperatura (criatividade)</div>
+                <input class="field-inp" type="range" id="cfgTemp" min="0" max="1" step="0.1" value="0.4" oninput="document.getElementById('cfgTempVal').textContent=this.value" style="padding:8px 0">
+                <div class="fs10 c-muted" style="margin-top:4px">Atual: <span id="cfgTempVal">0.4</span> · (0 = preciso, 1 = criativo)</div>
+              </div>
+              <div><div class="field-lbl">Máx. mensagens / lead / dia</div>
+                <input class="field-inp" type="number" id="cfgMaxMsg" value="5" min="1" max="20">
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg-section">
+            <div class="cfg-title">📋 Critérios de Score</div>
+            <div class="field-row field-3 mb14">
+              <div><div class="field-lbl">Posto Oficial FAB</div><input class="field-inp" type="number" id="cfgScOfi" value="30" min="0" max="40"></div>
+              <div><div class="field-lbl">Suboficial/Sargento</div><input class="field-inp" type="number" id="cfgScSar" value="20" min="0" max="30"></div>
+              <div><div class="field-lbl">Civil / Funcional.</div><input class="field-inp" type="number" id="cfgScCiv" value="10" min="0" max="20"></div>
+            </div>
+            <div class="field-row field-3 mb14">
+              <div><div class="field-lbl">Orçamento > R$400k</div><input class="field-inp" type="number" id="cfgScOrc" value="25" min="0" max="30"></div>
+              <div><div class="field-lbl">Interesse Alto</div><input class="field-inp" type="number" id="cfgScInt" value="20" min="0" max="25"></div>
+              <div><div class="field-lbl">FGTS disponível</div><input class="field-inp" type="number" id="cfgScFgts" value="15" min="0" max="20"></div>
+            </div>
+            <div class="field-row field-2">
+              <div><div class="field-lbl">Score mín. para qualificar</div><input class="field-inp" type="number" id="cfgScMin" value="60" min="0" max="100"></div>
+              <div><div class="field-lbl">Score mín. para proposta</div><input class="field-inp" type="number" id="cfgScProp" value="75" min="0" max="100"></div>
+            </div>
+          </div>
+
+          <div class="cfg-section">
+            <div class="cfg-title">⏱️ Intervalos e Horários</div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Horário de operação (início)</div><input class="field-inp" type="time" id="cfgHrInicio" value="07:00"></div>
+              <div><div class="field-lbl">Horário de operação (fim)</div><input class="field-inp" type="time" id="cfgHrFim" value="22:00"></div>
+            </div>
+            <div class="field-row field-2">
+              <div><div class="field-lbl">Intervalo entre follow-ups (h)</div><input class="field-inp" type="number" id="cfgFollowInt" value="24" min="1" max="72"></div>
+              <div><div class="field-lbl">Espera antes de follow-up (h)</div><input class="field-inp" type="number" id="cfgFollowEsp" value="6" min="1" max="48"></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="cfg-section">
+            <div class="cfg-title">🔔 Notificações ao Diretor</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Lead com score ≥ 80</div><div class="fs10 c-muted">Notificar quando IA qualifica lead quente</div></div>
+                <label class="sw"><input type="checkbox" id="ntf1" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Proposta enviada</div><div class="fs10 c-muted">Cada proposta gerada pela IA</div></div>
+                <label class="sw"><input type="checkbox" id="ntf2" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Novo lead no sistema</div><div class="fs10 c-muted">Quando lead entra pela primeira vez</div></div>
+                <label class="sw"><input type="checkbox" id="ntf3"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Lead não responde 48h</div><div class="fs10 c-muted">IA alerta para intervenção humana</div></div>
+                <label class="sw"><input type="checkbox" id="ntf4" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Erros de API ou falhas</div><div class="fs10 c-muted">Problemas técnicos do sistema</div></div>
+                <label class="sw"><input type="checkbox" id="ntf5" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg-section">
+            <div class="cfg-title">🛡️ Limites de Segurança</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Nunca mencionar valores negativos</div><div class="fs10 c-muted">IA não diz que concorrente é ruim</div></div>
+                <label class="sw"><input type="checkbox" id="sg1" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Nunca prometer prazos fixos</div><div class="fs10 c-muted">Entrega de obras pode variar</div></div>
+                <label class="sw"><input type="checkbox" id="sg2" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Sempre identificar-se como IA</div><div class="fs10 c-muted">Transparência com o lead</div></div>
+                <label class="sw"><input type="checkbox" id="sg3" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <div><div class="fs12 fw6">Escalar para humano se insatisfeito</div><div class="fs10 c-muted">Lead expressou frustração → alerta</div></div>
+                <label class="sw"><input type="checkbox" id="sg4" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PROMPT & PERSONALIDADE ══ -->
+    <div class="panel" id="panel-prompt">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📝 Engenharia de Prompt</div>
+          <div class="ph-title">Prompt & Personalidade da IA</div>
+          <div class="ph-sub">Defina como o Consultor Autônomo pensa, fala e se comporta</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn" onclick="resetPrompt()">↺ Resetar padrão</button>
+          <button class="btn-ai btn" onclick="salvarPrompt()">💾 Salvar prompt</button>
+        </div>
+      </div>
+
+      <div class="g2 mb20">
+        <div>
+          <div class="cfg-section mb14">
+            <div class="cfg-title">🎭 Identidade do Consultor</div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Nome do Consultor IA</div><input class="field-inp" id="ptNome" value="WAL·AI"></div>
+              <div><div class="field-lbl">Tom de voz</div>
+                <select class="field-sel" id="ptTom">
+                  <option selected>Profissional e cordial</option>
+                  <option>Formal e técnico</option>
+                  <option>Amigável e descontraído</option>
+                  <option>Consultivo e estratégico</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row mb14">
+              <div><div class="field-lbl">Especialidade declarada para o lead</div>
+                <input class="field-inp" id="ptEspec" value="Especialista em imóveis para militares das Forças Armadas brasileiras">
+              </div>
+            </div>
+          </div>
+
+          <div class="cfg-section mb14">
+            <div class="cfg-title">📌 Empreendimentos Prioritários</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div class="flex-bet" style="padding:8px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <span class="fs12">🏖️ Orla Recreio Reserva (RIVA)</span>
+                <label class="sw"><input type="checkbox" id="pe1" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:8px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <span class="fs12">🌊 Ilha Mar Beach (CURY)</span>
+                <label class="sw"><input type="checkbox" id="pe2" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:8px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <span class="fs12">🏙️ ICONYC by YOO (EMCAMP)</span>
+                <label class="sw"><input type="checkbox" id="pe3" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+              <div class="flex-bet" style="padding:8px 10px;background:var(--card);border:1px solid var(--bdr);border-radius:7px">
+                <span class="fs12">🌴 Ilha Mar Beach 2 (CURY)</span>
+                <label class="sw"><input type="checkbox" id="pe4" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="cfg-section mb14">
+            <div class="cfg-title">💡 Instruções de Comportamento</div>
+            <div class="field-row mb14">
+              <div><div class="field-lbl">O que a IA DEVE fazer</div>
+                <textarea class="field-ta" id="ptFazer" style="min-height:120px">• Sempre se identificar como consultora virtual da WAL Consultoria
+• Perguntar sobre posto militar, renda e empreendimento de interesse
+• Calcular parcelas CFIAe quando solicitado (8,5%a.a.+TR, SAC)
+• Sugerir empreendimento mais adequado ao perfil do lead
+• Registrar informações coletadas para o corretor humano
+• Agendar atendimento com corretor quando lead demonstrar interesse real
+• Usar linguagem respeitosa para militares (posto + sobrenome)</textarea>
+              </div>
+            </div>
+            <div class="field-row">
+              <div><div class="field-lbl">O que a IA NUNCA deve fazer</div>
+                <textarea class="field-ta" id="ptNaoFazer" style="min-height:100px">• Garantir aprovação de crédito ou financiamento
+• Prometer datas fixas de entrega dos empreendimentos
+• Denegrir concorrentes ou outros imóveis
+• Fornecer dados pessoais de outros clientes
+• Fechar contrato ou assinar documentos
+• Pressionar de forma agressiva o lead</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="cfg-section mb14">
+        <div class="cfg-title">📄 System Prompt Completo (editável)</div>
+        <div class="alert-box ab-ai mb14">
+          ⚙️ Este é o prompt enviado ao Claude a cada mensagem. Edite com cuidado — ele define o comportamento completo do Consultor Autônomo.
+        </div>
+        <textarea class="field-ta" id="ptSystemPrompt" style="min-height:280px;font-size:11px" oninput="atualizarContagem(this)"></textarea>
+        <div class="fs10 c-muted" style="margin-top:6px;text-align:right"><span id="ptCharCount">0</span> caracteres · tokens estimados: <span id="ptTokenCount">0</span></div>
+      </div>
+
+      <!-- TEST CONSOLE -->
+      <div class="cfg-section">
+        <div class="cfg-title">🧪 Console de Teste</div>
+        <div class="alert-box ab-ai mb14">🧪 Teste o prompt atual antes de ativar. As mensagens abaixo usam o system prompt salvo em tempo real.</div>
+        <div style="background:var(--surf);border:1px solid var(--bdr);border-radius:8px;height:220px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:8px;margin-bottom:10px" id="testChat"></div>
+        <div class="flex" style="gap:8px">
+          <input class="field-inp" id="testInput" placeholder="Simule uma mensagem de lead... Ex: Sou capitão da FAB, quanto ficaria a parcela do Ilha Mar?" onkeydown="if(event.key==='Enter')sendTest()" style="flex:1">
+          <button class="btn-ai btn" onclick="sendTest()">➤ Testar</button>
+          <button class="btn btn-sm" onclick="limparTest()">✕ Limpar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAINEL: MODO AGENTE ══ -->
+    <div class="panel" id="panel-roteamento">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🤝 Roteamento Inteligente</div>
+          <div class="ph-title">Modo Agente Prioritário</div>
+          <div class="ph-sub">Controle como a IA trata leads indicados por agentes parceiros vs. leads do sistema</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-gold btn" onclick="salvarRoteamento()">💾 Salvar configuração</button>
+        </div>
+      </div>
+
+      <!-- Master toggle do modo agente -->
+      <div style="background:rgba(201,168,76,.07);border:1.5px solid var(--gold-b);border-radius:12px;padding:20px 22px;margin-bottom:20px">
+        <div class="flex-bet">
+          <div>
+            <div style="font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:var(--gold2);margin-bottom:4px">🤝 Prioridade para Leads de Agentes</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;max-width:560px">
+              Quando ativado, a IA atende <strong style="color:#fff">primeiro</strong> todos os leads indicados por agentes parceiros antes de qualquer lead do sistema. Isso garante que o trabalho de indicação do agente seja valorizado e atendido com máxima velocidade.
+            </div>
+          </div>
+          <label class="toggle-sw" style="flex-shrink:0;margin-left:20px">
+            <input type="checkbox" id="modoAgenteToggle" onchange="toggleModoAgente(this.checked)">
+            <div class="toggle-track"></div>
+            <div class="toggle-thumb"></div>
+          </label>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+          <div style="flex:1;min-width:160px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif" id="statLeadsAgente">2</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Leads de agentes</div>
+          </div>
+          <div style="flex:1;min-width:160px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:var(--ai2);font-family:'Playfair Display',serif" id="statLeadsSistema">3</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Leads do sistema</div>
+          </div>
+          <div style="flex:1;min-width:160px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:#34D399;font-family:'Playfair Display',serif" id="statLeadsAgenteProp">0</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Agente → proposta</div>
+          </div>
+          <div style="flex:1;min-width:160px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:12px;text-align:center">
+            <div style="font-size:22px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif" id="statComisAgente">R$0</div>
+            <div style="font-size:10px;color:var(--muted);margin-top:2px">Comissão agente gerada</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g2 mb20">
+
+        <!-- Fila de atendimento com prioridade -->
+        <div class="card">
+          <div class="card-h">
+            <div>
+              <div class="card-title">📋 Fila de Atendimento da IA</div>
+              <div class="card-sub" id="filaSubtitle">Ordem em que a IA processa os leads</div>
+            </div>
+            <span class="bdg bo" id="filaModeBdg" style="display:none">Modo Agente</span>
+          </div>
+          <div class="card-b" style="padding:12px" id="filaAtendimento"></div>
+        </div>
+
+        <!-- Regras de roteamento -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">⚙️ Regras de Roteamento</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:10px">
+
+            <div class="cfg-section" style="margin-bottom:0">
+              <div class="cfg-title" style="margin-bottom:10px;font-size:11px">🏆 Prioridade 1 — Leads de Agente</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div class="flex-bet" style="font-size:12px">
+                  <span>IA atende imediatamente (sem espera)</span>
+                  <label class="sw"><input type="checkbox" id="rg1" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px">
+                  <span>Mencionar nome do agente na abordagem</span>
+                  <label class="sw"><input type="checkbox" id="rg2" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px">
+                  <span>Score inicial +10 pts (já foi apresentado)</span>
+                  <label class="sw"><input type="checkbox" id="rg3" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px">
+                  <span>Notificar agente quando lead avançar</span>
+                  <label class="sw"><input type="checkbox" id="rg4" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="cfg-section" style="margin-bottom:0">
+              <div class="cfg-title" style="margin-bottom:10px;font-size:11px">🔵 Prioridade 2 — Leads do Sistema</div>
+              <div style="display:flex;flex-direction:column;gap:7px">
+                <div class="flex-bet" style="font-size:12px">
+                  <span>Aguardar <input type="number" id="rg5delay" value="2" min="0" max="24" style="width:40px;padding:2px 6px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:4px;font-size:11px;text-align:center"> h antes de atender</span>
+                  <label class="sw"><input type="checkbox" id="rg5" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px">
+                  <span>Reduzir frequência de mensagens (1/2)</span>
+                  <label class="sw"><input type="checkbox" id="rg6"><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+              </div>
+            </div>
+
+            <div class="cfg-section" style="margin-bottom:0">
+              <div class="cfg-title" style="margin-bottom:10px;font-size:11px">🔄 Roteamento Pós-Qualificação</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px">Após a IA qualificar um lead de agente (score ≥ 60), para onde ele vai?</div>
+              <select class="field-sel" id="rgDestino">
+                <option value="ia_completo">IA conduz até proposta e alerta corretor</option>
+                <option value="corretor_imediato">Transferir imediatamente para corretor habilitado</option>
+                <option value="corretor_proposta">IA vai até proposta, depois corretor fecha</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Abordagem personalizada para lead de agente -->
+      <div class="card mb20">
+        <div class="card-h">
+          <div>
+            <div class="card-title">✍️ Abordagem Personalizada para Leads de Agente</div>
+            <div class="card-sub">A IA usa este script especial quando atende lead que veio por indicação de agente parceiro</div>
+          </div>
+          <button class="btn btn-sm" onclick="resetScriptAgente()">↺ Padrão</button>
+        </div>
+        <div class="card-b">
+          <div class="alert-box ab-ai mb14">
+            💡 Use <code style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px">{NOME_LEAD}</code>, <code style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px">{POSTO}</code>, <code style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px">{NOME_AGENTE}</code> e <code style="background:rgba(255,255,255,.1);padding:1px 6px;border-radius:3px">{EMP_INTERESSE}</code> como variáveis dinâmicas.
+          </div>
+          <div class="g2">
+            <div>
+              <div class="field-lbl" style="margin-bottom:8px">Mensagem de primeiro contato</div>
+              <textarea class="field-ta" id="scriptPrimeiro" style="min-height:110px">Olá, {POSTO} {NOME_LEAD}! Sou WAL·AI, consultora virtual da WAL Consultoria.
+
+Recebi sua indicação através de {NOME_AGENTE}, que já nos apresentou seu interesse em {EMP_INTERESSE}. Fico feliz em poder ajudar!
+
+Por já vir recomendado, vou te dar atenção especial. Para personalizar melhor as opções, posso te fazer uma pergunta rápida: você tem FGTS disponível para usar na entrada?</textarea>
+            </div>
+            <div>
+              <div class="field-lbl" style="margin-bottom:8px">Mensagem ao avançar para proposta</div>
+              <textarea class="field-ta" id="scriptProposta" style="min-height:110px">{POSTO} {NOME_LEAD}, com base no que conversamos, preparei uma proposta exclusiva para o seu perfil.
+
+Vou enviar a simulação completa de financiamento CFIAe para {EMP_INTERESSE} agora. Em paralelo, já informei ao {NOME_AGENTE} que você está avançando — ele poderá te dar mais detalhes se quiser.
+
+Nosso corretor especialista entrará em contato em breve para agendar uma visita e tirar qualquer dúvida. Tem disponibilidade essa semana?</textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Log de leads de agente -->
+      <div class="card mb20">
+        <div class="card-h">
+          <div class="card-title">📊 Histórico de Leads por Agente</div>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="tabelaLeadsAgente"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAINEL: CORRETORES ══ -->
+    <div class="panel" id="panel-corretores">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">👤 Força de Vendas Humana</div>
+          <div class="ph-title">Corretores Habilitados</div>
+          <div class="ph-sub">Gerencie quais corretores recebem leads qualificados pela IA · sem corretor ativo a IA conduz tudo sozinha</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-gold btn" onclick="toast('Configuração de corretores salva!','green')">💾 Salvar</button>
+        </div>
+      </div>
+
+      <div class="alert-box ab-ai mb20">
+        🤖 <strong>Como funciona o handoff:</strong> Quando um corretor está <strong>habilitado</strong>, a IA qualifica o lead e, ao atingir o score configurado, transfere para o corretor com um resumo completo do atendimento, histórico de mensagens e score. Se <strong>nenhum corretor estiver habilitado</strong>, a IA conduz o processo até a proposta e aguarda ação do Diretor para fechar.
+      </div>
+
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">👥 Corretores da Rede</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:8px" id="listaCorretores"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-h"><div class="card-title">⚙️ Regras de Transferência</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:12px">
+            <div>
+              <div class="field-lbl">Score mínimo para transferir ao corretor</div>
+              <input class="field-inp" type="number" id="cfgScoreTransfer" value="75" min="50" max="100">
+              <div style="font-size:10px;color:var(--muted);margin-top:4px">Leads abaixo deste score ficam com a IA</div>
+            </div>
+            <div>
+              <div class="field-lbl">Prioridade de distribuição de leads</div>
+              <select class="field-sel" id="cfgDistribuicao">
+                <option value="rodizio">Rodízio (round-robin)</option>
+                <option value="disponivel">Menor fila atual</option>
+                <option value="especialidade">Por especialidade / empreendimento</option>
+                <option value="manual">Manual (Diretor escolhe)</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-lbl">O que o corretor recebe (resumo da IA)</div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <div class="flex-bet" style="font-size:12px;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                  <span>Score e classificação do lead</span>
+                  <label class="sw"><input type="checkbox" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                  <span>Histórico completo da conversa com IA</span>
+                  <label class="sw"><input type="checkbox" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                  <span>Empreendimento e orçamento confirmados</span>
+                  <label class="sw"><input type="checkbox" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                  <span>Nome do agente (se for indicação)</span>
+                  <label class="sw"><input type="checkbox" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+                <div class="flex-bet" style="font-size:12px;padding:8px 10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
+                  <span>Simulação CFIAe já calculada</span>
+                  <label class="sw"><input type="checkbox" checked><div class="sw-track"></div><div class="sw-thumb"></div></label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de handoffs realizados -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">🔄 Handoffs Realizados pela IA</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="tabelaHandoffs"></table>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL LEAD DETALHE -->
+<div class="modal-ov" id="modalLead">
+  <div class="modal-box">
+    <div class="modal-h">
+      <div class="modal-title" id="mlTitle">Lead</div>
+      <button class="modal-close" onclick="fecharModal('modalLead')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-left" id="mlLeft"></div>
+      <div class="modal-right" id="mlRight"></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalLead')">Fechar</button>
+      <button class="btn-gold btn" onclick="escalarParaCorretor()">🤝 Escalar para Corretor</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════
+   ESTADO GLOBAL
+══════════════════════════════════ */
+let _aiAtiva = false;
+let _simTimer = null;
+let _uptimeStart = null;
+let _statsHoje = { acoes:0, atendidos:new Set(), qualificados:0, propostas:0, followups:0, respondidos:0 };
+let _testHistory = [];
+let _mlLeadId = null;
+
+/* ── LEADS DEMO ── */
+let _leads = [
+  { id:'l1', nome:'Cap. Henrique Santos', tel:'(21)98765-4321', posto:'Capitão', origem:'Instagram', agente:null, emp:'Ilha Mar Beach', orcamento:'R$300k–R$500k', status:'proposta', score:82, lastContact:'2026-06-28', msgs:[
+    { role:'ai', txt:'Olá, Cap. Henrique! Sou WAL·AI, consultora virtual da WAL Consultoria. Soube que você tem interesse em imóveis com condições exclusivas para militares FAB. Posso te ajudar?', ts:'09:02' },
+    { role:'u', txt:'Oi! Sim, vi um post sobre o Ilha Mar Beach. Queria saber mais.', ts:'09:15' },
+    { role:'ai', txt:'Ótimo, Cap. Henrique! O Ilha Mar Beach (CURY) fica na Barra da Tijuca, a 200m do mar. Como Oficial, você tem acesso ao CFIAe com taxa 8,5%a.a.+TR, até 90% financiado. Para o seu perfil: entrada a partir de R$46k usando FGTS. Quer que eu calcule a parcela inicial?', ts:'09:15' },
+    { role:'u', txt:'Sim! Tenho interesse no de 3 quartos.', ts:'09:31' },
+    { role:'ai', txt:'Perfeito! Apartamento 3 quartos, R$520k. Entrada 20% (R$104k, possível uso de FGTS). Financiado R$416k em 360 meses: parcela inicial SAC ≈ R$3.950 (decresce todo mês). Renda mínima indicada: ~R$13.200. Vou enviar a proposta formal. Nosso corretor ligará para agendar visita!', ts:'09:32' },
+  ], historico:[
+    { acao:'Proposta enviada', detalhe:'IA gerou proposta personalizada 3Q R$520k CFIAe SAC.', ts:'09:32', tipo:'proposta' },
+    { acao:'Lead qualificado', detalhe:'Score 82 · Oficial FAB + orçamento compatível + FGTS disponível.', ts:'09:15', tipo:'qualificacao' },
+    { acao:'Primeiro contato IA', detalhe:'Mensagem de boas-vindas enviada. Lead respondeu em 13 min.', ts:'09:02', tipo:'atendimento' },
+  ]},
+  { id:'l2', nome:'Sgt. Carlos Alves', tel:'(21)97654-3210', posto:'Sargento', origem:'Agente Parceiro', agente:{id:'a1',nome:'João Agente',iniciais:'JA'}, emp:'Orla Recreio Reserva', orcamento:'R$300k–R$500k', status:'qualificado', score:74, lastContact:'2026-06-28', msgs:[
+    { role:'ai', txt:'Olá, Sgt. Carlos! Sou WAL·AI da WAL Consultoria.\n\nRecebi sua indicação através de João Agente, que já nos apresentou seu interesse no Orla Recreio Reserva. Fico feliz em poder ajudar com atenção especial!\n\nPara personalizar melhor: você tem FGTS disponível para usar na entrada?', ts:'10:00' },
+    { role:'u', txt:'O do Recreio. Mas quero saber se cabe no meu salário de sargento.', ts:'10:22' },
+    { role:'ai', txt:'Entendo, Sgt. Carlos! O Orla Recreio Reserva a partir de R$390k. Para Suboficial/Sargento com renda ~R$8k, financiando R$312k (20% entrada): parcela inicial SAC ≈ R$2.970. Comprometimento de renda: ~37% — um pouco alto, mas dentro do permitido com renda familiar. Tem esposa que trabalha?', ts:'10:23' },
+    { role:'u', txt:'Sim, ela trabalha.', ts:'10:45' },
+    { role:'ai', txt:'Perfeito! Renda familiar composta facilita bastante. Com base nisso, seu score de qualificação atingiu 74 — já informei ao João Agente sobre seu progresso. Nosso corretor entrará em contato para análise detalhada!', ts:'10:46' },
+  ], historico:[
+    { acao:'Agente notificado — lead avançou', detalhe:'João Agente notificado: Sgt. Carlos qualificado com score 74.', ts:'10:46', tipo:'agente' },
+    { acao:'Lead qualificado', detalhe:'Score 74 · Sargento (+10 pts bônus agente) + renda familiar declarada.', ts:'10:46', tipo:'qualificacao' },
+    { acao:'Atendimento com script de agente', detalhe:'Abordagem personalizada usada: mencionou João Agente no primeiro contato.', ts:'10:00', tipo:'atendimento' },
+    { acao:'Prioridade de agente aplicada', detalhe:'Lead entrou na fila · posição 1 (prioridade agente ativa).', ts:'10:00', tipo:'roteamento' },
+  ]},
+  { id:'l3', nome:'Cb. Fernanda Melo', tel:'(21)96543-2100', posto:'Cabo', origem:'Agente Parceiro', agente:{id:'a1',nome:'João Agente',iniciais:'JA'}, emp:'Ilha Mar Beach 2', orcamento:'Até R$300k', status:'contato', score:51, lastContact:'2026-06-28', msgs:[
+    { role:'ai', txt:'Olá, Cb. Fernanda! Sou WAL·AI da WAL Consultoria.\n\nO João Agente me contou sobre você e seu interesse em imóveis com financiamento exclusivo para militares. Vou te dar atenção especial!\n\nPara já começar: você tem FGTS disponível? Isso pode reduzir bastante o valor da entrada.', ts:'11:30' },
+    { role:'u', txt:'Oi sim! Mas acho que meu salário não vai dar.', ts:'11:48' },
+    { role:'ai', txt:'Cb. Fernanda, vou te surpreender! Temos o Ilha Mar Beach 2 a partir de R$280k. Para Cabo FAB com renda ~R$4.500: financiando R$252k (10% entrada via FGTS): parcela SAC inicial ≈ R$2.400. É possível! Quer que eu veja as opções de entrada com o seu FGTS?', ts:'11:49' },
+  ], historico:[
+    { acao:'Dúvida respondida — script agente', detalhe:'Lead acreditava que salário era insuficiente. IA (script agente) apresentou Ilha Mar Beach 2.', ts:'11:49', tipo:'atendimento' },
+    { acao:'Primeiro contato — prioridade agente', detalhe:'Lead entrou na fila em posição 1. Atendida em < 1 min por prioridade de agente.', ts:'11:30', tipo:'roteamento' },
+  ]},
+  { id:'l4', nome:'Ten. Rodrigo Faria', tel:'(21)95432-1000', posto:'Tenente', origem:'Google Ads', agente:null, emp:'Em aberto', orcamento:'R$300k–R$500k', status:'novo', score:0, lastContact:null, msgs:[], historico:[]},
+  { id:'l5', nome:'Cel. Augusto Pires', tel:'(21)94321-9988', posto:'Coronel', origem:'Abordagem direta', agente:null, emp:'Orla Recreio Reserva', orcamento:'Acima de R$800k', status:'novo', score:0, lastContact:null, msgs:[], historico:[]},
+];
+
+/* ── LOGS INICIAIS (vazios, crescem com simulação) ── */
+let _logs = [];
+
+/* ── AGENTES CADASTRADOS ── */
+const _agentes = [
+  { id:'a1', nome:'João Agente da Silva', iniciais:'JA', prof:'Militar FAB', leads:['l2','l3'], convertidos:1, comis:2400 },
+  { id:'a2', nome:'Maria Parceira',        iniciais:'MP', prof:'Servidora Federal', leads:[], convertidos:0, comis:0 },
+];
+
+/* ── CORRETORES ── */
+let _corretores = [
+  { id:'c1', nome:'Marcos Ribeiro', iniciais:'MR', cor:'#22D3EE', ativo:true,  leads:2, creci:'CRECI-RJ 123456', esp:'RJ · Barra / Recreio' },
+  { id:'c2', nome:'Patricia Lima',  iniciais:'PL', cor:'#34D399', ativo:false, leads:1, creci:'CRECI-SP 654321', esp:'SP · Zona Sul' },
+];
+
+/* ── HANDOFFS DEMO ── */
+const _handoffs = [
+  { lead:'Cap. Henrique Santos', agente:'—',           corretor:'Marcos Ribeiro', score:82, data:'28/06/26 09:35', tipo:'sistema'  },
+  { lead:'Sgt. Carlos Alves',   agente:'João Agente', corretor:'Aguardando',      score:74, data:'28/06/26 10:46', tipo:'agente'   },
+];
+
+/* ── ESTADO MODO AGENTE ── */
+let _modoAgenteAtivo = false;
+
+const DEFAULT_PROMPT = `Você é WAL·AI, consultora virtual da WAL Consultoria Imobiliária, especialista em imóveis para militares das Forças Armadas brasileiras (FAB, Exército, Marinha), servidores civis e pensionistas.
+
+MISSÃO: Atender leads 24h/dia, qualificando-os, tirando dúvidas, sugerindo empreendimentos e acompanhando o funil de vendas de forma totalmente autônoma.
+
+EMPREENDIMENTOS DISPONÍVEIS:
+• Orla Recreio Reserva (RIVA) · Recreio RJ · R$390k–R$890k · Entrega Dez/27
+• Ilha Mar Beach & Home (CURY) · Barra RJ · R$320k–R$520k · Entrega Jun/28
+• ICONYC by YOO (EMCAMP) · Barra RJ · R$480k–R$1,2M · Entrega Mar/28
+• Ilha Mar Beach 2 (CURY) · Barra RJ · R$280k–R$420k · Entrega Dez/28
+
+FINANCIAMENTO CFIAe FAB:
+Taxa: 8,5% a.a. + TR · Prazo: até 35 anos · Financiamento: até 90% · MIP: 0,051200%/mês sobre saldo · DFI: 0,008036% fixo · FGTS aceito na entrada.
+Sistema SAC: amortização fixa (saldo/prazo), juros sobre saldo devedor decrescentes.
+
+QUALIFICAÇÃO (score de 0–100):
+- Oficial FAB (Ten, Cap, Maj, TC, Cel): +30 pts
+- Sargento/Suboficial: +20 pts  
+- Cabo/Soldado/Civil: +10 pts
+- Orçamento >R$400k: +25 pts · Até R$400k: +15 pts
+- Interesse alto (quer visitar/fechar): +20 pts
+- FGTS disponível: +15 pts
+Score ≥75 → gerar proposta · Score ≥60 → qualificado · <60 → manter em contato
+
+COMPORTAMENTO:
+• Identifique-se sempre como IA consultora da WAL
+• Trate militares pelo posto + sobrenome (Cap. Silva, Sgt. Oliveira)
+• Seja profissional, cordial, objetivo — resposta máxima de 4 parágrafos
+• Colete: posto, renda, empreendimento de interesse, tem FGTS?
+• Calcule parcelas quando solicitado (mostre entrada, financiado, parcela SAC inicial)
+• Ao atingir score ≥75, informe que nosso corretor entrará em contato
+
+RESTRIÇÕES:
+• Nunca garantir aprovação de crédito
+• Nunca prometer datas fixas de obra
+• Nunca denegrir concorrentes
+• Escalar para humano se lead expressar insatisfação com IA
+• Nunca assinar contratos ou formalizar vendas`;
+
+/* ═══════════════════════════════
+   AUTH
+═══════════════════════════════ */
+function doLogin(){
+  const e=document.getElementById('lEmail').value.trim().toLowerCase();
+  const s=document.getElementById('lSenha').value;
+  const err=document.getElementById('lockErr');
+  if(e==='diretor@wal.com.br'&&s==='master'){
+    err.style.display='none';
+    localStorage.setItem('wal_dir_ok','1');
+    initApp();
+  } else {err.style.display='block'}
+}
+function doLogout(){
+  localStorage.removeItem('wal_dir_ok');
+  if(_aiAtiva) pararSimulacao();
+  document.getElementById('lockScreen').style.display='flex';
+  document.getElementById('appWrap').style.display='none';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(localStorage.getItem('wal_dir_ok')==='1') initApp();
+  else document.getElementById('lockScreen').style.display='flex';
+});
+
+/* ═══════════════════════════════
+   INIT
+═══════════════════════════════ */
+function initApp(){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('appWrap').style.display='flex';
+  const d=new Date();
+  const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  document.getElementById('phData').textContent=`${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+  tick(); setInterval(tick,1000);
+  document.getElementById('ptSystemPrompt').value=DEFAULT_PROMPT;
+  atualizarContagem(document.getElementById('ptSystemPrompt'));
+  renderAll();
+  // preencher filtro de leads
+  const sel=document.getElementById('logFiltLead');
+  _leads.forEach(l=>sel.innerHTML+=`<option value="${l.id}">${l.nome}</option>`);
+}
+function tick(){const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');const el=document.getElementById('clock');if(el)el.textContent=`${h}:${m}:${s} BRT`}
+
+/* ═══════════════════════════════
+   NAV
+═══════════════════════════════ */
+const TITLES={home:'Command Center',logs:'Log de Atendimentos',leads:'Leads em Atendimento',funil:'Funil Autônomo',performance:'Performance da IA',config:'Parâmetros da IA',prompt:'Prompt & Personalidade',roteamento:'Modo Agente Prioritário',corretores:'Corretores Habilitados'};
+function nav(el,id){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el?.classList)el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('panel-'+id);if(t)t.classList.add('active');
+  document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+}
+
+/* ═══════════════════════════════
+   AI TOGGLE
+═══════════════════════════════ */
+function toggleAI(on){
+  _aiAtiva=on;
+  document.getElementById('globalToggle').checked=on;
+  document.getElementById('sbAiLbl').textContent=on?'● Ativo — Atendendo 24h':'Desativado';
+  document.getElementById('sbPulse').style.display=on?'':'none';
+  const pill=document.getElementById('topStatusPill');
+  const dot=pill.querySelector('.tb-live-dot');
+  document.getElementById('topStatusTxt').textContent=on?'IA Ativa — Online':'IA Desativada';
+  pill.className='tb-status-pill '+(on?'tb-on':'tb-off');
+  dot.style.background=on?'#34D399':'#F87171';
+  document.getElementById('mainToggleBtn').textContent=on?'⏸ Desativar Consultor':'▶ Ativar Consultor';
+  document.getElementById('mainToggleBtn').className=on?'btn btn-red':'btn-ai btn';
+  document.getElementById('homeAlertOff').style.display=on?'none':'block';
+  document.getElementById('homeAlertOn').style.display=on?'block':'none';
+  document.getElementById('liveTicker').style.display=on?'flex':'none';
+  document.getElementById('logLiveBdg').style.display=on?'':'none';
+  if(on){_uptimeStart=Date.now();iniciarSimulacao();toast('🤖 Consultor Autônomo ATIVADO! Monitorando leads...','green')}
+  else{pararSimulacao();toast('⏸ Consultor Autônomo desativado.','amber')}
+}
+function toggleAIFromBtn(){toggleAI(!_aiAtiva)}
+function toggleCtrl(cb,id,nome){
+  document.getElementById(id).classList.toggle('enabled',cb.checked);
+  toast((cb.checked?'✅ Ativado: ':'⏸ Desativado: ')+nome, cb.checked?'green':'amber');
+}
+
+/* ═══════════════════════════════
+   SIMULAÇÃO DA IA (Engine)
+═══════════════════════════════ */
+const ACOES_SIM = [
+  { tipo:'atendimento', emoji:'💬', leadIdx:0, acao:'Respondeu dúvida sobre simulação SAC', detalhe:'Lead: "Quanto fica a parcela com 25% de entrada?" → IA calculou R$3.420/mês, comprometimento 24,4% da renda declarada R$14k.', stat:'cq2', kpi:'kpiAtendidos' },
+  { tipo:'qualificacao', emoji:'🔍', leadIdx:3, acao:'Qualificou novo lead: Ten. Rodrigo Faria', detalhe:'Score calculado: 72 · Tenente FAB (+30) + Orçamento R$400k (+15) + Interesse confirmado (+20) + FGTS: não confirmado (-). Status → Qualificado.', stat:'cq1', kpi:'kpiQual' },
+  { tipo:'roteamento',  emoji:'🤝', leadIdx:1, acao:'Prioridade agente: Sgt. Carlos Alves movido para #1', detalhe:'Modo Agente ativo. Lead de agente parceiro (João Agente) promovido ao topo da fila. Leads do sistema aguardam atendimento após leads de agente.', stat:'cq3', kpi:'kpiAtendidos' },
+  { tipo:'atendimento', emoji:'💬', leadIdx:2, acao:'Tirou dúvida sobre FGTS — Cb. Fernanda (agente João)', detalhe:'Script de agente usado. Lead: "Posso usar o FGTS na entrada?" → IA explicou que FGTS pode ser usado integralmente na entrada pelo CFIAe, reduzindo parcela em até 40%. João Agente notificado do avanço.', stat:'cq2', kpi:'kpiAtendidos' },
+  { tipo:'funil', emoji:'📊', leadIdx:3, acao:'Moveu Ten. Rodrigo: Novo → Em contato', detalhe:'Lead respondeu mensagem de boas-vindas. Critério de avanço atingido. Status atualizado automaticamente. (Lead sistema — aguardou atrás dos leads de agente)', stat:'cq3', kpi:'kpiAtendidos' },
+  { tipo:'qualificacao', emoji:'🔍', leadIdx:4, acao:'Iniciou qualificação: Cel. Augusto Pires', detalhe:'Score parcial 45 · Enviou primeiro contato. Aguardando resposta para confirmar interesse e FGTS. Potencial de proposta alta. (Lead sistema — na fila após leads de agente)', stat:'cq1', kpi:'kpiAtendidos' },
+  { tipo:'proposta', emoji:'📋', leadIdx:3, acao:'Gerou proposta: Ten. Rodrigo — Orla Recreio', detalhe:'Score atingiu 80. Proposta gerada: Apto 2Q R$420k, entrada 20% (R$84k), financiado R$336k, parcela SAC R$3.190/mês. PDF enviado. Corretor notificado. (sem agente vinculado — handoff direto para corretor)', stat:'cq5', kpi:'kpiProp' },
+  { tipo:'agente', emoji:'🤝', leadIdx:1, acao:'Agente João notificado — Sgt. Carlos avançou no funil', detalhe:'Regra de roteamento: ao avançar para "qualificado", agente vinculado é notificado automaticamente. João Agente receberá atualização de status no seu portal.', stat:'cq2', kpi:'kpiAtendidos' },
+  { tipo:'followup', emoji:'🔔', leadIdx:4, acao:'Follow-up enviado: Cel. Augusto (sem resp. 6h)', detalhe:'"Cel. Pires, sou WAL·AI. Notei que ainda não tivemos a chance de conversar sobre as opções exclusivas para Oficiais Superiores no Orla Recreio Reserva. Posso apresentar as condições em 5 minutos?"', stat:'cq4', kpi:'kpiAtendidos' },
+  { tipo:'atendimento', emoji:'💬', leadIdx:1, acao:'Sgt. Carlos perguntou sobre prazo de entrega', detalhe:'Lead: "Qual a previsão de entrega do Orla Recreio?" → IA informou: previsão Dez/2027, com cláusula contratual de tolerância de 180 dias. Script de agente: mencionou que João Agente pode detalhar mais pessoalmente.', stat:'cq2', kpi:'kpiAtendidos' },
+];
+let _simIdx = 0;
+function iniciarSimulacao(){
+  _simIdx=0;
+  agendarProxAcao();
+}
+function agendarProxAcao(){
+  const delay=3000+Math.random()*5000;
+  _simTimer=setTimeout(executarAcaoSim,delay);
+}
+function executarAcaoSim(){
+  if(!_aiAtiva)return;
+  const acao=ACOES_SIM[_simIdx % ACOES_SIM.length];
+  _simIdx++;
+  const now=new Date();
+  const ts=now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const lead=_leads[acao.leadIdx];
+  // atualiza stats
+  _statsHoje.acoes++;
+  _statsHoje.atendidos.add(acao.leadIdx);
+  if(acao.tipo==='qualificacao')_statsHoje.qualificados++;
+  if(acao.tipo==='proposta')_statsHoje.propostas++;
+  if(acao.tipo==='followup')_statsHoje.followups++;
+  _statsHoje.respondidos++;
+  // status do lead
+  if(acao.tipo==='funil'&&lead.status==='novo')lead.status='contato';
+  if(acao.tipo==='qualificacao'&&lead.score===0){lead.score=72;lead.status='qualificado'}
+  if(acao.tipo==='proposta'){lead.status='proposta';lead.score=Math.max(lead.score,80)}
+  lead.lastContact=new Date().toISOString().split('T')[0];
+  // add log
+  const logEntry={id:'lg'+Date.now(),tipo:acao.tipo,emoji:acao.emoji,lead:lead.nome,leadId:lead.id,acao:acao.acao,detalhe:acao.detalhe,ts};
+  _logs.unshift(logEntry);
+  if(_logs.length>200)_logs.pop();
+  // update stat contadores
+  const cqEl=document.getElementById(acao.stat);
+  if(cqEl)cqEl.textContent=+cqEl.textContent+1;
+  lead.historico.unshift({acao:acao.acao,detalhe:acao.detalhe,ts:ts,tipo:acao.tipo});
+  // ultima ação sidebar
+  document.getElementById('sbLastAction').textContent='Última ação: '+ts+' · '+acao.acao.substring(0,28)+'…';
+  // live ticker
+  document.getElementById('liveTickerTxt').textContent='🤖 '+acao.acao;
+  document.getElementById('liveCounter').textContent=_statsHoje.acoes+' ações hoje';
+  updateKPIs();
+  addLogEntry('logFeedHome',logEntry);
+  renderLogs();renderLeadsPanel();renderFunilMini();renderHomeLeadsMini();
+  renderBadges();renderFila();renderTabelaLeadsAgente();
+  // notificações importantes
+  if(acao.tipo==='proposta')toast('📋 IA gerou proposta para '+lead.nome+'!','ai');
+  if(acao.tipo==='qualificacao'&&lead.score>=75)toast('🔥 Lead quente! '+lead.nome+' score '+lead.score,'green');
+  agendarProxAcao();
+}
+function pararSimulacao(){clearTimeout(_simTimer);_simTimer=null}
+
+function updateKPIs(){
+  document.getElementById('kpiAcoes').textContent=_statsHoje.acoes;
+  document.getElementById('kpiAtendidos').textContent=_statsHoje.atendidos.size;
+  document.getElementById('kpiQual').textContent=_statsHoje.qualificados;
+  document.getElementById('kpiProp').textContent=_statsHoje.propostas;
+  const resp=_statsHoje.atendidos.size?Math.round(_statsHoje.respondidos/_statsHoje.atendidos.size*100)+'%':'0%';
+  document.getElementById('kpiResp').textContent=resp;
+  if(_uptimeStart){const h=((Date.now()-_uptimeStart)/3600000).toFixed(1);document.getElementById('kpiUptime').textContent=h+'h'}
+  if(_statsHoje.acoes>0){document.getElementById('kpiAcoesDlt').textContent='▲ '+_statsHoje.acoes+' ações em andamento';document.getElementById('kpiAcoesDlt').className='kpi-dlt up'}
+  updatePerformance();
+}
+
+/* ═══════════════════════════════
+   LOG RENDERING
+═══════════════════════════════ */
+const TIPO_COLORS={qualificacao:'#818CF8',atendimento:'#22D3EE',funil:'#34D399',proposta:'#FCD34D',followup:'#F87171',agente:'#C9A84C',roteamento:'#A78BFA'};
+const TIPO_BG={qualificacao:'rgba(99,102,241,.2)',atendimento:'rgba(14,116,144,.2)',funil:'rgba(5,150,105,.2)',proposta:'rgba(217,119,6,.2)',followup:'rgba(220,38,38,.15)',agente:'rgba(201,168,76,.18)',roteamento:'rgba(124,58,237,.2)'};
+function addLogEntry(feedId,entry){
+  const feed=document.getElementById(feedId);if(!feed)return;
+  const el=document.createElement('div');
+  el.className='log-item';
+  el.setAttribute('data-id',entry.id);
+  el.innerHTML=`
+    <div class="log-time">${entry.ts}</div>
+    <div class="log-ico" style="background:${TIPO_BG[entry.tipo]||'rgba(255,255,255,.05)'};border-color:${TIPO_COLORS[entry.tipo]||'var(--bdr)'}">
+      <span>${entry.emoji}</span>
+    </div>
+    <div class="log-body">
+      <div class="log-title">${entry.acao}</div>
+      <div class="log-meta">
+        <span style="color:${TIPO_COLORS[entry.tipo]||'var(--muted)'};font-weight:600;font-size:9px;text-transform:uppercase">${entry.tipo}</span>
+        <span>${entry.lead}</span>
+      </div>
+      <div class="log-expand" onclick="toggleLogExpand(this)">▸ Ver detalhes</div>
+      <div class="log-detail">${entry.detalhe}</div>
+    </div>`;
+  // manter apenas 20 no feed home
+  if(feedId==='logFeedHome'){
+    const items=feed.querySelectorAll('.log-item');
+    if(items.length>=12)items[items.length-1].remove();
+    feed.insertBefore(el,feed.firstChild);
+  } else {feed.insertBefore(el,feed.firstChild)}
+}
+function toggleLogExpand(btn){
+  const item=btn.closest('.log-item');
+  item.classList.toggle('expanded');
+  btn.textContent=item.classList.contains('expanded')?'▾ Fechar':'▸ Ver detalhes';
+}
+function renderLogs(){
+  const tipo=document.getElementById('logFiltTipo')?.value||'';
+  const lid=document.getElementById('logFiltLead')?.value||'';
+  let list=_logs.filter(l=>{
+    if(tipo&&l.tipo!==tipo)return false;
+    if(lid&&l.leadId!==lid)return false;
+    return true;
+  });
+  const feed=document.getElementById('logFeedFull');
+  if(!feed)return;
+  const empty=document.getElementById('logsEmpty');
+  if(empty)empty.style.display=list.length?'none':'block';
+  if(!list.length){feed.innerHTML='';return}
+  feed.innerHTML='';
+  list.forEach(e=>{
+    const el=document.createElement('div');
+    el.className='log-item';
+    el.innerHTML=`
+      <div class="log-time">${e.ts}</div>
+      <div class="log-ico" style="background:${TIPO_BG[e.tipo]||'rgba(255,255,255,.05)'};border-color:${TIPO_COLORS[e.tipo]||'var(--bdr)'}"><span>${e.emoji}</span></div>
+      <div class="log-body">
+        <div class="log-title">${e.acao}</div>
+        <div class="log-meta">
+          <span style="color:${TIPO_COLORS[e.tipo]||'var(--muted)'};font-weight:600;font-size:9px;text-transform:uppercase">${e.tipo}</span>
+          <span>${e.lead}</span>
+          <span class="mono" style="font-size:9px">${e.ts}</span>
+        </div>
+        <div class="log-expand" onclick="toggleLogExpand(this)">▸ Ver detalhes</div>
+        <div class="log-detail">${e.detalhe}</div>
+      </div>`;
+    feed.appendChild(el);
+  });
+}
+
+/* ═══════════════════════════════
+   LEADS PANEL
+═══════════════════════════════ */
+function renderLeadsPanel(){
+  const st=document.getElementById('leadFiltStatus')?.value||'';
+  const busca=(document.getElementById('leadBusca')?.value||'').toLowerCase();
+  let list=_leads.filter(l=>{
+    if(st&&l.status!==st)return false;
+    if(busca&&!l.nome.toLowerCase().includes(busca))return false;
+    return true;
+  });
+  // ordenar por prioridade agente se modo ativo
+  if(_modoAgenteAtivo){
+    list.sort((a,b)=>{
+      if(a.agente&&!b.agente)return -1;
+      if(!a.agente&&b.agente)return 1;
+      return 0;
+    });
+  }
+  const tbl=document.getElementById('leadsTable');if(!tbl)return;
+  tbl.innerHTML=`<thead><tr><th>Lead</th><th>Posto</th><th>Origem</th><th>Score IA</th><th>Status</th><th>Último contato</th><th>Ações IA</th><th></th></tr></thead><tbody>
+    ${list.map(l=>`<tr class="clk" onclick="abrirLead('${l.id}')">
+      <td>
+        <div style="display:flex;align-items:center;gap:7px">
+          ${l.agente?`<div style="width:18px;height:18px;border-radius:4px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:var(--navy);flex-shrink:0" title="Indicado por ${l.agente.nome}">${l.agente.iniciais}</div>`:''}
+          <div><div class="fw6">${l.nome}</div><div class="fs10 c-muted">${l.origem}</div></div>
+        </div>
+      </td>
+      <td><span class="bdg bz">${l.posto}</span></td>
+      <td>${l.agente?`<span class="orig-agente">🤝 ${l.agente.nome.split(' ')[0]}</span>`:'<span class="orig-sistema">Sistema</span>'}</td>
+      <td>${scoreBar(l.score)}</td>
+      <td>${statusBdg(l.status)}</td>
+      <td class="mono fs10 c-muted">${l.lastContact||'—'}</td>
+      <td class="mono fs10 c-muted">${l.historico.length} ações</td>
+      <td><button class="btn btn-sm" onclick="event.stopPropagation();abrirLead('${l.id}')">Ver ›</button></td>
+    </tr>`).join('')}
+  </tbody>`;
+}
+function scoreBar(s){
+  const cor=s>=75?'#34D399':s>=60?'#FCD34D':s>0?'#818CF8':'var(--muted)';
+  return`<div class="score-wrap"><div class="score-bar"><div class="score-fill" style="width:${s}%;background:${cor}"></div></div><span style="font-size:11px;font-weight:700;color:${cor};min-width:24px;font-family:var(--mono)">${s||'—'}</span></div>`;
+}
+function statusBdg(s){return{novo:'<span class="bdg bz">Novo</span>',contato:'<span class="bdg bt">Em contato</span>',qualificado:'<span class="bdg bai">Qualificado</span>',proposta:'<span class="bdg ba">Proposta enviada</span>',fechado:'<span class="bdg bg">Fechado ✅</span>'}[s]||`<span class="bdg bz">${s}</span>`}
+
+function abrirLead(id){
+  const l=_leads.find(x=>x.id===id);if(!l)return;
+  _mlLeadId=id;
+  document.getElementById('mlTitle').textContent=l.nome+' · '+l.posto;
+  // bloco de agente
+  const agenteBlock = l.agente ? `
+    <div style="background:rgba(201,168,76,.08);border:1px solid var(--gold-b);border-radius:8px;padding:12px;margin-bottom:14px;display:flex;align-items:center;gap:12px">
+      <div style="width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:var(--navy);flex-shrink:0">${l.agente.iniciais}</div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--gold2)">🤝 Lead indicado por Agente Parceiro</div>
+        <div style="font-size:12px;color:#fff;font-weight:600;margin-top:1px">${l.agente.nome}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">O agente receberá comissão de 0,5% quando este lead fechar · ${_modoAgenteAtivo?'<span style="color:var(--gold2)">✅ Atendido com prioridade absoluta</span>':'Modo agente desativado'}</div>
+      </div>
+    </div>` : `<div style="background:var(--ai-dim);border:1px solid var(--ai-b);border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11px;color:var(--ai2)">🔵 Lead captado pelo sistema · sem agente vinculado</div>`;
+  document.getElementById('mlLeft').innerHTML=`
+    ${agenteBlock}
+    <div class="sp mb14">${statusBdg(l.status)}<span class="bdg bz">${l.posto}</span><span class="bdg bz">${l.origem}</span></div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px">
+      <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;text-align:center"><div class="fs10 c-muted" style="margin-bottom:4px">Score IA</div>${scoreBar(l.score)}</div>
+      <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;text-align:center"><div class="fs10 c-muted" style="margin-bottom:4px">Orçamento</div><div class="fs12 fw6">${l.orcamento}</div></div>
+      <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;text-align:center"><div class="fs10 c-muted" style="margin-bottom:4px">Interesse</div><div class="fs12 fw6" style="font-size:10px">${l.emp}</div></div>
+    </div>
+    <div class="sec mb14">Conversa com a IA</div>
+    ${l.msgs.length?`<div class="chat-viewer">${l.msgs.map(m=>`<div class="cv-msg"><div class="cv-av ${m.role==='ai'?'av-ai':'av-u'}">${m.role==='ai'?'🤖':'U'}</div><div class="cv-bubble ${m.role==='ai'?'cv-ai':'cv-u'}">${m.txt.replace(/\n/g,'<br>')}<div class="cv-time">${m.ts}</div></div></div>`).join('')}</div>`:'<div class="fs12 c-muted">Nenhuma conversa registrada ainda.</div>'}`;
+  const TIPO_COLORS_MODAL={qualificacao:'#818CF8',atendimento:'#22D3EE',funil:'#34D399',proposta:'#FCD34D',followup:'#F87171',agente:'#C9A84C',roteamento:'#A78BFA'};
+  document.getElementById('mlRight').innerHTML=`
+    <div class="sec mb14">Log de Ações da IA</div>
+    ${l.historico.length?l.historico.map(h=>`<div style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px;margin-bottom:8px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:10px;font-weight:700;color:${TIPO_COLORS_MODAL[h.tipo]||'var(--muted)'};text-transform:uppercase">${h.tipo}</span>
+        <span class="fs10 c-muted mono">${typeof h.ts==='string'&&h.ts.includes(':')?h.ts:fmtDt(h.ts)}</span>
+      </div>
+      <div class="fs12 fw6" style="margin-bottom:3px">${h.acao}</div>
+      <div class="fs11 c-muted">${h.detalhe}</div>
+    </div>`).join(''):'<div class="fs12 c-muted">Nenhuma ação ainda.</div>'}
+    ${l.score>=75?`<div class="alert-box ab-green" style="margin-top:8px">✅ Score ${l.score} — Lead pronto para proposta / fechamento com corretor.</div>`:''}
+    ${l.agente&&_modoAgenteAtivo?`<div style="background:rgba(201,168,76,.08);border:1px solid var(--gold-b);border-radius:8px;padding:10px;margin-top:8px"><div class="fs11 fw6 c-gold">🤝 Agente vinculado: ${l.agente.nome}</div><div class="fs10 c-muted" style="margin-top:3px">Este lead tem prioridade na fila · agente será notificado de cada avanço.</div></div>`:''}`;
+  document.getElementById('modalLead').classList.add('show');
+}
+function escalarParaCorretor(){
+  const l=_leads.find(x=>x.id===_mlLeadId);if(!l)return;
+  toast('🤝 '+l.nome+' escalado para corretor! Notificação enviada.','green');
+  fecharModal('modalLead');
+}
+function fecharModal(id){document.getElementById(id).classList.remove('show')}
+
+/* ═══════════════════════════════
+   FUNIL
+═══════════════════════════════ */
+function renderFunilMini(){
+  const etapas=[{key:'novo',label:'Novos',cor:'pf-ai'},{key:'contato',label:'Em contato',cor:'pf-teal'},{key:'qualificado',label:'Qualificados',cor:'pf-purple'},{key:'proposta',label:'Proposta',cor:'pf-gold'},{key:'fechado',label:'Fechados',cor:'pf-green'}];
+  const total=Math.max(_leads.length,1);
+  const el=document.getElementById('homeFunilMini');if(!el)return;
+  el.innerHTML=etapas.map(e=>{const n=_leads.filter(l=>l.status===e.key).length;const pct=Math.round(n/total*100);return`<div class="fstep"><div class="fstep-n">${n}</div><div style="flex:1"><div class="fs11 fw6">${e.label}</div></div><div class="fstep-bar"><div class="fstep-fill ${e.cor}" style="width:${pct}%"></div></div><div class="fstep-pct">${pct}%</div></div>`}).join('');
+  const fv=document.getElementById('funilVisual');if(!fv)return;
+  fv.innerHTML=etapas.map(e=>{const n=_leads.filter(l=>l.status===e.key).length;const pct=Math.round(n/total*100);return`<div class="fstep"><div class="fstep-n">${n}</div><div style="flex:1"><div class="fs12 fw6">${e.label}</div><div class="fs10 c-muted">${n} lead${n!==1?'s':''}</div></div><div class="fstep-bar"><div class="fstep-fill ${e.cor}" style="width:${pct}%"></div></div><div class="fstep-pct">${pct}%</div></div>`}).join('');
+  const ft=document.getElementById('funilTabela');if(!ft)return;
+  ft.innerHTML=`<thead><tr><th>Lead</th><th>Status</th><th>Score</th><th>Última ação IA</th></tr></thead><tbody>${_leads.map(l=>`<tr class="clk" onclick="abrirLead('${l.id}')">${['<td class="fw6">'+l.nome+'</td>','<td>'+statusBdg(l.status)+'</td>','<td>'+scoreBar(l.score)+'</td>','<td class="fs11 c-muted">'+(l.historico[0]?.acao||'Aguardando')+'</td>'].join('')}</tr>`).join('')}</tbody>`;
+}
+
+function renderHomeLeadsMini(){
+  const el=document.getElementById('homeLeadsMini');if(!el)return;
+  const ativos=_leads.filter(l=>l.status!=='fechado').slice(0,5);
+  el.innerHTML=`<table class="tbl">${ativos.map(l=>`<tr class="clk" onclick="abrirLead('${l.id}')"><td class="fw6" style="max-width:140px">${l.nome}</td><td>${statusBdg(l.status)}</td><td>${scoreBar(l.score)}</td></tr>`).join('')}</table>`;
+}
+
+/* ═══════════════════════════════
+   PERFORMANCE
+═══════════════════════════════ */
+function updatePerformance(){
+  const comScore=_leads.filter(l=>l.score>0);
+  const med=comScore.length?Math.round(comScore.reduce((a,l)=>a+l.score,0)/comScore.length):0;
+  const conv=_leads.length?Math.round(_leads.filter(l=>l.status==='proposta'||l.status==='fechado').length/_leads.length*100):0;
+  document.getElementById('perfScoreMed').textContent=med||'—';
+  document.getElementById('perfConv').textContent=conv?conv+'%':'—';
+  document.getElementById('perfTempo').textContent='< 30s';
+  document.getElementById('perfCusto').textContent='~R$0,08';
+  document.getElementById('perfNPS').textContent=med>70?'8.2':'—';
+  const sd=document.getElementById('perfScoreDist');if(sd){
+    const faixas=[{lbl:'0–30',n:_leads.filter(l=>l.score<30).length,cor:'pf-red'},{lbl:'30–60',n:_leads.filter(l=>l.score>=30&&l.score<60).length,cor:'pf-amber'},{lbl:'60–75',n:_leads.filter(l=>l.score>=60&&l.score<75).length,cor:'pf-ai'},{lbl:'75–100',n:_leads.filter(l=>l.score>=75).length,cor:'pf-green'}];
+    sd.innerHTML=faixas.map(f=>`<div class="prog-w"><div class="prog-m"><span>${f.lbl}</span><span class="mono fs10">${f.n} leads</span></div><div class="prog-bar"><div class="pf ${f.cor}" style="width:${f.n/_leads.length*100||0}%"></div></div></div>`).join('');
+  }
+  const at=document.getElementById('perfAcoesTipo');if(at){
+    const tipos=[['💬 Atendimento',_logs.filter(l=>l.tipo==='atendimento').length,'pf-teal'],['🔍 Qualificação',_logs.filter(l=>l.tipo==='qualificacao').length,'pf-ai'],['📊 Funil',_logs.filter(l=>l.tipo==='funil').length,'pf-green'],['📋 Proposta',_logs.filter(l=>l.tipo==='proposta').length,'pf-gold'],['🔔 Follow-up',_logs.filter(l=>l.tipo==='followup').length,'pf-amber']];
+    const maxT=Math.max(...tipos.map(t=>t[1]),1);
+    at.innerHTML=tipos.map(t=>`<div class="prog-w"><div class="prog-m"><span>${t[0]}</span><span class="mono fs10">${t[1]}</span></div><div class="prog-bar"><div class="pf ${t[2]}" style="width:${t[1]/maxT*100}%"></div></div></div>`).join('');
+  }
+  const ha=document.getElementById('perfHora');if(ha&&_aiAtiva){
+    const h=new Date().getHours();
+    const horas=Array.from({length:24},(_,i)=>({h:i,n:i<=h&&i>=(h-_statsHoje.acoes/3|0)?Math.floor(Math.random()*3):0}));
+    horas[h].n=_statsHoje.acoes;
+    const maxH=Math.max(...horas.map(x=>x.n),1);
+    ha.innerHTML=`<div style="display:flex;align-items:flex-end;gap:2px;height:60px">${horas.map(x=>`<div style="flex:1;background:${x.n?'var(--ai2)':'rgba(255,255,255,.06)'};height:${x.n?Math.max(x.n/maxH*60,4):4}px;border-radius:2px 2px 0 0" title="${x.h}h: ${x.n} ações"></div>`).join('')}</div><div class="flex-bet fs10 c-muted" style="margin-top:4px"><span>00h</span><span>12h</span><span>23h</span></div>`;
+  }
+  const pa=document.getElementById('perfAmostra');if(pa&&_leads.some(l=>l.msgs.length)){
+    const lComMsgs=_leads.filter(l=>l.msgs.length);
+    pa.innerHTML=lComMsgs.slice(0,2).map(l=>`<div style="margin-bottom:14px"><div class="fs11 fw6 c-ai" style="margin-bottom:8px">👤 ${l.nome} · Score ${l.score}</div><div class="chat-viewer" style="max-height:160px">${l.msgs.slice(0,4).map(m=>`<div class="cv-msg"><div class="cv-av ${m.role==='ai'?'av-ai':'av-u'}">${m.role==='ai'?'🤖':'U'}</div><div class="cv-bubble ${m.role==='ai'?'cv-ai':'cv-u'}">${m.txt}</div></div>`).join('')}</div></div>`).join('');
+  }
+}
+
+/* ═══════════════════════════════
+   BADGES SIDEBAR
+═══════════════════════════════ */
+function renderBadges(){
+  document.getElementById('sbBdgLogs').textContent=_logs.length;
+  document.getElementById('sbBdgLeads').textContent=_leads.filter(l=>l.status!=='fechado').length;
+  document.getElementById('sbBdgAgente').textContent=_leads.filter(l=>l.agente).length;
+  document.getElementById('sbBdgCorretores').textContent=_corretores.filter(c=>c.ativo).length;
+}
+
+/* ═══════════════════════════════
+   CONFIG / PROMPT
+═══════════════════════════════ */
+function salvarConfig(){toast('✅ Configuração salva! Aplicada ao próximo ciclo da IA.','green')}
+function salvarPrompt(){toast('✅ Prompt salvo! Ativo na próxima mensagem.','green')}
+function resetPrompt(){document.getElementById('ptSystemPrompt').value=DEFAULT_PROMPT;atualizarContagem(document.getElementById('ptSystemPrompt'));toast('↺ Prompt resetado para o padrão WAL.','amber')}
+function atualizarContagem(ta){
+  const n=ta.value.length;
+  document.getElementById('ptCharCount').textContent=n;
+  document.getElementById('ptTokenCount').textContent=Math.round(n/3.8);
+}
+
+/* ═══════════════════════════════
+   CONSOLE DE TESTE
+═══════════════════════════════ */
+function addTestMsg(role,txt){
+  const el=document.getElementById('testChat');if(!el)return;
+  const isAI=role==='ai';
+  el.innerHTML+=`<div class="cv-msg"><div class="cv-av ${isAI?'av-ai':'av-u'}">${isAI?'🤖':'U'}</div><div class="cv-bubble ${isAI?'cv-ai':'cv-u'}" style="font-size:12px">${txt.replace(/\n/g,'<br>')}</div></div>`;
+  el.scrollTop=el.scrollHeight;
+}
+async function sendTest(){
+  const inp=document.getElementById('testInput');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addTestMsg('user',msg);
+  _testHistory.push({role:'user',content:msg});
+  const prompt=document.getElementById('ptSystemPrompt').value||DEFAULT_PROMPT;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:prompt,messages:_testHistory})});
+    const d=await r.json();
+    const reply=d.content?.[0]?.text||'Erro na resposta.';
+    _testHistory.push({role:'assistant',content:reply});
+    addTestMsg('ai',reply);
+  }catch(e){addTestMsg('ai','⚠️ Erro de API. Verifique a chave e o proxy.')}
+}
+function limparTest(){_testHistory=[];document.getElementById('testChat').innerHTML='';toast('Console de teste limpo.','')}
+
+/* ═══════════════════════════════
+   UTILS
+═══════════════════════════════ */
+function toast(msg,tipo=''){const t=document.getElementById('toast');t.textContent=msg;t.className='show'+(tipo?' t-'+tipo:'');clearTimeout(t._t);t._t=setTimeout(()=>t.className='',4500)}
+function fmtDt(s){if(!s)return'—';if(s.includes('/'))return s;if(s.includes('T'))s=s.split('T')[0];const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
+function exportarLogs(){
+  if(!_logs.length){toast('Nenhum log para exportar.','');return}
+  const w=window.open('','_blank');
+  const rows=_logs.map(l=>`<tr><td>${l.ts}</td><td>${l.tipo}</td><td>${l.lead}</td><td>${l.acao}</td><td>${l.detalhe}</td></tr>`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>WAL·AI Logs</title><style>body{font-family:Arial,sans-serif;font-size:9pt;padding:16px}table{width:100%;border-collapse:collapse;font-size:8.5pt}th{background:#0A1628;color:#818CF8;padding:6px;text-align:left}td{padding:5px;border-bottom:1px solid #eee;vertical-align:top}@media print{@page{size:A4 landscape}}</style></head><body><h2 style="color:#0A1628">WAL Consultoria · Log do Consultor Autônomo IA</h2><p style="font-size:8pt;color:#666">Exportado: ${new Date().toLocaleString('pt-BR')} · Total: ${_logs.length} ações</p><table><thead><tr><th>Hora</th><th>Tipo</th><th>Lead</th><th>Ação</th><th>Detalhe</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),400);
+}
+
+/* ══════════════════════════════════════════
+   MODO AGENTE — TOGGLE E ROTEAMENTO
+══════════════════════════════════════════ */
+function toggleModoAgente(on){
+  _modoAgenteAtivo = on;
+  // sidebar toggle sincronizado
+  document.getElementById('modoAgenteToggle').checked = on;
+  // alerta home
+  document.getElementById('homeAlertAgente').style.display = on ? 'block' : 'none';
+  // badge no topbar
+  const tb = document.getElementById('topModeBadge');
+  tb.style.display = on ? '' : 'none';
+  tb.className = 'mode-badge mode-agente';
+  tb.textContent = '🤝 Modo Agente';
+  // badges sidebar
+  document.getElementById('sbBdgAgente').textContent = _leads.filter(l=>l.agente).length;
+  renderFila();renderTabelaLeadsAgente();renderBadges();
+  toast(on ? '🤝 Modo Agente ATIVADO — leads de agentes têm prioridade absoluta!' : '⏸ Modo Agente desativado.', on ? 'amber' : '');
+}
+
+/* fila de atendimento ordenada por prioridade */
+function getFilaOrdenada(){
+  const agente = _leads.filter(l => l.agente && l.status !== 'fechado' && l.status !== 'perdido');
+  const sistema = _leads.filter(l => !l.agente && l.status !== 'fechado' && l.status !== 'perdido');
+  return _modoAgenteAtivo ? [...agente, ...sistema] : [..._leads.filter(l=>l.status!=='fechado'&&l.status!=='perdido')];
+}
+
+function renderFila(){
+  const fila = getFilaOrdenada();
+  const el = document.getElementById('filaAtendimento'); if(!el)return;
+  const bdg = document.getElementById('filaModeBdg');
+  if(bdg) bdg.style.display = _modoAgenteAtivo ? '' : 'none';
+  const sub = document.getElementById('filaSubtitle');
+  if(sub) sub.textContent = _modoAgenteAtivo
+    ? `🏆 Agentes primeiro · ${_leads.filter(l=>l.agente).length} indicações · ${_leads.filter(l=>!l.agente).length} sistema`
+    : 'Ordem de entrada (FIFO)';
+  el.innerHTML = fila.map((l,i) => {
+    const isAgente = !!l.agente;
+    return`<div class="queue-item ${isAgente?'agente-item':'sistema-item'}" onclick="abrirLead('${l.id}')">
+      <div class="queue-rank ${isAgente?'rank-gold':'rank-ai'}">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:600;color:#fff">${l.nome}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${l.posto} · ${l.emp}</div>
+        ${isAgente?`<div style="font-size:9px;color:var(--gold2);margin-top:3px">🤝 via ${l.agente.nome}</div>`:''}
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        ${isAgente?'<span class="orig-agente">Agente</span>':'<span class="orig-sistema">Sistema</span>'}
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">${scoreBar(l.score)}</div>
+      </div>
+    </div>`;
+  }).join('') || '<div style="padding:16px;text-align:center;color:var(--muted);font-size:12px">Nenhum lead na fila.</div>';
+
+  // stats roteamento
+  const nAgente = _leads.filter(l=>l.agente).length;
+  const nSistema = _leads.filter(l=>!l.agente).length;
+  const nProp = _leads.filter(l=>l.agente&&(l.status==='proposta'||l.status==='fechado')).length;
+  const nComis = _agentes.reduce((a,ag)=>a+ag.comis,0);
+  const el1=document.getElementById('statLeadsAgente'); if(el1)el1.textContent=nAgente;
+  const el2=document.getElementById('statLeadsSistema'); if(el2)el2.textContent=nSistema;
+  const el3=document.getElementById('statLeadsAgenteProp'); if(el3)el3.textContent=nProp;
+  const el4=document.getElementById('statComisAgente'); if(el4)el4.textContent='R$'+(nComis/1000).toFixed(1)+'k';
+}
+
+function renderTabelaLeadsAgente(){
+  const el = document.getElementById('tabelaLeadsAgente'); if(!el)return;
+  const leadsAgente = _leads.filter(l=>l.agente);
+  if(!leadsAgente.length){
+    el.innerHTML='<thead><tr><th>Lead</th><th>Agente</th><th>Empreendimento</th><th>Score</th><th>Status</th><th>Roteamento</th></tr></thead><tbody><tr><td colspan="6" style="text-align:center;padding:20px;color:var(--muted)">Nenhum lead de agente parceiro ainda.</td></tr></tbody>';
+    return;
+  }
+  el.innerHTML=`<thead><tr><th>Lead</th><th>Agente</th><th>Empreendimento</th><th>Score IA</th><th>Status</th><th>Posição na fila</th><th></th></tr></thead><tbody>${
+    leadsAgente.map(l=>{
+      const fila=getFilaOrdenada();
+      const pos=fila.findIndex(x=>x.id===l.id)+1;
+      return`<tr class="clk" onclick="abrirLead('${l.id}')">
+        <td><div class="fw6">${l.nome}</div><div class="fs10 c-muted">${l.posto}</div></td>
+        <td><div style="display:flex;align-items:center;gap:7px"><div style="width:24px;height:24px;border-radius:6px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--navy)">${l.agente.iniciais}</div><span class="fs11">${l.agente.nome}</span></div></td>
+        <td class="fs11">${l.emp}</td>
+        <td>${scoreBar(l.score)}</td>
+        <td>${statusBdg(l.status)}</td>
+        <td>${_modoAgenteAtivo?`<span style="font-size:11px;font-weight:700;color:var(--gold2)">🏆 #${pos} (prioridade)</span>`:`<span class="fs11 c-muted">#${pos}</span>`}</td>
+        <td><button class="btn btn-sm" onclick="event.stopPropagation();abrirLead('${l.id}')">Ver ›</button></td>
+      </tr>`;
+    }).join('')
+  }</tbody>`;
+}
+
+function renderCorretores(){
+  const el=document.getElementById('listaCorretores');if(!el)return;
+  el.innerHTML=_corretores.map(c=>`
+    <div class="corretor-row${c.ativo?' active':''}">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <div class="corretor-av" style="background:${c.ativo?c.cor:'rgba(255,255,255,.1)'};color:${c.ativo?'#fff':'var(--muted)'}">${c.iniciais}</div>
+        <div>
+          <div class="fs12 fw6">${c.nome}</div>
+          <div class="fs10 c-muted">${c.creci} · ${c.esp}</div>
+          <div class="fs10" style="margin-top:2px;color:${c.ativo?'#34D399':'var(--muted)'}">${c.ativo?'✅ Recebendo leads':'⏸ Desabilitado'} · ${c.leads} leads ativos</div>
+        </div>
+      </div>
+      <label class="sw">
+        <input type="checkbox" ${c.ativo?'checked':''} onchange="toggleCorretor('${c.id}',this.checked)">
+        <div class="sw-track"></div><div class="sw-thumb"></div>
+      </label>
+    </div>`).join('');
+  // badge sidebar
+  const ativos=_corretores.filter(c=>c.ativo).length;
+  document.getElementById('sbBdgCorretores').textContent=ativos;
+  // tabela handoffs
+  const th=document.getElementById('tabelaHandoffs');if(!th)return;
+  th.innerHTML=`<thead><tr><th>Lead</th><th>Origem</th><th>Agente</th><th>Corretor</th><th>Score</th><th>Data/Hora</th><th>Tipo</th></tr></thead><tbody>${
+    _handoffs.map(h=>`<tr>
+      <td class="fw6">${h.lead}</td>
+      <td>${h.agente!=='—'?`<span class="orig-agente">Agente</span>`:'<span class="orig-sistema">Sistema</span>'}</td>
+      <td class="fs11">${h.agente}</td>
+      <td class="fs11 fw6">${h.corretor}</td>
+      <td>${scoreBar(h.score)}</td>
+      <td class="mono fs10 c-muted">${h.data}</td>
+      <td>${h.tipo==='agente'?'<span class="bdg bo">Indicação</span>':'<span class="bdg bai">Sistema</span>'}</td>
+    </tr>`).join('')
+  }</tbody>`;
+}
+
+function toggleCorretor(id, on){
+  const c=_corretores.find(x=>x.id===id);if(!c)return;
+  c.ativo=on;
+  renderCorretores();
+  const ativos=_corretores.filter(c=>c.ativo).length;
+  if(!ativos){
+    toast('⚠️ Nenhum corretor habilitado — IA conduzirá todo o processo sozinha.','amber');
+  } else {
+    toast((on?'✅ ':'⏸ ')+c.nome+(on?' habilitado para receber leads':'desabilitado')+'.',on?'green':'');
+  }
+}
+
+function salvarRoteamento(){
+  toast('✅ Configuração de roteamento salva!','green');
+}
+
+function resetScriptAgente(){
+  document.getElementById('scriptPrimeiro').value=`Olá, {POSTO} {NOME_LEAD}! Sou WAL·AI, consultora virtual da WAL Consultoria.\n\nRecebi sua indicação através de {NOME_AGENTE}, que já nos apresentou seu interesse em {EMP_INTERESSE}. Fico feliz em poder ajudar!\n\nPor já vir recomendado, vou te dar atenção especial. Para personalizar melhor as opções, posso te fazer uma pergunta rápida: você tem FGTS disponível para usar na entrada?`;
+  document.getElementById('scriptProposta').value=`{POSTO} {NOME_LEAD}, com base no que conversamos, preparei uma proposta exclusiva para o seu perfil.\n\nVou enviar a simulação completa de financiamento CFIAe para {EMP_INTERESSE} agora. Em paralelo, já informei ao {NOME_AGENTE} sobre seu progresso — ele poderá te dar mais detalhes se quiser.\n\nNosso corretor especialista entrará em contato em breve para agendar uma visita. Tem disponibilidade essa semana?`;
+  toast('↺ Scripts resetados para o padrão.','amber');
+}
+
+/* ═══════════════════════════════
+   RENDER ALL
+═══════════════════════════════ */
+function renderAll(){
+  renderFunilMini();renderHomeLeadsMini();renderLeadsPanel();renderLogs();updatePerformance();renderBadges();
+  renderFila();renderTabelaLeadsAgente();renderCorretores();
+}
+</script>
+</body>
+</html>

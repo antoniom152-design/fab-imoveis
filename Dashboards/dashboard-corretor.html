@@ -1,0 +1,1801 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Portal do Corretor</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+  --teal:#0E7490;--teal2:#22D3EE;
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.10);
+  --purple:#7C3AED;--purple-dim:rgba(124,58,237,.10);
+  --surf:#0D1B2E;--surf2:#111F35;--surf3:#152844;
+  --card:#152540;--card2:#1A2E50;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
+  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ── LOCK SCREEN ── */
+#lockScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+}
+.lock-box{
+  width:380px;padding:40px;
+  background:var(--card);border:1px solid var(--gold-b);border-radius:var(--r);
+  text-align:center;
+}
+.lock-logo{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.lock-sub{font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:28px}
+.lock-label{font-size:11px;color:var(--muted);text-align:left;margin-bottom:6px;font-weight:600}
+.lock-input{
+  width:100%;padding:11px 14px;
+  background:var(--surf2);border:1px solid var(--bdr2);border-radius:7px;
+  color:var(--txt);font-size:14px;outline:none;
+  transition:border-color .2s;margin-bottom:14px;
+}
+.lock-input:focus{border-color:var(--gold)}
+.lock-btn{
+  width:100%;padding:12px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:var(--navy);border:none;border-radius:7px;font-weight:700;font-size:14px;cursor:pointer;
+}
+.lock-btn:hover{opacity:.92}
+.lock-err{color:#F87171;font-size:12px;margin-top:8px;display:none}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:5000;
+  background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;
+  padding:12px 18px;font-size:12px;color:var(--txt);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+  border-left:3px solid var(--gold);max-width:320px;
+}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.t-green{border-left-color:var(--green2)}
+#toast.t-red{border-left-color:#F87171}
+#toast.t-amber{border-left-color:#FCD34D}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:224px;min-height:100vh;background:var(--navy);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
+  border-right:1px solid var(--bdr);
+}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-b)}
+.sb-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.sb-mode{
+  display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  background:rgba(5,150,105,.15);border:1px solid rgba(5,150,105,.3);
+  color:#34D399;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  padding:3px 9px;border-radius:20px;
+}
+.sb-mode-dot{width:5px;height:5px;background:#34D399;border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.sb-corretor{
+  margin:14px 12px 0;padding:12px;
+  background:rgba(201,168,76,.07);border:1px solid var(--gold-b);border-radius:9px;
+}
+.sbc-av{
+  width:36px;height:36px;border-radius:9px;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;color:var(--navy);margin-bottom:8px;
+}
+.sbc-name{color:#fff;font-size:13px;font-weight:600}
+.sbc-creci{color:rgba(255,255,255,.35);font-size:10px;margin-top:1px}
+.sbc-meta{display:flex;gap:8px;margin-top:10px}
+.sbc-pill{
+  flex:1;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;
+  padding:5px 8px;text-align:center;
+}
+.sbc-pill-val{font-size:13px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.sbc-pill-lbl{font-size:9px;color:var(--muted);margin-top:1px}
+
+.nav-grp{padding:12px 8px 2px}
+.nav-lbl{color:rgba(255,255,255,.2);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 9px 5px;font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.5);
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;
+  margin-bottom:1px;border:1px solid transparent;position:relative;
+}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(201,168,76,.10);color:var(--gold);border-color:var(--gold-b)}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px;
+}
+.nb-r{background:rgba(220,38,38,.2);color:#F87171}
+.nb-g{background:rgba(5,150,105,.2);color:#34D399}
+.nb-a{background:rgba(217,119,6,.2);color:#FCD34D}
+.nb-p{background:rgba(124,58,237,.2);color:#A78BFA}
+.nav-dot{
+  position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  width:7px;height:7px;border-radius:50%;background:#F87171;
+  animation:pulse 1.5s infinite;
+}
+
+.sb-footer{
+  margin-top:auto;padding:14px 12px;border-top:1px solid var(--bdr);
+  display:flex;align-items:center;gap:8px;
+}
+.sf-logout{
+  margin-left:auto;width:28px;height:28px;border-radius:6px;
+  background:var(--surf2);border:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s;
+}
+.sf-logout:hover{color:var(--txt);border-color:var(--bdr2)}
+
+/* ── MAIN ── */
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--navy2);border-bottom:1px solid var(--bdr);
+  padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:50;
+}
+.tb-bread{display:flex;align-items:center;gap:6px;flex:1}
+.tb-sec{color:rgba(255,255,255,.3);font-size:11px;font-weight:500}
+.tb-sep{color:rgba(255,255,255,.15)}
+.tb-page{color:var(--gold);font-size:12px;font-weight:600}
+.tb-meta{display:flex;align-items:center;gap:12px}
+.tb-notif{
+  position:relative;width:32px;height:32px;border-radius:7px;
+  background:var(--surf2);border:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;
+}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:#F87171;border-radius:50%;border:2px solid var(--navy2)}
+.tb-clock{color:rgba(255,255,255,.3);font-size:10px;font-family:var(--mono)}
+
+/* ── CONTENT ── */
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.2)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.9;transform:translateY(-1px)}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-teal{background:rgba(14,116,144,.2);border-color:rgba(34,211,238,.2);color:var(--teal2)}
+.btn-red{background:rgba(220,38,38,.15);border-color:rgba(220,38,38,.3);color:#F87171}
+.btn-green{background:rgba(5,150,105,.15);border-color:rgba(52,211,153,.2);color:#34D399}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s;cursor:default}
+.kpi:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::after{background:var(--green)}
+.kpi.red::after{background:var(--red)}
+.kpi.purple::after{background:var(--purple)}
+.kpi.amber::after{background:var(--amber)}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;line-height:1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-dlt{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;margin-top:4px;padding:1px 6px;border-radius:4px}
+.up{background:rgba(5,150,105,.15);color:#34D399}
+.dn{background:rgba(220,38,38,.15);color:#F87171}
+.fl{background:rgba(122,144,168,.12);color:var(--muted)}
+
+/* ── SECTION TITLE ── */
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.cs2{grid-column:span 2}
+.mb20{margin-bottom:20px}
+.mb14{margin-bottom:14px}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.card-b{padding:16px}
+.card-link{font-size:10px;color:var(--gold);font-weight:600;cursor:pointer}
+.card-link:hover{opacity:.8}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
+.bg{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
+.br{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
+.ba{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
+.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-b)}
+.bt{background:rgba(14,116,144,.2);color:#22D3EE;border:1px solid rgba(34,211,238,.15)}
+.bp{background:rgba(124,58,237,.15);color:#A78BFA;border:1px solid rgba(167,139,250,.15)}
+.bz{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--bdr)}
+/* CRM status */
+.s-novo{background:#1C2F1C;color:#86EFAC}
+.s-contato{background:#172040;color:#93C5FD}
+.s-proposta{background:#2A1A40;color:#C4B5FD}
+.s-visita{background:#0D2828;color:#5EEAD4}
+.s-aguardando{background:#2C200A;color:#FCD34D}
+.s-fechado{background:#0A2414;color:#6EE7B7}
+.s-perdido{background:#2C0A0A;color:#FCA5A5}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(0,0,0,.15)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(255,255,255,.02)}
+.tbl tr.clickable{cursor:pointer}
+
+/* ── PROGRESS ── */
+.prog-w{margin-bottom:9px}
+.prog-m{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.prog-bar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px}
+.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.pf-teal{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.pf-green{background:var(--green)}
+.pf-purple{background:var(--purple)}
+.pf-red{background:var(--red)}
+.pf-amber{background:var(--amber)}
+
+/* ── FUNNEL STEPS ── */
+.fstep{
+  display:flex;align-items:center;gap:12px;padding:9px 14px;
+  border-radius:8px;margin-bottom:6px;background:var(--card2);border:1px solid var(--bdr);
+  cursor:pointer;transition:border-color .15s;
+}
+.fstep:hover{border-color:var(--bdr2)}
+.fstep-n{font-family:var(--mono);font-size:17px;font-weight:500;color:#fff;min-width:32px}
+.fstep-bar{flex:2;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.fstep-fill{height:100%;border-radius:3px}
+.fstep-pct{font-size:10px;color:var(--muted);font-family:var(--mono);min-width:32px;text-align:right}
+
+/* ── LEAD CARD ── */
+.lead-card{
+  background:var(--card2);border:1px solid var(--bdr);border-radius:9px;
+  padding:14px;cursor:pointer;transition:all .15s;margin-bottom:8px;
+}
+.lead-card:hover{border-color:var(--bdr2);background:rgba(26,46,80,.8)}
+.lead-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.lead-name{font-size:13px;font-weight:600;color:#fff}
+.lead-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.lead-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lead-action{font-size:11px;color:var(--gold);font-style:italic;margin-top:5px}
+.lead-date{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.lead-date.red{color:#F87171}
+.lead-date.grn{color:#34D399}
+.lead-date.amb{color:#FCD34D}
+
+/* ── TIMELINE ── */
+.tl-wrap{position:relative;padding-left:24px}
+.tl-line{position:absolute;left:9px;top:0;bottom:0;width:1px;background:var(--bdr)}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-dot{
+  position:absolute;left:-24px;top:3px;
+  width:18px;height:18px;border-radius:50%;border:1px solid var(--bdr2);
+  background:var(--card);display:flex;align-items:center;justify-content:center;font-size:8px;
+}
+.tl-tipo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--gold);margin-bottom:2px}
+.tl-data{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:4px}
+.tl-nota{font-size:12px;color:var(--txt);line-height:1.5}
+
+/* ── MODAL ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:1000;
+  display:none;align-items:flex-start;justify-content:center;
+  padding:40px 20px;overflow-y:auto;
+}
+.modal-overlay.show{display:flex}
+.modal-box{
+  width:100%;max-width:860px;background:var(--card);border:1px solid var(--bdr2);
+  border-radius:var(--r);position:relative;
+  border-top:2px solid var(--gold);
+}
+.modal-h{
+  padding:20px 24px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--gold)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--txt)}
+.modal-body{display:grid;grid-template-columns:1fr 360px}
+.modal-left{padding:24px;border-right:1px solid var(--bdr);overflow-y:auto;max-height:70vh}
+.modal-right{padding:20px;display:flex;flex-direction:column;background:rgba(8,25,46,.4);max-height:70vh;overflow-y:auto}
+.modal-f{padding:16px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end}
+.field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field-inp,.field-sel,.field-ta{
+  width:100%;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr2);
+  color:var(--txt);border-radius:7px;font-size:12px;outline:none;transition:border-color .2s;
+}
+.field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--gold)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(255,255,255,.2)}
+.field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field-sel option{background:#152540}
+.field-ta{resize:vertical;min-height:70px;line-height:1.5}
+.g-field{display:grid;gap:12px;margin-bottom:14px}
+.g-field-2{grid-template-columns:1fr 1fr}
+.g-field-3{grid-template-columns:1fr 1fr 1fr}
+.f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr)}
+
+/* ── AI CHAT ── */
+.ai-wrap{
+  background:var(--surf);border:1px solid var(--bdr);border-radius:8px;
+  display:flex;flex-direction:column;height:100%;min-height:300px;
+}
+.ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{display:flex;gap:8px;align-items:flex-start}
+.ai-av{
+  width:26px;height:26px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+}
+.av-ai{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy)}
+.av-u{background:var(--card2);color:var(--muted);border:1px solid var(--bdr)}
+.ai-bubble{
+  flex:1;padding:8px 11px;border-radius:8px;font-size:12px;line-height:1.55;
+}
+.ai-bubble-ai{background:var(--card2);border:1px solid var(--bdr)}
+.ai-bubble-u{background:rgba(201,168,76,.08);border:1px solid var(--gold-b);text-align:right}
+.ai-input-row{padding:10px;border-top:1px solid var(--bdr);display:flex;gap:8px}
+.ai-inp{
+  flex:1;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);
+  border-radius:7px;padding:8px 12px;font-size:12px;outline:none;transition:border-color .2s;resize:none;min-height:36px;max-height:100px;overflow:auto;
+}
+.ai-inp:focus{border-color:var(--gold)}
+.ai-send{
+  width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:14px;color:var(--navy);font-weight:700;transition:opacity .2s;
+}
+.ai-send:hover{opacity:.85}
+.ai-send.loading{animation:pulse 1s infinite}
+.ai-chips{display:flex;flex-wrap:wrap;gap:5px;padding:8px 10px 0}
+.ai-chip{
+  font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;
+  background:var(--card2);border:1px solid var(--bdr2);color:var(--muted);
+  transition:all .15s;
+}
+.ai-chip:hover{border-color:var(--gold-b);color:var(--gold2)}
+
+/* ── AGENDA ── */
+.agenda-day{
+  background:var(--card2);border:1px solid var(--bdr);border-radius:8px;
+  margin-bottom:8px;overflow:hidden;
+}
+.agenda-day-h{
+  padding:10px 14px;border-bottom:1px solid var(--bdr);
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(0,0,0,.15);
+}
+.agenda-day-lbl{font-size:11px;font-weight:700;color:#fff}
+.agenda-day-dt{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.agenda-item{
+  display:flex;align-items:center;gap:12px;padding:10px 14px;
+  border-bottom:1px solid var(--bdr);cursor:pointer;transition:background .15s;
+}
+.agenda-item:last-child{border-bottom:none}
+.agenda-item:hover{background:rgba(255,255,255,.02)}
+.agenda-time{font-size:11px;font-family:var(--mono);color:var(--gold);min-width:42px;font-weight:600}
+.agenda-body{flex:1}
+.agenda-lead{font-size:12px;font-weight:600;color:#fff}
+.agenda-tipo{font-size:10px;color:var(--muted);margin-top:1px}
+
+/* ── EMP CARDS ── */
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.emp-card{
+  background:var(--card2);border:1px solid var(--bdr);border-radius:9px;
+  overflow:hidden;transition:border-color .15s;cursor:pointer;
+}
+.emp-card:hover{border-color:var(--bdr2)}
+.emp-img{height:110px;background:linear-gradient(135deg,var(--navy3),var(--navy2));
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  position:relative;overflow:hidden}
+.emp-img-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.5),transparent)}
+.emp-tag{position:absolute;top:8px;right:8px}
+.emp-body{padding:12px}
+.emp-nome{font-size:12px;font-weight:700;color:#fff;margin-bottom:2px}
+.emp-const{font-size:10px;color:var(--muted);margin-bottom:8px}
+.emp-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.emp-stat-lbl{font-size:9px;color:var(--muted)}
+.emp-stat-val{font-size:12px;font-weight:700;color:var(--txt);font-family:var(--mono)}
+
+/* ── TABELA PRECOS ── */
+.tp-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;margin-bottom:12px}
+.tp-head{padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,.15)}
+.tp-nome{font-size:13px;font-weight:700;color:#fff}
+
+/* ── CAMPAIGN CARD ── */
+.camp-card{
+  background:var(--card2);border:1px solid var(--bdr);border-radius:9px;
+  padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;
+}
+.camp-card:hover{border-color:var(--bdr2)}
+.camp-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.camp-nome{font-size:13px;font-weight:700;color:#fff}
+.camp-periodo{font-size:10px;color:var(--muted);margin-top:2px}
+.camp-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}
+.camp-stat{background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:7px;text-align:center}
+.camp-stat-val{font-size:13px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.camp-stat-lbl{font-size:9px;color:var(--muted);margin-top:1px}
+.camp-msgs{margin-top:10px;display:flex;flex-direction:column;gap:5px}
+.camp-msg{
+  font-size:11px;padding:6px 10px;border-radius:6px;border-left:3px solid;
+  cursor:pointer;transition:opacity .15s;color:var(--txt);
+}
+.camp-msg:hover{opacity:.8}
+.camp-msg-wa{background:rgba(22,163,74,.08);border-color:var(--green2)}
+.camp-msg-ig{background:rgba(124,58,237,.08);border-color:#A78BFA}
+.camp-msg-em{background:rgba(14,116,144,.08);border-color:var(--teal2)}
+
+/* ── MISC ── */
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}
+.c-muted{color:var(--muted)}.c-gold{color:var(--gold)}.c-green{color:#34D399}
+.c-red{color:#F87171}.c-amber{color:#FCD34D}.c-teal{color:#22D3EE}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.flex-bet{display:flex;align-items:center;justify-content:space-between}
+.gap6{gap:6px}.flex{display:flex;align-items:center}
+.sp{display:flex;flex-wrap:wrap;gap:6px}
+
+/* Notification badge animation */
+@keyframes crmPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+</style>
+</head>
+<body>
+
+<!-- ── LOCK SCREEN ── -->
+<div id="lockScreen">
+  <div class="lock-box">
+    <div class="lock-logo">WAL Consultoria</div>
+    <div class="lock-sub">Portal do Corretor</div>
+    <div class="lock-label">Seu CRECI</div>
+    <input class="lock-input" type="text" id="lockCreci" placeholder="Ex: CRECI-RJ 123456" />
+    <div class="lock-label">PIN de acesso</div>
+    <input class="lock-input" type="password" id="lockPin" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+    <button class="lock-btn" onclick="doLogin()">Entrar no Portal</button>
+    <div class="lock-err" id="lockErr">CRECI ou PIN inválido</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:18px">Modo demo: qualquer CRECI + PIN <strong style="color:var(--gold)">1234</strong></div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast"></div>
+
+<!-- ── APP ── -->
+<div class="app" id="appWrap" style="display:none">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-brand">WAL Consultoria</div>
+    <div class="sb-mode"><div class="sb-mode-dot"></div> Corretor Online</div>
+  </div>
+
+  <div class="sb-corretor">
+    <div class="sbc-av" id="sbAv">MR</div>
+    <div class="sbc-name" id="sbName">Marcos Ribeiro</div>
+    <div class="sbc-creci" id="sbCreci">CRECI-RJ 123456</div>
+    <div class="sbc-meta">
+      <div class="sbc-pill">
+        <div class="sbc-pill-val" id="sbVendas">4</div>
+        <div class="sbc-pill-lbl">Vendas</div>
+      </div>
+      <div class="sbc-pill">
+        <div class="sbc-pill-val" id="sbLeads">12</div>
+        <div class="sbc-pill-lbl">Leads</div>
+      </div>
+      <div class="sbc-pill">
+        <div class="sbc-pill-val" id="sbComissao">R$36k</div>
+        <div class="sbc-pill-lbl">Comissão</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-grp">
+    <div class="nav-lbl">Principal</div>
+    <div class="nav-item active" onclick="nav(this,'home')"><span class="nav-ico">🏠</span>Início</div>
+    <div class="nav-item" onclick="nav(this,'leads')">
+      <span class="nav-ico">🎯</span>Meus Leads
+      <span class="nav-badge nb-r" id="sbBadgeLeads">3</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'funil')"><span class="nav-ico">📊</span>Funil de Vendas</div>
+    <div class="nav-item" onclick="nav(this,'agenda')">
+      <span class="nav-ico">📅</span>Agenda
+      <span class="nav-badge nb-a">2 hoje</span>
+    </div>
+  </div>
+
+  <div class="nav-grp">
+    <div class="nav-lbl">Portfólio</div>
+    <div class="nav-item" onclick="nav(this,'empreendimentos')"><span class="nav-ico">🏗️</span>Empreendimentos</div>
+    <div class="nav-item" onclick="nav(this,'precos')"><span class="nav-ico">💰</span>Tabelas de Preços</div>
+    <div class="nav-item" onclick="nav(this,'marketing')">
+      <span class="nav-ico">📣</span>Campanhas Ativas
+      <span class="nav-badge nb-g">Jul ativo</span>
+    </div>
+  </div>
+
+  <div class="nav-grp">
+    <div class="nav-lbl">Produção</div>
+    <div class="nav-item" onclick="nav(this,'vendas')"><span class="nav-ico">🤝</span>Minhas Vendas</div>
+    <div class="nav-item" onclick="nav(this,'comissoes')"><span class="nav-ico">💵</span>Comissões</div>
+    <div class="nav-item" onclick="nav(this,'ia')"><span class="nav-ico">🤖</span>Consultor IA</div>
+  </div>
+
+  <div class="nav-grp">
+    <div class="nav-lbl">Ferramentas</div>
+    <div class="nav-item" onclick="nav(this,'simulador')"><span class="nav-ico">🧮</span>Simulador CFIAe</div>
+    <div class="nav-item" onclick="nav(this,'docs')"><span class="nav-ico">📋</span>Documentos</div>
+  </div>
+
+  <div class="sb-footer">
+    <div class="sbc-av" style="margin:0" id="sbAvFoot">MR</div>
+    <div>
+      <div class="sbc-name fs12" id="sbNameFoot">Marcos Ribeiro</div>
+      <div class="sbc-creci" id="sbCreciFoot">Online agora</div>
+    </div>
+    <div class="sf-logout" onclick="doLogout()" title="Sair">🚪</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="tb-bread">
+      <span class="tb-sec">WAL Consultoria</span>
+      <span class="tb-sep">›</span>
+      <span class="tb-page" id="topbarTitle">Início</span>
+    </div>
+    <div class="tb-meta">
+      <div class="tb-notif" onclick="nav(document.querySelector('[onclick*=leads]'),'leads')">
+        🔔<div class="notif-dot" id="notifDot"></div>
+      </div>
+      <div class="tb-clock" id="clock">—</div>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ══ HOME ══ -->
+  <div class="panel active" id="panel-home">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">☀️ Bom dia, <span id="phName">Marcos</span></div>
+        <div class="ph-title">Seu painel de hoje</div>
+        <div class="ph-sub" id="phData">Segunda-feira, 28 de junho de 2026</div>
+      </div>
+      <div class="ph-acts">
+        <button class="btn" onclick="nav(document.querySelector('[onclick*=simulador]'),'simulador')">🧮 Simular CFIAe</button>
+        <button class="btn btn-gold" onclick="abrirNovoLead()">+ Novo Lead</button>
+      </div>
+    </div>
+
+    <!-- alertas do dia -->
+    <div id="homeAlerts" class="mb20"></div>
+
+    <!-- KPIs -->
+    <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+      <div class="kpi gold"><div class="kpi-lbl">Leads Ativos</div><div class="kpi-val" id="kpiLeads">12</div><div class="kpi-dlt up">▲ 3 esta semana</div></div>
+      <div class="kpi teal"><div class="kpi-lbl">Em Negociação</div><div class="kpi-val" id="kpiNeg">5</div><div class="kpi-dlt fl">→ 2 com proposta</div></div>
+      <div class="kpi green"><div class="kpi-lbl">Vendas no Mês</div><div class="kpi-val" id="kpiVend">1</div><div class="kpi-dlt up">▲ 1 a mais que jun</div></div>
+      <div class="kpi purple"><div class="kpi-lbl">Comissão Acum.</div><div class="kpi-val" id="kpiComis">R$36k</div><div class="kpi-dlt up">▲ 18%</div></div>
+      <div class="kpi amber"><div class="kpi-lbl">Próx. Ação</div><div class="kpi-val" id="kpiAcao">Hoje</div><div class="kpi-dlt fl">→ Cap. Henrique</div></div>
+    </div>
+
+    <div class="g3 mb20">
+      <!-- Leads prioritários -->
+      <div class="card cs2">
+        <div class="card-h">
+          <div><div class="card-title">🔥 Leads Prioritários</div><div class="card-sub">Ação necessária hoje</div></div>
+          <span class="card-link" onclick="nav(document.querySelector('[onclick*=leads]'),'leads')">Ver todos ›</span>
+        </div>
+        <div class="card-b" style="padding:12px">
+          <div id="homeLeadsList"></div>
+        </div>
+      </div>
+      <!-- Agenda hoje -->
+      <div class="card">
+        <div class="card-h">
+          <div><div class="card-title">📅 Agenda de Hoje</div><div class="card-sub" id="agHoje">—</div></div>
+          <span class="card-link" onclick="nav(document.querySelector('[onclick*=agenda]'),'agenda')">Agenda ›</span>
+        </div>
+        <div class="card-b" style="padding:8px" id="homeAgenda"></div>
+      </div>
+    </div>
+
+    <div class="g2 mb20">
+      <!-- Meta mensal -->
+      <div class="card">
+        <div class="card-h"><div class="card-title">🎯 Progresso Mensal</div></div>
+        <div class="card-b">
+          <div style="text-align:center;padding:8px 0 14px">
+            <div style="font-size:40px;font-family:'Playfair Display',serif;font-weight:700;color:#fff;line-height:1">1<span style="font-size:20px;color:var(--muted)">/5</span></div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px">vendas este mês · meta 5</div>
+            <div style="margin:10px auto;width:90%;height:7px;background:rgba(255,255,255,.06);border-radius:4px;overflow:hidden">
+              <div style="height:100%;width:20%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:4px"></div>
+            </div>
+            <div style="font-size:11px;color:var(--gold);font-weight:600">20% da meta — acelere!</div>
+          </div>
+          <div class="prog-w"><div class="prog-m"><span>Leads → Contato</span><span class="mono fs10 c-muted">10/12</span></div><div class="prog-bar"><div class="pf pf-teal" style="width:83%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span>Contato → Proposta</span><span class="mono fs10 c-muted">4/10</span></div><div class="prog-bar"><div class="pf pf-gold" style="width:40%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span>Proposta → Fechado</span><span class="mono fs10 c-muted">1/4</span></div><div class="prog-bar"><div class="pf pf-green" style="width:25%"></div></div></div>
+        </div>
+      </div>
+      <!-- Dica IA rápida -->
+      <div class="card">
+        <div class="card-h"><div class="card-title">🤖 Dica do Consultor IA</div></div>
+        <div class="card-b">
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px;line-height:1.6;color:var(--txt)">
+            💡 <strong style="color:var(--gold)">Orla Recreio Reserva</strong> tem 3 leads em proposta parada há mais de 5 dias. Envie um WhatsApp com <em>"liberamos 2 unidades com condição especial para militares esta semana"</em> — gera urgência real com base na campanha de julho em vigor.
+          </div>
+          <div class="ai-chips">
+            <div class="ai-chip" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');setTimeout(()=>sendAiChip('Como abordar um lead parado na etapa de proposta?'),300)">Como reativar proposta parada</div>
+            <div class="ai-chip" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');setTimeout(()=>sendAiChip('Quais os argumentos mais fortes para militar FAB comprar agora?'),300)">Argumentos para FAB</div>
+            <div class="ai-chip" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');setTimeout(()=>sendAiChip('Simule uma abordagem de WhatsApp para lead de Capitão interessado no Orla Recreio'),300)">Script WhatsApp</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ LEADS ══ -->
+  <div class="panel" id="panel-leads">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">🎯 CRM</div>
+        <div class="ph-title">Meus Leads</div>
+        <div class="ph-sub">Gerencie e acompanhe cada oportunidade</div>
+      </div>
+      <div class="ph-acts">
+        <button class="btn" onclick="exportarLeads()">⬇ Exportar</button>
+        <button class="btn btn-gold" onclick="abrirNovoLead()">+ Novo Lead</button>
+      </div>
+    </div>
+
+    <!-- stats filtráveis -->
+    <div id="crmStats" class="sp mb20"></div>
+
+    <!-- toolbar -->
+    <div class="flex-bet mb14" style="gap:10px;flex-wrap:wrap">
+      <div class="flex" style="gap:8px;flex-wrap:wrap">
+        <input class="field-inp" style="min-width:200px;width:auto" type="text" id="crmBusca" placeholder="🔍 Buscar lead..." oninput="renderLeads()">
+        <select class="field-sel" style="width:auto" id="crmFiltStatus" onchange="renderLeads()">
+          <option value="">Todos os status</option>
+          <option value="novo">Novo</option>
+          <option value="contato">Em contato</option>
+          <option value="proposta">Proposta enviada</option>
+          <option value="visita">Visita/Reunião</option>
+          <option value="aguardando">Aguardando docs</option>
+          <option value="fechado">Fechado ✅</option>
+          <option value="perdido">Perdido ❌</option>
+        </select>
+        <select class="field-sel" style="width:auto" id="crmFiltPrior" onchange="renderLeads()">
+          <option value="">Todas as prioridades</option>
+          <option value="alta">Alta</option>
+          <option value="media">Média</option>
+          <option value="baixa">Baixa</option>
+        </select>
+      </div>
+      <div class="flex" style="gap:8px">
+        <select class="field-sel" style="width:auto" id="crmOrdem" onchange="renderLeads()">
+          <option value="recente">Mais recentes</option>
+          <option value="prox_acao">Próxima ação</option>
+          <option value="prioridade">Prioridade</option>
+        </select>
+        <span id="crmLastUpdate" class="fs10 c-muted" style="align-self:center"></span>
+      </div>
+    </div>
+
+    <div id="crmLista"></div>
+  </div>
+
+  <!-- ══ FUNIL ══ -->
+  <div class="panel" id="panel-funil">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">📊 Pipeline</div>
+        <div class="ph-title">Funil de Vendas</div>
+        <div class="ph-sub">Visualize cada etapa da jornada dos seus leads</div>
+      </div>
+    </div>
+    <div class="g2 mb20">
+      <div class="card">
+        <div class="card-h"><div class="card-title">📉 Funil Visual</div></div>
+        <div class="card-b" id="funilVisual"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">📋 Leads por Etapa</div></div>
+        <div class="card-b" style="padding:0"><div id="funilTabela"></div></div>
+      </div>
+    </div>
+    <div class="card mb20">
+      <div class="card-h"><div class="card-title">🏆 Taxa de Conversão por Etapa</div></div>
+      <div class="card-b" id="funilConversao"></div>
+    </div>
+  </div>
+
+  <!-- ══ AGENDA ══ -->
+  <div class="panel" id="panel-agenda">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">📅 Calendário</div>
+        <div class="ph-title">Agenda de Atendimento</div>
+        <div class="ph-sub">Compromissos e follow-ups programados</div>
+      </div>
+      <div class="ph-acts">
+        <button class="btn btn-gold" onclick="abrirAgendarModal()">+ Agendar</button>
+      </div>
+    </div>
+    <div class="g2 mb20">
+      <div style="grid-column:span 2" id="agendaWrap"></div>
+    </div>
+  </div>
+
+  <!-- ══ EMPREENDIMENTOS ══ -->
+  <div class="panel" id="panel-empreendimentos">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">🏗️ Portfólio</div>
+        <div class="ph-title">Empreendimentos</div>
+        <div class="ph-sub">Todos os empreendimentos disponíveis para venda · RJ e SP</div>
+      </div>
+      <div class="ph-acts">
+        <input class="field-inp" type="text" placeholder="🔍 Filtrar..." id="empBusca" style="width:200px" oninput="renderEmpreendimentos()">
+        <select class="field-sel" id="empCluster" style="width:auto" onchange="renderEmpreendimentos()">
+          <option value="">Todos os clusters</option>
+          <option value="RJ">Rio de Janeiro</option>
+          <option value="SP">São Paulo</option>
+        </select>
+      </div>
+    </div>
+    <div id="empGrid" class="emp-grid mb20"></div>
+  </div>
+
+  <!-- ══ TABELA PRECOS ══ -->
+  <div class="panel" id="panel-precos">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">💰 Preços</div>
+        <div class="ph-title">Tabelas de Preços</div>
+        <div class="ph-sub">Valores atualizados por unidade e tipologia · atualizado pelo admin</div>
+      </div>
+    </div>
+    <div id="precosWrap"></div>
+  </div>
+
+  <!-- ══ CAMPANHAS ══ -->
+  <div class="panel" id="panel-marketing">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">📣 Marketing</div>
+        <div class="ph-title">Campanhas Ativas</div>
+        <div class="ph-sub">Use os argumentos e materiais das campanhas em andamento</div>
+      </div>
+    </div>
+    <div id="campWrap"></div>
+  </div>
+
+  <!-- ══ VENDAS ══ -->
+  <div class="panel" id="panel-vendas">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">🤝 Histórico</div>
+        <div class="ph-title">Minhas Vendas</div>
+        <div class="ph-sub">Todos os contratos fechados e em andamento</div>
+      </div>
+    </div>
+    <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kpi gold"><div class="kpi-lbl">Vendas 2026</div><div class="kpi-val">4</div><div class="kpi-dlt up">▲ meta 10/ano</div></div>
+      <div class="kpi green"><div class="kpi-lbl">VGV Total</div><div class="kpi-val">R$1,7M</div><div class="kpi-dlt up">▲ 22%</div></div>
+      <div class="kpi teal"><div class="kpi-lbl">Ticket Médio</div><div class="kpi-val">R$428k</div><div class="kpi-dlt fl">→ mercado R$380k</div></div>
+      <div class="kpi purple"><div class="kpi-lbl">Próx. Comissão</div><div class="kpi-val">R$14,4k</div><div class="kpi-dlt fl">→ 15/Jul previsto</div></div>
+    </div>
+    <div class="card mb20">
+      <div class="card-h"><div class="card-title">📋 Contratos</div></div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Cliente</th><th>Empreendimento</th><th>Tipo</th><th>Valor</th><th>Construtora</th><th>Comissão</th><th>Contrato</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="fw6">Cap. Henrique S.</td><td>Ilha Mar Beach</td><td>3 qtos</td><td class="c-gold mono">R$480k</td><td>CURY</td><td class="c-green mono">R$14,4k</td><td class="mono fs10">Jun/26</td><td><span class="bdg ba">Finalizando</span></td></tr>
+            <tr><td class="fw6">Ten. Marco P.</td><td>Orla Recreio Reserva</td><td>2 qtos</td><td class="c-gold mono">R$390k</td><td>RIVA</td><td class="c-green mono">R$11,7k</td><td class="mono fs10">Mai/26</td><td><span class="bdg bg">Assinado</span></td></tr>
+            <tr><td class="fw6">Sgt. Carlos A.</td><td>ICONYC by YOO</td><td>Studio</td><td class="c-gold mono">R$480k</td><td>EMCAMP</td><td class="c-green mono">R$9,6k</td><td class="mono fs10">Mar/26</td><td><span class="bdg bg">Registrado</span></td></tr>
+            <tr><td class="fw6">Cb. Fernanda M.</td><td>Ilha Mar Beach 2</td><td>2 qtos</td><td class="c-gold mono">R$320k</td><td>CURY</td><td class="c-green mono">R$9,6k</td><td class="mono fs10">Jan/26</td><td><span class="bdg bg">Registrado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ COMISSÕES ══ -->
+  <div class="panel" id="panel-comissoes">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">💵 Financeiro</div>
+        <div class="ph-title">Minhas Comissões</div>
+        <div class="ph-sub">Recebimentos, previsões e metas</div>
+      </div>
+    </div>
+    <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+      <div class="kpi green"><div class="kpi-lbl">Recebido 2026</div><div class="kpi-val">R$36k</div><div class="kpi-dlt up">▲ jan–jun</div></div>
+      <div class="kpi amber"><div class="kpi-lbl">A Receber</div><div class="kpi-val">R$45k</div><div class="kpi-dlt fl">→ 3 contratos</div></div>
+      <div class="kpi gold"><div class="kpi-lbl">Projeção Anual</div><div class="kpi-val">R$90k</div><div class="kpi-dlt up">▲ meta 10 vendas</div></div>
+      <div class="kpi teal"><div class="kpi-lbl">Comiss. Média</div><div class="kpi-val">R$9k</div><div class="kpi-dlt fl">→ 2,1% ticket</div></div>
+    </div>
+    <div class="g2 mb20">
+      <div class="card">
+        <div class="card-h"><div class="card-title">📅 Previsão de Recebimentos</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl">
+            <thead><tr><th>Contrato</th><th>Valor</th><th>Previsão</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>Cap. Henrique — Ilha Mar</td><td class="c-green mono">R$14,4k</td><td class="mono fs10 c-amber">15/Jul/26</td><td><span class="bdg ba">Em breve</span></td></tr>
+              <tr><td>Ten. Marco — Orla Recreio</td><td class="c-green mono">R$11,7k</td><td class="mono fs10 c-amber">22/Jul/26</td><td><span class="bdg ba">Em breve</span></td></tr>
+              <tr><td>Sgt. Carlos — ICONYC</td><td class="c-green mono">R$9,6k</td><td class="mono fs10 c-muted">Ago/26</td><td><span class="bdg bz">Previsto</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">📊 Meta Mensal</div></div>
+        <div class="card-b">
+          <div class="prog-w"><div class="prog-m"><span class="fw6">Janeiro</span><span class="mono fs10 c-muted">R$9,6k</span></div><div class="prog-bar"><div class="pf pf-green" style="width:96%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span class="fw6">Fevereiro</span><span class="mono fs10 c-muted">R$0</span></div><div class="prog-bar"><div class="pf pf-red" style="width:0%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span class="fw6">Março</span><span class="mono fs10 c-muted">R$9,6k</span></div><div class="prog-bar"><div class="pf pf-green" style="width:96%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span class="fw6">Abril</span><span class="mono fs10 c-muted">R$0</span></div><div class="prog-bar"><div class="pf pf-red" style="width:0%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span class="fw6">Maio</span><span class="mono fs10 c-muted">R$11,7k</span></div><div class="prog-bar"><div class="pf pf-green" style="width:100%"></div></div></div>
+          <div class="prog-w"><div class="prog-m"><span class="fw6">Junho</span><span class="mono fs10 c-muted">R$14,4k ⟵</span></div><div class="prog-bar"><div class="pf pf-gold" style="width:72%"></div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CONSULTOR IA ══ -->
+  <div class="panel" id="panel-ia">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">🤖 IA</div>
+        <div class="ph-title">Consultor IA WAL</div>
+        <div class="ph-sub">Especialista em imóveis para militares FAB · Responde em segundos</div>
+      </div>
+    </div>
+    <div class="g2 mb20" style="gap:20px">
+      <!-- Chat principal -->
+      <div style="grid-column:span 2;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;height:520px">
+        <div class="card-h" style="flex-shrink:0">
+          <div class="card-title">💬 Chat com o Consultor</div>
+          <div class="flex" style="gap:8px">
+            <span class="bdg bg" style="font-size:8px">● Online</span>
+            <button class="btn btn-sm" onclick="limparChat()">Limpar</button>
+          </div>
+        </div>
+        <div id="aiMsgs" class="ai-msgs"></div>
+        <div class="ai-chips" id="aiChips">
+          <div class="ai-chip" onclick="sendAiChip('Qual a taxa do CFIAe para capitão da FAB?')">Taxa CFIAe Capitão</div>
+          <div class="ai-chip" onclick="sendAiChip('Quais empreendimentos temos disponíveis no Cluster RJ?')">Empreendimentos RJ</div>
+          <div class="ai-chip" onclick="sendAiChip('Como calcular a parcela inicial SAC para R$400k, 20% entrada, 360 meses?')">Calcular parcela SAC</div>
+          <div class="ai-chip" onclick="sendAiChip('Quais documentos o militar precisa para dar entrada no financiamento?')">Documentação FAB</div>
+          <div class="ai-chip" onclick="sendAiChip('Me dê um script de abordagem para tenente interessado no Orla Recreio')">Script de abordagem</div>
+          <div class="ai-chip" onclick="sendAiChip('Como lidar com objeção de \"preciso pensar mais\" no fechamento?')">Objeção: preciso pensar</div>
+        </div>
+        <div class="ai-input-row">
+          <textarea class="ai-inp" id="aiInp" placeholder="Pergunte sobre financiamento, empreendimentos, argumentos de venda, documentação FAB..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg()}"></textarea>
+          <button class="ai-send" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+        </div>
+      </div>
+    </div>
+    <!-- Tópicos rápidos -->
+    <div class="g3">
+      <div class="card">
+        <div class="card-h"><div class="card-title">💡 Argumentos de Venda</div></div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Argumentos exclusivos para militar FAB: taxa 8,5%aa, prazo 35 anos, 90% financiado')">✈️ CFIAe: taxa 8,5%a.a. + TR, prazo 35 anos</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como usar o FGTS na entrada para militar?')">💰 FGTS + desconto cartório FAB</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual o diferencial exclusivo para servidores vs mercado geral?')">🔒 Unidades reservadas pré-lançamento</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Pré-análise em 48h: como funciona e como usar como argumento de urgência?')">⚡ Pré-análise em 48h</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">📋 Documentação</div></div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Lista completa de documentos para militar FAB dar entrada no CFIAe')">📄 Docs básicos CFIAe</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Quais docs extras para usar FGTS na compra?')">💼 Docs para uso do FGTS</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Documentos para pensionista e familiar de militar usar o CFIAe')">👨‍👩‍👧 Pensionista e dependente</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Checklist completo para enviar ao cliente antes da assinatura')">✅ Checklist pré-assinatura</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">🏗️ Empreendimentos</div></div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Pontos fortes e diferenciais do Orla Recreio Reserva para usar na abordagem')">🏖️ Orla Recreio Reserva</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Pontos fortes e diferenciais do Ilha Mar Beach para usar na abordagem')">🌊 Ilha Mar Beach</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Pontos fortes e diferenciais do ICONYC by YOO para usar na abordagem')">🏙️ ICONYC by YOO</div>
+          <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Comparação entre os 3 empreendimentos principais: qual indicar para cada perfil de militar?')">🔄 Qual indicar para cada perfil</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SIMULADOR ══ -->
+  <div class="panel" id="panel-simulador">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">🧮 CFIAe</div>
+        <div class="ph-title">Simulador de Financiamento</div>
+        <div class="ph-sub">Calcule parcelas SAC com as condições exclusivas para militares FAB</div>
+      </div>
+      <div class="ph-acts">
+        <button class="btn" onclick="imprimirSim()">🖨️ Imprimir</button>
+      </div>
+    </div>
+    <div class="g2 mb20">
+      <!-- Inputs -->
+      <div class="card">
+        <div class="card-h"><div class="card-title">⚙️ Parâmetros</div></div>
+        <div class="card-b">
+          <div style="margin-bottom:16px">
+            <div class="field-lbl">Valor do imóvel</div>
+            <input type="range" id="sImovel" min="200000" max="1500000" step="10000" value="480000" oninput="calcSim()" style="width:100%;margin-bottom:4px">
+            <div class="flex-bet"><span class="fs11 c-muted">R$200k</span><span class="fs12 fw6 c-gold" id="sImovelVal">R$480.000</span><span class="fs11 c-muted">R$1,5M</span></div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div class="field-lbl">Entrada (%)</div>
+            <input type="range" id="sEntrada" min="10" max="50" step="5" value="20" oninput="calcSim()" style="width:100%;margin-bottom:4px">
+            <div class="flex-bet"><span class="fs11 c-muted">10%</span><span class="fs12 fw6 c-gold" id="sEntradaVal">20% · R$96.000</span><span class="fs11 c-muted">50%</span></div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div class="field-lbl">Prazo (meses)</div>
+            <input type="range" id="sPrazo" min="60" max="420" step="12" value="360" oninput="calcSim()" style="width:100%;margin-bottom:4px">
+            <div class="flex-bet"><span class="fs11 c-muted">60m</span><span class="fs12 fw6 c-gold" id="sPrazoVal">360 meses / 30 anos</span><span class="fs11 c-muted">420m</span></div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div class="field-lbl">Renda familiar bruta</div>
+            <input type="range" id="sRenda" min="3000" max="50000" step="500" value="12000" oninput="calcSim()" style="width:100%;margin-bottom:4px">
+            <div class="flex-bet"><span class="fs11 c-muted">R$3k</span><span class="fs12 fw6 c-gold" id="sRendaVal">R$12.000</span><span class="fs11 c-muted">R$50k</span></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <div class="field-lbl">Posto / Função</div>
+            <select class="field-sel" id="sPosto" onchange="calcSim()">
+              <option>Cabo</option><option>3º Sargento</option><option>2º Sargento</option><option>1º Sargento</option>
+              <option>Suboficial</option><option>Aspirante</option><option>2º Tenente</option><option>1º Tenente</option>
+              <option selected>Capitão</option><option>Major</option><option>Tenente-Coronel</option><option>Coronel</option>
+            </select>
+          </div>
+          <div class="field-lbl">Empreendimento de interesse</div>
+          <select class="field-sel" id="sEmp" onchange="calcSim()">
+            <option>Orla Recreio Reserva (RIVA)</option>
+            <option>Ilha Mar Beach (CURY)</option>
+            <option>ICONYC by YOO (EMCAMP)</option>
+            <option>Ilha Mar Beach 2 (CURY)</option>
+          </select>
+        </div>
+      </div>
+      <!-- Resultados -->
+      <div>
+        <div class="card mb14">
+          <div class="card-h"><div class="card-title">📊 Resultado CFIAe</div></div>
+          <div class="card-b">
+            <div style="text-align:center;padding:10px 0 16px;border-bottom:1px solid var(--bdr);margin-bottom:14px">
+              <div class="fs11 c-muted mb-4">Parcela inicial (SAC)</div>
+              <div id="sResParcela" style="font-family:'Playfair Display',serif;font-size:36px;font-weight:700;color:var(--gold);line-height:1">R$3.280</div>
+              <div class="fs11 c-muted" style="margin-top:4px">Decresce a cada mês pelo sistema SAC</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px" id="sResGrid"></div>
+          </div>
+        </div>
+        <div class="card" style="background:rgba(201,168,76,.06);border-color:var(--gold-b)">
+          <div class="card-b" id="sResObs"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ DOCUMENTOS ══ -->
+  <div class="panel" id="panel-docs">
+    <div class="ph">
+      <div>
+        <div class="ph-eye">📋 Materiais</div>
+        <div class="ph-title">Documentos & Modelos</div>
+        <div class="ph-sub">Contratos, checklists e materiais de apoio</div>
+      </div>
+    </div>
+    <div class="g3 mb20">
+      <div class="card">
+        <div class="card-h"><div class="card-title">📝 Modelos de Mensagem</div></div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:8px" id="docsMsg"></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">📋 Checklists</div></div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+          <div class="camp-msg camp-msg-wa" onclick="mostrarChecklist('cfiaeBasico')">📋 Checklist docs CFIAe básico</div>
+          <div class="camp-msg camp-msg-wa" onclick="mostrarChecklist('fgts')">💰 Checklist para uso do FGTS</div>
+          <div class="camp-msg camp-msg-ig" onclick="mostrarChecklist('preAssinatura')">✅ Checklist pré-assinatura do contrato</div>
+          <div class="camp-msg camp-msg-em" onclick="mostrarChecklist('visita')">🏠 Checklist para visita ao imóvel</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">🔗 Links Úteis</div></div>
+        <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+          <a href="https://walservidor.com.br" target="_blank" class="camp-msg camp-msg-wa" style="display:block">🌐 walservidor.com.br</a>
+          <div class="camp-msg camp-msg-ig" style="cursor:pointer" onclick="nav(document.querySelector('[onclick*=simulador]'),'simulador')">🧮 Simulador CFIAe</div>
+          <div class="camp-msg camp-msg-em" style="cursor:pointer" onclick="nav(document.querySelector('[onclick*=empreendimentos]'),'empreendimentos')">🏗️ Portfólio completo</div>
+          <div class="camp-msg camp-msg-wa" style="cursor:pointer" onclick="nav(document.querySelector('[onclick*=ia]'),'ia')">🤖 Consultor IA</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" id="checklistCard" style="display:none">
+      <div class="card-h">
+        <div class="card-title" id="checklistTitle">Checklist</div>
+        <button class="btn btn-sm" onclick="document.getElementById('checklistCard').style.display='none'">Fechar</button>
+      </div>
+      <div class="card-b" id="checklistBody"></div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL LEAD -->
+<div class="modal-overlay" id="leadModal">
+  <div class="modal-box">
+    <div class="modal-h">
+      <div class="modal-title" id="leadModalTitle">Novo Lead</div>
+      <button class="modal-close" onclick="fecharModal('leadModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-left">
+        <div class="f-sec mb14">Identificação</div>
+        <div class="g-field g-field-2 mb14">
+          <div><div class="field-lbl">Nome completo <span style="color:var(--gold)">*</span></div><input class="field-inp" id="lNome" placeholder="Cap. João Silva"></div>
+          <div><div class="field-lbl">Telefone / WhatsApp</div><input class="field-inp" id="lTel" placeholder="(21) 99999-9999"></div>
+        </div>
+        <div class="g-field g-field-2 mb14">
+          <div><div class="field-lbl">E-mail</div><input class="field-inp" id="lEmail" type="email" placeholder="joao@fab.mil.br"></div>
+          <div><div class="field-lbl">Posto / Função</div>
+            <select class="field-sel" id="lPosto">
+              <option value="">Selecione...</option>
+              <option>Cabo</option><option>Sargento</option><option>Suboficial</option>
+              <option>Aspirante</option><option>Tenente</option><option>Capitão</option>
+              <option>Major</option><option>Tenente-Coronel</option><option>Coronel</option>
+              <option>Civil / Funcional.</option><option>Pensionista</option>
+            </select>
+          </div>
+        </div>
+        <div class="g-field g-field-2 mb14">
+          <div><div class="field-lbl">Origem do lead</div>
+            <select class="field-sel" id="lOrigem">
+              <option>Instagram</option><option>Site WAL</option><option>WhatsApp</option>
+              <option>Indicação</option><option>Google Ads</option><option>Meta Ads</option><option>Abordagem direta</option>
+            </select>
+          </div>
+          <div><div class="field-lbl">Orçamento estimado</div>
+            <select class="field-sel" id="lOrcamento">
+              <option>Até R$300k</option><option>R$300k–R$500k</option><option>R$500k–R$800k</option><option>Acima de R$800k</option>
+            </select>
+          </div>
+        </div>
+        <div class="g-field mb14">
+          <div><div class="field-lbl">Empreendimento de interesse</div>
+            <select class="field-sel" id="lEmp">
+              <option>Orla Recreio Reserva (RIVA)</option><option>Ilha Mar Beach (CURY)</option>
+              <option>ICONYC by YOO (EMCAMP)</option><option>Ilha Mar Beach 2 (CURY)</option><option>Em aberto / comparando</option>
+            </select>
+          </div>
+        </div>
+        <div class="f-sec mb14">Status e Acompanhamento</div>
+        <div class="g-field g-field-3 mb14">
+          <div><div class="field-lbl">Status</div>
+            <select class="field-sel" id="lStatus">
+              <option value="novo">Novo</option><option value="contato">Em contato</option>
+              <option value="proposta">Proposta enviada</option><option value="visita">Visita/Reunião</option>
+              <option value="aguardando">Aguardando docs</option><option value="fechado">Fechado ✅</option><option value="perdido">Perdido ❌</option>
+            </select>
+          </div>
+          <div><div class="field-lbl">Prioridade</div>
+            <select class="field-sel" id="lPrior">
+              <option value="alta">🔴 Alta</option><option value="media" selected>🟡 Média</option><option value="baixa">⚪ Baixa</option>
+            </select>
+          </div>
+          <div><div class="field-lbl">Próxima ação até</div><input class="field-inp" type="date" id="lData"></div>
+        </div>
+        <div class="g-field mb14">
+          <div><div class="field-lbl">Próxima ação</div><input class="field-inp" id="lProxAcao" placeholder="Ex: Ligar para confirmar visita ao apartamento modelo"></div>
+        </div>
+        <div class="g-field">
+          <div><div class="field-lbl">Solicitação / Observações</div><textarea class="field-ta" id="lObs" placeholder="Descreva o interesse, objeções, preferências..."></textarea></div>
+        </div>
+      </div>
+      <div class="modal-right">
+        <div class="f-sec mb14">Histórico de Interações</div>
+        <div class="tl-wrap" style="flex:1;overflow-y:auto;max-height:280px;margin-bottom:14px">
+          <div class="tl-line"></div>
+          <div id="leadTimeline"></div>
+        </div>
+        <div style="border-top:1px solid var(--bdr);padding-top:14px">
+          <div class="field-lbl mb14">Registrar interação</div>
+          <select class="field-sel" id="lIntTipo" style="margin-bottom:8px">
+            <option value="📞">📞 Ligação</option><option value="💬">💬 WhatsApp</option>
+            <option value="📧">📧 E-mail</option><option value="🏠">🏠 Visita</option>
+            <option value="📋">📋 Proposta</option><option value="📌">📌 Anotação</option>
+          </select>
+          <textarea class="field-ta" id="lIntNota" placeholder="Descreva a interação..." style="min-height:60px;margin-bottom:8px"></textarea>
+          <button class="btn btn-teal" style="width:100%" onclick="addInteracao()">+ Registrar</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn btn-red" id="leadBtnExcluir" onclick="excluirLead()" style="display:none">🗑 Excluir</button>
+      <button class="btn" onclick="fecharModal('leadModal')">Cancelar</button>
+      <button class="btn btn-gold" id="leadBtnSalvar" onclick="salvarLead()">💾 Salvar Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL AGENDAMENTO -->
+<div class="modal-overlay" id="agendarModal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-h">
+      <div class="modal-title">📅 Novo Agendamento</div>
+      <button class="modal-close" onclick="fecharModal('agendarModal')">×</button>
+    </div>
+    <div style="padding:24px">
+      <div class="g-field g-field-2 mb14">
+        <div><div class="field-lbl">Lead / Cliente</div>
+          <select class="field-sel" id="agLead"><option>Cap. Henrique S.</option><option>Maj. Roberto A.</option><option>Sgt. Marcos L.</option></select>
+        </div>
+        <div><div class="field-lbl">Tipo</div>
+          <select class="field-sel" id="agTipo">
+            <option>📞 Ligação de follow-up</option><option>💬 WhatsApp</option>
+            <option>🏠 Visita ao imóvel</option><option>📋 Entrega de proposta</option>
+            <option>📝 Assinatura de contrato</option><option>☕ Reunião presencial</option>
+          </select>
+        </div>
+      </div>
+      <div class="g-field g-field-2 mb14">
+        <div><div class="field-lbl">Data</div><input class="field-inp" type="date" id="agData"></div>
+        <div><div class="field-lbl">Horário</div><input class="field-inp" type="time" id="agHora" value="10:00"></div>
+      </div>
+      <div class="g-field mb14"><div><div class="field-lbl">Observações</div><textarea class="field-ta" id="agObs" placeholder="Detalhes do compromisso..."></textarea></div></div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('agendarModal')">Cancelar</button>
+      <button class="btn btn-gold" onclick="salvarAgendamento()">✅ Agendar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════ DATA ════════ */
+const DEMO_PIN = '1234';
+let _corretor = { nome:'Marcos Ribeiro', creci:'CRECI-RJ 123456', iniciais:'MR' };
+let _leads = [
+  {id:'l1',nome:'Cap. Henrique Santos',tel:'(21)98765-4321',email:'henrique@fab.mil.br',posto:'Capitão',origem:'Instagram',orcamento:'R$300k–R$500k',emp:'Ilha Mar Beach (CURY)',status:'proposta',prioridade:'alta',proxAcao:'Confirmar contrato e enviar docs',proxData:hoje(0),obs:'Muito interessado, aguardando apenas aprovação do financiamento.',historico:[{tipo:'📋',nota:'Proposta enviada via e-mail. Aguarda retorno.',data:daysAgo(2)},{tipo:'📞',nota:'Ligação: gostou muito do Ilha Mar, vai confirmar com a esposa.',data:daysAgo(5)},{tipo:'💬',nota:'Primeiro contato via Instagram. Capitão T-Cav, renda ~R$14k.',data:daysAgo(8)}],criado:daysAgo(8)},
+  {id:'l2',nome:'Maj. Roberto Andrade',tel:'(21)97654-3210',email:'roberto.andrade@fab.mil.br',posto:'Major',origem:'Site WAL',orcamento:'R$500k–R$800k',emp:'Orla Recreio Reserva (RIVA)',status:'visita',prioridade:'alta',proxAcao:'Visita ao apartamento modelo no Recreio',proxData:hoje(1),obs:'Quer 3 quartos, garagem coberta, prefere Barra/Recreio.',historico:[{tipo:'🏠',nota:'Visita agendada para amanhã às 10h no estande da RIVA.',data:daysAgo(1)},{tipo:'📞',nota:'Ligação: confirmou interesse no Orla Recreio. Tem FGTS disponível.',data:daysAgo(4)}],criado:daysAgo(6)},
+  {id:'l3',nome:'Sgt. Marcos Lima',tel:'(11)96543-2100',email:'',posto:'Sargento',origem:'WhatsApp',orcamento:'R$300k–R$500k',emp:'ICONYC by YOO (EMCAMP)',status:'contato',prioridade:'media',proxAcao:'Enviar simulação CFIAe para análise',proxData:hoje(2),obs:'Baseado em SP. Viu o ICONYC nas redes. Quer simulação.',historico:[{tipo:'💬',nota:'Primeiro contato via WhatsApp. Interesse no ICONYC.',data:daysAgo(3)}],criado:daysAgo(3)},
+  {id:'l4',nome:'Cb. Fernanda Melo',tel:'(21)95432-1000',email:'fernanda@gmail.com',posto:'Cabo',origem:'Indicação',orcamento:'Até R$300k',emp:'Ilha Mar Beach 2 (CURY)',status:'novo',prioridade:'media',proxAcao:'Qualificar: verificar renda e situação do FGTS',proxData:hoje(3),obs:'Indicada pela Sgt. Lima. Quer comprar primeiro imóvel.',historico:[{tipo:'📌',nota:'Lead recebido por indicação. Aguarda primeiro contato.',data:daysAgo(0)}],criado:daysAgo(0)},
+  {id:'l5',nome:'Ten. Rodrigo Faria',tel:'(21)94321-0099',email:'rodrigo.faria@fab.mil.br',posto:'Tenente',origem:'Google Ads',orcamento:'R$300k–R$500k',emp:'Em aberto / comparando',status:'contato',prioridade:'baixa',proxAcao:'Enviar comparativo dos empreendimentos',proxData:hoje(5),obs:'Chegou pelo Google. Comparando Orla Recreio com ICONYC.',historico:[{tipo:'📧',nota:'Enviado comparativo Orla Recreio vs ICONYC por e-mail.',data:daysAgo(2)}],criado:daysAgo(4)},
+  {id:'l6',nome:'Cel. Augusto Pires',tel:'(21)93210-9988',email:'augusto.pires@fab.mil.br',posto:'Coronel',origem:'Abordagem direta',orcamento:'Acima de R$800k',emp:'Orla Recreio Reserva (RIVA)',status:'proposta',prioridade:'alta',proxAcao:'Follow-up proposta enviada há 5 dias',proxData:hoje(-2),obs:'Proposta parada há 5 dias. Necessita follow-up urgente.',historico:[{tipo:'📋',nota:'Proposta enviada: Orla Recreio cobertura, R$890k.',data:daysAgo(5)},{tipo:'📞',nota:'Reunião presencial. Alto interesse.',data:daysAgo(10)}],criado:daysAgo(12)},
+];
+let _agenda = [
+  {id:'a1',lead:'Maj. Roberto Andrade',tipo:'🏠 Visita ao imóvel',data:hoje(1),hora:'10:00',obs:'Estande RIVA Recreio'},
+  {id:'a2',lead:'Cap. Henrique Santos',tipo:'📞 Ligação de follow-up',data:hoje(0),hora:'14:30',obs:'Confirmar assinatura'},
+  {id:'a3',lead:'Sgt. Marcos Lima',tipo:'💬 WhatsApp',data:hoje(0),hora:'16:00',obs:'Enviar simulação CFIAe'},
+  {id:'a4',lead:'Cel. Augusto Pires',tipo:'📋 Entrega de proposta',data:hoje(2),hora:'09:00',obs:'Follow-up Orla Recreio cobertura'},
+];
+let _editLeadId = null;
+let _tempInteracoes = [];
+
+const EMPREENDIMENTOS = [
+  {id:'e1',nome:'Orla Recreio Reserva',construtora:'RIVA',cluster:'RJ',bairro:'Recreio dos Bandeirantes',emoji:'🏖️',status:'Lançamento',disponivel:42,entrega:'Dez/2027',tiket:'R$390k–R$620k',destaque:'Vista mar, cobertura duplex',cor:'gold',campanha:true},
+  {id:'e2',nome:'Ilha Mar Beach & Home',construtora:'CURY',cluster:'RJ',bairro:'Barra da Tijuca',emoji:'🌊',status:'Em construção',disponivel:28,entrega:'Jun/2028',tiket:'R$320k–R$520k',destaque:'Frente ao mar, lazer completo',cor:'teal',campanha:true},
+  {id:'e3',nome:'ICONYC by YOO',construtora:'EMCAMP',cluster:'RJ',bairro:'Barra da Tijuca',emoji:'🏙️',status:'Lançamento',disponivel:15,entrega:'Mar/2028',tiket:'R$480k–R$1,2M',destaque:'Assinado por YOO Design, studios',cor:'purple',campanha:true},
+  {id:'e4',nome:'Ilha Mar Beach 2',construtora:'CURY',cluster:'RJ',bairro:'Barra da Tijuca',emoji:'🌴',status:'Pré-lançamento',disponivel:35,entrega:'Dez/2028',tiket:'R$280k–R$420k',destaque:'Entrada facilitada para FAB',cor:'green',campanha:false},
+  {id:'e5',nome:'CALPER Residencial',construtora:'CALPER',cluster:'SP',bairro:'Zona Sul SP',emoji:'🏢',status:'Em construção',disponivel:60,entrega:'Out/2027',tiket:'R$320k–R$450k',destaque:'Cluster SP · FAB e funcionalismo',cor:'amber',campanha:false},
+];
+const PRECO_TABLES = {
+  'Orla Recreio Reserva': [
+    {tipo:'2 quartos',area:'68m²',andar:'1–5',preco:'R$390.000',cond:'R$680',status:'Disponível'},
+    {tipo:'2 quartos suíte',area:'74m²',andar:'1–5',preco:'R$420.000',cond:'R$720',status:'Disponível'},
+    {tipo:'3 quartos',area:'92m²',andar:'6–10',preco:'R$510.000',cond:'R$890',status:'Disponível'},
+    {tipo:'3 quartos suíte',area:'98m²',andar:'6–10',preco:'R$560.000',cond:'R$950',status:'Reservado'},
+    {tipo:'Cobertura duplex',area:'180m²',andar:'Top',preco:'R$890.000',cond:'R$1.600',status:'Disponível'},
+  ],
+  'Ilha Mar Beach & Home': [
+    {tipo:'Studio',area:'42m²',andar:'1–4',preco:'R$320.000',cond:'R$520',status:'Disponível'},
+    {tipo:'2 quartos',area:'65m²',andar:'1–8',preco:'R$420.000',cond:'R$680',status:'Disponível'},
+    {tipo:'3 quartos',area:'88m²',andar:'5–12',preco:'R$520.000',cond:'R$860',status:'Disponível'},
+  ],
+  'ICONYC by YOO': [
+    {tipo:'Studio YOO',area:'38m²',andar:'1–5',preco:'R$480.000',cond:'R$820',status:'Disponível'},
+    {tipo:'Flat 1 suíte',area:'56m²',andar:'6–12',preco:'R$680.000',cond:'R$1.100',status:'Disponível'},
+    {tipo:'Penthouse',area:'130m²',andar:'Top',preco:'R$1.200.000',cond:'R$2.100',status:'Disponível'},
+  ],
+};
+const CAMPANHAS = [
+  {nome:'Campanha Julho 2026 · FAB RJ',periodo:'01/Jul – 31/Jul/2026',status:'Ativo',canais:['Meta Ads','Instagram','WhatsApp'],emps:['Orla Recreio Reserva','Ilha Mar Beach & Home','ICONYC by YOO'],impressoes:'48.200',cliques:'1.840',leads:12,conversoes:2,msgs:[
+    {canal:'wa',texto:'🏠 [NOME], temos uma condição especial para militares FAB nesta semana no Orla Recreio Reserva. Consiga sua unidade com taxa 8,5%a.a. e entrada a partir de 10%. Quer simular?'},
+    {canal:'ig',texto:'✈️ Para quem serve ao Brasil, temos o imóvel dos sonhos. Orla Recreio Reserva · financiamento exclusivo FAB · Taxa CFIAe. Link na bio.'},
+    {canal:'em',texto:'Prezado(a) [POSTO] [NOME], como militar da Aeronáutica você tem acesso a condições exclusivas de financiamento no Ilha Mar Beach. Taxa 8,5%a.a. + TR, prazo até 35 anos, 90% financiado.'},
+  ]},
+];
+const CHECKLISTS = {
+  cfiaeBasico:{titulo:'📋 Documentos CFIAe — Básicos',items:['RG e CPF originais + cópias','Certidão de nascimento ou casamento','Holerite dos últimos 3 meses','Declaração de IR (último exercício)','Comprovante de residência (últimos 90 dias)','Certidão de quitação militar (CREA/IPCA)','Carteira de identidade militar (CAGI)','Foto 3x4 recente']},
+  fgts:{titulo:'💰 Documentos para uso do FGTS',items:['Extrato do FGTS (últimos 3 anos)','Declaração de 1º imóvel (Cartório de registro de imóveis)','Comprovante de residência há mais de 1 ano','Certidão negativa de débitos FGTS','Autorização para movimentação do FGTS (formulário da Caixa)']},
+  preAssinatura:{titulo:'✅ Checklist pré-assinatura',items:['Memorial descritivo assinado','Tabela de preços atualizada','Comprovante de aprovação de crédito','Via do compromisso de compra e venda','Boleto da primeira parcela ou sinal','RGI do imóvel (matrícula atual)','Certidão negativa do vendedor','Documentos pessoais atualizados']},
+  visita:{titulo:'🏠 Checklist para visita ao imóvel',items:['Confirmar data/hora com o cliente 1 dia antes','Material de apresentação do empreendimento','Planta baixa impressa ou digital','Tabela de preços atualizada','Simulação CFIAe pronta para o perfil do cliente','Ficha de interesse para assinar na visita','Contato da construtora para dúvidas técnicas','Fotos e vídeo do entorno para enviar depois']},
+};
+const MSGS_MODELOS = [
+  {emoji:'💬',nome:'Primeiro contato — WhatsApp',texto:'Olá [NOME]! Sou [CORRETOR] da WAL Consultoria. Vi que você tem interesse em imóveis com condições especiais para militares FAB. Temos empreendimentos exclusivos com taxa 8,5%a.a. via CFIAe. Posso enviar uma simulação gratuita para o seu perfil?'},
+  {emoji:'📋',nome:'Envio de simulação CFIAe',texto:'[NOME], preparei uma simulação exclusiva para militares FAB:\n🏠 Imóvel: [EMPREENDIMENTO]\n💰 Valor: [VALOR]\n📊 Entrada: [ENTRADA]\n💳 Parcela inicial (SAC): [PARCELA]\n📅 Prazo: [PRAZO] meses\nTaxa 8,5%a.a. + TR · CFIAe\n\nPosso agendar uma visita?'},
+  {emoji:'🔔',nome:'Follow-up proposta parada',texto:'[NOME], sei que você está analisando com calma, e isso é ótimo! Mas preciso te avisar: essa unidade está sendo muito procurada por militares FAB esta semana. Temos apenas 2 unidades disponíveis nessa condição. Podemos fechar antes que acabe?'},
+  {emoji:'🏠',nome:'Convite para visita',texto:'[NOME], que tal ver pessoalmente o [EMPREENDIMENTO]? Posso te acompanhar no estande [BAIRRO]. Temos horário na [DATA] às [HORA]. O que acha?'},
+];
+let _aiHistory = [];
+const AI_SYSTEM = `Você é o Consultor IA da WAL Consultoria Imobiliária, especialista em imóveis para militares das Forças Armadas, servidores e pensionistas brasileiros. Atende corretor de imóveis que precisa de suporte rápido.
+
+Principais empreendimentos: Orla Recreio Reserva (RIVA, Recreio RJ), Ilha Mar Beach (CURY, Barra RJ), ICONYC by YOO (EMCAMP, Barra RJ).
+
+Financiamento CFIAe FAB: taxa 8,5%a.a.+TR, prazo até 35 anos, até 90% financiado, MIP 0,051200% mensal sobre saldo devedor, DFI 0,008036% fixo sobre valor de avaliação. SAC: amortização fixa + juros decrescentes.
+
+Seja direto, prático e objetivo. Respostas curtas e com ação clara. Use emojis moderadamente. Quando relevante, sugira argumentos, scripts de WhatsApp ou abordagens de fechamento.`;
+
+/* ════════ UTILS ════════ */
+function hoje(d=0){const dt=new Date();dt.setDate(dt.getDate()+d);return dt.toISOString().split('T')[0]}
+function daysAgo(n){return hoje(-n)}
+function fmtDt(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
+function fmtMoeda(v){return'R$'+Number(v).toLocaleString('pt-BR')}
+function toast(msg,tipo=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show '+(tipo?'t-'+tipo:'');
+  clearTimeout(t._to);t._to=setTimeout(()=>t.className='',4000);
+}
+function fecharModal(id){document.getElementById(id).classList.remove('show')}
+function abrirModal(id){document.getElementById(id).classList.add('show')}
+
+/* ════════ AUTH ════════ */
+function doLogin(){
+  const creci=document.getElementById('lockCreci').value.trim();
+  const pin=document.getElementById('lockPin').value.trim();
+  if(!creci||pin!==DEMO_PIN){document.getElementById('lockErr').style.display='block';return}
+  document.getElementById('lockErr').style.display='none';
+  localStorage.setItem('wal_corretor_creci',creci);
+  localStorage.setItem('wal_corretor_ok','1');
+  const nome=creci.includes(' ')?'Corretor WAL':creci;
+  _corretor={nome:'Marcos Ribeiro',creci,iniciais:'MR'};
+  initApp();
+}
+function doLogout(){
+  localStorage.removeItem('wal_corretor_ok');
+  document.getElementById('lockScreen').style.display='flex';
+  document.getElementById('appWrap').style.display='none';
+}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(localStorage.getItem('wal_corretor_ok')==='1') initApp();
+});
+
+/* ════════ INIT ════════ */
+function initApp(){
+  document.getElementById('lockScreen').style.display='none';
+  document.getElementById('appWrap').style.display='flex';
+  // nomes
+  const n=_corretor.nome.split(' ')[0];
+  document.getElementById('sbName').textContent=_corretor.nome;
+  document.getElementById('sbNameFoot').textContent=_corretor.nome;
+  document.getElementById('sbCreci').textContent=_corretor.creci;
+  document.getElementById('sbCreciFoot').textContent='Online agora';
+  document.getElementById('sbAv').textContent=_corretor.iniciais;
+  document.getElementById('sbAvFoot').textContent=_corretor.iniciais;
+  document.getElementById('phName').textContent=n;
+  // data
+  const d=new Date();
+  const dias=['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  const meses=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  document.getElementById('phData').textContent=`${dias[d.getDay()]}, ${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+  document.getElementById('agHoje').textContent=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+  // clock
+  tick();setInterval(tick,1000);
+  // render
+  homeAlerts();renderHomeLeads();renderHomeAgenda();
+  renderLeads();renderFunil();renderAgenda();
+  renderEmpreendimentos();renderPrecos();renderCampanhas();renderDocs();
+  calcSim();
+  // auto-refresh leads cada 2min (simula sync com Sheets)
+  setInterval(()=>{renderLeads();atualizarBadges();},120000);
+  atualizarBadges();
+  // ai boas-vindas
+  addAiMsg('ai',`Olá, ${n}! 👋 Sou seu Consultor IA especializado em imóveis para militares FAB. Posso ajudar com:\n• Argumentos de venda e scripts de abordagem\n• Cálculos CFIAe e comparativos\n• Documentação e checklist\n• Estratégias de fechamento\n\nPergunta à vontade!`);
+}
+function tick(){
+  const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');
+  const el=document.getElementById('clock');if(el)el.textContent=h+':'+m+':'+s+' BRT';
+}
+
+/* ════════ NAV ════════ */
+const TITLES={home:'Início',leads:'Meus Leads',funil:'Funil de Vendas',agenda:'Agenda',empreendimentos:'Empreendimentos',precos:'Tabelas de Preços',marketing:'Campanhas Ativas',vendas:'Minhas Vendas',comissoes:'Comissões',ia:'Consultor IA',simulador:'Simulador CFIAe',docs:'Documentos'};
+function nav(el,id){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el?.classList)el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('panel-'+id);if(t)t.classList.add('active');
+  document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+}
+
+/* ════════ HOME ════════ */
+function homeAlerts(){
+  const vencidos=_leads.filter(l=>l.proxData&&l.proxData<hoje()&&l.status!=='fechado'&&l.status!=='perdido');
+  const paradas=_leads.filter(l=>l.status==='proposta'&&l.proxData&&daysDiff(l.proxData,hoje())>5);
+  let h='';
+  if(vencidos.length) h+=`<div style="background:var(--red-dim);border:1px solid rgba(220,38,38,.3);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px"><span style="color:#F87171;font-weight:700">⚠️ ${vencidos.length} ação(ões) atrasada(s)</span> — <span style="color:var(--muted)">${vencidos.map(l=>l.nome.split(' ').slice(0,2).join(' ')).join(', ')}</span></div>`;
+  if(paradas.length) h+=`<div style="background:var(--amber-dim);border:1px solid rgba(217,119,6,.3);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px"><span style="color:#FCD34D;font-weight:700">🔔 ${paradas.length} proposta(s) parada(s) há mais de 5 dias</span> — <span style="color:var(--muted)">Faça um follow-up urgente</span></div>`;
+  if(!h) h=`<div style="background:var(--green-dim);border:1px solid rgba(5,150,105,.3);border-radius:8px;padding:10px 14px;margin-bottom:8px;font-size:12px;color:#34D399">✅ Tudo em dia! Nenhuma ação atrasada.</div>`;
+  document.getElementById('homeAlerts').innerHTML=h;
+}
+function daysDiff(a,b){return Math.round((new Date(b)-new Date(a))/(1000*60*60*24))}
+function renderHomeLeads(){
+  const pri=_leads.filter(l=>l.prioridade==='alta'&&l.status!=='fechado'&&l.status!=='perdido').slice(0,3);
+  document.getElementById('homeLeadsList').innerHTML=pri.map(l=>leadMiniCard(l)).join('')||(''+'<div class="fs12 c-muted" style="padding:8px">Nenhum lead de alta prioridade.</div>');
+}
+function leadMiniCard(l){
+  const dd=diasAcao(l.proxData);
+  return`<div class="lead-card" onclick="abrirLead('${l.id}')">
+    <div class="lead-card-top">
+      <div><div class="lead-name">${l.nome}</div><div class="lead-sub">${l.posto||''}${l.posto&&l.emp?' · ':''} ${l.emp||''}</div></div>
+      <span class="bdg ${statusBdg(l.status)}">${statusLabel(l.status)}</span>
+    </div>
+    <div class="lead-meta">
+      ${priorBadge(l.prioridade)}
+      <span class="lead-date ${dd.cls}">${dd.txt}</span>
+    </div>
+    ${l.proxAcao?`<div class="lead-action">→ ${l.proxAcao}</div>`:''}
+  </div>`;
+}
+function renderHomeAgenda(){
+  const h=hoje();const ag=_agenda.filter(a=>a.data===h).sort((a,b)=>a.hora>b.hora?1:-1);
+  document.getElementById('homeAgenda').innerHTML=ag.length?ag.map(a=>`
+    <div class="agenda-item">
+      <div class="agenda-time">${a.hora}</div>
+      <div class="agenda-body"><div class="agenda-lead">${a.lead}</div><div class="agenda-tipo fs10 c-muted">${a.tipo}</div></div>
+    </div>`).join(''):`<div class="fs12 c-muted" style="padding:12px">Sem compromissos hoje.</div>`;
+}
+
+/* ════════ LEADS ════════ */
+function atualizarBadges(){
+  const novos=_leads.filter(l=>l.status==='novo').length;
+  const b=document.getElementById('sbBadgeLeads');
+  if(b){b.textContent=novos;b.style.display=novos?'':'none'}
+  const nd=document.getElementById('notifDot');
+  if(nd)nd.style.display=novos?'':'none';
+  document.getElementById('sbLeads').textContent=_leads.filter(l=>l.status!=='fechado'&&l.status!=='perdido').length;
+  renderLeads();crmStats();
+}
+function crmStats(){
+  const stats=[
+    {label:'Todos',val:_leads.length,fil:''},
+    {label:'Novos',val:_leads.filter(l=>l.status==='novo').length,fil:'novo'},
+    {label:'Em contato',val:_leads.filter(l=>l.status==='contato').length,fil:'contato'},
+    {label:'Proposta',val:_leads.filter(l=>l.status==='proposta').length,fil:'proposta'},
+    {label:'Visita',val:_leads.filter(l=>l.status==='visita').length,fil:'visita'},
+    {label:'Fechados',val:_leads.filter(l=>l.status==='fechado').length,fil:'fechado'},
+  ];
+  const cur=document.getElementById('crmFiltStatus').value;
+  document.getElementById('crmStats').innerHTML=stats.map(s=>`
+    <div style="background:var(--card2);border:1px solid ${s.fil===cur?'var(--gold)':'var(--bdr)'};border-radius:8px;padding:10px 14px;cursor:pointer;text-align:center;min-width:80px;transition:all .15s" onclick="document.getElementById('crmFiltStatus').value='${s.fil}';renderLeads()">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:${s.fil===cur?'var(--gold)':'#fff'}">${s.val}</div>
+      <div style="font-size:9px;color:var(--muted);margin-top:2px;text-transform:uppercase;letter-spacing:.5px">${s.label}</div>
+    </div>`).join('');
+}
+function renderLeads(){
+  crmStats();
+  const busca=(document.getElementById('crmBusca')?.value||'').toLowerCase();
+  const st=document.getElementById('crmFiltStatus')?.value||'';
+  const pr=document.getElementById('crmFiltPrior')?.value||'';
+  const ord=document.getElementById('crmOrdem')?.value||'recente';
+  let list=_leads.filter(l=>{
+    if(st&&l.status!==st)return false;
+    if(pr&&l.prioridade!==pr)return false;
+    if(busca&&!l.nome.toLowerCase().includes(busca)&&!(l.emp||'').toLowerCase().includes(busca)&&!(l.posto||'').toLowerCase().includes(busca))return false;
+    return true;
+  });
+  if(ord==='prioridade')list.sort((a,b)=>{'alta media baixa'.split(' ').indexOf(a.prioridade)-'alta media baixa'.split(' ').indexOf(b.prioridade)});
+  else if(ord==='prox_acao')list.sort((a,b)=>(a.proxData||'9')>(b.proxData||'9')?1:-1);
+  else list.sort((a,b)=>(a.criado||'')>(b.criado||'')?-1:1);
+  const el=document.getElementById('crmLista');
+  if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum lead encontrado.</div>`;return}
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Posto</th><th>Empreendimento</th><th>Status</th><th>Prioridade</th><th>Próxima ação</th><th>Prazo</th><th>Interações</th></tr></thead><tbody>${list.map(l=>{
+    const dd=diasAcao(l.proxData);
+    return`<tr class="clickable" onclick="abrirLead('${l.id}')">
+      <td><div class="fw6">${l.nome}</div><div class="fs10 c-muted">${l.origem||''}</div></td>
+      <td><span class="bdg bz fs10">${l.posto||'—'}</span></td>
+      <td class="fs11">${(l.emp||'—').replace(' (RIVA)','').replace(' (CURY)','').replace(' (EMCAMP)','').replace(' (CALPER)','')}</td>
+      <td><span class="bdg ${statusBdg(l.status)}">${statusLabel(l.status)}</span></td>
+      <td>${priorBadge(l.prioridade)}</td>
+      <td class="fs11" style="max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.proxAcao||'—'}</td>
+      <td class="lead-date ${dd.cls}">${dd.txt}</td>
+      <td class="mono fs11 c-muted">${(l.historico||[]).length}</td>
+    </tr>`;}).join('')}</tbody></table></div>`;
+  document.getElementById('crmLastUpdate').textContent='Atualizado '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function statusBdg(s){return{novo:'bg',contato:'bt',proposta:'bp',visita:'bt',aguardando:'ba',fechado:'bg',perdido:'br'}[s]||'bz'}
+function statusLabel(s){return{novo:'Novo',contato:'Em contato',proposta:'Proposta',visita:'Visita',aguardando:'Aguardando',fechado:'Fechado ✅',perdido:'Perdido'}[s]||s}
+function priorBadge(p){return p==='alta'?'<span style="color:#F87171;font-size:10px;font-weight:700">🔴 Alta</span>':p==='media'?'<span style="color:#FCD34D;font-size:10px;font-weight:700">🟡 Média</span>':'<span style="color:var(--muted);font-size:10px;font-weight:700">⚪ Baixa</span>'}
+function diasAcao(d){
+  if(!d)return{cls:'',txt:'—'};
+  const h=hoje();
+  if(d<h)return{cls:'red',txt:`⚠️ ${daysDiff(d,h)}d atrasado`};
+  if(d===h)return{cls:'amb',txt:'🔔 Hoje'};
+  const diff=daysDiff(h,d);
+  return{cls:'grn',txt:`em ${diff}d (${fmtDt(d)})`};
+}
+
+/* ════════ MODAL LEAD ════════ */
+function abrirNovoLead(){
+  _editLeadId=null;_tempInteracoes=[];
+  document.getElementById('leadModalTitle').textContent='Novo Lead';
+  document.getElementById('leadBtnExcluir').style.display='none';
+  ['lNome','lTel','lEmail','lProxAcao','lIntNota'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=''});
+  ['lPosto','lOrigem','lOrcamento','lStatus','lPrior','lEmp'].forEach(id=>{const e=document.getElementById(id);if(e)e.selectedIndex=0});
+  document.getElementById('lStatus').value='novo';
+  document.getElementById('lPrior').value='media';
+  document.getElementById('lData').value=hoje(2);
+  document.getElementById('lObs').value='';
+  document.getElementById('leadTimeline').innerHTML='<div class="fs11 c-muted">Nenhuma interação ainda.</div>';
+  abrirModal('leadModal');
+}
+function abrirLead(id){
+  const l=_leads.find(x=>x.id===id);if(!l)return;
+  _editLeadId=id;_tempInteracoes=[...l.historico||[]];
+  document.getElementById('leadModalTitle').textContent='Editar Lead';
+  document.getElementById('leadBtnExcluir').style.display='';
+  document.getElementById('lNome').value=l.nome||'';
+  document.getElementById('lTel').value=l.tel||'';
+  document.getElementById('lEmail').value=l.email||'';
+  document.getElementById('lPosto').value=l.posto||'';
+  document.getElementById('lOrigem').value=l.origem||'Instagram';
+  document.getElementById('lOrcamento').value=l.orcamento||'';
+  document.getElementById('lEmp').value=l.emp||'';
+  document.getElementById('lStatus').value=l.status||'novo';
+  document.getElementById('lPrior').value=l.prioridade||'media';
+  document.getElementById('lData').value=l.proxData||hoje(2);
+  document.getElementById('lProxAcao').value=l.proxAcao||'';
+  document.getElementById('lObs').value=l.obs||'';
+  renderTimeline();
+  abrirModal('leadModal');
+}
+function renderTimeline(){
+  const el=document.getElementById('leadTimeline');
+  if(!_tempInteracoes.length){el.innerHTML='<div class="fs11 c-muted">Nenhuma interação ainda.</div>';return}
+  el.innerHTML=_tempInteracoes.map(i=>`
+    <div class="tl-item">
+      <div class="tl-dot">${i.tipo}</div>
+      <div><div class="tl-tipo">${tipoLabel(i.tipo)}</div><div class="tl-data">${fmtDt(i.data)} ${i.hora||''}</div><div class="tl-nota">${i.nota||''}</div></div>
+    </div>`).join('');
+}
+function tipoLabel(t){return{' 📞':'Ligação','💬':'WhatsApp','📧':'E-mail','🏠':'Visita','📋':'Proposta','📌':'Anotação'}[t]||t}
+function addInteracao(){
+  const tipo=document.getElementById('lIntTipo').value;
+  const nota=document.getElementById('lIntNota').value.trim();
+  if(!nota){toast('Digite uma nota para a interação.','');return}
+  _tempInteracoes.unshift({tipo,nota,data:hoje(),hora:new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})});
+  document.getElementById('lIntNota').value='';
+  renderTimeline();
+}
+function salvarLead(){
+  const nome=document.getElementById('lNome').value.trim();
+  if(!nome){toast('Nome obrigatório','');return}
+  const dados={nome,tel:document.getElementById('lTel').value,email:document.getElementById('lEmail').value,posto:document.getElementById('lPosto').value,origem:document.getElementById('lOrigem').value,orcamento:document.getElementById('lOrcamento').value,emp:document.getElementById('lEmp').value,status:document.getElementById('lStatus').value,prioridade:document.getElementById('lPrior').value,proxData:document.getElementById('lData').value,proxAcao:document.getElementById('lProxAcao').value,obs:document.getElementById('lObs').value,historico:_tempInteracoes};
+  if(_editLeadId){
+    const idx=_leads.findIndex(l=>l.id===_editLeadId);
+    if(idx>=0)_leads[idx]={..._leads[idx],...dados};
+    toast(`✅ Lead "${nome}" atualizado!`,'green');
+  } else {
+    _leads.unshift({id:'l'+Date.now(),...dados,criado:hoje()});
+    toast(`✅ Lead "${nome}" cadastrado!`,'green');
+  }
+  fecharModal('leadModal');renderLeads();renderFunil();homeAlerts();renderHomeLeads();atualizarBadges();
+}
+function excluirLead(){
+  const l=_leads.find(x=>x.id===_editLeadId);if(!l)return;
+  if(!confirm(`Excluir lead "${l.nome}"?`))return;
+  _leads=_leads.filter(x=>x.id!==_editLeadId);
+  fecharModal('leadModal');renderLeads();renderFunil();atualizarBadges();
+  toast(`🗑 Lead removido.`,'');
+}
+function exportarLeads(){
+  if(!_leads.length){toast('Nenhum lead para exportar.','');return}
+  const w=window.open('','_blank');
+  const rows=_leads.map(l=>`<tr><td>${l.nome||''}</td><td>${l.posto||''}</td><td>${l.status||''}</td><td>${l.emp||''}</td><td>${fmtDt(l.proxData)}</td><td>${(l.historico||[]).length}</td></tr>`).join('');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Leads WAL</title><style>body{font-family:Arial,sans-serif;font-size:10pt;padding:16px}table{width:100%;border-collapse:collapse}th{background:#0A1628;color:#C9A84C;padding:7px;text-align:left}td{padding:6px;border-bottom:1px solid #eee}@media print{@page{size:A4 landscape;margin:8mm}}</style></head><body><h2 style="color:#0A1628">WAL Consultoria — Leads</h2><table><thead><tr><th>Nome</th><th>Posto</th><th>Status</th><th>Empreendimento</th><th>Próxima Ação</th><th>Interações</th></tr></thead><tbody>${rows}</tbody></table></body></html>`);
+  w.document.close();w.focus();setTimeout(()=>w.print(),400);
+}
+
+/* ════════ FUNIL ════════ */
+function renderFunil(){
+  const etapas=[
+    {key:'novo',label:'Novos',cor:'pf-teal'},
+    {key:'contato',label:'Em Contato',cor:'pf-gold'},
+    {key:'proposta',label:'Proposta',cor:'pf-purple'},
+    {key:'visita',label:'Visita/Reunião',cor:'pf-amber'},
+    {key:'aguardando',label:'Aguardando Docs',cor:'pf-amber'},
+    {key:'fechado',label:'Fechados ✅',cor:'pf-green'},
+  ];
+  const total=_leads.filter(l=>l.status!=='perdido').length||1;
+  const fv=document.getElementById('funilVisual');
+  fv.innerHTML=etapas.map(e=>{
+    const n=_leads.filter(l=>l.status===e.key).length;
+    const pct=Math.round(n/total*100);
+    return`<div class="fstep">
+      <div class="fstep-n">${n}</div>
+      <div style="flex:1"><div class="fs12 fw6">${e.label}</div><div class="fs10 c-muted">${n} lead${n!==1?'s':''}</div></div>
+      <div class="fstep-bar"><div class="fstep-fill ${e.cor}" style="width:${pct}%"></div></div>
+      <div class="fstep-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+  // Tabela por etapa
+  const ft=document.getElementById('funilTabela');
+  const todos=['novo','contato','proposta','visita','aguardando','fechado'].flatMap(s=>_leads.filter(l=>l.status===s));
+  ft.innerHTML=`<table class="tbl">${todos.map(l=>`<tr class="clickable" onclick="abrirLead('${l.id}')"><td class="fw6">${l.nome}</td><td><span class="bdg ${statusBdg(l.status)}">${statusLabel(l.status)}</span></td><td class="fs10 c-muted">${l.proxAcao||'—'}</td></tr>`).join('')}</table>`;
+  // Conversão
+  const fc=document.getElementById('funilConversao');
+  fc.innerHTML=`<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px">${[
+    {de:'Novos',para:'Contato',a:_leads.filter(l=>l.status==='novo').length,b:_leads.filter(l=>['contato','proposta','visita','fechado'].includes(l.status)).length},
+    {de:'Contato',para:'Proposta',a:_leads.filter(l=>l.status==='contato').length,b:_leads.filter(l=>['proposta','visita','fechado'].includes(l.status)).length},
+    {de:'Proposta',para:'Visita',a:_leads.filter(l=>l.status==='proposta').length,b:_leads.filter(l=>['visita','fechado'].includes(l.status)).length},
+    {de:'Visita',para:'Fechado',a:_leads.filter(l=>l.status==='visita').length,b:_leads.filter(l=>l.status==='fechado').length},
+    {de:'Global',para:'Fechamento',a:total,b:_leads.filter(l=>l.status==='fechado').length},
+  ].map(c=>{const pct=c.a?Math.round(c.b/c.a*100):0;return`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:14px;text-align:center">
+    <div style="font-size:28px;font-weight:700;color:${pct>50?'#34D399':pct>25?'#FCD34D':'#F87171'};font-family:'Playfair Display',serif">${pct}%</div>
+    <div class="fs10 c-muted" style="margin-top:4px">${c.de} → ${c.para}</div>
+    <div class="fs10 c-muted">${c.b}/${c.a}</div>
+  </div>`}).join('')}</div>`;
+}
+
+/* ════════ AGENDA ════════ */
+function abrirAgendarModal(){
+  document.getElementById('agData').value=hoje(1);
+  abrirModal('agendarModal');
+}
+function salvarAgendamento(){
+  const lead=document.getElementById('agLead').value;
+  const tipo=document.getElementById('agTipo').value;
+  const data=document.getElementById('agData').value;
+  const hora=document.getElementById('agHora').value;
+  const obs=document.getElementById('agObs').value;
+  _agenda.push({id:'a'+Date.now(),lead,tipo,data,hora,obs});
+  fecharModal('agendarModal');renderAgenda();renderHomeAgenda();
+  toast('✅ Agendamento salvo!','green');
+}
+function renderAgenda(){
+  // agrupar por data
+  const sorted=[..._agenda].sort((a,b)=>a.data>b.data?1:a.data<b.data?-1:a.hora>b.hora?1:-1);
+  const groups={};sorted.forEach(a=>{if(!groups[a.data])groups[a.data]=[];groups[a.data].push(a)});
+  const h=hoje();
+  const w=document.getElementById('agendaWrap');
+  const keys=Object.keys(groups).sort();
+  w.innerHTML=keys.map(dt=>{
+    const label=dt===h?'Hoje':dt===hoje(1)?'Amanhã':fmtDt(dt);
+    const items=groups[dt];
+    return`<div class="agenda-day">
+      <div class="agenda-day-h">
+        <div class="agenda-day-lbl">${label}</div>
+        <div class="agenda-day-dt mono fs10">${fmtDt(dt)}</div>
+      </div>
+      ${items.map(a=>`<div class="agenda-item" onclick="toast('${a.lead} · ${a.tipo}','')">
+        <div class="agenda-time">${a.hora}</div>
+        <div class="agenda-body">
+          <div class="agenda-lead">${a.lead}</div>
+          <div class="agenda-tipo fs10 c-muted">${a.tipo}${a.obs?' · '+a.obs:''}</div>
+        </div>
+        <span class="bdg ${dt<h?'br':dt===h?'ba':'bz'}">${dt<h?'Passou':dt===h?'Hoje':'Futuro'}</span>
+      </div>`).join('')}
+    </div>`;
+  }).join('')||'<div class="fs12 c-muted" style="padding:24px">Nenhum agendamento.</div>';
+}
+
+/* ════════ EMPREENDIMENTOS ════════ */
+function renderEmpreendimentos(){
+  const busca=(document.getElementById('empBusca')?.value||'').toLowerCase();
+  const cl=document.getElementById('empCluster')?.value||'';
+  const list=EMPREENDIMENTOS.filter(e=>{
+    if(cl&&e.cluster!==cl)return false;
+    if(busca&&!e.nome.toLowerCase().includes(busca)&&!e.bairro.toLowerCase().includes(busca))return false;
+    return true;
+  });
+  document.getElementById('empGrid').innerHTML=list.map(e=>`
+    <div class="emp-card" onclick="nav(document.querySelector('[onclick*=precos]'),'precos')">
+      <div class="emp-img"><span style="font-size:40px;position:relative;z-index:1">${e.emoji}</span>
+        <div class="emp-img-overlay"></div>
+        <div class="emp-tag"><span class="bdg ${e.campanha?'bg':'bz'}">${e.campanha?'📣 Campanha':'—'}</span></div>
+      </div>
+      <div class="emp-body">
+        <div class="emp-nome">${e.nome}</div>
+        <div class="emp-const">${e.construtora} · ${e.bairro} · ${e.cluster}</div>
+        <div class="sp" style="margin-bottom:10px">
+          <span class="bdg ${e.status==='Lançamento'?'bo':e.status==='Em construção'?'bt':'bp'}">${e.status}</span>
+          <span class="bdg bz">${e.cluster}</span>
+        </div>
+        <div class="emp-stats">
+          <div><div class="emp-stat-lbl">Disponíveis</div><div class="emp-stat-val">${e.disponivel}</div></div>
+          <div><div class="emp-stat-lbl">Entrega</div><div class="emp-stat-val">${e.entrega}</div></div>
+          <div><div class="emp-stat-lbl">Ticket</div><div class="emp-stat-val" style="font-size:10px">${e.tiket}</div></div>
+          <div><div class="emp-stat-lbl">Destaque</div><div class="emp-stat-val" style="font-size:9px;color:var(--muted)">${e.destaque}</div></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ════════ PRECOS ════════ */
+function renderPrecos(){
+  document.getElementById('precosWrap').innerHTML=Object.entries(PRECO_TABLES).map(([emp,rows])=>`
+    <div class="tp-card mb14">
+      <div class="tp-head">
+        <div class="tp-nome">🏗️ ${emp}</div>
+        <button class="btn btn-sm" onclick="toast('Tabela enviada para o cliente!','green')">📤 Enviar ao lead</button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="tbl">
+          <thead><tr><th>Tipologia</th><th>Área</th><th>Andares</th><th>Preço</th><th>Cond. estimada</th><th>Status</th></tr></thead>
+          <tbody>${rows.map(r=>`<tr><td class="fw6">${r.tipo}</td><td class="mono">${r.area}</td><td>${r.andar}</td><td class="c-gold mono fw6">${r.preco}</td><td class="mono">${r.cond}/mês</td><td><span class="bdg ${r.status==='Disponível'?'bg':'ba'}">${r.status}</span></td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`).join('');
+}
+
+/* ════════ CAMPANHAS ════════ */
+function renderCampanhas(){
+  document.getElementById('campWrap').innerHTML=CAMPANHAS.map(c=>`
+    <div class="camp-card">
+      <div class="camp-top">
+        <div><div class="camp-nome">📣 ${c.nome}</div><div class="camp-periodo fs10 c-muted">${c.periodo}</div></div>
+        <span class="bdg bg">${c.status}</span>
+      </div>
+      <div class="sp mb14">${c.emps.map(e=>`<span class="bdg bt">${e}</span>`).join('')}</div>
+      <div class="camp-stats">
+        <div class="camp-stat"><div class="camp-stat-val">${c.impressoes}</div><div class="camp-stat-lbl">Impressões</div></div>
+        <div class="camp-stat"><div class="camp-stat-val">${c.cliques}</div><div class="camp-stat-lbl">Cliques</div></div>
+        <div class="camp-stat"><div class="camp-stat-val c-green">${c.leads}</div><div class="camp-stat-lbl">Leads</div></div>
+        <div class="camp-stat"><div class="camp-stat-val c-gold">${c.conversoes}</div><div class="camp-stat-lbl">Vendas</div></div>
+      </div>
+      <div style="margin-top:12px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Mensagens prontas para usar:</div>
+      <div class="camp-msgs">${c.msgs.map(m=>`<div class="camp-msg camp-msg-${m.canal}" onclick="copiarMsg('${encodeURIComponent(m.texto)}')">
+        ${m.canal==='wa'?'💬 WhatsApp':m.canal==='ig'?'📸 Instagram':'📧 E-mail'}: ${m.texto.substring(0,80)}...
+      </div>`).join('')}</div>
+    </div>`).join('');
+}
+function copiarMsg(enc){
+  const txt=decodeURIComponent(enc);
+  navigator.clipboard.writeText(txt).then(()=>toast('✅ Mensagem copiada!','green')).catch(()=>toast('Copie manualmente: '+txt,''));
+}
+
+/* ════════ DOCS ════════ */
+function renderDocs(){
+  document.getElementById('docsMsg').innerHTML=MSGS_MODELOS.map(m=>`
+    <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px 12px;cursor:pointer" onclick="copiarMsg('${encodeURIComponent(m.texto)}')">
+      <div class="fs11 fw6" style="margin-bottom:4px">${m.emoji} ${m.nome}</div>
+      <div class="fs10 c-muted">${m.texto.substring(0,80)}...</div>
+      <div class="fs10 c-gold" style="margin-top:4px">📋 Clique para copiar</div>
+    </div>`).join('');
+}
+function mostrarChecklist(key){
+  const ck=CHECKLISTS[key];if(!ck)return;
+  document.getElementById('checklistTitle').textContent=ck.titulo;
+  document.getElementById('checklistBody').innerHTML=ck.items.map((item,i)=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bdr)">
+      <input type="checkbox" id="ck${i}" style="accent-color:var(--gold)">
+      <label for="ck${i}" class="fs12" style="cursor:pointer">${item}</label>
+    </div>`).join('');
+  document.getElementById('checklistCard').style.display='block';
+  document.getElementById('checklistCard').scrollIntoView({behavior:'smooth'});
+}
+
+/* ════════ SIMULADOR ════════ */
+function calcSim(){
+  const imovel=+document.getElementById('sImovel').value;
+  const pctE=+document.getElementById('sEntrada').value/100;
+  const prazo=+document.getElementById('sPrazo').value;
+  const renda=+document.getElementById('sRenda').value;
+  const entrada=imovel*pctE;
+  const fin=imovel-entrada;
+  const tx=0.085/12;
+  const amort=fin/prazo;
+  const juros=fin*tx;
+  const mip=fin*0.000512;
+  const dfi=imovel*0.0000803;
+  const seg=mip+dfi;
+  const parc=amort+juros+seg;
+  const comp=parc/renda*100;
+  const totalPago=fin+(fin*0.085*prazo/12*0.5)+(seg*prazo);
+  const fmt=v=>'R$'+Math.round(v).toLocaleString('pt-BR');
+  const fmtK=v=>'R$'+(v/1000).toFixed(0)+'k';
+  document.getElementById('sImovelVal').textContent=fmt(imovel);
+  document.getElementById('sEntradaVal').textContent=`${Math.round(pctE*100)}% · ${fmt(entrada)}`;
+  document.getElementById('sPrazoVal').textContent=`${prazo} meses / ${Math.round(prazo/12)} anos`;
+  document.getElementById('sRendaVal').textContent=fmt(renda);
+  document.getElementById('sResParcela').textContent=fmt(parc);
+  document.getElementById('sResGrid').innerHTML=[
+    {l:'Valor Financiado',v:fmt(fin)},{l:'Amortização Mensal',v:fmt(amort)},
+    {l:'Juros 1ª Parcela',v:fmt(juros)},{l:'MIP + DFI',v:fmt(seg)},
+    {l:'% da Renda',v:comp.toFixed(1)+'%',c:comp>30?'#F87171':comp>25?'#FCD34D':'#34D399'},
+    {l:'Total Pago Est.',v:fmtK(totalPago)},
+  ].map(i=>`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;text-align:center"><div class="fs10 c-muted" style="margin-bottom:4px">${i.l}</div><div class="fs14 fw7" style="color:${i.c||'var(--txt)'}">${i.v}</div></div>`).join('');
+  const ok=comp<=30;
+  document.getElementById('sResObs').innerHTML=`
+    <div class="fs11 fw6 c-gold" style="margin-bottom:8px">⚙️ CFIAe · ${document.getElementById('sPosto').value}</div>
+    <div class="fs12" style="line-height:1.7;color:var(--txt)">
+      ${ok?'✅ <strong style="color:#34D399">Renda compatível</strong> com o financiamento (menos de 30% comprometida).':'⚠️ <strong style="color:#F87171">Renda elevada</strong> — acima de 30% comprometida. Considere aumentar a entrada ou reduzir o valor do imóvel.'}<br>
+      Taxa: <strong>8,5% a.a. + TR</strong> · Sistema SAC · MIP 0,051200% · DFI 0,0080360%<br>
+      Pré-análise em até <strong>48h</strong> · Até 90% financiado.
+    </div>
+    <button class="btn btn-gold" style="margin-top:12px;width:100%" onclick="toast('Simulação enviada ao lead!','green')">📤 Enviar ao cliente</button>`;
+}
+function imprimirSim(){window.print()}
+
+/* ════════ CONSULTOR IA ════════ */
+function addAiMsg(role,txt){
+  const el=document.getElementById('aiMsgs');if(!el)return;
+  const isAI=role==='ai';
+  el.innerHTML+=`<div class="ai-msg">
+    <div class="ai-av ${isAI?'av-ai':'av-u'}">${isAI?'W':'Eu'}</div>
+    <div class="ai-bubble ${isAI?'ai-bubble-ai':'ai-bubble-u'}">${txt.replace(/\n/g,'<br>')}</div>
+  </div>`;
+  el.scrollTop=el.scrollHeight;
+}
+function sendAiChip(msg){
+  const inp=document.getElementById('aiInp');if(!inp)return;
+  inp.value=msg;sendAiMsg();
+}
+async function sendAiMsg(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addAiMsg('user',msg);
+  _aiHistory.push({role:'user',content:msg});
+  const btn=document.getElementById('aiSendBtn');
+  if(btn){btn.textContent='⏳';btn.disabled=true}
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYSTEM,messages:_aiHistory})
+    });
+    const data=await resp.json();
+    const reply=data.content?.[0]?.text||'Desculpe, não consegui responder agora.';
+    _aiHistory.push({role:'assistant',content:reply});
+    addAiMsg('ai',reply);
+  }catch(e){addAiMsg('ai','⚠️ Erro de conexão. Verifique a API key e tente novamente.')}
+  if(btn){btn.textContent='➤';btn.disabled=false}
+}
+function limparChat(){
+  _aiHistory=[];
+  const el=document.getElementById('aiMsgs');if(el)el.innerHTML='';
+  addAiMsg('ai','Chat limpo! Como posso ajudar?');
+}
+</script>
+</body>
+</html>

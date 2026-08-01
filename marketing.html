@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL Consultoria — Módulo de Marketing</title>
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --navy:    #0B1F3A;
+    --navy2:   #122848;
+    --gold:    #C9A84C;
+    --gold2:   #E8C96A;
+    --teal:    #1A7A7A;
+    --teal2:   #22A09A;
+    --red:     #C0392B;
+    --green:   #1E8449;
+    --surface: #F5F7FA;
+    --card:    #FFFFFF;
+    --border:  #DDE3ED;
+    --text:    #1C2B3A;
+    --muted:   #6B7A8D;
+    --font-display: 'Georgia', 'Times New Roman', serif;
+    --font-body:    'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    --radius: 10px;
+    --shadow: 0 2px 12px rgba(11,31,58,.10);
+    --shadow-lg: 0 6px 28px rgba(11,31,58,.16);
+  }
+
+  /* ── RESET ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--surface); color: var(--text); font-size: 14px; line-height: 1.5; }
+  button { cursor: pointer; font-family: var(--font-body); }
+  input, select, textarea { font-family: var(--font-body); }
+  a { text-decoration: none; color: inherit; }
+
+  /* ── LAYOUT ── */
+  .app { display: flex; min-height: 100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px; min-height: 100vh; background: var(--navy);
+    display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100;
+  }
+  .sidebar-logo {
+    padding: 22px 20px 16px;
+    border-bottom: 1px solid rgba(201,168,76,.25);
+  }
+  .sidebar-logo .brand { color: var(--gold); font-family: var(--font-display); font-size: 17px; font-weight: bold; letter-spacing: .5px; }
+  .sidebar-logo .sub { color: rgba(255,255,255,.45); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+  .sidebar-logo .module-badge {
+    display: inline-block; background: var(--gold); color: var(--navy); font-size: 9px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    padding: 2px 7px; border-radius: 20px; margin-top: 8px;
+  }
+  .nav-section { padding: 18px 12px 4px; }
+  .nav-label { color: rgba(255,255,255,.3); font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; padding: 0 8px 6px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 12px; border-radius: 7px; color: rgba(255,255,255,.7);
+    font-size: 13px; margin-bottom: 2px; transition: all .15s;
+    cursor: pointer; border: none; background: none; width: 100%; text-align: left;
+  }
+  .nav-item:hover { background: rgba(201,168,76,.12); color: #fff; }
+  .nav-item.active { background: var(--gold); color: var(--navy); font-weight: 600; }
+  .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 20px;
+    border-top: 1px solid rgba(255,255,255,.08);
+    color: rgba(255,255,255,.3); font-size: 11px;
+  }
+
+  /* ── MAIN ── */
+  .main { margin-left: 220px; flex: 1; display: flex; flex-direction: column; }
+
+  /* ── TOPBAR ── */
+  .topbar {
+    background: var(--card); border-bottom: 1px solid var(--border);
+    padding: 14px 28px; display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 50;
+  }
+  .topbar-title { font-size: 17px; font-weight: 700; color: var(--navy); }
+  .topbar-title span { color: var(--gold); }
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 16px; border-radius: 7px; font-size: 13px;
+    font-weight: 600; border: none; transition: all .15s;
+  }
+  .btn-primary { background: var(--gold); color: var(--navy); }
+  .btn-primary:hover { background: var(--gold2); }
+  .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
+  .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+  .btn-teal { background: var(--teal); color: #fff; }
+  .btn-teal:hover { background: var(--teal2); }
+  .btn-sm { padding: 5px 11px; font-size: 12px; }
+  .btn-danger { background: var(--red); color: #fff; }
+
+  /* ── CONTENT ── */
+  .content { padding: 26px 28px; flex: 1; }
+
+  /* ── TABS ── */
+  .tab-bar {
+    display: flex; gap: 4px; background: var(--card);
+    border-radius: var(--radius); padding: 5px; border: 1px solid var(--border);
+    margin-bottom: 24px; width: fit-content;
+  }
+  .tab {
+    padding: 8px 20px; border-radius: 7px; font-size: 13px;
+    font-weight: 500; border: none; background: transparent;
+    color: var(--muted); transition: all .15s; cursor: pointer;
+  }
+  .tab.active { background: var(--navy); color: #fff; font-weight: 600; }
+  .tab:hover:not(.active) { background: var(--surface); color: var(--text); }
+
+  /* ── CARDS / WIDGETS ── */
+  .grid { display: grid; gap: 18px; }
+  .grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .card {
+    background: var(--card); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+  }
+  .card-title { font-size: 13px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; }
+  .card-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ── KPI ── */
+  .kpi-card { border-left: 4px solid var(--gold); }
+  .kpi-value { font-size: 32px; font-weight: 800; color: var(--navy); font-family: var(--font-display); }
+  .kpi-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .kpi-delta { font-size: 12px; margin-top: 8px; font-weight: 600; }
+  .delta-up { color: var(--green); }
+  .delta-down { color: var(--red); }
+
+  /* ── PIPELINE / KANBAN ── */
+  .pipeline-board { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 10px; }
+  .pipeline-col {
+    min-width: 195px; flex-shrink: 0;
+    background: var(--surface); border-radius: var(--radius);
+    border: 1px solid var(--border); padding: 12px;
+  }
+  .pipeline-col-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+  }
+  .col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .8px; }
+  .col-count {
+    font-size: 10px; font-weight: 700; background: var(--navy);
+    color: #fff; border-radius: 20px; padding: 1px 7px;
+  }
+  .lead-card {
+    background: var(--card); border-radius: 8px; border: 1px solid var(--border);
+    padding: 11px 12px; margin-bottom: 8px; cursor: grab;
+    box-shadow: var(--shadow); transition: box-shadow .15s;
+  }
+  .lead-card:hover { box-shadow: var(--shadow-lg); }
+  .lead-name { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .lead-posto { font-size: 10px; color: var(--gold); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .lead-meta { font-size: 11px; color: var(--muted); margin-top: 5px; }
+  .lead-imovel { font-size: 11px; color: var(--teal); margin-top: 2px; font-weight: 600; }
+  .lead-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 6px; }
+  .tag {
+    font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .4px;
+  }
+  .tag-fab { background: #EAF4FF; color: #1565C0; }
+  .tag-hot { background: #FDE8E8; color: var(--red); }
+  .tag-warm { background: #FFF3E0; color: #E65100; }
+  .tag-cold { background: #E8EAF6; color: #3949AB; }
+  .tag-whats { background: #E8F5E9; color: #1B5E20; }
+  .tag-insta { background: #F3E5F5; color: #6A1B9A; }
+
+  /* ── FONTE BADGE ── */
+  .fonte-dot {
+    display: inline-block; width: 7px; height: 7px;
+    border-radius: 50%; margin-right: 4px; vertical-align: middle;
+  }
+  .fonte-site    { background: var(--teal); }
+  .fonte-insta   { background: #9B59B6; }
+  .fonte-whats   { background: #27AE60; }
+  .fonte-indicac { background: var(--gold); }
+
+  /* ── CALENDAR ── */
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;
+  }
+  .cal-day-header {
+    text-align: center; font-size: 10px; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: .8px;
+    padding: 4px 0;
+  }
+  .cal-day {
+    min-height: 72px; border-radius: 7px; border: 1px solid var(--border);
+    background: var(--card); padding: 5px; position: relative; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .cal-day:hover { border-color: var(--gold); }
+  .cal-day.today { border-color: var(--gold); background: #FFFDF5; }
+  .cal-day.other-month { background: var(--surface); opacity: .55; }
+  .cal-day-num { font-size: 11px; font-weight: 700; color: var(--navy); margin-bottom: 3px; }
+  .cal-day.today .cal-day-num { color: var(--gold); }
+  .cal-post {
+    font-size: 9px; border-radius: 4px; padding: 2px 5px; margin-bottom: 2px;
+    font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .cal-post.insta { background: #F3E5F5; color: #6A1B9A; }
+  .cal-post.face  { background: #E8F0FF; color: #1A237E; }
+  .cal-post.wpp   { background: #E8F5E9; color: #1B5E20; }
+  .cal-post.email { background: #FFF3E0; color: #E65100; }
+
+  /* ── DISPAROS ── */
+  .disparo-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card); margin-bottom: 8px;
+  }
+  .disparo-icon { font-size: 22px; flex-shrink: 0; }
+  .disparo-info { flex: 1; }
+  .disparo-title { font-size: 13px; font-weight: 700; color: var(--navy); }
+  .disparo-desc { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .disparo-stats { font-size: 12px; color: var(--teal); font-weight: 600; }
+  .status-badge {
+    font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .status-agendado { background: #E8F0FF; color: #1565C0; }
+  .status-enviado  { background: #E8F5E9; color: #1B5E20; }
+  .status-rascunho { background: #F5F5F5; color: #616161; }
+  .status-ativo    { background: #E8F5E9; color: #1B5E20; }
+
+  /* ── FUNIL ── */
+  .funnel-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 0; }
+  .funnel-step {
+    display: flex; align-items: center; gap: 12px;
+    border-radius: 8px; padding: 11px 20px; color: #fff;
+    font-weight: 600; font-size: 13px; position: relative;
+    transition: transform .15s;
+  }
+  .funnel-step:hover { transform: scaleX(1.01); }
+  .funnel-step .step-pct { font-size: 11px; opacity: .75; margin-left: 6px; }
+  .funnel-step .step-n { font-size: 22px; font-weight: 800; min-width: 40px; text-align: right; }
+
+  /* ── TABELA ── */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th {
+    background: var(--navy); color: rgba(255,255,255,.7);
+    font-size: 10px; text-transform: uppercase; letter-spacing: .8px;
+    padding: 9px 12px; text-align: left; font-weight: 600;
+  }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+  .data-table tr:hover td { background: #FAFBFF; }
+
+  /* ── FORM ── */
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 11px; font-weight: 700; color: var(--navy); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px; }
+  .form-control {
+    width: 100%; padding: 9px 12px; border-radius: 7px;
+    border: 1.5px solid var(--border); font-size: 13px;
+    transition: border-color .15s; background: var(--card);
+  }
+  .form-control:focus { outline: none; border-color: var(--gold); }
+  .form-row { display: grid; gap: 14px; }
+  .form-row-2 { grid-template-columns: 1fr 1fr; }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(11,31,58,.55); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--card); border-radius: 14px; padding: 28px;
+    width: 560px; max-width: 95vw; max-height: 90vh;
+    overflow-y: auto; box-shadow: var(--shadow-lg);
+  }
+  .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+  .modal-title { font-size: 17px; font-weight: 700; color: var(--navy); }
+  .modal-close { background: none; border: none; font-size: 22px; color: var(--muted); cursor: pointer; }
+  .modal-close:hover { color: var(--red); }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar-bg { background: var(--border); border-radius: 20px; height: 7px; }
+  .progress-bar-fill { height: 7px; border-radius: 20px; transition: width .4s; }
+
+  /* ── SECTION TITLE ── */
+  .section-title {
+    font-size: 13px; font-weight: 800; color: var(--navy);
+    text-transform: uppercase; letter-spacing: .7px;
+    border-left: 3px solid var(--gold); padding-left: 10px;
+    margin-bottom: 14px;
+  }
+
+  /* ── TIMELINE ── */
+  .timeline { position: relative; padding-left: 22px; }
+  .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+  .tl-item { position: relative; margin-bottom: 14px; }
+  .tl-dot {
+    position: absolute; left: -18px; top: 3px;
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--gold); border: 2px solid #fff; box-shadow: 0 0 0 1px var(--gold);
+  }
+  .tl-date { font-size: 10px; color: var(--muted); }
+  .tl-text { font-size: 12px; color: var(--text); margin-top: 1px; }
+
+  /* ── NOTIFICATION ── */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+    background: var(--navy); color: #fff; padding: 12px 20px;
+    border-radius: 9px; border-left: 4px solid var(--gold);
+    font-size: 13px; box-shadow: var(--shadow-lg);
+    transform: translateY(20px); opacity: 0; transition: all .3s;
+    pointer-events: none;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ── RESPONSIVE HINT ── */
+  @media (max-width: 1100px) {
+    .grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .grid-3 { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 750px) {
+    .sidebar { width: 60px; }
+    .sidebar-logo .brand, .sidebar-logo .sub, .sidebar-logo .module-badge, .nav-item span, .nav-label { display: none; }
+    .main { margin-left: 60px; }
+    .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  /* ── SEMÁFORO DE TEMPERATURA ── */
+  .temp-circle {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; vertical-align: middle; margin-right: 4px;
+  }
+  .hot  { background: var(--red); }
+  .warm { background: #E67E22; }
+  .cold { background: #3498DB; }
+
+  /* ── MINI-CHART (SVG-based sparkline simulation) ── */
+  .sparkline { display: flex; align-items: flex-end; gap: 3px; height: 36px; margin-top: 6px; }
+  .spark-bar { flex: 1; border-radius: 3px 3px 0 0; background: var(--gold); opacity: .7; transition: opacity .15s; }
+  .spark-bar:hover { opacity: 1; }
+  .spark-bar.teal { background: var(--teal); }
+  .spark-bar.navy { background: var(--navy); }
+
+  /* ── ABAS INTERNAS ── */
+  .inner-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 18px; }
+  .inner-tab {
+    padding: 9px 18px; font-size: 13px; font-weight: 600;
+    color: var(--muted); border: none; background: none; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all .15s;
+  }
+  .inner-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .inner-tab:hover:not(.active) { color: var(--navy); }
+
+  /* ── SCORE BADGE ── */
+  .score { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; font-size: 11px; font-weight: 800; }
+  .score-high { background: #FDE8E8; color: var(--red); }
+  .score-mid  { background: #FFF3E0; color: #E65100; }
+  .score-low  { background: #E8EAF6; color: #3949AB; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ SIDEBAR ══ -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="brand">WAL</div>
+      <div class="sub">Consultoria Imobiliária</div>
+      <div class="module-badge">📢 Marketing</div>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Visão Geral</div>
+      <button class="nav-item active" onclick="showTab('dashboard')">
+        <span class="icon">📊</span><span>Dashboard</span>
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Leads & Pipeline</div>
+      <button class="nav-item" onclick="showTab('pipeline')">
+        <span class="icon">🔀</span><span>Pipeline de Leads</span>
+      </button>
+      <button class="nav-item" onclick="showTab('leads')">
+        <span class="icon">👥</span><span>Base de Leads</span>
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Conteúdo</div>
+      <button class="nav-item" onclick="showTab('calendario')">
+        <span class="icon">📅</span><span>Calendário</span>
+      </button>
+      <button class="nav-item" onclick="showTab('disparos')">
+        <span class="icon">📨</span><span>Disparos</span>
+      </button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Sistema</div>
+      <button class="nav-item" onclick="showTab('config')">
+        <span class="icon">⚙️</span><span>Configurações</span>
+      </button>
+    </div>
+
+    <div class="sidebar-footer">v1.0 — Jun 2026</div>
+  </nav>
+
+  <!-- ══ MAIN ══ -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">WAL <span>Marketing</span></div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-outline btn-sm" onclick="openModal('modalDisparo')">📨 Novo Disparo</button>
+        <button class="btn btn-primary btn-sm" onclick="openModal('modalNovoLead')">+ Novo Lead</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ══════════════════════════════════
+           DASHBOARD
+      ══════════════════════════════════ -->
+      <div id="tab-dashboard">
+
+        <div class="section-title">Resumo de Junho 2026</div>
+
+        <!-- KPIs -->
+        <div class="grid grid-4" style="margin-bottom:22px;">
+          <div class="card kpi-card">
+            <div class="kpi-value">143</div>
+            <div class="kpi-label">Total de Leads</div>
+            <div class="sparkline">
+              <div class="spark-bar" style="height:40%"></div>
+              <div class="spark-bar" style="height:55%"></div>
+              <div class="spark-bar" style="height:50%"></div>
+              <div class="spark-bar" style="height:65%"></div>
+              <div class="spark-bar" style="height:70%"></div>
+              <div class="spark-bar" style="height:80%"></div>
+              <div class="spark-bar" style="height:100%"></div>
+            </div>
+            <div class="kpi-delta delta-up">▲ +18 este mês</div>
+          </div>
+          <div class="card kpi-card" style="border-left-color:var(--teal);">
+            <div class="kpi-value">29</div>
+            <div class="kpi-label">Leads Quentes 🔥</div>
+            <div class="sparkline">
+              <div class="spark-bar teal" style="height:35%"></div>
+              <div class="spark-bar teal" style="height:45%"></div>
+              <div class="spark-bar teal" style="height:60%"></div>
+              <div class="spark-bar teal" style="height:55%"></div>
+              <div class="spark-bar teal" style="height:75%"></div>
+              <div class="spark-bar teal" style="height:80%"></div>
+              <div class="spark-bar teal" style="height:100%"></div>
+            </div>
+            <div class="kpi-delta delta-up">▲ +6 vs. mês passado</div>
+          </div>
+          <div class="card kpi-card" style="border-left-color:#1E8449;">
+            <div class="kpi-value">11</div>
+            <div class="kpi-label">Vendas Efetivadas</div>
+            <div class="sparkline">
+              <div class="spark-bar navy" style="height:30%"></div>
+              <div class="spark-bar navy" style="height:40%"></div>
+              <div class="spark-bar navy" style="height:45%"></div>
+              <div class="spark-bar navy" style="height:60%"></div>
+              <div class="spark-bar navy" style="height:65%"></div>
+              <div class="spark-bar navy" style="height:75%"></div>
+              <div class="spark-bar navy" style="height:100%"></div>
+            </div>
+            <div class="kpi-delta delta-up">▲ Meta: 50–60 até Dez</div>
+          </div>
+          <div class="card kpi-card" style="border-left-color:#C0392B;">
+            <div class="kpi-value">7,7%</div>
+            <div class="kpi-label">Taxa de Conversão</div>
+            <div class="sparkline">
+              <div class="spark-bar" style="height:55%; background:var(--red); opacity:.5"></div>
+              <div class="spark-bar" style="height:60%; background:var(--red); opacity:.6"></div>
+              <div class="spark-bar" style="height:65%; background:var(--red); opacity:.7"></div>
+              <div class="spark-bar" style="height:70%; background:var(--red); opacity:.8"></div>
+              <div class="spark-bar" style="height:75%; background:var(--red); opacity:.85"></div>
+              <div class="spark-bar" style="height:90%; background:var(--red); opacity:.9"></div>
+              <div class="spark-bar" style="height:100%; background:var(--red)"></div>
+            </div>
+            <div class="kpi-delta delta-up">▲ Meta: 12%</div>
+          </div>
+        </div>
+
+        <div class="grid grid-2" style="margin-bottom:22px;">
+
+          <!-- FUNIL -->
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">⬇ Funil de Conversão</div><div class="card-sub">Mês corrente</div></div>
+            </div>
+            <div class="funnel-wrap">
+              <div class="funnel-step" style="background:var(--navy); width:100%;">
+                <div class="step-n">143</div>
+                <div style="flex:1">Leads captados <span class="step-pct">100%</span></div>
+              </div>
+              <div class="funnel-step" style="background:#1A4A7A; width:82%;">
+                <div class="step-n">117</div>
+                <div style="flex:1">1º Contato feito <span class="step-pct">82%</span></div>
+              </div>
+              <div class="funnel-step" style="background:var(--teal); width:58%;">
+                <div class="step-n">83</div>
+                <div style="flex:1">Interesse confirmado <span class="step-pct">58%</span></div>
+              </div>
+              <div class="funnel-step" style="background:#1E6A40; width:35%;">
+                <div class="step-n">50</div>
+                <div style="flex:1">Simulação enviada <span class="step-pct">35%</span></div>
+              </div>
+              <div class="funnel-step" style="background:var(--gold); color:var(--navy); width:20%;">
+                <div class="step-n">29</div>
+                <div style="flex:1">Em negociação <span class="step-pct">20%</span></div>
+              </div>
+              <div class="funnel-step" style="background:var(--red); width:8%;">
+                <div class="step-n">11</div>
+                <div style="flex:1">Vendas fechadas <span class="step-pct">7,7%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FONTES -->
+          <div class="card">
+            <div class="card-header">
+              <div><div class="card-title">📡 Fontes de Leads</div><div class="card-sub">Mês corrente</div></div>
+            </div>
+            <div style="margin-top:4px;">
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-size:13px;font-weight:600;"><span class="fonte-dot fonte-site"></span>Site / Formulário</span>
+                  <span style="font-size:13px;font-weight:700;color:var(--teal);">58 (40%)</span>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:40%;background:var(--teal)"></div></div>
+              </div>
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-size:13px;font-weight:600;"><span class="fonte-dot fonte-insta"></span>Instagram / Meta Ads</span>
+                  <span style="font-size:13px;font-weight:700;color:#9B59B6;">43 (30%)</span>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:30%;background:#9B59B6"></div></div>
+              </div>
+              <div style="margin-bottom:14px;">
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-size:13px;font-weight:600;"><span class="fonte-dot fonte-whats"></span>WhatsApp Direto</span>
+                  <span style="font-size:13px;font-weight:700;color:#27AE60;">29 (20%)</span>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:20%;background:#27AE60"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                  <span style="font-size:13px;font-weight:600;"><span class="fonte-dot fonte-indicac"></span>Indicações</span>
+                  <span style="font-size:13px;font-weight:700;color:var(--gold);">13 (9%)</span>
+                </div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:9%;background:var(--gold)"></div></div>
+              </div>
+            </div>
+
+            <div style="margin-top:20px;">
+              <div class="card-title" style="margin-bottom:10px;">🎯 Meta 2026 — Unidades Vendidas</div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div style="flex:1;">
+                  <div class="progress-bar-bg" style="height:12px;">
+                    <div class="progress-bar-fill" style="width:22%;background:var(--gold);height:12px;"></div>
+                  </div>
+                </div>
+                <span style="font-size:14px;font-weight:800;color:var(--navy);">11 / 50</span>
+              </div>
+              <div style="font-size:11px;color:var(--muted);margin-top:5px;">22% da meta mínima atingida — 39 unidades restantes</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ATIVIDADE RECENTE -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">⚡ Atividade Recente</div>
+            <button class="btn btn-outline btn-sm" onclick="showTab('leads')">Ver todos</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Lead</th><th>Posto / Categoria</th><th>Empreendimento</th>
+                <th>Fonte</th><th>Temperatura</th><th>Etapa</th><th>Último contato</th><th>Ação</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Cel. Marcos Faria</strong><br><span style="font-size:10px;color:var(--muted);">(21) 99801-2345</span></td>
+                <td><span class="tag tag-fab">FAB — Oficial</span></td>
+                <td style="color:var(--teal);font-weight:600;">ICONYC by YOO</td>
+                <td><span class="fonte-dot fonte-insta"></span>Instagram</td>
+                <td><span class="temp-circle hot"></span><strong>Quente</strong></td>
+                <td><span class="status-badge status-ativo">Negociando</span></td>
+                <td style="color:var(--muted);">Hoje, 09h</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WhatsApp aberto!')">💬 WPP</button></td>
+              </tr>
+              <tr>
+                <td><strong>Sd. Ana Ribeiro</strong><br><span style="font-size:10px;color:var(--muted);">(11) 98702-6543</span></td>
+                <td><span class="tag tag-fab">FAB — Praça</span></td>
+                <td style="color:var(--teal);font-weight:600;">Orla Recreio Reserva</td>
+                <td><span class="fonte-dot fonte-site"></span>Site</td>
+                <td><span class="temp-circle warm"></span><strong>Morno</strong></td>
+                <td><span class="status-badge status-agendado">Simulação enviada</span></td>
+                <td style="color:var(--muted);">Ontem, 14h</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WhatsApp aberto!')">💬 WPP</button></td>
+              </tr>
+              <tr>
+                <td><strong>Ten. Paulo Lemos</strong><br><span style="font-size:10px;color:var(--muted);">(21) 99100-0022</span></td>
+                <td><span class="tag tag-fab">FAB — Oficial</span></td>
+                <td style="color:var(--teal);font-weight:600;">Ilha Mar Beach</td>
+                <td><span class="fonte-dot fonte-whats"></span>WhatsApp</td>
+                <td><span class="temp-circle hot"></span><strong>Quente</strong></td>
+                <td><span class="status-badge status-ativo">1º Contato</span></td>
+                <td style="color:var(--muted);">28/06 10h</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WhatsApp aberto!')">💬 WPP</button></td>
+              </tr>
+              <tr>
+                <td><strong>Maj. Cláudia Serra</strong><br><span style="font-size:10px;color:var(--muted);">(11) 97700-3311</span></td>
+                <td><span class="tag tag-fab">FAB — Oficial</span></td>
+                <td style="color:var(--teal);font-weight:600;">ICONYC by YOO</td>
+                <td><span class="fonte-dot fonte-indicac"></span>Indicação</td>
+                <td><span class="temp-circle cold"></span><strong>Frio</strong></td>
+                <td><span class="status-badge status-rascunho">Novo</span></td>
+                <td style="color:var(--muted);">27/06 16h</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WhatsApp aberto!')">💬 WPP</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /dashboard -->
+
+      <!-- ══════════════════════════════════
+           PIPELINE KANBAN
+      ══════════════════════════════════ -->
+      <div id="tab-pipeline" style="display:none;">
+        <div class="section-title">Pipeline de Leads — Kanban</div>
+
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;">
+          <select class="form-control" style="width:auto;">
+            <option>Todos os empreendimentos</option>
+            <option>ICONYC by YOO</option>
+            <option>Orla Recreio Reserva</option>
+            <option>Ilha Mar Beach & Home</option>
+          </select>
+          <select class="form-control" style="width:auto;">
+            <option>Todos os postos</option>
+            <option>Oficiais (Cel/Ten/Maj)</option>
+            <option>Praças (Sgt/Cb/Sd)</option>
+            <option>Servidor Civil</option>
+            <option>Pensionista</option>
+          </select>
+          <select class="form-control" style="width:auto;">
+            <option>Todas as fontes</option>
+            <option>Site</option>
+            <option>Instagram</option>
+            <option>WhatsApp</option>
+            <option>Indicação</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modalNovoLead')">+ Novo Lead</button>
+        </div>
+
+        <div class="pipeline-board">
+
+          <!-- COLUNA 1 -->
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">
+              <div class="col-title" style="color:#3949AB;">🆕 Novos</div>
+              <span class="col-count">5</span>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Maj. Cláudia Serra</div>
+              <div class="lead-posto">FAB — Oficial</div>
+              <div class="lead-imovel">ICONYC by YOO</div>
+              <div class="lead-meta">📍 SP · 📞 (11) 97700-3311</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-cold">Frio</span>
+                <span class="tag tag-insta">Indicação</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Cb. Rodrigo Mota</div>
+              <div class="lead-posto">FAB — Praça</div>
+              <div class="lead-imovel">Orla Recreio Reserva</div>
+              <div class="lead-meta">📍 RJ · 📞 (21) 98811-2200</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-cold">Frio</span>
+                <span class="tag tag-whats">WPP</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Sra. Fátima Leal</div>
+              <div class="lead-posto">Pensionista</div>
+              <div class="lead-imovel">Ilha Mar Beach</div>
+              <div class="lead-meta">📍 RJ · 📞 (21) 99200-7744</div>
+              <div class="lead-tags">
+                <span class="tag tag-cold">Frio</span>
+                <span class="tag tag-insta">Instagram</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 2 -->
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">
+              <div class="col-title" style="color:#1565C0;">📞 1º Contato</div>
+              <span class="col-count">6</span>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Ten. Paulo Lemos</div>
+              <div class="lead-posto">FAB — Oficial</div>
+              <div class="lead-imovel">Ilha Mar Beach</div>
+              <div class="lead-meta">📍 RJ · 📞 (21) 99100-0022</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-hot">Quente</span>
+                <span class="tag tag-whats">WPP</span>
+              </div>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Sgt. Lucas Viana</div>
+              <div class="lead-posto">FAB — Praça</div>
+              <div class="lead-imovel">Orla Recreio Reserva</div>
+              <div class="lead-meta">📍 RJ · 📞 (21) 98500-1122</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-warm">Morno</span>
+                <span class="tag tag-insta">Instagram</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 3 -->
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">
+              <div class="col-title" style="color:var(--teal);">✅ Interesse</div>
+              <span class="col-count">8</span>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Sd. Ana Ribeiro</div>
+              <div class="lead-posto">FAB — Praça</div>
+              <div class="lead-imovel">Orla Recreio Reserva</div>
+              <div class="lead-meta">📍 SP · 📞 (11) 98702-6543</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-warm">Morno</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 4 -->
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">
+              <div class="col-title" style="color:#E65100;">🧮 Simulação</div>
+              <span class="col-count">7</span>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Cel. Marcelo Braga</div>
+              <div class="lead-posto">FAB — Oficial</div>
+              <div class="lead-imovel">ICONYC by YOO</div>
+              <div class="lead-meta">📍 SP · 📞 (11) 99301-5500</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-hot">Quente</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 5 -->
+          <div class="pipeline-col">
+            <div class="pipeline-col-header">
+              <div class="col-title" style="color:var(--gold); filter:brightness(.8);">🤝 Negociando</div>
+              <span class="col-count">4</span>
+            </div>
+            <div class="lead-card">
+              <div class="lead-name">Cel. Marcos Faria</div>
+              <div class="lead-posto">FAB — Oficial</div>
+              <div class="lead-imovel">ICONYC by YOO</div>
+              <div class="lead-meta">📍 RJ · 📞 (21) 99801-2345</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="tag tag-hot">Quente</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUNA 6 -->
+          <div class="pipeline-col" style="border-color:#1E8449;">
+            <div class="pipeline-col-header">
+              <div class="col-title" style="color:var(--green);">🏠 Fechado!</div>
+              <span class="col-count">11</span>
+            </div>
+            <div class="lead-card" style="border-left:3px solid var(--green);">
+              <div class="lead-name">Ten. Cel. Souza</div>
+              <div class="lead-posto">FAB — Oficial</div>
+              <div class="lead-imovel">Ilha Mar Beach</div>
+              <div class="lead-meta">📍 RJ · Unidade 304</div>
+              <div class="lead-tags">
+                <span class="tag tag-fab">FAB</span>
+                <span class="status-badge status-enviado" style="font-size:8px;padding:1px 5px;">✓ Vendido</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /pipeline-board -->
+      </div><!-- /pipeline -->
+
+      <!-- ══════════════════════════════════
+           BASE DE LEADS
+      ══════════════════════════════════ -->
+      <div id="tab-leads" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div class="section-title" style="margin-bottom:0">Base de Leads</div>
+          <div style="display:flex;gap:8px;">
+            <input class="form-control" placeholder="🔍 Buscar por nome, posto, telefone..." style="width:280px;" oninput="filterTable(this.value)">
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalNovoLead')">+ Novo Lead</button>
+            <button class="btn btn-outline btn-sm" onclick="toast('CSV exportado!')">⬇ Exportar CSV</button>
+          </div>
+        </div>
+
+        <div class="card" style="padding:0;overflow:hidden;">
+          <table class="data-table" id="leadsTable">
+            <thead>
+              <tr>
+                <th>Score</th><th>Nome</th><th>Posto/Cat.</th><th>Telefone</th>
+                <th>Email</th><th>Empreendimento</th><th>Fonte</th>
+                <th>Temperatura</th><th>Etapa</th><th>Cadastro</th><th>Ações</th>
+              </tr>
+            </thead>
+            <tbody id="leadsBody">
+              <tr>
+                <td><span class="score score-high">98</span></td>
+                <td><strong>Cel. Marcos Faria</strong></td>
+                <td><span class="tag tag-fab">FAB Oficial</span></td>
+                <td>(21) 99801-2345</td>
+                <td>marcos@fab.mil.br</td>
+                <td style="color:var(--teal);font-weight:600;">ICONYC by YOO</td>
+                <td><span class="fonte-dot fonte-insta"></span>Instagram</td>
+                <td><span class="temp-circle hot"></span>Quente</td>
+                <td><span class="status-badge status-ativo">Negociando</span></td>
+                <td>15/06</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WPP aberto!')">💬</button> <button class="btn btn-outline btn-sm" onclick="toast('Editando...')">✏️</button></td>
+              </tr>
+              <tr>
+                <td><span class="score score-mid">74</span></td>
+                <td><strong>Sd. Ana Ribeiro</strong></td>
+                <td><span class="tag tag-fab">FAB Praça</span></td>
+                <td>(11) 98702-6543</td>
+                <td>ana.ribeiro@gmail.com</td>
+                <td style="color:var(--teal);font-weight:600;">Orla Recreio Reserva</td>
+                <td><span class="fonte-dot fonte-site"></span>Site</td>
+                <td><span class="temp-circle warm"></span>Morno</td>
+                <td><span class="status-badge status-agendado">Simulação</span></td>
+                <td>18/06</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WPP aberto!')">💬</button> <button class="btn btn-outline btn-sm" onclick="toast('Editando...')">✏️</button></td>
+              </tr>
+              <tr>
+                <td><span class="score score-high">91</span></td>
+                <td><strong>Ten. Paulo Lemos</strong></td>
+                <td><span class="tag tag-fab">FAB Oficial</span></td>
+                <td>(21) 99100-0022</td>
+                <td>plemos@fab.mil.br</td>
+                <td style="color:var(--teal);font-weight:600;">Ilha Mar Beach</td>
+                <td><span class="fonte-dot fonte-whats"></span>WhatsApp</td>
+                <td><span class="temp-circle hot"></span>Quente</td>
+                <td><span class="status-badge status-ativo">1º Contato</span></td>
+                <td>28/06</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WPP aberto!')">💬</button> <button class="btn btn-outline btn-sm" onclick="toast('Editando...')">✏️</button></td>
+              </tr>
+              <tr>
+                <td><span class="score score-low">42</span></td>
+                <td><strong>Maj. Cláudia Serra</strong></td>
+                <td><span class="tag tag-fab">FAB Oficial</span></td>
+                <td>(11) 97700-3311</td>
+                <td>cserr@outlook.com</td>
+                <td style="color:var(--teal);font-weight:600;">ICONYC by YOO</td>
+                <td><span class="fonte-dot fonte-indicac"></span>Indicação</td>
+                <td><span class="temp-circle cold"></span>Frio</td>
+                <td><span class="status-badge status-rascunho">Novo</span></td>
+                <td>27/06</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WPP aberto!')">💬</button> <button class="btn btn-outline btn-sm" onclick="toast('Editando...')">✏️</button></td>
+              </tr>
+              <tr>
+                <td><span class="score score-high">88</span></td>
+                <td><strong>Cel. Marcelo Braga</strong></td>
+                <td><span class="tag tag-fab">FAB Oficial</span></td>
+                <td>(11) 99301-5500</td>
+                <td>mbraga@fab.mil.br</td>
+                <td style="color:var(--teal);font-weight:600;">ICONYC by YOO</td>
+                <td><span class="fonte-dot fonte-site"></span>Site</td>
+                <td><span class="temp-circle hot"></span>Quente</td>
+                <td><span class="status-badge status-agendado">Simulação</span></td>
+                <td>22/06</td>
+                <td><button class="btn btn-teal btn-sm" onclick="toast('WPP aberto!')">💬</button> <button class="btn btn-outline btn-sm" onclick="toast('Editando...')">✏️</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /leads -->
+
+      <!-- ══════════════════════════════════
+           CALENDÁRIO DE CONTEÚDO
+      ══════════════════════════════════ -->
+      <div id="tab-calendario" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div class="section-title" style="margin-bottom:0;">📅 Calendário de Conteúdo — Julho 2026</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-outline btn-sm">◀ Jun</button>
+            <button class="btn btn-outline btn-sm">Ago ▶</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('modalNovoPost')">+ Novo Post</button>
+          </div>
+        </div>
+
+        <!-- Legenda -->
+        <div style="display:flex;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+          <span style="font-size:11px;font-weight:600;"><span style="display:inline-block;width:10px;height:10px;background:#F3E5F5;border-radius:2px;margin-right:4px;border:1px solid #9B59B6;"></span>Instagram</span>
+          <span style="font-size:11px;font-weight:600;"><span style="display:inline-block;width:10px;height:10px;background:#E8F0FF;border-radius:2px;margin-right:4px;border:1px solid #1A237E;"></span>Facebook</span>
+          <span style="font-size:11px;font-weight:600;"><span style="display:inline-block;width:10px;height:10px;background:#E8F5E9;border-radius:2px;margin-right:4px;border:1px solid #1B5E20;"></span>WhatsApp Status</span>
+          <span style="font-size:11px;font-weight:600;"><span style="display:inline-block;width:10px;height:10px;background:#FFF3E0;border-radius:2px;margin-right:4px;border:1px solid #E65100;"></span>Email</span>
+        </div>
+
+        <div class="card" style="padding:16px;">
+          <div class="cal-grid">
+            <div class="cal-day-header">Dom</div>
+            <div class="cal-day-header">Seg</div>
+            <div class="cal-day-header">Ter</div>
+            <div class="cal-day-header">Qua</div>
+            <div class="cal-day-header">Qui</div>
+            <div class="cal-day-header">Sex</div>
+            <div class="cal-day-header">Sáb</div>
+
+            <!-- Semana 1 -->
+            <div class="cal-day other-month"><div class="cal-day-num">29</div></div>
+            <div class="cal-day other-month"><div class="cal-day-num">30</div></div>
+            <div class="cal-day"><div class="cal-day-num">1</div>
+              <div class="cal-post insta">📸 ICONYC – Vista</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">2</div>
+              <div class="cal-post email">📧 Newsletter FAB</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">3</div></div>
+            <div class="cal-day"><div class="cal-day-num">4</div>
+              <div class="cal-post insta">📸 Depoimento Cel</div>
+              <div class="cal-post face">👍 Financiamento</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">5</div>
+              <div class="cal-post wpp">💬 Orla Recreio</div>
+            </div>
+
+            <!-- Semana 2 -->
+            <div class="cal-day"><div class="cal-day-num">6</div>
+              <div class="cal-post insta">📸 Ilha Mar – Piscina</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">7</div>
+              <div class="cal-post email">📧 CFIAe – Dicas</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">8</div></div>
+            <div class="cal-day"><div class="cal-day-num">9</div>
+              <div class="cal-post insta">📸 ICONYC – Planta</div>
+              <div class="cal-post wpp">💬 Lembrete Praças</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">10</div></div>
+            <div class="cal-day"><div class="cal-day-num">11</div>
+              <div class="cal-post face">👍 Comparativo RJ/SP</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">12</div>
+              <div class="cal-post insta">📸 Stories – FAQ</div>
+            </div>
+
+            <!-- Semana 3 -->
+            <div class="cal-day"><div class="cal-day-num">13</div></div>
+            <div class="cal-day"><div class="cal-day-num">14</div>
+              <div class="cal-post insta">📸 Carrossel Orla</div>
+              <div class="cal-post email">📧 Segmento Oficiais</div>
+            </div>
+            <div class="cal-day today"><div class="cal-day-num">15</div>
+              <div class="cal-post wpp">💬 Promoção Julho</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">16</div></div>
+            <div class="cal-day"><div class="cal-day-num">17</div>
+              <div class="cal-post insta">📸 Depoimento Ten</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">18</div>
+              <div class="cal-post face">👍 Live – Simulação</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">19</div></div>
+
+            <!-- Semana 4 -->
+            <div class="cal-day"><div class="cal-day-num">20</div>
+              <div class="cal-post insta">📸 ICONYC – Lobby</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">21</div>
+              <div class="cal-post email">📧 Nurture – Frios</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">22</div></div>
+            <div class="cal-day"><div class="cal-day-num">23</div>
+              <div class="cal-post insta">📸 Ilha Mar – Sunset</div>
+              <div class="cal-post wpp">💬 CTA Urgência</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">24</div></div>
+            <div class="cal-day"><div class="cal-day-num">25</div>
+              <div class="cal-post insta">📸 Reels – Tour 360°</div>
+              <div class="cal-post face">👍 Financiamento FAB</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">26</div></div>
+
+            <!-- Semana 5 -->
+            <div class="cal-day"><div class="cal-day-num">27</div>
+              <div class="cal-post insta">📸 Orla – Área Verde</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">28</div>
+              <div class="cal-post email">📧 Newsletter Agosto</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">29</div></div>
+            <div class="cal-day"><div class="cal-day-num">30</div>
+              <div class="cal-post insta">📸 Depoimento Sgt</div>
+            </div>
+            <div class="cal-day"><div class="cal-day-num">31</div>
+              <div class="cal-post wpp">💬 Recap do Mês</div>
+            </div>
+            <div class="cal-day other-month"><div class="cal-day-num">1</div></div>
+            <div class="cal-day other-month"><div class="cal-day-num">2</div></div>
+          </div>
+        </div>
+
+        <!-- Próximos posts -->
+        <div class="card" style="margin-top:18px;">
+          <div class="card-header">
+            <div class="card-title">📋 Fila de Publicação</div>
+            <button class="btn btn-outline btn-sm" onclick="openModal('modalNovoPost')">+ Adicionar</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr><th>Data</th><th>Canal</th><th>Tema</th><th>Status</th><th>Ação</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>01/07</td>
+                <td><span class="cal-post insta" style="display:inline-block;">Instagram</span></td>
+                <td>ICONYC by YOO — Vista privilegiada</td>
+                <td><span class="status-badge status-agendado">Agendado</span></td>
+                <td><button class="btn btn-outline btn-sm" onclick="toast('Editando post...')">✏️ Editar</button></td>
+              </tr>
+              <tr>
+                <td>02/07</td>
+                <td><span class="cal-post email" style="display:inline-block;">Email</span></td>
+                <td>Newsletter Julho — Financiamento CFIAe para FAB</td>
+                <td><span class="status-badge status-rascunho">Rascunho</span></td>
+                <td><button class="btn btn-outline btn-sm" onclick="toast('Editando post...')">✏️ Editar</button></td>
+              </tr>
+              <tr>
+                <td>04/07</td>
+                <td><span class="cal-post insta" style="display:inline-block;">Instagram</span></td>
+                <td>Depoimento — Coronel cliente do ICONYC</td>
+                <td><span class="status-badge status-rascunho">Rascunho</span></td>
+                <td><button class="btn btn-outline btn-sm" onclick="toast('Editando post...')">✏️ Editar</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div><!-- /calendario -->
+
+      <!-- ══════════════════════════════════
+           DISPAROS
+      ══════════════════════════════════ -->
+      <div id="tab-disparos" style="display:none;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+          <div class="section-title" style="margin-bottom:0;">📨 Disparos & Automações</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('modalDisparo')">+ Novo Disparo</button>
+        </div>
+
+        <div class="inner-tabs">
+          <button class="inner-tab active" onclick="switchInner(this,'whatsapp')">💬 WhatsApp</button>
+          <button class="inner-tab" onclick="switchInner(this,'email')">📧 Email</button>
+          <button class="inner-tab" onclick="switchInner(this,'automacoes')">🤖 Automações</button>
+        </div>
+
+        <!-- WHATSAPP -->
+        <div id="inner-whatsapp">
+          <div class="disparo-row">
+            <div class="disparo-icon">💬</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Boas-vindas — Novo Lead FAB</div>
+              <div class="disparo-desc">Enviado automaticamente quando lead é cadastrado via formulário do site</div>
+              <div class="disparo-stats">✅ 58 enviados · 91% taxa de leitura</div>
+            </div>
+            <span class="status-badge status-ativo">Ativo</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando template...')">✏️</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">💬</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Follow-up 3 dias — Simulação enviada</div>
+              <div class="disparo-desc">Lembrete automático para leads que receberam simulação CFIAe</div>
+              <div class="disparo-stats">✅ 34 enviados · 78% taxa de resposta</div>
+            </div>
+            <span class="status-badge status-ativo">Ativo</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando template...')">✏️</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">💬</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Campanha Julho — Promoção Ilha Mar</div>
+              <div class="disparo-desc">Disparo manual para lista segmentada: Praças RJ com interesse em Recreio</div>
+              <div class="disparo-stats">🕐 Agendado: 15/07 às 09h</div>
+            </div>
+            <span class="status-badge status-agendado">Agendado</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando...')">✏️</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">💬</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Reativação — Leads frios (30+ dias)</div>
+              <div class="disparo-desc">Mensagem personalizada para leads sem resposta há mais de 30 dias</div>
+              <div class="disparo-stats">📝 Rascunho — 22 leads elegíveis</div>
+            </div>
+            <span class="status-badge status-rascunho">Rascunho</span>
+            <button class="btn btn-primary btn-sm" onclick="toast('Ativando disparo!')">▶ Enviar</button>
+          </div>
+        </div>
+
+        <!-- EMAIL -->
+        <div id="inner-email" style="display:none;">
+          <div class="disparo-row">
+            <div class="disparo-icon">📧</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Newsletter Mensal FAB</div>
+              <div class="disparo-desc">Compilação de novidades, lançamentos e dicas de financiamento para toda a base</div>
+              <div class="disparo-stats">✅ Jun enviado · 143 destinatários · 42% abertura</div>
+            </div>
+            <span class="status-badge status-enviado">Enviado</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Visualizando relatório...')">📊</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">📧</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Sequência Nurture — Oficiais SP</div>
+              <div class="disparo-desc">Sequência de 4 emails (D0, D3, D7, D14) para leads de oficiais no cluster São Paulo</div>
+              <div class="disparo-stats">🔄 Ativo · 18 leads na sequência</div>
+            </div>
+            <span class="status-badge status-ativo">Ativo</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando sequência...')">✏️</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">📧</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Newsletter Julho 2026</div>
+              <div class="disparo-desc">Foco: Lançamento ICONYC by YOO + financiamento CFIAe para Oficiais</div>
+              <div class="disparo-stats">📝 Rascunho · Envio: 28/07</div>
+            </div>
+            <span class="status-badge status-rascunho">Rascunho</span>
+            <button class="btn btn-outline btn-sm" onclick="openModal('modalDisparo')">✏️ Editar</button>
+          </div>
+        </div>
+
+        <!-- AUTOMAÇÕES -->
+        <div id="inner-automacoes" style="display:none;">
+          <div style="margin-bottom:14px;">
+            <div class="section-title">🤖 Regras Automáticas Ativas</div>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">⚡</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Lead novo → WhatsApp boas-vindas</div>
+              <div class="disparo-desc">Gatilho: cadastro via formulário site · Delay: 5 minutos</div>
+            </div>
+            <span class="status-badge status-ativo">Ativa</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando regra...')">✏️</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">⚡</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Lead em "Interesse" → Enviar simulação CFIAe</div>
+              <div class="disparo-desc">Gatilho: mudança de etapa para "Interesse confirmado" · Delay: 30 min</div>
+            </div>
+            <span class="status-badge status-ativo">Ativa</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando regra...')">✏️</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">⚡</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Lead frio 30 dias → Reativação automática</div>
+              <div class="disparo-desc">Gatilho: sem interação há 30 dias · Canal: WhatsApp + Email</div>
+            </div>
+            <span class="status-badge status-rascunho">Pausada</span>
+            <button class="btn btn-teal btn-sm" onclick="toast('Automação ativada!')">▶ Ativar</button>
+          </div>
+          <div class="disparo-row">
+            <div class="disparo-icon">⚡</div>
+            <div class="disparo-info">
+              <div class="disparo-title">Venda fechada → Email de parabéns + indicação</div>
+              <div class="disparo-desc">Gatilho: etapa "Fechado" · Pede indicação 7 dias após</div>
+            </div>
+            <span class="status-badge status-ativo">Ativa</span>
+            <button class="btn btn-outline btn-sm" onclick="toast('Editando regra...')">✏️</button>
+          </div>
+        </div>
+      </div><!-- /disparos -->
+
+      <!-- ══════════════════════════════════
+           CONFIGURAÇÕES
+      ══════════════════════════════════ -->
+      <div id="tab-config" style="display:none;">
+        <div class="section-title">⚙️ Configurações do Módulo de Marketing</div>
+        <div class="grid grid-2">
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px;">🏢 Empreendimentos Ativos</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> ICONYC by YOO (SP)
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> Orla Recreio Reserva (RJ)
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> Ilha Mar Beach & Home (RJ)
+              </label>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px;">📡 Integrações</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;">Google Sheets (Leads)</span>
+                <span class="status-badge status-ativo">✓ Conectado</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;">Google Apps Script (Proxy API)</span>
+                <span class="status-badge status-ativo">✓ Conectado</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;">Instagram Business</span>
+                <span class="status-badge status-rascunho">Pendente</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:13px;">WhatsApp Business API</span>
+                <span class="status-badge status-rascunho">Pendente</span>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px;">🎯 Metas</div>
+            <div class="form-group">
+              <label class="form-label">Meta de vendas (unidades)</label>
+              <input class="form-control" type="number" value="50" min="1">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Prazo final</label>
+              <input class="form-control" type="month" value="2026-12">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Taxa de conversão alvo (%)</label>
+              <input class="form-control" type="number" value="12" min="1" max="100">
+            </div>
+            <button class="btn btn-primary" onclick="toast('Metas salvas!')">Salvar metas</button>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:16px;">📣 Canais de Captação</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> Site / Formulário
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> Instagram / Meta Ads
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> WhatsApp Direto
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox" checked> Indicações
+              </label>
+              <label style="display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer;">
+                <input type="checkbox"> Google Ads (em breve)
+              </label>
+            </div>
+            <button class="btn btn-primary" style="margin-top:16px;" onclick="toast('Canais atualizados!')">Salvar</button>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODAIS ══ -->
+
+<!-- NOVO LEAD -->
+<div class="modal-overlay" id="modalNovoLead">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 Cadastrar Novo Lead</div>
+      <button class="modal-close" onclick="closeModal('modalNovoLead')">✕</button>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group"><label class="form-label">Nome completo *</label><input class="form-control" placeholder="Ex: Cel. Marcos Faria"></div>
+      <div class="form-group"><label class="form-label">Telefone (WhatsApp) *</label><input class="form-control" placeholder="(21) 99999-0000"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Posto / Categoria</label>
+        <select class="form-control">
+          <option>Selecionar...</option>
+          <option>Ten. Cel.</option><option>Coronel</option><option>Major</option>
+          <option>Capitão</option><option>Tenente</option>
+          <option>Sargento</option><option>Cabo</option><option>Soldado</option>
+          <option>Servidor Civil</option><option>Pensionista</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Email</label><input class="form-control" placeholder="email@exemplo.com.br"></div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Empreendimento de Interesse</label>
+        <select class="form-control">
+          <option>ICONYC by YOO (SP)</option>
+          <option>Orla Recreio Reserva (RJ)</option>
+          <option>Ilha Mar Beach & Home (RJ)</option>
+          <option>Indiferente</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fonte do Lead</label>
+        <select class="form-control">
+          <option>Site / Formulário</option>
+          <option>Instagram</option>
+          <option>WhatsApp Direto</option>
+          <option>Indicação</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Temperatura</label>
+        <select class="form-control">
+          <option>🔥 Quente</option>
+          <option>🌡 Morno</option>
+          <option>❄️ Frio</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Etapa no Funil</label>
+        <select class="form-control">
+          <option>Novo</option>
+          <option>1º Contato</option>
+          <option>Interesse Confirmado</option>
+          <option>Simulação Enviada</option>
+          <option>Em Negociação</option>
+          <option>Fechado</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observações</label>
+      <textarea class="form-control" rows="3" placeholder="Ex: Oficial em transição de carreira, tem FGTS disponível..."></textarea>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-outline" onclick="closeModal('modalNovoLead')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveLead()">💾 Salvar Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOVO POST -->
+<div class="modal-overlay" id="modalNovoPost">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📸 Novo Post / Conteúdo</div>
+      <button class="modal-close" onclick="closeModal('modalNovoPost')">✕</button>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Data de publicação *</label>
+        <input class="form-control" type="date">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Canal *</label>
+        <select class="form-control">
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>WhatsApp Status</option>
+          <option>Email</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Empreendimento</label>
+      <select class="form-control">
+        <option>ICONYC by YOO</option>
+        <option>Orla Recreio Reserva</option>
+        <option>Ilha Mar Beach & Home</option>
+        <option>WAL Institucional</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Tema / Título</label>
+      <input class="form-control" placeholder="Ex: Vista panorâmica ICONYC — Andar alto">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Legenda / Texto</label>
+      <textarea class="form-control" rows="4" placeholder="Escreva a legenda do post aqui. Use hashtags relevantes para o público FAB..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Link da imagem (Drive)</label>
+      <input class="form-control" placeholder="https://drive.google.com/...">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-outline" onclick="closeModal('modalNovoPost')">Cancelar</button>
+      <button class="btn btn-primary" onclick="closeModal('modalNovoPost');toast('Post adicionado ao calendário! ✅')">📅 Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- NOVO DISPARO -->
+<div class="modal-overlay" id="modalDisparo">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📨 Novo Disparo</div>
+      <button class="modal-close" onclick="closeModal('modalDisparo')">✕</button>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Canal *</label>
+        <select class="form-control">
+          <option>💬 WhatsApp</option>
+          <option>📧 Email</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tipo</label>
+        <select class="form-control">
+          <option>Manual (disparo único)</option>
+          <option>Automático (gatilho)</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Segmento de destino</label>
+      <select class="form-control">
+        <option>Todos os leads</option>
+        <option>Oficiais — RJ</option>
+        <option>Praças — RJ</option>
+        <option>Oficiais — SP</option>
+        <option>Praças — SP</option>
+        <option>Leads quentes</option>
+        <option>Leads frios (reativação)</option>
+        <option>Leads com simulação enviada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Assunto / Título da mensagem</label>
+      <input class="form-control" placeholder="Ex: Oportunidade exclusiva ICONYC — Condições especiais FAB">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mensagem *</label>
+      <textarea class="form-control" rows="5" placeholder="Olá, {{nome}}! Tudo bem?&#10;&#10;Como consultor especializado em imóveis para militares FAB, quero apresentar uma oportunidade exclusiva...&#10;&#10;Use {{nome}}, {{posto}}, {{empreendimento}} como variáveis."></textarea>
+    </div>
+    <div class="form-row form-row-2">
+      <div class="form-group">
+        <label class="form-label">Agendamento</label>
+        <input class="form-control" type="datetime-local">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select class="form-control">
+          <option>Rascunho</option>
+          <option>Agendar envio</option>
+          <option>Enviar agora</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-outline" onclick="closeModal('modalDisparo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="closeModal('modalDisparo');toast('Disparo salvo com sucesso! 📨')">💾 Salvar Disparo</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ── TABS ──
+function showTab(id) {
+  ['dashboard','pipeline','leads','calendario','disparos','config'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t===id ? '' : 'none';
+  });
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+  const map = {dashboard:0,pipeline:1,leads:2,calendario:3,disparos:4,config:5};
+  document.querySelectorAll('.nav-item')[map[id]]?.classList.add('active');
+}
+
+// ── INNER TABS ──
+function switchInner(btn, id) {
+  ['whatsapp','email','automacoes'].forEach(i => {
+    document.getElementById('inner-'+i).style.display = i===id ? '' : 'none';
+  });
+  document.querySelectorAll('.inner-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── MODAIS ──
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
+});
+
+// ── TOAST ──
+function toast(msg) {
+  const el = document.getElementById('toastEl');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+// ── FILTRO TABELA ──
+function filterTable(q) {
+  const rows = document.querySelectorAll('#leadsBody tr');
+  rows.forEach(r => {
+    r.style.display = r.textContent.toLowerCase().includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+// ── SAVE LEAD (simulado) ──
+function saveLead() {
+  closeModal('modalNovoLead');
+  toast('✅ Lead salvo com sucesso! Redirecionando para pipeline...');
+  setTimeout(() => showTab('pipeline'), 1200);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL Imóveis — Minha Área</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:     #0B1F3A;
+  --navy2:    #122848;
+  --navy3:    #1a3560;
+  --gold:     #C9A84C;
+  --gold2:    #E8C96A;
+  --gold-dim: rgba(201,168,76,.12);
+  --teal:     #1A7A7A;
+  --teal2:    #22A09A;
+  --green:    #16A34A;
+  --green-dim:rgba(22,163,74,.10);
+  --red:      #DC2626;
+  --amber:    #D97706;
+  --surface:  #F0F4FA;
+  --card:     #FFFFFF;
+  --border:   #D8E0EC;
+  --text:     #0F1E33;
+  --muted:    #607080;
+  --light:    #8A9BB0;
+  --r:        10px;
+  --sh:       0 2px 12px rgba(11,31,58,.08);
+  --sh-lg:    0 6px 28px rgba(11,31,58,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surface);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+button{cursor:pointer;font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+
+/* ── LAYOUT ── */
+.app{display:flex;min-height:100vh}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:240px;min-height:100vh;background:var(--navy);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
+  transition:transform .25s;
+}
+.sidebar-logo{
+  padding:24px 20px 18px;
+  border-bottom:1px solid rgba(201,168,76,.2);
+}
+.logo-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:20px;font-weight:700;letter-spacing:.5px}
+.logo-sub{color:rgba(255,255,255,.4);font-size:10px;text-transform:uppercase;letter-spacing:1.5px;margin-top:2px}
+.logo-badge{
+  display:inline-block;margin-top:10px;background:linear-gradient(90deg,var(--gold),var(--gold2));
+  color:var(--navy);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;
+  padding:3px 10px;border-radius:20px;
+}
+
+/* user card in sidebar */
+.user-card{
+  margin:16px 12px 0;background:rgba(201,168,76,.08);
+  border:1px solid rgba(201,168,76,.2);border-radius:var(--r);padding:12px 14px;
+}
+.uc-org{
+  display:inline-block;background:var(--gold-dim);color:var(--gold2);
+  font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:2px 8px;border-radius:4px;margin-bottom:8px;border:1px solid rgba(201,168,76,.3)
+}
+.uc-name{color:#fff;font-weight:600;font-size:13px;line-height:1.3}
+.uc-role{color:rgba(255,255,255,.45);font-size:11px;margin-top:2px}
+.uc-score{
+  margin-top:10px;display:flex;align-items:center;gap:6px;
+}
+.uc-score-bar{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:2px}
+.uc-score-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:2px;width:82%}
+.uc-score-label{color:var(--gold);font-size:10px;font-weight:700}
+
+.nav-section{padding:18px 10px 4px}
+.nav-label{color:rgba(255,255,255,.25);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 10px 8px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.6);
+  font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;
+  margin-bottom:2px;border:1.5px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.9)}
+.nav-item.active{
+  background:rgba(201,168,76,.12);color:var(--gold);
+  border-color:rgba(201,168,76,.25);
+}
+.nav-ico{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{
+  margin-left:auto;background:var(--red);color:#fff;
+  font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;
+}
+.nav-badge.g{background:var(--green)}
+.nav-badge.a{background:var(--amber)}
+
+.sidebar-footer{
+  margin-top:auto;padding:16px 12px;border-top:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:10px;
+}
+.sf-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--navy);flex-shrink:0}
+.sf-name{color:rgba(255,255,255,.75);font-size:12px;font-weight:500}
+.sf-email{color:rgba(255,255,255,.3);font-size:10px;margin-top:1px}
+.sf-out{color:rgba(255,255,255,.3);font-size:18px;margin-left:auto;cursor:pointer;transition:color .15s}
+.sf-out:hover{color:rgba(255,255,255,.7)}
+
+/* ── MAIN ── */
+.main{margin-left:240px;flex:1;display:flex;flex-direction:column}
+
+/* topbar */
+.topbar{
+  background:#fff;border-bottom:1px solid var(--border);
+  padding:0 28px;height:60px;display:flex;align-items:center;gap:16px;
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--navy);flex:1}
+.topbar-actions{display:flex;align-items:center;gap:10px}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;padding:7px 14px;border-radius:7px;
+  border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:600;
+  transition:all .15s;
+}
+.tb-btn:hover{border-color:var(--gold);color:var(--navy)}
+.tb-btn.primary{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));border-color:transparent;
+  color:var(--navy);box-shadow:0 2px 8px rgba(201,168,76,.3);
+}
+.tb-btn.primary:hover{box-shadow:0 4px 14px rgba(201,168,76,.4);transform:translateY(-1px)}
+.notif{
+  position:relative;width:36px;height:36px;border-radius:8px;
+  background:var(--surface);border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:16px;cursor:pointer;
+}
+.notif-dot{
+  position:absolute;top:6px;right:6px;width:7px;height:7px;
+  background:var(--red);border-radius:50%;border:2px solid #fff;
+}
+
+/* ── CONTENT ── */
+.content{padding:28px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* page header */
+.ph{margin-bottom:24px}
+.ph-eye{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
+.ph-title{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy)}
+.ph-sub{color:var(--muted);margin-top:4px;font-size:13px}
+
+/* ── KPI ROW ── */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
+.kpi{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
+  padding:18px 20px;box-shadow:var(--sh);position:relative;overflow:hidden;
+  transition:transform .15s,box-shadow .15s;cursor:default;
+}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--sh-lg)}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.gold::before{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::before{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::before{background:var(--green)}
+.kpi.red::before{background:var(--red)}
+.kpi-label{font-size:11px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.kpi-value{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-delta{font-size:11px;margin-top:6px;display:flex;align-items:center;gap:4px}
+.kpi-ico{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:28px;opacity:.12}
+
+/* ── GRID LAYOUTS ── */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+.grid-70-30{display:grid;grid-template-columns:1fr 380px;gap:18px;margin-bottom:18px}
+.grid-60-40{display:grid;grid-template-columns:1fr 360px;gap:18px;margin-bottom:18px}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);box-shadow:var(--sh)}
+.card-head{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-weight:700;font-size:14px;color:var(--navy)}
+.card-sub{font-size:11px;color:var(--light);margin-top:2px}
+.card-body{padding:20px}
+.card-link{
+  font-size:12px;font-weight:600;color:var(--gold);cursor:pointer;
+  display:flex;align-items:center;gap:4px;
+}
+.card-link:hover{color:var(--gold2)}
+
+/* ── PROPERTY CARD ── */
+.prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.prop{
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
+  box-shadow:var(--sh);overflow:hidden;transition:transform .2s,box-shadow .2s;cursor:pointer;
+}
+.prop:hover{transform:translateY(-3px);box-shadow:var(--sh-lg)}
+.prop-img{
+  height:160px;background:linear-gradient(135deg,var(--navy2),var(--navy3));
+  display:flex;align-items:center;justify-content:center;font-size:48px;
+  position:relative;overflow:hidden;
+}
+.prop-img::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.4))
+}
+.prop-tags{position:absolute;top:10px;left:10px;display:flex;gap:6px;z-index:1}
+.ptag{
+  font-size:9px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;
+  padding:3px 8px;border-radius:4px;
+}
+.ptag.new{background:var(--green);color:#fff}
+.ptag.fav{background:var(--gold);color:var(--navy)}
+.ptag.exc{background:var(--teal);color:#fff}
+.prop-fav{
+  position:absolute;top:10px;right:10px;z-index:1;
+  width:28px;height:28px;background:rgba(255,255,255,.9);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.prop-body{padding:14px 16px}
+.prop-name{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:4px}
+.prop-loc{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;margin-bottom:10px}
+.prop-specs{display:flex;gap:14px;margin-bottom:12px}
+.pspec{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:3px}
+.prop-price{
+  display:flex;align-items:baseline;gap:6px;
+  border-top:1px solid var(--border);padding-top:10px;
+}
+.prop-price-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.prop-price-fab{font-size:11px;color:var(--green);font-weight:600}
+.prop-actions{display:flex;gap:6px;margin-top:10px}
+.pa-btn{
+  flex:1;padding:7px;border-radius:6px;font-size:11px;font-weight:700;
+  border:1.5px solid;text-align:center;transition:all .15s;
+}
+.pa-btn.primary{background:var(--gold);border-color:var(--gold);color:var(--navy)}
+.pa-btn.primary:hover{background:var(--gold2)}
+.pa-btn.outline{background:transparent;border-color:var(--border);color:var(--muted)}
+.pa-btn.outline:hover{border-color:var(--navy);color:var(--navy)}
+
+/* ── PROGRESS STEPS ── */
+.steps{display:flex;position:relative;margin-bottom:28px}
+.steps::before{content:'';position:absolute;top:20px;left:22px;right:22px;height:2px;background:var(--border);z-index:0}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;position:relative;z-index:1}
+.step-dot{
+  width:42px;height:42px;border-radius:50%;border:2px solid var(--border);
+  background:#fff;display:flex;align-items:center;justify-content:center;
+  font-size:14px;transition:all .2s;
+}
+.step.done .step-dot{background:var(--green);border-color:var(--green);color:#fff}
+.step.active .step-dot{background:var(--gold);border-color:var(--gold);color:var(--navy);box-shadow:0 0 0 4px rgba(201,168,76,.2)}
+.step-label{font-size:10px;font-weight:600;color:var(--light);text-align:center;text-transform:uppercase;letter-spacing:.5px}
+.step.done .step-label{color:var(--green)}
+.step.active .step-label{color:var(--gold)}
+
+/* ── SIMULATOR ── */
+.sim-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.sim-row{margin-bottom:18px}
+.sim-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.sim-input{
+  width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:7px;
+  font-size:14px;font-weight:600;color:var(--navy);background:#fff;
+  transition:border-color .15s;outline:none;
+}
+.sim-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1)}
+.range-wrap{position:relative;padding-top:4px}
+input[type=range]{width:100%;-webkit-appearance:none;height:4px;border-radius:2px;background:var(--border);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:var(--gold);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2);cursor:pointer}
+.sim-result{background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:var(--r);padding:22px;color:#fff}
+.sr-label{font-size:11px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.sr-value{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:var(--gold2);margin-bottom:16px}
+.sr-row{display:flex;justify-content:space-between;border-top:1px solid rgba(255,255,255,.08);padding:8px 0}
+.sr-row:last-child{padding-bottom:0}
+.sr-key{font-size:12px;color:rgba(255,255,255,.55)}
+.sr-val{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+.sr-val.g{color:#4ADE80}
+.sr-val.a{color:var(--gold2)}
+.cfi-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(22,163,74,.15);border:1px solid rgba(22,163,74,.3);
+  color:#4ADE80;font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;margin-top:12px;
+}
+
+/* ── TIMELINE MESSAGES ── */
+.tl{display:flex;flex-direction:column;gap:0}
+.tl-item{
+  display:flex;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+.tl-item:last-child{border-bottom:none;padding-bottom:0}
+.tl-avatar{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;
+}
+.av-wal{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy)}
+.av-lead{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}
+.tl-body{flex:1}
+.tl-name{font-weight:700;font-size:13px;color:var(--navy)}
+.tl-time{font-size:10px;color:var(--light);margin-left:8px}
+.tl-msg{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}
+.tl-attach{
+  display:inline-flex;align-items:center;gap:6px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:6px;padding:6px 10px;font-size:11px;font-weight:600;
+  color:var(--navy);margin-top:8px;cursor:pointer;
+}
+.tl-attach:hover{border-color:var(--gold);color:var(--gold)}
+
+/* ── DOC LIST ── */
+.doc-list{display:flex;flex-direction:column;gap:8px}
+.doc-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:var(--surface);border:1.5px solid var(--border);border-radius:8px;
+  cursor:pointer;transition:all .15s;
+}
+.doc-item:hover{border-color:var(--gold);background:#fff}
+.doc-ico{font-size:22px;width:36px;text-align:center;flex-shrink:0}
+.doc-name{font-weight:600;font-size:13px;color:var(--navy);flex:1}
+.doc-meta{font-size:11px;color:var(--light);margin-top:2px}
+.doc-status{font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.ds-ok{background:var(--green-dim);color:var(--green);border:1px solid rgba(22,163,74,.2)}
+.ds-pend{background:rgba(217,119,6,.1);color:var(--amber);border:1px solid rgba(217,119,6,.2)}
+.ds-wait{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.25)}
+
+/* ── MAP PLACEHOLDER ── */
+.map-ph{
+  background:linear-gradient(135deg,#e8f0f8,#d4e4f4);
+  border-radius:var(--r);height:260px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;border:2px dashed var(--border);
+  position:relative;overflow:hidden;
+}
+.map-ph::before{
+  content:'';position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(11,31,58,.06) 1px,transparent 1px);
+  background-size:24px 24px;
+}
+.map-pin{font-size:36px}
+.map-label{font-size:13px;font-weight:600;color:var(--navy);position:relative}
+.map-sub{font-size:11px;color:var(--muted);position:relative}
+
+/* ── BADGE / TAG ── */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:20px}
+.badge.gold{background:var(--gold-dim);color:var(--gold);border:1px solid rgba(201,168,76,.3)}
+.badge.green{background:var(--green-dim);color:var(--green);border:1px solid rgba(22,163,74,.25)}
+.badge.teal{background:rgba(26,122,122,.1);color:var(--teal2);border:1px solid rgba(26,122,122,.25)}
+.badge.gray{background:var(--surface);color:var(--muted);border:1px solid var(--border)}
+.badge.navy{background:rgba(11,31,58,.08);color:var(--navy);border:1px solid rgba(11,31,58,.15)}
+
+/* ── CHAT INPUT ── */
+.chat-input-wrap{
+  display:flex;gap:8px;padding:14px 16px;
+  border-top:1px solid var(--border);background:var(--surface);border-radius:0 0 var(--r) var(--r);
+}
+.chat-input{
+  flex:1;padding:9px 14px;border:1.5px solid var(--border);border-radius:20px;
+  font-size:13px;outline:none;background:#fff;
+}
+.chat-input:focus{border-color:var(--gold)}
+.chat-send{
+  width:36px;height:36px;border-radius:50%;background:var(--gold);
+  border:none;color:var(--navy);font-size:16px;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .15s;
+}
+.chat-send:hover{background:var(--gold2);transform:scale(1.05)}
+
+/* ── AGENT CARD ── */
+.agent-card{
+  display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:var(--card);border:1.5px solid var(--border);border-radius:var(--r);
+  margin-bottom:10px;transition:border-color .15s;cursor:pointer;
+}
+.agent-card:hover{border-color:var(--gold)}
+.agent-av{width:44px;height:44px;border-radius:50%;flex-shrink:0;font-size:18px;display:flex;align-items:center;justify-content:center}
+.agent-name{font-weight:700;font-size:13px;color:var(--navy)}
+.agent-role{font-size:11px;color:var(--muted);margin-top:2px}
+.agent-online{width:8px;height:8px;background:var(--green);border-radius:50%;border:2px solid #fff;margin-left:auto;flex-shrink:0}
+.agent-online.busy{background:var(--amber)}
+
+/* ── MINI TABLE ── */
+.mtable{width:100%;border-collapse:collapse}
+.mtable th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--light);text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid var(--border)}
+.mtable td{padding:10px 12px;font-size:12px;color:var(--text);border-bottom:1px solid var(--border)}
+.mtable tr:last-child td{border-bottom:none}
+.mtable tr:hover td{background:var(--surface)}
+
+/* ── ALERT ── */
+.alert{
+  display:flex;align-items:flex-start;gap:12px;padding:14px 16px;
+  border-radius:8px;margin-bottom:14px;
+}
+.alert.info{background:rgba(74,158,255,.08);border:1px solid rgba(74,158,255,.2)}
+.alert.success{background:var(--green-dim);border:1px solid rgba(22,163,74,.2)}
+.alert.warning{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.2)}
+.alert-ico{font-size:18px;flex-shrink:0}
+.alert-body{flex:1}
+.alert-title{font-weight:700;font-size:13px}
+.alert.info .alert-title{color:#2563EB}
+.alert.success .alert-title{color:var(--green)}
+.alert.warning .alert-title{color:var(--amber)}
+.alert-msg{font-size:12px;color:var(--muted);margin-top:3px;line-height:1.5}
+
+/* ── SCORE RING ── */
+.score-ring{
+  width:120px;height:120px;position:relative;margin:0 auto 16px;
+}
+.score-ring svg{transform:rotate(-90deg)}
+.score-ring-val{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.score-ring-n{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--navy)}
+.score-ring-l{font-size:10px;color:var(--light);text-transform:uppercase;letter-spacing:.5px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1100px){
+  .grid-70-30,.grid-60-40{grid-template-columns:1fr}
+  .grid-3{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%)}
+  .main{margin-left:0}
+  .grid-2,.grid-3{grid-template-columns:1fr}
+  .sim-grid{grid-template-columns:1fr}
+  .content{padding:16px}
+  .topbar{padding:0 16px}
+}
+
+/* ── SEGMENTO BADGE (header) ── */
+.seg-strip{
+  background:linear-gradient(90deg,var(--navy),var(--navy2));
+  padding:8px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+}
+.seg-label{color:rgba(255,255,255,.4);font-size:10px;letter-spacing:1px;text-transform:uppercase}
+.seg-item{
+  display:flex;align-items:center;gap:5px;color:rgba(255,255,255,.7);
+  font-size:11px;font-weight:500;padding:3px 10px;border-radius:12px;
+  background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);
+}
+.seg-active{background:rgba(201,168,76,.15);border-color:rgba(201,168,76,.35);color:var(--gold2)}
+
+/* ── MISC ── */
+.divider{height:1px;background:var(--border);margin:20px 0}
+.flex-between{display:flex;align-items:center;justify-content:space-between}
+.flex-center{display:flex;align-items:center;gap:8px}
+.text-gold{color:var(--gold)}
+.text-muted{color:var(--muted)}
+.text-green{color:var(--green)}
+.fw7{font-weight:700}
+.fs11{font-size:11px}
+.fs12{font-size:12px}
+.fs13{font-size:13px}
+.mb8{margin-bottom:8px}
+.mb14{margin-bottom:14px}
+.mb20{margin-bottom:20px}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:11px;padding:4px 10px;border-radius:20px;background:var(--surface);border:1px solid var(--border);color:var(--muted)}
+.chip.sel{background:var(--gold-dim);border-color:rgba(201,168,76,.35);color:var(--gold);font-weight:600}
+
+/* Progress bar */
+.prog{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:6px}
+.prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.prog-fill.green{background:var(--green)}
+.prog-fill.teal{background:var(--teal2)}
+
+/* Pulse animation for live indicators */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.pulse{animation:pulse 2s infinite}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ══════ SIDEBAR ══════ -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-brand">WAL Imóveis</div>
+    <div class="logo-sub">Consultoria Imobiliária</div>
+    <span class="logo-badge">⭐ Área do Cliente</span>
+  </div>
+
+  <!-- user card -->
+  <div class="user-card">
+    <div class="uc-org">✈️ Aeronáutica · Capitão</div>
+    <div class="uc-name">Henrique R. Souza</div>
+    <div class="uc-role">FAB — Base Aérea de Santa Cruz</div>
+    <div class="uc-score">
+      <div class="uc-score-bar"><div class="uc-score-fill"></div></div>
+      <span class="uc-score-label">Score 820</span>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">Navegação</div>
+    <div class="nav-item active" onclick="nav(this,'home')">
+      <span class="nav-ico">🏠</span>Visão Geral
+    </div>
+    <div class="nav-item" onclick="nav(this,'imoveis')">
+      <span class="nav-ico">🏢</span>Meus Imóveis
+      <span class="nav-badge g">12</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'jornada')">
+      <span class="nav-ico">📋</span>Minha Jornada
+    </div>
+    <div class="nav-item" onclick="nav(this,'simulador')">
+      <span class="nav-ico">🧮</span>Simulador
+    </div>
+    <div class="nav-item" onclick="nav(this,'documentos')">
+      <span class="nav-ico">📁</span>Documentos
+      <span class="nav-badge a">2</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'mensagens')">
+      <span class="nav-ico">💬</span>Mensagens
+      <span class="nav-badge">3</span>
+    </div>
+    <div class="nav-item" onclick="nav(this,'agentes')">
+      <span class="nav-ico">👤</span>Meu Consultor
+    </div>
+    <div class="nav-item" onclick="nav(this,'beneficios')">
+      <span class="nav-ico">⭐</span>Benefícios FAB
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sf-av">HS</div>
+    <div>
+      <div class="sf-name">Henrique S.</div>
+      <div class="sf-email">henrique@fab.mil.br</div>
+    </div>
+    <div class="sf-out" title="Sair">⎋</div>
+  </div>
+</aside>
+
+<!-- ══════ MAIN ══════ -->
+<div class="main">
+
+  <!-- segment strip -->
+  <div class="seg-strip">
+    <span class="seg-label">Segmento:</span>
+    <span class="seg-item seg-active">✈️ Aeronáutica</span>
+    <span class="seg-item">⚓ Marinha</span>
+    <span class="seg-item">🪖 Exército</span>
+    <span class="seg-item">🏛️ Judiciário</span>
+    <span class="seg-item">🔵 Polícia Civil</span>
+    <span class="seg-item">⚖️ MP</span>
+    <span class="seg-item">🏙️ Prefeituras</span>
+    <span class="seg-item">+ outros</span>
+  </div>
+
+  <!-- topbar -->
+  <header class="topbar">
+    <div class="topbar-title" id="topbar-title">Visão Geral</div>
+    <div class="topbar-actions">
+      <button class="tb-btn" onclick="nav(document.querySelector('[onclick*=simulador]'),'simulador')">🧮 Simular agora</button>
+      <button class="tb-btn primary" onclick="nav(document.querySelector('[onclick*=imoveis]'),'imoveis')">🔍 Ver imóveis</button>
+      <div class="notif"><span>🔔</span><div class="notif-dot"></div></div>
+    </div>
+  </header>
+
+  <!-- ══════ CONTENT ══════ -->
+  <div class="content">
+
+    <!-- ── HOME PANEL ── -->
+    <div class="panel active" id="panel-home">
+      <div class="ph">
+        <div class="ph-eye">Dashboard Pessoal</div>
+        <div class="ph-title">Bom dia, Cap. Henrique! 👋</div>
+        <div class="ph-sub">Você tem 3 oportunidades novas e 2 documentos aguardando atenção.</div>
+      </div>
+
+      <div class="alert success">
+        <span class="alert-ico">✅</span>
+        <div class="alert-body">
+          <div class="alert-title">Pré-análise de crédito aprovada</div>
+          <div class="alert-msg">Seu score CFIAe foi validado. Você pode financiar até <strong>R$ 420.000</strong> com condições especiais para militares da FAB.</div>
+        </div>
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-row">
+        <div class="kpi gold">
+          <div class="kpi-label">Capacidade de Financiamento</div>
+          <div class="kpi-value">R$ 420k</div>
+          <div class="kpi-delta text-green">✅ CFIAe aprovado</div>
+          <div class="kpi-ico">💰</div>
+        </div>
+        <div class="kpi teal">
+          <div class="kpi-label">Imóveis Favoritos</div>
+          <div class="kpi-value">5</div>
+          <div class="kpi-delta text-muted">📍 RJ e SP</div>
+          <div class="kpi-ico">❤️</div>
+        </div>
+        <div class="kpi green">
+          <div class="kpi-label">Etapa na Jornada</div>
+          <div class="kpi-value">3/7</div>
+          <div class="kpi-delta text-green">▶ Escolha do imóvel</div>
+          <div class="kpi-ico">🗺️</div>
+        </div>
+        <div class="kpi red">
+          <div class="kpi-label">Documentos Pendentes</div>
+          <div class="kpi-value">2</div>
+          <div class="kpi-delta" style="color:var(--amber)">⚠️ Ação necessária</div>
+          <div class="kpi-ico">📁</div>
+        </div>
+      </div>
+
+      <!-- main grid -->
+      <div class="grid-70-30">
+        <!-- imoveis recomendados -->
+        <div>
+          <div class="flex-between mb14">
+            <div>
+              <div class="fw7" style="color:var(--navy)">Imóveis Recomendados para Você</div>
+              <div class="fs12 text-muted">Selecionados com base no seu perfil e score</div>
+            </div>
+            <span class="card-link" onclick="nav(document.querySelector('[onclick*=imoveis]'),'imoveis')">Ver todos →</span>
+          </div>
+          <div class="prop-grid">
+            <div class="prop" onclick="nav(document.querySelector('[onclick*=imoveis]'),'imoveis')">
+              <div class="prop-img">🏙️
+                <div class="prop-tags">
+                  <span class="ptag new">Novo</span>
+                  <span class="ptag fav">⭐ FAB</span>
+                </div>
+                <div class="prop-fav">❤️</div>
+              </div>
+              <div class="prop-body">
+                <div class="prop-name">Orla Recreio Reserva</div>
+                <div class="prop-loc">📍 Recreio dos Bandeirantes, RJ</div>
+                <div class="prop-specs">
+                  <span class="pspec">🛏️ 2 quartos</span>
+                  <span class="pspec">🚗 1 vaga</span>
+                  <span class="pspec">📐 64m²</span>
+                </div>
+                <div class="prop-price">
+                  <span class="prop-price-val">R$ 380k</span>
+                  <span class="prop-price-fab">✅ No seu limite</span>
+                </div>
+                <div class="prop-actions">
+                  <div class="pa-btn primary">Tenho interesse</div>
+                  <div class="pa-btn outline">🧮 Simular</div>
+                </div>
+              </div>
+            </div>
+            <div class="prop" onclick="nav(document.querySelector('[onclick*=imoveis]'),'imoveis')">
+              <div class="prop-img">🌊
+                <div class="prop-tags">
+                  <span class="ptag exc">Exclusivo</span>
+                </div>
+                <div class="prop-fav">🤍</div>
+              </div>
+              <div class="prop-body">
+                <div class="prop-name">Ilha Mar Beach & Home</div>
+                <div class="prop-loc">📍 Barra da Tijuca, RJ</div>
+                <div class="prop-specs">
+                  <span class="pspec">🛏️ 3 quartos</span>
+                  <span class="pspec">🚗 2 vagas</span>
+                  <span class="pspec">📐 89m²</span>
+                </div>
+                <div class="prop-price">
+                  <span class="prop-price-val">R$ 415k</span>
+                  <span class="prop-price-fab">✅ No seu limite</span>
+                </div>
+                <div class="prop-actions">
+                  <div class="pa-btn primary">Tenho interesse</div>
+                  <div class="pa-btn outline">🧮 Simular</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- right col -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- score -->
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-title">Perfil de Crédito</div>
+                <div class="card-sub">Análise CFIAe 2024</div>
+              </div>
+              <span class="badge green">✅ Aprovado</span>
+            </div>
+            <div class="card-body" style="text-align:center">
+              <div class="score-ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#e8eaf0" stroke-width="10"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="url(#scoreGrad)" stroke-width="10"
+                    stroke-dasharray="314" stroke-dashoffset="56" stroke-linecap="round"/>
+                  <defs>
+                    <linearGradient id="scoreGrad" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#C9A84C"/>
+                      <stop offset="100%" stop-color="#E8C96A"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="score-ring-val">
+                  <div class="score-ring-n">820</div>
+                  <div class="score-ring-l">de 1000</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px">
+                <div style="background:var(--surface);border-radius:7px;padding:8px;text-align:center">
+                  <div class="fs11 text-muted">Renda Bruta</div>
+                  <div style="font-weight:700;font-size:13px;color:var(--navy);margin-top:3px">R$ 12.400</div>
+                </div>
+                <div style="background:var(--surface);border-radius:7px;padding:8px;text-align:center">
+                  <div class="fs11 text-muted">Comprometimento</div>
+                  <div style="font-weight:700;font-size:13px;color:var(--green);margin-top:3px">28%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- próxima etapa -->
+          <div class="card">
+            <div class="card-head">
+              <div class="card-title">Próxima Etapa</div>
+            </div>
+            <div class="card-body">
+              <div class="flex-center mb8">
+                <span style="font-size:24px">📋</span>
+                <div>
+                  <div class="fw7 fs13">Escolher o Imóvel</div>
+                  <div class="fs11 text-muted">Etapa 3 de 7</div>
+                </div>
+              </div>
+              <div class="prog"><div class="prog-fill" style="width:42%"></div></div>
+              <div class="fs11 text-muted" style="margin-top:6px">42% da jornada concluída</div>
+              <div class="divider"></div>
+              <div class="alert info" style="margin-bottom:0;padding:10px 12px">
+                <span class="alert-ico" style="font-size:14px">ℹ️</span>
+                <div class="alert-body">
+                  <div class="alert-msg" style="font-size:11px">Você tem <strong>2 imóveis favoritos</strong> disponíveis com seu limite. Seu consultor está aguardando.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- linha inferior -->
+      <div class="grid-2">
+        <!-- atividade recente -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Atividade Recente</div>
+            <span class="card-link" onclick="nav(document.querySelector('[onclick*=mensagens]'),'mensagens')">Ver tudo →</span>
+          </div>
+          <div class="card-body" style="padding:0 20px">
+            <div class="tl">
+              <div class="tl-item">
+                <div class="tl-avatar av-wal">W</div>
+                <div class="tl-body">
+                  <div><span class="tl-name">WAL Consultoria</span><span class="tl-time">Hoje, 09:14</span></div>
+                  <div class="tl-msg">Sua pré-análise foi aprovada! Capacidade de R$ 420.000 liberada. Veja as ofertas selecionadas para seu perfil.</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-avatar av-lead">H</div>
+                <div class="tl-body">
+                  <div><span class="tl-name">Você</span><span class="tl-time">Ontem, 18:32</span></div>
+                  <div class="tl-msg">Tenho interesse no Orla Recreio. Pode me enviar o memorial descritivo?</div>
+                </div>
+              </div>
+              <div class="tl-item">
+                <div class="tl-avatar av-wal">W</div>
+                <div class="tl-body">
+                  <div><span class="tl-name">WAL Consultoria</span><span class="tl-time">Ontem, 18:45</span></div>
+                  <div class="tl-msg">Claro! Segue o memorial e a tabela de preços atualizada.</div>
+                  <div class="tl-attach">📄 Memorial-Orla-Recreio.pdf</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- benefícios rápidos -->
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">Seus Benefícios como Militar FAB</div>
+            <span class="card-link" onclick="nav(document.querySelector('[onclick*=beneficios]'),'beneficios')">Detalhes →</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--green-dim);border-radius:8px;border:1px solid rgba(22,163,74,.2)">
+                <span style="font-size:22px">🏦</span>
+                <div>
+                  <div class="fw7 fs12 text-green">CFIAe — Financiamento Exclusivo</div>
+                  <div class="fs11 text-muted">Taxa 8,5% a.a. + TR — menor do mercado</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--gold-dim);border-radius:8px;border:1px solid rgba(201,168,76,.25)">
+                <span style="font-size:22px">💎</span>
+                <div>
+                  <div class="fw7 fs12 text-gold">Prioridade na Compra</div>
+                  <div class="fs11 text-muted">Acesso antecipado a lançamentos</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(26,122,122,.08);border-radius:8px;border:1px solid rgba(26,122,122,.2)">
+                <span style="font-size:22px">📋</span>
+                <div>
+                  <div class="fw7 fs12" style="color:var(--teal2)">Processo Simplificado</div>
+                  <div class="fs11 text-muted">Análise documental facilitada para militares</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:var(--surface);border-radius:8px;border:1px solid var(--border)">
+                <span style="font-size:22px">🛡️</span>
+                <div>
+                  <div class="fw7 fs12" style="color:var(--navy)">Seguro MIP/DFI Incluso</div>
+                  <div class="fs11 text-muted">Proteção completa no financiamento</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-home -->
+
+
+    <!-- ── IMÓVEIS PANEL ── -->
+    <div class="panel" id="panel-imoveis">
+      <div class="ph">
+        <div class="ph-eye">Catálogo Personalizado</div>
+        <div class="ph-title">Imóveis para Você</div>
+        <div class="ph-sub">12 empreendimentos compatíveis com seu perfil · RJ e SP</div>
+      </div>
+
+      <!-- filtros -->
+      <div class="card mb20">
+        <div class="card-body" style="padding:14px 20px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:6px;flex:1;min-width:180px">
+              <span>🔍</span>
+              <input type="text" placeholder="Buscar empreendimento ou bairro..." style="border:none;outline:none;width:100%;font-size:13px;color:var(--text)">
+            </div>
+            <div style="height:28px;width:1px;background:var(--border)"></div>
+            <div class="chip-row" style="margin-top:0;gap:6px">
+              <span class="chip sel">Todos</span>
+              <span class="chip">🏙️ Rio de Janeiro</span>
+              <span class="chip">🌆 São Paulo</span>
+              <span class="chip">2 quartos</span>
+              <span class="chip">3 quartos</span>
+              <span class="chip">No meu limite</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert info mb14">
+        <span class="alert-ico">💡</span>
+        <div class="alert-body">
+          <div class="alert-title">Dica: 5 imóveis estão dentro do seu limite CFIAe de R$ 420.000</div>
+          <div class="alert-msg">Ativando o filtro "No meu limite" você vê apenas as oportunidades que cabem no seu financiamento aprovado.</div>
+        </div>
+      </div>
+
+      <div class="prop-grid">
+        <!-- card 1 -->
+        <div class="prop">
+          <div class="prop-img">🏙️
+            <div class="prop-tags"><span class="ptag new">Novo</span><span class="ptag fav">⭐ FAB</span></div>
+            <div class="prop-fav">❤️</div>
+          </div>
+          <div class="prop-body">
+            <div class="prop-name">Orla Recreio Reserva</div>
+            <div class="prop-loc">📍 Recreio dos Bandeirantes, RJ</div>
+            <div class="prop-specs">
+              <span class="pspec">🛏️ 2q</span><span class="pspec">🚗 1v</span><span class="pspec">📐 64m²</span>
+            </div>
+            <div class="prop-price">
+              <span class="prop-price-val">R$ 380k</span>
+              <span class="prop-price-fab">✅ OK</span>
+            </div>
+            <div class="prop-actions">
+              <div class="pa-btn primary">Tenho interesse</div>
+              <div class="pa-btn outline">🧮 Simular</div>
+            </div>
+          </div>
+        </div>
+        <!-- card 2 -->
+        <div class="prop">
+          <div class="prop-img">🌊
+            <div class="prop-tags"><span class="ptag exc">Exclusivo</span></div>
+            <div class="prop-fav">🤍</div>
+          </div>
+          <div class="prop-body">
+            <div class="prop-name">Ilha Mar Beach & Home</div>
+            <div class="prop-loc">📍 Barra da Tijuca, RJ</div>
+            <div class="prop-specs">
+              <span class="pspec">🛏️ 3q</span><span class="pspec">🚗 2v</span><span class="pspec">📐 89m²</span>
+            </div>
+            <div class="prop-price">
+              <span class="prop-price-val">R$ 415k</span>
+              <span class="prop-price-fab">✅ OK</span>
+            </div>
+            <div class="prop-actions">
+              <div class="pa-btn primary">Tenho interesse</div>
+              <div class="pa-btn outline">🧮 Simular</div>
+            </div>
+          </div>
+        </div>
+        <!-- card 3 -->
+        <div class="prop">
+          <div class="prop-img">✨
+            <div class="prop-tags"><span class="ptag new">Lançamento</span></div>
+            <div class="prop-fav">🤍</div>
+          </div>
+          <div class="prop-body">
+            <div class="prop-name">ICONYC by YOO</div>
+            <div class="prop-loc">📍 Barra da Tijuca, RJ</div>
+            <div class="prop-specs">
+              <span class="pspec">🛏️ 2q</span><span class="pspec">🚗 1v</span><span class="pspec">📐 58m²</span>
+            </div>
+            <div class="prop-price">
+              <span class="prop-price-val">R$ 395k</span>
+              <span class="prop-price-fab">✅ OK</span>
+            </div>
+            <div class="prop-actions">
+              <div class="pa-btn primary">Tenho interesse</div>
+              <div class="pa-btn outline">🧮 Simular</div>
+            </div>
+          </div>
+        </div>
+        <!-- card 4 -->
+        <div class="prop">
+          <div class="prop-img">🌿
+            <div class="prop-tags"><span class="ptag fav">⭐ FAB</span></div>
+            <div class="prop-fav">❤️</div>
+          </div>
+          <div class="prop-body">
+            <div class="prop-name">Reserva Verde — SP</div>
+            <div class="prop-loc">📍 Guarulhos, SP</div>
+            <div class="prop-specs">
+              <span class="pspec">🛏️ 2q</span><span class="pspec">🚗 1v</span><span class="pspec">📐 55m²</span>
+            </div>
+            <div class="prop-price">
+              <span class="prop-price-val">R$ 340k</span>
+              <span class="prop-price-fab">✅ OK</span>
+            </div>
+            <div class="prop-actions">
+              <div class="pa-btn primary">Tenho interesse</div>
+              <div class="pa-btn outline">🧮 Simular</div>
+            </div>
+          </div>
+        </div>
+        <!-- card 5 -->
+        <div class="prop" style="opacity:.8">
+          <div class="prop-img">🏗️
+            <div class="prop-tags"><span class="ptag" style="background:#6B7A8D;color:#fff">Fora do limite</span></div>
+            <div class="prop-fav">🤍</div>
+          </div>
+          <div class="prop-body">
+            <div class="prop-name">Grand Vista — SP</div>
+            <div class="prop-loc">📍 Osasco, SP</div>
+            <div class="prop-specs">
+              <span class="pspec">🛏️ 3q</span><span class="pspec">🚗 2v</span><span class="pspec">📐 95m²</span>
+            </div>
+            <div class="prop-price">
+              <span class="prop-price-val">R$ 520k</span>
+              <span style="font-size:11px;color:var(--red);font-weight:600">⚠️ Acima do limite</span>
+            </div>
+            <div class="prop-actions">
+              <div class="pa-btn outline" style="flex:1;text-align:center">Ver detalhes</div>
+            </div>
+          </div>
+        </div>
+        <!-- card 6 -->
+        <div class="prop">
+          <div class="prop-img">🌆
+            <div class="prop-tags"><span class="ptag new">Novo</span></div>
+            <div class="prop-fav">🤍</div>
+          </div>
+          <div class="prop-body">
+            <div class="prop-name">Cury Connect — SP</div>
+            <div class="prop-loc">📍 Santo André, SP</div>
+            <div class="prop-specs">
+              <span class="pspec">🛏️ 2q</span><span class="pspec">🚗 1v</span><span class="pspec">📐 52m²</span>
+            </div>
+            <div class="prop-price">
+              <span class="prop-price-val">R$ 290k</span>
+              <span class="prop-price-fab">✅ OK</span>
+            </div>
+            <div class="prop-actions">
+              <div class="pa-btn primary">Tenho interesse</div>
+              <div class="pa-btn outline">🧮 Simular</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-imoveis -->
+
+
+    <!-- ── JORNADA PANEL ── -->
+    <div class="panel" id="panel-jornada">
+      <div class="ph">
+        <div class="ph-eye">Minha Jornada</div>
+        <div class="ph-title">Processo de Compra</div>
+        <div class="ph-sub">Acompanhe cada etapa de forma transparente e em tempo real</div>
+      </div>
+
+      <div class="card mb20">
+        <div class="card-body">
+          <div class="steps">
+            <div class="step done"><div class="step-dot">✅</div><div class="step-label">Cadastro</div></div>
+            <div class="step done"><div class="step-dot">✅</div><div class="step-label">Pré-análise</div></div>
+            <div class="step active"><div class="step-dot">🏢</div><div class="step-label">Escolha</div></div>
+            <div class="step"><div class="step-dot">📋</div><div class="step-label">Proposta</div></div>
+            <div class="step"><div class="step-dot">📁</div><div class="step-label">Documentação</div></div>
+            <div class="step"><div class="step-dot">🏦</div><div class="step-label">Financiamento</div></div>
+            <div class="step"><div class="step-dot">🔑</div><div class="step-label">Entrega</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- etapas concluídas -->
+        <div>
+          <div class="fw7 fs13 mb14" style="color:var(--navy)">Etapas Concluídas</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:14px;padding:14px;background:var(--green-dim);border:1px solid rgba(22,163,74,.2);border-radius:10px">
+              <span style="font-size:24px">✅</span>
+              <div>
+                <div class="fw7 fs13 text-green">1. Cadastro Concluído</div>
+                <div class="fs12 text-muted mt-2">Perfil validado como militar FAB ativo</div>
+                <div class="fs11 text-muted" style="margin-top:4px">Concluído em 15/06/2025</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:14px;padding:14px;background:var(--green-dim);border:1px solid rgba(22,163,74,.2);border-radius:10px">
+              <span style="font-size:24px">✅</span>
+              <div>
+                <div class="fw7 fs13 text-green">2. Pré-análise de Crédito</div>
+                <div class="fs12 text-muted">Score CFIAe: 820 · Limite: R$ 420.000</div>
+                <div class="fs11 text-muted" style="margin-top:4px">Concluído em 22/06/2025</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- etapa atual -->
+        <div>
+          <div class="fw7 fs13 mb14" style="color:var(--navy)">Etapa Atual</div>
+          <div class="card" style="border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1)">
+            <div class="card-head" style="border-bottom-color:rgba(201,168,76,.2);background:var(--gold-dim)">
+              <div>
+                <div class="card-title">🏢 Escolha do Imóvel</div>
+                <div class="card-sub">Etapa 3 de 7 · Em andamento</div>
+              </div>
+              <span class="badge gold">Atual</span>
+            </div>
+            <div class="card-body">
+              <div class="alert warning" style="margin-bottom:14px">
+                <span class="alert-ico">⚡</span>
+                <div class="alert-body">
+                  <div class="alert-title">Ação sugerida</div>
+                  <div class="alert-msg">Você favoritou o <strong>Orla Recreio Reserva</strong>. Quer agendar uma visita?</div>
+                </div>
+              </div>
+              <button class="tb-btn primary" style="width:100%;justify-content:center;padding:10px">📅 Agendar Visita Virtual</button>
+              <div style="height:10px"></div>
+              <button class="tb-btn" style="width:100%;justify-content:center;padding:10px" onclick="nav(document.querySelector('[onclick*=agentes]'),'agentes')">💬 Falar com Consultor</button>
+            </div>
+          </div>
+
+          <!-- próximas -->
+          <div class="fw7 fs13 mb14 mt-2" style="color:var(--navy);margin-top:18px">Próximas Etapas</div>
+          <div style="display:flex;flex-direction:column;gap:8px;opacity:.6">
+            <div style="display:flex;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+              <span>📋</span><div><div class="fw7 fs12">4. Proposta de Compra</div><div class="fs11 text-muted">Formalizar intenção de compra</div></div>
+            </div>
+            <div style="display:flex;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+              <span>📁</span><div><div class="fw7 fs12">5. Documentação</div><div class="fs11 text-muted">Envio de docs para o banco</div></div>
+            </div>
+            <div style="display:flex;gap:12px;padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:8px">
+              <span>🏦</span><div><div class="fw7 fs12">6. Financiamento</div><div class="fs11 text-muted">Contratação CFIAe</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-jornada -->
+
+
+    <!-- ── SIMULADOR PANEL ── -->
+    <div class="panel" id="panel-simulador">
+      <div class="ph">
+        <div class="ph-eye">Simulador Financeiro</div>
+        <div class="ph-title">Simule seu Financiamento</div>
+        <div class="ph-sub">Cálculo real com as condições CFIAe — exclusivo para funcionários públicos</div>
+      </div>
+
+      <div class="alert success mb20">
+        <span class="alert-ico">🏦</span>
+        <div class="alert-body">
+          <div class="alert-title">CFIAe ativo — Condições especiais disponíveis para você</div>
+          <div class="alert-msg">Taxa 8,5% a.a. + TR · MIP 0,051200% ao mês · DFI 0,008036% sobre avaliação · SAC ou PRICE</div>
+        </div>
+      </div>
+
+      <div class="grid-60-40">
+        <!-- inputs -->
+        <div class="card">
+          <div class="card-head"><div class="card-title">Parâmetros da Simulação</div></div>
+          <div class="card-body">
+            <div class="sim-grid">
+              <div>
+                <div class="sim-row">
+                  <div class="sim-label"><span>Valor do Imóvel</span><span class="text-gold">R$ 380.000</span></div>
+                  <input type="text" class="sim-input" value="R$ 380.000" id="valImovel">
+                  <div class="range-wrap"><input type="range" min="100000" max="800000" value="380000" oninput="updateSim()" id="rImovel"></div>
+                </div>
+                <div class="sim-row">
+                  <div class="sim-label"><span>Entrada</span><span class="text-gold">R$ 76.000 (20%)</span></div>
+                  <input type="text" class="sim-input" value="R$ 76.000" id="valEntrada">
+                  <div class="range-wrap"><input type="range" min="5" max="50" value="20" oninput="updateSim()" id="rEntrada"></div>
+                </div>
+                <div class="sim-row">
+                  <div class="sim-label"><span>Prazo</span><span class="text-gold">360 meses (30 anos)</span></div>
+                  <input type="text" class="sim-input" value="360 meses" id="valPrazo">
+                  <div class="range-wrap"><input type="range" min="60" max="420" value="360" step="12" oninput="updateSim()" id="rPrazo"></div>
+                </div>
+              </div>
+              <div>
+                <div class="sim-row">
+                  <div class="sim-label"><span>Sua Renda Bruta</span><span class="text-green">R$ 12.400</span></div>
+                  <input type="text" class="sim-input" value="R$ 12.400" id="valRenda">
+                  <div class="range-wrap"><input type="range" min="3000" max="50000" value="12400" oninput="updateSim()" id="rRenda"></div>
+                </div>
+                <div class="sim-row">
+                  <div class="sim-label"><span>Sistema de Amortização</span></div>
+                  <select class="sim-input" id="selSac">
+                    <option value="sac" selected>SAC — Parcelas Decrescentes</option>
+                    <option value="price">PRICE — Parcelas Fixas</option>
+                  </select>
+                </div>
+                <div class="sim-row">
+                  <div class="sim-label"><span>Segmento Funcional</span></div>
+                  <select class="sim-input" id="selSeg">
+                    <option selected>✈️ Aeronáutica (CFIAe)</option>
+                    <option>⚓ Marinha (CMM)</option>
+                    <option>🪖 Exército (CGFMU)</option>
+                    <option>🏛️ Servidor Civil Federal</option>
+                    <option>🔵 Polícia Federal/Civil</option>
+                    <option>🏙️ Servidor Municipal/Estadual</option>
+                    <option>⚖️ Judiciário / MP</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <button class="tb-btn primary" style="width:100%;justify-content:center;padding:12px;font-size:14px" onclick="updateSim()">🧮 Calcular Financiamento</button>
+          </div>
+        </div>
+
+        <!-- resultado -->
+        <div>
+          <div class="sim-result mb14">
+            <div class="sr-label">Primeira Parcela SAC (Maior)</div>
+            <div class="sr-value" id="res-parcela">R$ 3.247</div>
+            <div class="sr-row"><span class="sr-key">Valor Financiado</span><span class="sr-val" id="res-fin">R$ 304.000</span></div>
+            <div class="sr-row"><span class="sr-key">Amortização mensal</span><span class="sr-val" id="res-amort">R$ 844</span></div>
+            <div class="sr-row"><span class="sr-key">Juros (1° parcela)</span><span class="sr-val" id="res-juros">R$ 2.159</span></div>
+            <div class="sr-row"><span class="sr-key">MIP + DFI</span><span class="sr-val" id="res-seg">R$ 244</span></div>
+            <div class="sr-row"><span class="sr-key">Comprometimento renda</span><span class="sr-val a" id="res-comp">26,2%</span></div>
+            <div class="sr-row"><span class="sr-key">Total pago em 30 anos</span><span class="sr-val" id="res-total">R$ 587.142</span></div>
+            <div class="cfi-badge pulse">✅ Dentro do limite de 30% de comprometimento</div>
+          </div>
+          <div class="card">
+            <div class="card-body" style="padding:14px">
+              <div class="fw7 fs12 mb8" style="color:var(--navy)">Compatibilidade com Imóveis</div>
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                  <span>Orla Recreio · R$ 380k</span><span class="badge green">✅ Compatível</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                  <span>Ilha Mar · R$ 415k</span><span class="badge green">✅ Compatível</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                  <span>ICONYC · R$ 395k</span><span class="badge green">✅ Compatível</span>
+                </div>
+                <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                  <span>Grand Vista · R$ 520k</span><span class="badge gray">⚠️ Fora do limite</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-simulador -->
+
+
+    <!-- ── DOCUMENTOS PANEL ── -->
+    <div class="panel" id="panel-documentos">
+      <div class="ph">
+        <div class="ph-eye">Documentação</div>
+        <div class="ph-title">Meus Documentos</div>
+        <div class="ph-sub">Envie e acompanhe seus documentos de forma segura e centralizada</div>
+      </div>
+
+      <div class="grid-60-40">
+        <div>
+          <div class="flex-between mb14">
+            <div class="fw7 fs13" style="color:var(--navy)">Documentos Enviados</div>
+            <button class="tb-btn primary">📤 Enviar documento</button>
+          </div>
+          <div class="doc-list">
+            <div class="doc-item">
+              <div class="doc-ico">🪪</div>
+              <div style="flex:1">
+                <div class="doc-name">RG — Identidade Militar</div>
+                <div class="doc-meta">Enviado em 16/06/2025 · PDF · 1.2 MB</div>
+              </div>
+              <span class="doc-status ds-ok">✅ Aprovado</span>
+            </div>
+            <div class="doc-item">
+              <div class="doc-ico">📄</div>
+              <div style="flex:1">
+                <div class="doc-name">CPF — Cadastro de Pessoa Física</div>
+                <div class="doc-meta">Enviado em 16/06/2025 · PDF · 0.4 MB</div>
+              </div>
+              <span class="doc-status ds-ok">✅ Aprovado</span>
+            </div>
+            <div class="doc-item">
+              <div class="doc-ico">💰</div>
+              <div style="flex:1">
+                <div class="doc-name">Contracheque — Últimos 3 meses</div>
+                <div class="doc-meta">Enviado em 18/06/2025 · PDF · 2.1 MB</div>
+              </div>
+              <span class="doc-status ds-ok">✅ Aprovado</span>
+            </div>
+            <div class="doc-item">
+              <div class="doc-ico">🏠</div>
+              <div style="flex:1">
+                <div class="doc-name">Comprovante de Residência</div>
+                <div class="doc-meta">Enviado em 18/06/2025 · PDF · 0.8 MB</div>
+              </div>
+              <span class="doc-status ds-pend">⚠️ Em análise</span>
+            </div>
+            <div class="doc-item" style="border-color:var(--amber);background:rgba(217,119,6,.04)">
+              <div class="doc-ico">📋</div>
+              <div style="flex:1">
+                <div class="doc-name">Declaração de IR — 2024</div>
+                <div class="doc-meta fs11" style="color:var(--amber)">⚠️ Aguardando envio — prazo: 30/06/2025</div>
+              </div>
+              <span class="doc-status ds-pend">Pendente</span>
+            </div>
+            <div class="doc-item" style="border-color:var(--red);background:rgba(220,38,38,.04)">
+              <div class="doc-ico">🪖</div>
+              <div style="flex:1">
+                <div class="doc-name">Certidão de Tempo de Serviço</div>
+                <div class="doc-meta" style="color:var(--red);font-size:11px">⚠️ Aguardando envio — prazo: 30/06/2025</div>
+              </div>
+              <span class="doc-status" style="background:rgba(220,38,38,.1);color:var(--red);border:1px solid rgba(220,38,38,.2)">Urgente</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- checklist -->
+          <div class="card">
+            <div class="card-head"><div class="card-title">📋 Checklist Completo</div></div>
+            <div class="card-body">
+              <div style="display:flex;flex-direction:column;gap:8px">
+                <div class="flex-center fs12"><span>✅</span><span>RG / Identidade</span></div>
+                <div class="flex-center fs12"><span>✅</span><span>CPF</span></div>
+                <div class="flex-center fs12"><span>✅</span><span>Contracheques (3 meses)</span></div>
+                <div class="flex-center fs12"><span>⚠️</span><span style="color:var(--amber)">Comprovante de residência — em análise</span></div>
+                <div class="flex-center fs12"><span>❌</span><span style="color:var(--red)">Declaração de IR 2024</span></div>
+                <div class="flex-center fs12"><span>❌</span><span style="color:var(--red)">Certidão de Tempo de Serviço FAB</span></div>
+                <div class="flex-center fs12" style="opacity:.5"><span>⬜</span><span>Matrícula no imóvel</span></div>
+                <div class="flex-center fs12" style="opacity:.5"><span>⬜</span><span>Laudo de avaliação</span></div>
+              </div>
+              <div class="divider"></div>
+              <div class="fw7 fs12 mb8" style="color:var(--navy)">Progresso Documental</div>
+              <div class="prog"><div class="prog-fill" style="width:50%"></div></div>
+              <div class="fs11 text-muted" style="margin-top:4px">4 de 8 documentos concluídos</div>
+            </div>
+          </div>
+
+          <!-- ajuda -->
+          <div class="card" style="background:linear-gradient(135deg,var(--navy),var(--navy2));border-color:transparent">
+            <div class="card-body" style="padding:18px">
+              <div style="font-size:22px;margin-bottom:8px">🤖</div>
+              <div class="fw7 fs13" style="color:#fff;margin-bottom:6px">Precisa de ajuda com documentos?</div>
+              <div class="fs12" style="color:rgba(255,255,255,.55);margin-bottom:14px;line-height:1.6">Nossa IA pode orientar como obter cada documento e qual formato é aceito pelo CFIAe.</div>
+              <button class="tb-btn primary" style="width:100%;justify-content:center" onclick="nav(document.querySelector('[onclick*=mensagens]'),'mensagens')">💬 Perguntar à WAL IA</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-documentos -->
+
+
+    <!-- ── MENSAGENS PANEL ── -->
+    <div class="panel" id="panel-mensagens">
+      <div class="ph">
+        <div class="ph-eye">Central de Comunicação</div>
+        <div class="ph-title">Mensagens & IA</div>
+        <div class="ph-sub">Converse com seu consultor e com nossa IA especialista em imóveis para servidores públicos</div>
+      </div>
+
+      <div class="grid-60-40">
+        <!-- chat IA -->
+        <div class="card" style="display:flex;flex-direction:column">
+          <div class="card-head">
+            <div>
+              <div class="card-title">🤖 WAL IA — Assistente Especialista</div>
+              <div class="card-sub">Especialista em imóveis para servidores públicos · Online agora</div>
+            </div>
+            <span class="badge green pulse">● Online</span>
+          </div>
+          <div style="flex:1;padding:16px 20px;display:flex;flex-direction:column;gap:12px;min-height:320px;overflow-y:auto">
+            <!-- msgs -->
+            <div style="display:flex;gap:10px">
+              <div class="tl-avatar av-wal" style="flex-shrink:0">W</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 12px 3px;padding:12px 14px;max-width:80%">
+                <div class="fs13" style="line-height:1.6">Olá, Cap. Henrique! Sou a assistente da WAL Imóveis. Posso ajudá-lo com simulações, dúvidas sobre financiamento CFIAe, documentação ou informações sobre os empreendimentos. Como posso ajudar?</div>
+                <div class="fs11 text-muted" style="margin-top:6px">09:00</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-direction:row-reverse">
+              <div class="tl-avatar av-lead" style="flex-shrink:0">H</div>
+              <div style="background:var(--navy);border-radius:12px 12px 3px 12px;padding:12px 14px;max-width:80%">
+                <div class="fs13" style="color:#fff;line-height:1.6">Qual é a diferença entre o Orla Recreio e o Ilha Mar para quem vai usar o CFIAe?</div>
+                <div class="fs11" style="color:rgba(255,255,255,.4);margin-top:6px">09:12</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <div class="tl-avatar av-wal" style="flex-shrink:0">W</div>
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px 12px 12px 3px;padding:12px 14px;max-width:80%">
+                <div class="fs13" style="line-height:1.6">Ótima pergunta! Os dois são compatíveis com o CFIAe. <strong>Orla Recreio</strong> custa R$ 380k (2q/64m²) — a parcela inicial seria de ~R$ 3.024 pelo SAC. <strong>Ilha Mar</strong> é R$ 415k (3q/89m²) — parcela inicial ~R$ 3.298. Com sua renda de R$ 12.400, ambos ficam abaixo dos 30% de comprometimento exigidos. A principal diferença é espaço (25m² a mais no Ilha Mar) e localização. Quer uma comparação detalhada?</div>
+                <div class="fs11 text-muted" style="margin-top:6px">09:12</div>
+              </div>
+            </div>
+          </div>
+          <div style="padding:10px 16px;border-top:1px solid var(--border)">
+            <div class="chip-row" style="margin-top:0;margin-bottom:10px">
+              <span class="chip">🧮 Simular Orla Recreio</span>
+              <span class="chip">📋 Comparar imóveis</span>
+              <span class="chip">📁 O que preciso enviar?</span>
+            </div>
+          </div>
+          <div class="chat-input-wrap">
+            <input type="text" class="chat-input" placeholder="Pergunte sobre imóveis, financiamento, documentos...">
+            <button class="chat-send">▶</button>
+          </div>
+        </div>
+
+        <!-- conversa consultor -->
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card" style="display:flex;flex-direction:column">
+            <div class="card-head">
+              <div>
+                <div class="card-title">👤 Conversa com Consultor</div>
+                <div class="card-sub">Ana Ferreira · Especialista FAB</div>
+              </div>
+              <span class="badge gold">Online</span>
+            </div>
+            <div style="padding:14px 16px;flex:1;min-height:180px;display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;gap:10px">
+                <div class="tl-avatar" style="background:linear-gradient(135deg,#7C3AED,#9B5CF6);color:#fff;flex-shrink:0;width:32px;height:32px;border-radius:50%;font-size:13px;display:flex;align-items:center;justify-content:center">A</div>
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+                  <div class="fs12" style="line-height:1.5">Cap. Henrique, sua pré-análise foi aprovada! Quando podemos agendar uma visita ao Orla Recreio?</div>
+                  <div class="fs11 text-muted" style="margin-top:4px">Ontem, 15:30</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;flex-direction:row-reverse">
+                <div class="tl-avatar av-lead" style="flex-shrink:0;width:32px;height:32px;border-radius:50%;font-size:12px;display:flex;align-items:center;justify-content:center">H</div>
+                <div style="background:var(--navy);border-radius:10px;padding:10px 12px">
+                  <div class="fs12" style="color:#fff;line-height:1.5">Que ótimo! Prefiro visita virtual — sábado à tarde?</div>
+                  <div class="fs11" style="color:rgba(255,255,255,.4);margin-top:4px">Ontem, 16:05</div>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-wrap" style="border-radius:0 0 10px 10px">
+              <input type="text" class="chat-input" placeholder="Mensagem para Ana...">
+              <button class="chat-send">▶</button>
+            </div>
+          </div>
+
+          <!-- agendar -->
+          <div class="card" style="background:linear-gradient(135deg,var(--teal),var(--teal2));border-color:transparent">
+            <div class="card-body" style="padding:18px;text-align:center">
+              <div style="font-size:28px;margin-bottom:8px">📅</div>
+              <div class="fw7 fs14" style="color:#fff;margin-bottom:6px">Agendar Visita Virtual</div>
+              <div class="fs12" style="color:rgba(255,255,255,.7);margin-bottom:14px">Tour 360° pelo empreendimento com consultor ao vivo</div>
+              <button class="tb-btn" style="width:100%;justify-content:center;background:#fff;border-color:transparent;color:var(--teal);font-weight:700">
+                📍 Escolher data e horário
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-mensagens -->
+
+
+    <!-- ── AGENTES PANEL ── -->
+    <div class="panel" id="panel-agentes">
+      <div class="ph">
+        <div class="ph-eye">Sua Equipe</div>
+        <div class="ph-title">Meu Consultor WAL</div>
+        <div class="ph-sub">Equipe especializada em imóveis para servidores públicos de todos os órgãos</div>
+      </div>
+
+      <div class="grid-60-40">
+        <div>
+          <!-- consultor principal -->
+          <div class="fw7 fs13 mb14" style="color:var(--navy)">Seu Consultor Principal</div>
+          <div class="card mb20" style="border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,.1)">
+            <div class="card-body">
+              <div style="display:flex;gap:16px;align-items:center">
+                <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#9B5CF6);color:#fff;font-size:22px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">A</div>
+                <div style="flex:1">
+                  <div class="fw7" style="font-size:16px;color:var(--navy)">Ana Ferreira</div>
+                  <div class="fs12 text-muted">Especialista FAB · 7 anos de experiência</div>
+                  <div class="chip-row" style="margin-top:8px">
+                    <span class="chip sel">✈️ FAB</span>
+                    <span class="chip sel">🏦 CFIAe</span>
+                    <span class="chip">📍 RJ</span>
+                  </div>
+                </div>
+                <span class="badge green">● Online</span>
+              </div>
+              <div class="divider"></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+                <div style="text-align:center;padding:10px;background:var(--surface);border-radius:8px">
+                  <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--navy)">47</div>
+                  <div class="fs11 text-muted">Vendas realizadas</div>
+                </div>
+                <div style="text-align:center;padding:10px;background:var(--surface);border-radius:8px">
+                  <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--gold)">4.9</div>
+                  <div class="fs11 text-muted">Avaliação média</div>
+                </div>
+                <div style="text-align:center;padding:10px;background:var(--surface);border-radius:8px">
+                  <div style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;color:var(--teal)">< 2h</div>
+                  <div class="fs11 text-muted">Tempo de resposta</div>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="tb-btn primary" style="flex:1;justify-content:center" onclick="nav(document.querySelector('[onclick*=mensagens]'),'mensagens')">💬 Enviar mensagem</button>
+                <button class="tb-btn" style="flex:1;justify-content:center">📅 Agendar reunião</button>
+                <button class="tb-btn" style="padding:7px 12px">📞</button>
+                <button class="tb-btn" style="padding:7px 12px">📱</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- outros especialistas -->
+          <div class="fw7 fs13 mb14" style="color:var(--navy)">Especialistas por Área</div>
+          <div class="agent-card">
+            <div class="agent-av" style="background:linear-gradient(135deg,#1A7A7A,#22A09A)">🏦</div>
+            <div>
+              <div class="agent-name">Carlos Mendes</div>
+              <div class="agent-role">Especialista em Financiamento CFIAe</div>
+            </div>
+            <div class="agent-online"></div>
+          </div>
+          <div class="agent-card">
+            <div class="agent-av" style="background:linear-gradient(135deg,#1E40AF,#3B82F6)">📁</div>
+            <div>
+              <div class="agent-name">Beatriz Santos</div>
+              <div class="agent-role">Analista Documental · FAB & Exército</div>
+            </div>
+            <div class="agent-online busy"></div>
+          </div>
+          <div class="agent-card">
+            <div class="agent-av" style="background:linear-gradient(135deg,#065F46,#059669)">⚖️</div>
+            <div>
+              <div class="agent-name">Dr. Rodrigo Lima</div>
+              <div class="agent-role">Assessor Jurídico · Contratos Imobiliários</div>
+            </div>
+            <div class="agent-online"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <!-- histórico atendimento -->
+          <div class="card">
+            <div class="card-head"><div class="card-title">📋 Histórico de Atendimento</div></div>
+            <div class="card-body" style="padding:0">
+              <table class="mtable">
+                <thead><tr><th>Data</th><th>Assunto</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td>22/06</td><td>Pré-análise crédito</td><td><span class="badge green">Concluído</span></td></tr>
+                  <tr><td>20/06</td><td>Simulação CFIAe</td><td><span class="badge green">Concluído</span></td></tr>
+                  <tr><td>19/06</td><td>Dúvidas documentação</td><td><span class="badge green">Concluído</span></td></tr>
+                  <tr><td>16/06</td><td>Cadastro inicial</td><td><span class="badge green">Concluído</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- nps -->
+          <div class="card" style="text-align:center">
+            <div class="card-body">
+              <div style="font-size:28px;margin-bottom:8px">⭐</div>
+              <div class="fw7 fs14 mb8" style="color:var(--navy)">Como está sendo sua experiência?</div>
+              <div style="display:flex;justify-content:center;gap:6px;font-size:24px">
+                <span style="cursor:pointer">😞</span>
+                <span style="cursor:pointer">😐</span>
+                <span style="cursor:pointer">🙂</span>
+                <span style="cursor:pointer">😊</span>
+                <span style="cursor:pointer">🤩</span>
+              </div>
+              <div class="fs11 text-muted" style="margin-top:8px">Sua opinião melhora nosso atendimento</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-agentes -->
+
+
+    <!-- ── BENEFÍCIOS PANEL ── -->
+    <div class="panel" id="panel-beneficios">
+      <div class="ph">
+        <div class="ph-eye">Vantagens Exclusivas</div>
+        <div class="ph-title">Benefícios para Servidores Públicos</div>
+        <div class="ph-sub">Condições especiais que só funcionários públicos têm acesso na WAL Imóveis</div>
+      </div>
+
+      <div class="alert success mb20">
+        <span class="alert-ico">✈️</span>
+        <div class="alert-body">
+          <div class="alert-title">Você está cadastrado como Militar FAB ativo — nível máximo de benefícios</div>
+          <div class="alert-msg">Todos os benefícios abaixo estão disponíveis para você, Cap. Henrique.</div>
+        </div>
+      </div>
+
+      <!-- segmentos -->
+      <div class="card mb20">
+        <div class="card-head"><div class="card-title">🏛️ Segmentos Atendidos</div><div class="card-sub">WAL Imóveis atende todo funcionalismo público brasileiro</div></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+            <div style="padding:12px;background:rgba(201,168,76,.08);border:1.5px solid rgba(201,168,76,.3);border-radius:9px;text-align:center">
+              <div style="font-size:22px;margin-bottom:6px">✈️</div>
+              <div class="fw7 fs12" style="color:var(--gold)">Aeronáutica</div>
+              <div class="fs11 text-muted">CFIAe · 70k servidores</div>
+            </div>
+            <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;text-align:center">
+              <div style="font-size:22px;margin-bottom:6px">⚓</div>
+              <div class="fw7 fs12" style="color:var(--navy)">Marinha</div>
+              <div class="fs11 text-muted">CMM · 82k servidores</div>
+            </div>
+            <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;text-align:center">
+              <div style="font-size:22px;margin-bottom:6px">🪖</div>
+              <div class="fw7 fs12" style="color:var(--navy)">Exército</div>
+              <div class="fs11 text-muted">CGFMU · 220k servidores</div>
+            </div>
+            <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;text-align:center">
+              <div style="font-size:22px;margin-bottom:6px">🔵</div>
+              <div class="fw7 fs12" style="color:var(--navy)">Polícia Civil</div>
+              <div class="fs11 text-muted">40k servidores RJ+SP</div>
+            </div>
+            <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;text-align:center">
+              <div style="font-size:22px;margin-bottom:6px">🏛️</div>
+              <div class="fw7 fs12" style="color:var(--navy)">Judiciário / MP</div>
+              <div class="fs11 text-muted">65k servidores</div>
+            </div>
+            <div style="padding:12px;background:var(--surface);border:1px solid var(--border);border-radius:9px;text-align:center">
+              <div style="font-size:22px;margin-bottom:6px">🏙️</div>
+              <div class="fw7 fs12" style="color:var(--navy)">Prefeituras & Estados</div>
+              <div class="fs11 text-muted">800k+ servidores RJ+SP</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- benefícios por categoria -->
+      <div class="grid-3">
+        <div class="card">
+          <div class="card-head" style="border-bottom-color:rgba(22,163,74,.2)">
+            <div class="card-title">🏦 Financiamento</div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div class="flex-center fs12"><span>✅</span><span>Taxa 8,5% a.a. + TR (CFIAe)</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Prazo até 35 anos</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Até 90% do valor do imóvel</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>MIP e DFI inclusos</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Uso do FGTS na entrada</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Desconto em cartório via parceria</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">⚡ Processo Facilitado</div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div class="flex-center fs12"><span>✅</span><span>Pré-análise em até 48h</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Menos documentos exigidos</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Checklist digital guiado</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Consultor dedicado</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Visita virtual 360°</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Assinatura digital de contratos</span></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">💎 Acesso Exclusivo</div>
+          </div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px">
+            <div class="flex-center fs12"><span>✅</span><span>Lançamentos antes do público</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Tabela de preço diferenciada</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Unidades reservadas para servidores</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Parceiros: RIVA, CURY, EMCAMP</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Rede CALPER e REFLORA</span></div>
+            <div class="flex-center fs12"><span>✅</span><span>Suporte jurídico gratuito</span></div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /panel-beneficios -->
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+/* ── NAVIGATION ── */
+function nav(el, panelId) {
+  // update nav items
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (el && el.classList) el.classList.add('active');
+
+  // hide all panels
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+
+  // show target panel
+  const target = document.getElementById('panel-' + panelId);
+  if (target) target.classList.add('active');
+
+  // update topbar title
+  const titles = {
+    home: 'Visão Geral',
+    imoveis: 'Imóveis para Você',
+    jornada: 'Minha Jornada de Compra',
+    simulador: 'Simulador Financeiro',
+    documentos: 'Documentos',
+    mensagens: 'Mensagens & IA',
+    agentes: 'Meu Consultor',
+    beneficios: 'Benefícios para Servidores'
+  };
+  document.getElementById('topbar-title').textContent = titles[panelId] || '';
+}
+
+/* ── SIMULATOR ── */
+function updateSim() {
+  const imovel = parseFloat(document.getElementById('rImovel').value);
+  const pctEntrada = parseFloat(document.getElementById('rEntrada').value) / 100;
+  const prazo = parseInt(document.getElementById('rPrazo').value);
+  const renda = parseFloat(document.getElementById('rRenda').value);
+
+  const entrada = imovel * pctEntrada;
+  const financiado = imovel - entrada;
+  const taxaMensal = 0.085 / 12;
+  const amort = financiado / prazo;
+  const juros1 = financiado * taxaMensal;
+  const mip = financiado * 0.000512;
+  const dfi = imovel * 0.0000803;
+  const seg = mip + dfi;
+  const parcela1 = amort + juros1 + seg;
+  const comp = parcela1 / renda * 100;
+
+  // rough total paid (SAC avg approximation)
+  const totalPago = financiado + (financiado * 0.085 * prazo / 12 * 0.5) + (seg * prazo);
+
+  const fmt = v => 'R$ ' + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  const fmtK = v => 'R$ ' + (v/1000).toFixed(0) + 'k';
+
+  document.getElementById('res-parcela').textContent = fmt(parcela1);
+  document.getElementById('res-fin').textContent = fmt(financiado);
+  document.getElementById('res-amort').textContent = fmt(amort);
+  document.getElementById('res-juros').textContent = fmt(juros1);
+  document.getElementById('res-seg').textContent = fmt(seg);
+  document.getElementById('res-comp').textContent = comp.toFixed(1) + '%';
+  document.getElementById('res-total').textContent = fmt(totalPago);
+
+  // update slider labels
+  document.getElementById('valImovel').value = fmtK(imovel).replace('k','000');
+  document.getElementById('valEntrada').value = fmtK(entrada) + ' (' + Math.round(pctEntrada*100) + '%)';
+  document.getElementById('valPrazo').value = prazo + ' meses (' + Math.round(prazo/12) + ' anos)';
+  document.getElementById('valRenda').value = fmt(renda);
+}
+
+// init sim
+updateSim();
+</script>
+</body>
+</html>

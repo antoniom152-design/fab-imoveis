@@ -1,0 +1,2067 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Marketing Intelligence Center</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ════════════════════════════════════════
+   DESIGN TOKENS — WAL MARKETING EDITION
+   Paleta: Navy profundo + Gold premium +
+   Coral para urgência + Verde para resultado
+════════════════════════════════════════ */
+:root{
+  /* base */
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --surf:#0B1929;--surf2:#0F2035;
+  --card:#122039;--card2:#172848;
+  --bdr:rgba(255,255,255,.06);--bdr2:rgba(255,255,255,.12);
+
+  /* brand */
+  --gold:#C9A84C;--gold2:#E8C96A;--gold3:#F5DFA0;
+  --gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+
+  /* canais */
+  --ig:#E1306C;--ig2:#fd1d1d;--ig-dim:rgba(225,48,108,.12);--ig-b:rgba(225,48,108,.25);
+  --fb:#1877F2;--fb2:#4293f5;--fb-dim:rgba(24,119,242,.12);--fb-b:rgba(24,119,242,.25);
+  --gg:#EA4335;--gg2:#FBBC05;--gg-dim:rgba(234,67,53,.12);--gg-b:rgba(234,67,53,.25);
+  --wa:#25D366;--wa2:#128C7E;--wa-dim:rgba(37,211,102,.10);--wa-b:rgba(37,211,102,.22);
+  --yt:#FF0000;--yt-dim:rgba(255,0,0,.12);--yt-b:rgba(255,0,0,.22);
+  --ai:#6366F1;--ai2:#818CF8;--ai-dim:rgba(99,102,241,.12);--ai-b:rgba(99,102,241,.25);
+
+  /* semânticas */
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.10);
+  --purple:#7C3AED;--purple2:#A78BFA;
+  --coral:#F97316;--coral-dim:rgba(249,115,22,.12);--coral-b:rgba(249,115,22,.25);
+
+  /* text */
+  --txt:#E8EDF5;--muted:#7A90A8;--light:#4A6280;
+  --r:10px;--r-lg:14px;
+  --mono:'JetBrains Mono',monospace;
+}
+
+/* ── RESET & BASE ── */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh;overflow-x:hidden}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ── LOCK ── */
+#lockScreen{position:fixed;inset:0;z-index:9999;background:var(--navy);display:flex;align-items:center;justify-content:center}
+.lock-wrap{width:400px;text-align:center}
+.lock-logo{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--gold);letter-spacing:-1px;margin-bottom:4px}
+.lock-sub{font-size:10px;color:var(--muted);letter-spacing:2.5px;text-transform:uppercase;margin-bottom:8px}
+.lock-badge{display:inline-flex;align-items:center;gap:6px;margin-bottom:28px;background:rgba(249,115,22,.12);border:1px solid var(--coral-b);color:var(--coral);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:4px 12px;border-radius:20px}
+.lock-box{background:var(--card);border:1px solid var(--gold-b);border-radius:var(--r-lg);padding:36px}
+.lock-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;text-align:left}
+.lock-inp{width:100%;padding:11px 14px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;color:var(--txt);font-size:14px;outline:none;transition:border-color .2s;margin-bottom:14px}
+.lock-inp:focus{border-color:var(--gold)}
+.lock-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border:none;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s}
+.lock-btn:hover{opacity:.9;transform:translateY(-1px)}
+.lock-err{color:#F87171;font-size:11px;margin-top:8px;display:none}
+.lock-demo{font-size:10px;color:var(--muted);margin-top:14px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;right:24px;z-index:5000;background:var(--card2);border:1px solid var(--bdr2);border-radius:9px;padding:12px 18px;font-size:12px;color:var(--txt);box-shadow:0 12px 40px rgba(0,0,0,.6);transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;border-left:3px solid var(--gold);max-width:340px;line-height:1.5}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.t-green{border-left-color:var(--green2)}
+#toast.t-red{border-left-color:#F87171}
+#toast.t-amber{border-left-color:#FCD34D}
+#toast.t-ig{border-left-color:var(--ig)}
+#toast.t-fb{border-left-color:var(--fb2)}
+#toast.t-gg{border-left-color:var(--gg)}
+#toast.t-ai{border-left-color:var(--ai2)}
+#toast.t-wa{border-left-color:var(--wa)}
+
+/* ── MODAL OVERLAY ── */
+.modal-ov{position:fixed;inset:0;background:rgba(5,12,25,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:32px 16px;overflow-y:auto;backdrop-filter:blur(4px)}
+.modal-ov.show{display:flex}
+.modal-box{width:100%;max-width:820px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r-lg);overflow:hidden}
+.modal-box-lg{max-width:1100px}
+.modal-box-sm{max-width:520px}
+.modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700}
+.modal-close{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--txt)}
+.modal-body{padding:24px;max-height:76vh;overflow-y:auto}
+.modal-f{padding:14px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── APP ── */
+.app{display:flex;min-height:100vh;display:none}
+
+/* ── SIDEBAR ── */
+.sidebar{width:230px;min-height:100vh;background:var(--navy);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;border-right:1px solid var(--bdr)}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid var(--gold-b)}
+.sb-brand{color:var(--gold);font-family:'Playfair Display',serif;font-size:17px;font-weight:700;letter-spacing:-.3px}
+.sb-tag{display:inline-flex;align-items:center;gap:5px;margin-top:8px;background:var(--coral-dim);border:1px solid var(--coral-b);color:var(--coral);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;padding:3px 9px;border-radius:20px}
+.sb-dot{width:5px;height:5px;background:var(--coral);border-radius:50%;animation:dot-pulse 2s infinite}
+@keyframes dot-pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+
+.nav-grp{padding:10px 8px 2px}
+.nav-lbl{color:rgba(255,255,255,.18);font-size:9px;text-transform:uppercase;letter-spacing:1.8px;padding:0 9px 5px;font-weight:700}
+.nav-item{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.45);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;margin-bottom:1px;border:1px solid transparent;position:relative}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(201,168,76,.09);color:var(--gold);border-color:var(--gold-b)}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-bdg{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.nb-g{background:rgba(5,150,105,.2);color:#34D399}
+.nb-a{background:rgba(217,119,6,.2);color:#FCD34D}
+.nb-r{background:rgba(220,38,38,.2);color:#F87171}
+.nb-p{background:rgba(249,115,22,.2);color:var(--coral)}
+.nb-ai{background:rgba(99,102,241,.2);color:var(--ai2)}
+
+.sb-channel-status{margin:14px 12px 0;padding:10px;background:rgba(255,255,255,.03);border:1px solid var(--bdr);border-radius:9px}
+.scs-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--light);margin-bottom:8px}
+.scs-row{display:flex;align-items:center;justify-content:space-between;padding:4px 0;font-size:11px}
+.scs-name{color:var(--txt)}
+.scs-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.dot-on{background:#34D399;animation:dot-pulse 2s infinite}
+.dot-off{background:rgba(255,255,255,.15)}
+.dot-warn{background:#FCD34D}
+
+.sb-footer{margin-top:auto;padding:14px 12px;border-top:1px solid var(--bdr);display:flex;align-items:center;gap:8px}
+.sf-av{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--navy);flex-shrink:0}
+.sf-out{margin-left:auto;width:28px;height:28px;border-radius:6px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s}
+.sf-out:hover{color:var(--txt)}
+
+/* ── MAIN ── */
+.main{margin-left:230px;flex:1;display:flex;flex-direction:column}
+.topbar{background:var(--navy2);border-bottom:1px solid var(--bdr);padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:50}
+.tb-bread{display:flex;align-items:center;gap:6px;flex:1}
+.tb-sec{color:rgba(255,255,255,.3);font-size:11px}
+.tb-sep{color:rgba(255,255,255,.15)}
+.tb-page{color:var(--coral);font-size:12px;font-weight:600}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-period{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surf2);border:1px solid var(--bdr2);border-radius:7px;font-size:11px;color:var(--muted)}
+.tb-period select{background:none;border:none;color:var(--txt);font-size:11px;outline:none;cursor:pointer}
+.tb-clock{color:rgba(255,255,255,.3);font-size:10px;font-family:var(--mono)}
+.tb-aiBtn{display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--ai-dim);border:1px solid var(--ai-b);border-radius:7px;color:var(--ai2);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.tb-aiBtn:hover{background:rgba(99,102,241,.2)}
+
+/* ── CONTENT ── */
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--coral);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--txt);border-color:rgba(255,255,255,.2);transform:translateY(-1px)}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:var(--navy);border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.9}
+.btn-coral{background:var(--coral-dim);border-color:var(--coral-b);color:var(--coral);font-weight:700}
+.btn-coral:hover{background:rgba(249,115,22,.2)}
+.btn-ai{background:var(--ai-dim);border-color:var(--ai-b);color:var(--ai2);font-weight:700}
+.btn-ai:hover{background:rgba(99,102,241,.2)}
+.btn-ig{background:var(--ig-dim);border-color:var(--ig-b);color:var(--ig);font-weight:700}
+.btn-fb{background:var(--fb-dim);border-color:var(--fb-b);color:var(--fb2);font-weight:700}
+.btn-gg{background:var(--gg-dim);border-color:var(--gg-b);color:var(--gg);font-weight:700}
+.btn-wa{background:var(--wa-dim);border-color:var(--wa-b);color:var(--wa);font-weight:700}
+.btn-full{width:100%;justify-content:center;padding:11px}
+.btn-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399;font-weight:700}
+.btn-red{background:var(--red-dim);border-color:rgba(220,38,38,.25);color:#F87171}
+
+/* ── SECTION DIVIDER ── */
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* ── KPI STRIP ── */
+.kpi-strip{display:grid;gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s;cursor:default}
+.kpi:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.coral::after{background:linear-gradient(90deg,var(--coral),#FDBA74)}
+.kpi.ig::after{background:linear-gradient(90deg,var(--ig),#833AB4)}
+.kpi.fb::after{background:linear-gradient(90deg,var(--fb),var(--fb2))}
+.kpi.gg::after{background:linear-gradient(90deg,var(--gg),var(--gg2))}
+.kpi.wa::after{background:linear-gradient(90deg,var(--wa2),var(--wa))}
+.kpi.green::after{background:var(--green)}
+.kpi.ai::after{background:linear-gradient(90deg,var(--ai),var(--ai2))}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:#fff;line-height:1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-dlt{display:inline-flex;align-items:center;font-size:10px;font-weight:600;margin-top:4px;padding:1px 6px;border-radius:4px}
+.up{background:rgba(5,150,105,.15);color:#34D399}
+.dn{background:rgba(220,38,38,.15);color:#F87171}
+.fl{background:rgba(122,144,168,.12);color:var(--muted)}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.cs2{grid-column:span 2}.cs3{grid-column:span 3}
+.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.card-b{padding:16px}
+.card-link{font-size:10px;color:var(--coral);font-weight:600;cursor:pointer}
+.card-link:hover{opacity:.8}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:2px 7px;border-radius:4px}
+.bg{background:rgba(5,150,105,.18);color:#34D399;border:1px solid rgba(52,211,153,.15)}
+.br{background:rgba(220,38,38,.15);color:#F87171;border:1px solid rgba(248,113,113,.15)}
+.ba{background:rgba(217,119,6,.15);color:#FCD34D;border:1px solid rgba(252,211,77,.15)}
+.bo{background:rgba(201,168,76,.12);color:var(--gold2);border:1px solid var(--gold-b)}
+.bz{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid var(--bdr)}
+.big{background:var(--ig-dim);color:var(--ig);border:1px solid var(--ig-b)}
+.bfb{background:var(--fb-dim);color:var(--fb2);border:1px solid var(--fb-b)}
+.bgg{background:var(--gg-dim);color:var(--gg);border:1px solid var(--gg-b)}
+.bwa{background:var(--wa-dim);color:var(--wa);border:1px solid var(--wa-b)}
+.bai{background:var(--ai-dim);color:var(--ai2);border:1px solid var(--ai-b)}
+.bco{background:var(--coral-dim);color:var(--coral);border:1px solid var(--coral-b)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(0,0,0,.15)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr.clk{cursor:pointer}
+.tbl tr.clk:hover td{background:rgba(255,255,255,.02)}
+
+/* ── PROGRESS ── */
+.prog-w{margin-bottom:9px}
+.prog-m{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.prog-bar{height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px}
+.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.pf-coral{background:linear-gradient(90deg,var(--coral),#FDBA74)}
+.pf-ig{background:linear-gradient(90deg,var(--ig),#833AB4)}
+.pf-fb{background:linear-gradient(90deg,var(--fb),var(--fb2))}
+.pf-gg{background:linear-gradient(90deg,var(--gg),var(--gg2))}
+.pf-wa{background:linear-gradient(90deg,var(--wa2),var(--wa))}
+.pf-green{background:var(--green)}
+.pf-ai{background:linear-gradient(90deg,var(--ai),var(--ai2))}
+
+/* ── FIELDS ── */
+.field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field-inp,.field-sel,.field-ta{width:100%;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:8px;font-size:12px;outline:none;transition:border-color .2s}
+.field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--gold)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(255,255,255,.2)}
+.field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field-sel option{background:#152540}
+.field-ta{resize:vertical;min-height:80px;line-height:1.5}
+.f-row{display:grid;gap:12px;margin-bottom:14px}
+.f-2{grid-template-columns:1fr 1fr}
+.f-3{grid-template-columns:1fr 1fr 1fr}
+.f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
+
+/* ── CAMPAIGN CARD ── */
+.camp-card{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;transition:border-color .15s;margin-bottom:10px}
+.camp-card:hover{border-color:var(--bdr2)}
+.camp-header{padding:14px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.camp-nome{font-size:13px;font-weight:700;color:#fff}
+.camp-periodo{font-size:10px;color:var(--muted);margin-top:2px}
+.camp-body{padding:14px 16px}
+.camp-channels{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.camp-ch{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:3px 8px;border-radius:5px}
+.camp-metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.camp-metric{background:var(--card);border:1px solid var(--bdr);border-radius:7px;padding:8px;text-align:center}
+.camp-metric-val{font-size:14px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.camp-metric-lbl{font-size:9px;color:var(--muted);margin-top:2px}
+.camp-actions{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+
+/* ── CONTEÚDO / MÍDIA CARD ── */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.media-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;cursor:pointer;transition:all .15s}
+.media-card:hover{border-color:var(--bdr2);transform:translateY(-2px)}
+.media-thumb{height:110px;display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;overflow:hidden}
+.media-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);opacity:0;transition:opacity .2s}
+.media-card:hover .media-overlay{opacity:1}
+.media-play{position:absolute;bottom:8px;right:8px;width:28px;height:28px;background:rgba(255,255,255,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;opacity:0;transition:opacity .2s}
+.media-card:hover .media-play{opacity:1}
+.media-body{padding:10px}
+.media-nome{font-size:11px;font-weight:700;color:#fff;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.media-meta{font-size:9px;color:var(--muted)}
+.media-stats{display:flex;gap:6px;margin-top:6px}
+.media-stat{font-size:9px;color:var(--muted);display:flex;align-items:center;gap:3px}
+
+/* ── CALENDARIO ── */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-head{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:4px;text-align:center}
+.cal-day{min-height:62px;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;padding:5px;cursor:pointer;transition:border-color .15s;position:relative}
+.cal-day:hover{border-color:var(--bdr2)}
+.cal-day.today{border-color:var(--coral-b);background:var(--coral-dim)}
+.cal-day.has-post{border-color:rgba(255,255,255,.1)}
+.cal-day-num{font-size:10px;font-weight:600;color:var(--muted);margin-bottom:3px}
+.cal-day.today .cal-day-num{color:var(--coral);font-weight:700}
+.cal-post-dot{width:100%;font-size:8px;font-weight:600;padding:2px 4px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dot-ig{background:var(--ig-dim);color:var(--ig)}
+.dot-fb{background:var(--fb-dim);color:var(--fb2)}
+.dot-gg{background:var(--gg-dim);color:var(--gg)}
+.dot-wa{background:var(--wa-dim);color:var(--wa)}
+
+/* ── KANBAN ── */
+.kanban{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.kan-col{background:rgba(0,0,0,.15);border:1px solid var(--bdr);border-radius:9px;overflow:hidden}
+.kan-head{padding:10px 12px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.kan-title{font-size:11px;font-weight:700;color:#fff}
+.kan-count{font-size:10px;color:var(--muted);font-family:var(--mono)}
+.kan-body{padding:8px;min-height:200px;display:flex;flex-direction:column;gap:6px}
+.kan-card{background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;cursor:grab;transition:border-color .15s}
+.kan-card:hover{border-color:var(--bdr2)}
+.kan-card-title{font-size:11px;font-weight:600;color:#fff;margin-bottom:4px;line-height:1.4}
+.kan-card-meta{font-size:9px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap}
+
+/* ── ADS CARD ── */
+.ad-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:14px;margin-bottom:10px;transition:border-color .15s}
+.ad-card:hover{border-color:var(--bdr2)}
+.ad-card.ig-card{border-left:3px solid var(--ig)}
+.ad-card.fb-card{border-left:3px solid var(--fb2)}
+.ad-card.gg-card{border-left:3px solid var(--gg)}
+.ad-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.ad-nome{font-size:13px;font-weight:700;color:#fff}
+.ad-sub{font-size:10px;color:var(--muted);margin-top:2px}
+.ad-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
+.ad-metric{background:var(--card);border:1px solid var(--bdr);border-radius:6px;padding:8px;text-align:center}
+.ad-metric-val{font-size:14px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.ad-metric-lbl{font-size:9px;color:var(--muted);margin-top:1px}
+.ad-bar-wrap{margin-bottom:8px}
+.ad-bar-meta{display:flex;justify-content:space-between;font-size:10px;margin-bottom:3px}
+.ad-actions{display:flex;gap:6px}
+
+/* ── PEÇAS PUBLICITÁRIAS ── */
+.peca-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.peca-card{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .15s}
+.peca-card:hover{border-color:var(--bdr2);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.4)}
+.peca-preview{height:130px;display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.peca-format-tag{position:absolute;top:8px;left:8px}
+.peca-channel-tag{position:absolute;top:8px;right:8px}
+.peca-body{padding:12px}
+.peca-nome{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px}
+.peca-emp{font-size:10px;color:var(--muted);margin-bottom:8px}
+.peca-actions{display:flex;gap:5px}
+
+/* ── VÍDEOS ── */
+.video-card{background:var(--card2);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;cursor:pointer;transition:all .15s;margin-bottom:10px}
+.video-card:hover{border-color:var(--bdr2)}
+.video-thumb{height:130px;background:linear-gradient(135deg,var(--navy3),var(--navy2));display:flex;align-items:center;justify-content:center;font-size:48px;position:relative}
+.video-duration{position:absolute;bottom:8px;right:8px;background:rgba(0,0,0,.75);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;font-family:var(--mono)}
+.video-body{padding:12px}
+.video-nome{font-size:12px;font-weight:700;color:#fff;margin-bottom:3px}
+.video-meta{font-size:10px;color:var(--muted);margin-bottom:8px}
+.video-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px}
+.video-stat{background:var(--card);border:1px solid var(--bdr);border-radius:6px;padding:6px;text-align:center}
+.video-stat-val{font-size:13px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.video-stat-lbl{font-size:8px;color:var(--muted);margin-top:1px}
+
+/* ── AI CREATOR ── */
+.ai-creator{background:var(--card);border:1px solid var(--ai-b);border-radius:var(--r);overflow:hidden}
+.ai-creator-h{padding:14px 16px;border-bottom:1px solid var(--bdr);background:var(--ai-dim);display:flex;align-items:center;justify-content:space-between}
+.ai-msgs{height:280px;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{display:flex;gap:8px;align-items:flex-start}
+.ai-av{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.av-ai{background:linear-gradient(135deg,var(--ai),var(--ai2));color:#fff}
+.av-u{background:var(--card2);color:var(--muted);border:1px solid var(--bdr)}
+.ai-bubble{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.6}
+.ai-b-ai{background:var(--card2);border:1px solid var(--bdr)}
+.ai-b-u{background:var(--ai-dim);border:1px solid var(--ai-b)}
+.ai-chips{padding:8px 12px;display:flex;flex-wrap:wrap;gap:5px;border-top:1px solid var(--bdr)}
+.ai-chip{font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;background:var(--card2);border:1px solid var(--bdr2);color:var(--muted);transition:all .15s}
+.ai-chip:hover{border-color:var(--ai-b);color:var(--ai2)}
+.ai-inp-row{padding:10px;border-top:1px solid var(--bdr);display:flex;gap:8px}
+.ai-inp{flex:1;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:7px;padding:8px 12px;font-size:12px;outline:none;transition:border-color .2s;resize:none;min-height:36px;max-height:80px;overflow:auto}
+.ai-inp:focus{border-color:var(--ai2)}
+.ai-send{width:36px;height:36px;background:linear-gradient(135deg,var(--ai),var(--ai2));border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#fff;transition:opacity .2s}
+.ai-send:hover{opacity:.85}
+
+/* ── CHART BAR MINI ── */
+.bar-chart{display:flex;align-items:flex-end;gap:3px;height:70px}
+.bar-col{flex:1;border-radius:3px 3px 0 0;transition:height .4s;min-width:4px}
+.bar-lbl{font-size:8px;color:var(--muted);text-align:center;margin-top:4px;white-space:nowrap}
+
+/* ── SWITCH ── */
+.sw{position:relative;display:inline-block;width:40px;height:22px;cursor:pointer;flex-shrink:0}
+.sw input{display:none}
+.sw-track{position:absolute;inset:0;background:rgba(255,255,255,.1);border-radius:11px;border:1px solid var(--bdr2);transition:all .25s}
+.sw-thumb{position:absolute;top:3px;left:3px;width:14px;height:14px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.sw input:checked+.sw-track{background:var(--green);border-color:transparent}
+.sw input:checked~.sw-thumb{transform:translateX(18px)}
+
+/* ── MISC ── */
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}
+.c-muted{color:var(--muted)}.c-gold{color:var(--gold)}.c-coral{color:var(--coral)}
+.c-green{color:#34D399}.c-red{color:#F87171}.c-amber{color:#FCD34D}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.flex-bet{display:flex;align-items:center;justify-content:space-between}
+.flex{display:flex;align-items:center}
+.sp{display:flex;flex-wrap:wrap;gap:6px}
+.alert-box{padding:11px 14px;border-radius:8px;border:1px solid;font-size:12px;line-height:1.5;margin-bottom:14px}
+.ab-coral{background:var(--coral-dim);border-color:var(--coral-b);color:var(--coral)}
+.ab-ai{background:var(--ai-dim);border-color:var(--ai-b);color:var(--ai2)}
+.ab-green{background:var(--green-dim);border-color:rgba(52,211,153,.2);color:#34D399}
+.ab-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:#FCD34D}
+</style>
+</head>
+<body>
+
+<!-- ══ LOCK ══ -->
+<div id="lockScreen">
+  <div class="lock-wrap">
+    <div class="lock-logo">WAL Consultoria</div>
+    <div class="lock-sub">Marketing Intelligence</div>
+    <div class="lock-badge"><div class="sb-dot" style="background:var(--coral)"></div>Central de Marketing</div>
+    <div class="lock-box">
+      <div class="lock-lbl">E-mail</div>
+      <input class="lock-inp" type="email" id="lEmail" placeholder="marketing@walimóveis.com.br" onkeydown="if(event.key==='Enter')doLogin()">
+      <div class="lock-lbl">Senha</div>
+      <input class="lock-inp" type="password" id="lSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="lock-btn" onclick="doLogin()">Acessar Marketing Intelligence</button>
+      <div class="lock-err" id="lockErr">Credenciais inválidas.</div>
+      <div class="lock-demo">Demo: <strong style="color:var(--gold)">mkt@wal.com.br</strong> / <strong style="color:var(--gold)">1234</strong></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="appWrap">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">WAL Marketing</div>
+      <div class="sb-tag"><div class="sb-dot"></div>Intelligence Center</div>
+    </div>
+
+    <!-- canais status -->
+    <div class="sb-channel-status">
+      <div class="scs-title">Canais Conectados</div>
+      <div class="scs-row"><span class="scs-name">📸 Instagram</span><div class="scs-dot dot-on"></div></div>
+      <div class="scs-row"><span class="scs-name">📘 Facebook Ads</span><div class="scs-dot dot-on"></div></div>
+      <div class="scs-row"><span class="scs-name">🔍 Google Ads</span><div class="scs-dot dot-warn"></div></div>
+      <div class="scs-row"><span class="scs-name">💬 WhatsApp API</span><div class="scs-dot dot-on"></div></div>
+      <div class="scs-row"><span class="scs-name">🤖 Claude AI</span><div class="scs-dot dot-on"></div></div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Visão Geral</div>
+      <div class="nav-item active" onclick="nav(this,'home')"><span class="nav-ico">🏠</span>Command Center</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Campanhas</div>
+      <div class="nav-item" onclick="nav(this,'campanhas')">
+        <span class="nav-ico">🎯</span>Campanhas Ativas
+        <span class="nav-bdg nb-g">3</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'calendario')"><span class="nav-ico">📅</span>Calendário Editorial</div>
+      <div class="nav-item" onclick="nav(this,'kanban')"><span class="nav-ico">📋</span>Pipeline de Conteúdo</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Canais & Ads</div>
+      <div class="nav-item" onclick="nav(this,'instagram')">
+        <span class="nav-ico">📸</span>Instagram
+        <span class="nav-bdg nb-a">4 posts</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'facebook')"><span class="nav-ico">📘</span>Facebook & Meta Ads</div>
+      <div class="nav-item" onclick="nav(this,'google')">
+        <span class="nav-ico">🔍</span>Google Ads
+        <span class="nav-bdg nb-p">alerta</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'whatsapp')"><span class="nav-ico">💬</span>WhatsApp Marketing</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Materiais</div>
+      <div class="nav-item" onclick="nav(this,'pecas')">
+        <span class="nav-ico">🎨</span>Peças Publicitárias
+        <span class="nav-bdg nb-g">12</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'videos')">
+        <span class="nav-ico">🎬</span>Vídeos & Reels
+        <span class="nav-bdg nb-g">8</span>
+      </div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Inteligência</div>
+      <div class="nav-item" onclick="nav(this,'ia')"><span class="nav-ico">🤖</span>IA Criativa</div>
+      <div class="nav-item" onclick="nav(this,'analytics')"><span class="nav-ico">📊</span>Analytics Unificado</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sf-av">AW</div>
+      <div>
+        <div style="color:#fff;font-size:12px;font-weight:600">Antonio · Diretor</div>
+        <div style="color:var(--muted);font-size:10px">Marketing WAL</div>
+      </div>
+      <div class="sf-out" onclick="doLogout()" title="Sair">🚪</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-bread">
+        <span class="tb-sec">WAL Marketing</span>
+        <span class="tb-sep">›</span>
+        <span class="tb-page" id="topbarTitle">Command Center</span>
+      </div>
+      <div class="tb-right">
+        <div class="tb-period">
+          📅 <select id="periodoSel" onchange="toast('Período: '+this.value,'')">
+            <option>Julho 2026</option><option>Junho 2026</option><option>Q2 2026</option><option>Ano 2026</option>
+          </select>
+        </div>
+        <div class="tb-aiBtn" onclick="nav(document.querySelector('[onclick*=ia]'),'ia')">🤖 IA Criativa</div>
+        <div class="tb-clock" id="clock">—</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+    <!-- ══ HOME / COMMAND CENTER ══ -->
+    <div class="panel active" id="panel-home">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🎛️ Marketing Intelligence Center</div>
+          <div class="ph-title">Command Center — Julho 2026</div>
+          <div class="ph-sub">Visão unificada de todos os canais, campanhas, investimentos e resultados · Meta: 50 unidades / 2026</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn" onclick="nav(document.querySelector('[onclick*=analytics]'),'analytics')">📊 Analytics</button>
+          <button class="btn-coral btn" onclick="abrirNovaCampanha()">+ Nova Campanha</button>
+        </div>
+      </div>
+
+      <!-- alertas rápidos -->
+      <div class="alert-box ab-amber mb20">
+        ⚠️ <strong>Google Ads · conta com alerta:</strong> campanha "FAB Barra RJ" pausada por baixo índice de qualidade. Revise as keywords e landing page. <span class="btn-sm btn" style="margin-left:8px" onclick="nav(document.querySelector('[onclick*=google]'),'google')">Ver agora ›</span>
+      </div>
+
+      <!-- KPIs GLOBAIS -->
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(6,1fr)">
+        <div class="kpi gold"><div class="kpi-lbl">Investimento Jul</div><div class="kpi-val">R$6k</div><div class="kpi-sub">orçamento total ads</div><div class="kpi-dlt fl">→ R$2k/canal</div></div>
+        <div class="kpi coral"><div class="kpi-lbl">Leads Gerados</div><div class="kpi-val">47</div><div class="kpi-sub">todos os canais</div><div class="kpi-dlt up">▲ 41% vs jun</div></div>
+        <div class="kpi ig"><div class="kpi-lbl">Custo/Lead</div><div class="kpi-val">R$127</div><div class="kpi-sub">média ponderada</div><div class="kpi-dlt dn">▼ R$23 vs jun</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Impressões</div><div class="kpi-val">128k</div><div class="kpi-sub">alcance total</div><div class="kpi-dlt up">▲ 55%</div></div>
+        <div class="kpi gg"><div class="kpi-lbl">Taxa Conversão</div><div class="kpi-val">4,8%</div><div class="kpi-sub">cliques → lead</div><div class="kpi-dlt up">▲ 1,2pp</div></div>
+        <div class="kpi ai"><div class="kpi-lbl">ROAS Est.</div><div class="kpi-val">8,2x</div><div class="kpi-sub">retorno sobre ads</div><div class="kpi-dlt up">▲ excelente</div></div>
+      </div>
+
+      <!-- ROW 1: Canal Performance + Funil -->
+      <div class="g2 mb20">
+
+        <!-- PERFORMANCE POR CANAL -->
+        <div class="card">
+          <div class="card-h">
+            <div><div class="card-title">📡 Performance por Canal</div><div class="card-sub">Julho 2026 · leads e investimento</div></div>
+          </div>
+          <div class="card-b">
+            <div class="prog-w">
+              <div class="prog-m">
+                <span class="flex" style="gap:6px"><span style="color:var(--ig)">📸 Instagram</span></span>
+                <span class="mono fs10 c-muted">19 leads · R$2k invest.</span>
+              </div>
+              <div class="prog-bar"><div class="pf pf-ig" style="width:78%"></div></div>
+            </div>
+            <div class="prog-w">
+              <div class="prog-m">
+                <span class="flex" style="gap:6px"><span style="color:var(--fb2)">📘 Meta Ads</span></span>
+                <span class="mono fs10 c-muted">15 leads · R$2k invest.</span>
+              </div>
+              <div class="prog-bar"><div class="pf pf-fb" style="width:62%"></div></div>
+            </div>
+            <div class="prog-w">
+              <div class="prog-m">
+                <span class="flex" style="gap:6px"><span style="color:var(--gg)">🔍 Google Ads</span></span>
+                <span class="mono fs10 c-muted">7 leads · R$1,5k invest.</span>
+              </div>
+              <div class="prog-bar"><div class="pf pf-gg" style="width:30%"></div></div>
+            </div>
+            <div class="prog-w">
+              <div class="prog-m">
+                <span class="flex" style="gap:6px"><span style="color:var(--wa)">💬 WhatsApp</span></span>
+                <span class="mono fs10 c-muted">6 leads · R$500 invest.</span>
+              </div>
+              <div class="prog-bar"><div class="pf pf-wa" style="width:25%"></div></div>
+            </div>
+            <div style="margin-top:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
+              <div style="background:var(--ig-dim);border:1px solid var(--ig-b);border-radius:7px;padding:10px;text-align:center">
+                <div style="font-size:16px;font-weight:700;color:var(--ig);font-family:'Playfair Display',serif">R$105</div>
+                <div class="fs10 c-muted">CPL Instagram</div>
+              </div>
+              <div style="background:var(--fb-dim);border:1px solid var(--fb-b);border-radius:7px;padding:10px;text-align:center">
+                <div style="font-size:16px;font-weight:700;color:var(--fb2);font-family:'Playfair Display',serif">R$133</div>
+                <div class="fs10 c-muted">CPL Meta Ads</div>
+              </div>
+              <div style="background:var(--gg-dim);border:1px solid var(--gg-b);border-radius:7px;padding:10px;text-align:center">
+                <div style="font-size:16px;font-weight:700;color:var(--gg);font-family:'Playfair Display',serif">R$214</div>
+                <div class="fs10 c-muted">CPL Google</div>
+              </div>
+              <div style="background:var(--wa-dim);border:1px solid var(--wa-b);border-radius:7px;padding:10px;text-align:center">
+                <div style="font-size:16px;font-weight:700;color:var(--wa);font-family:'Playfair Display',serif">R$83</div>
+                <div class="fs10 c-muted">CPL WhatsApp</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- FUNIL DE MARKETING → VENDAS -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎯 Funil Marketing → Vendas</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#fff;min-width:36px">128k</div>
+              <div style="flex:1"><div class="fs12 fw6">Impressões / Alcance</div><div class="fs10 c-muted">todos os canais</div></div>
+              <div style="width:100px;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="width:100%;height:100%;background:linear-gradient(90deg,var(--coral),#FDBA74);border-radius:3px"></div></div>
+              <div class="fs10 c-muted mono" style="min-width:32px;text-align:right">100%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#fff;min-width:36px">9.8k</div>
+              <div style="flex:1"><div class="fs12 fw6">Engajamento</div><div class="fs10 c-muted">curtidas, comentários, shares</div></div>
+              <div style="width:100px;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="width:77%;height:100%;background:linear-gradient(90deg,var(--ig),#833AB4);border-radius:3px"></div></div>
+              <div class="fs10 c-muted mono" style="min-width:32px;text-align:right">7,7%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#fff;min-width:36px">981</div>
+              <div style="flex:1"><div class="fs12 fw6">Cliques / Visitas Site</div><div class="fs10 c-muted">walservidor.com.br</div></div>
+              <div style="width:100px;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="width:20%;height:100%;background:linear-gradient(90deg,var(--fb),var(--fb2));border-radius:3px"></div></div>
+              <div class="fs10 c-muted mono" style="min-width:32px;text-align:right">0,77%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#fff;min-width:36px">47</div>
+              <div style="flex:1"><div class="fs12 fw6">Leads Captados</div><div class="fs10 c-muted">formulário + WhatsApp + Agente</div></div>
+              <div style="width:100px;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="width:48%;height:100%;background:linear-gradient(90deg,var(--gg),var(--gg2));border-radius:3px"></div></div>
+              <div class="fs10 c-muted mono" style="min-width:32px;text-align:right">4,8%</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:9px 12px;background:var(--card2);border:1px solid rgba(52,211,153,.2);border-radius:8px">
+              <div style="font-family:var(--mono);font-size:18px;font-weight:600;color:#34D399;min-width:36px">4</div>
+              <div style="flex:1"><div class="fs12 fw6" style="color:#34D399">Vendas Convertidas</div><div class="fs10 c-muted">de leads deste mês</div></div>
+              <div style="width:100px;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden"><div style="width:8%;height:100%;background:var(--green);border-radius:3px"></div></div>
+              <div class="fs10" style="color:#34D399;font-family:var(--mono);min-width:32px;text-align:right;font-weight:700">8,5%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ROW 2: Campanhas ativas summary + Próximos posts -->
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎯 Campanhas Ativas</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=campanhas]'),'campanhas')">Ver todas ›</span></div>
+          <div class="card-b" style="padding:10px 16px" id="homeCampanhas"></div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">📅 Próximas Publicações</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=calendario]'),'calendario')">Calendário ›</span></div>
+          <div class="card-b" style="padding:0" id="homeProxPosts"></div>
+        </div>
+      </div>
+
+      <!-- ROW 3: Peças recentes + Dica IA -->
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎨 Peças Publicitárias Recentes</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=pecas]'),'pecas')">Biblioteca ›</span></div>
+          <div class="card-b">
+            <div class="peca-grid" id="homePecas"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h">
+            <div><div class="card-title">🤖 Insights da IA de Marketing</div><div class="card-sub">Análise automática · atualizado agora</div></div>
+            <span class="card-link" onclick="nav(document.querySelector('[onclick*=ia]'),'ia')">Criativa ›</span>
+          </div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:10px" id="homeInsights"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CAMPANHAS ══ -->
+    <div class="panel" id="panel-campanhas">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🎯 Gestão de Campanhas</div>
+          <div class="ph-title">Campanhas Ativas e Arquivadas</div>
+          <div class="ph-sub">Gerencie campanhas multicanal com métricas unificadas</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn">📊 Comparar</button>
+          <button class="btn-coral btn" onclick="abrirNovaCampanha()">+ Nova Campanha</button>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi coral"><div class="kpi-lbl">Campanhas Ativas</div><div class="kpi-val">3</div><div class="kpi-dlt up">▲ Jul/26</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Invest. Total</div><div class="kpi-val">R$6k</div><div class="kpi-dlt fl">→ mensal</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Leads Gerados</div><div class="kpi-val">47</div><div class="kpi-dlt up">▲ 41%</div></div>
+        <div class="kpi ig"><div class="kpi-lbl">Melhor Canal</div><div class="kpi-val">IG</div><div class="kpi-dlt fl">→ R$105/lead</div></div>
+        <div class="kpi ai"><div class="kpi-lbl">ROAS Global</div><div class="kpi-val">8,2x</div><div class="kpi-dlt up">▲ meta ≥6x</div></div>
+      </div>
+      <div id="listaCampanhas"></div>
+    </div>
+
+    <!-- ══ CALENDÁRIO EDITORIAL ══ -->
+    <div class="panel" id="panel-calendario">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📅 Planejamento Editorial</div>
+          <div class="ph-title">Calendário de Conteúdo — Julho 2026</div>
+          <div class="ph-sub">Planeje e agende publicações em todos os canais</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn btn-sm" onclick="toast('Exportando calendário...','')">⬇ Exportar</button>
+          <button class="btn-coral btn" onclick="abrirNovoPost()">+ Agendar Post</button>
+        </div>
+      </div>
+      <!-- legenda -->
+      <div class="sp mb14">
+        <span class="bdg big">📸 Instagram</span>
+        <span class="bdg bfb">📘 Facebook</span>
+        <span class="bdg bgg">🔍 Google</span>
+        <span class="bdg bwa">💬 WhatsApp</span>
+      </div>
+      <!-- calendário grid -->
+      <div class="card mb20">
+        <div class="card-b">
+          <div class="cal-grid" id="calGradeHead"></div>
+          <div style="margin-top:6px" class="cal-grid" id="calGrade"></div>
+        </div>
+      </div>
+      <!-- Posts agendados -->
+      <div class="card">
+        <div class="card-h"><div class="card-title">📋 Posts Agendados</div></div>
+        <div style="overflow-x:auto"><table class="tbl" id="tblPostsAgendados"></table></div>
+      </div>
+    </div>
+
+    <!-- ══ KANBAN CONTEÚDO ══ -->
+    <div class="panel" id="panel-kanban">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📋 Pipeline Editorial</div>
+          <div class="ph-title">Pipeline de Conteúdo</div>
+          <div class="ph-sub">Gerencie o fluxo de produção de todo o conteúdo WAL</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-coral btn" onclick="abrirNovoPost()">+ Novo Conteúdo</button>
+        </div>
+      </div>
+      <div class="kanban mb20" id="kanbanBoard"></div>
+    </div>
+
+    <!-- ══ INSTAGRAM ══ -->
+    <div class="panel" id="panel-instagram">
+      <div class="ph">
+        <div>
+          <div class="ph-eye" style="color:var(--ig)">📸 Instagram WAL</div>
+          <div class="ph-title">Gestão do Instagram</div>
+          <div class="ph-sub">@walconsultoriaimobiliaria · 1.240 seguidores · Cluster FAB RJ/SP</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-ig btn" onclick="publicarPost('Instagram')">📸 Publicar Agora</button>
+          <button class="btn-coral btn" onclick="abrirNovoPost()">+ Agendar Post</button>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi ig"><div class="kpi-lbl">Seguidores</div><div class="kpi-val">1.240</div><div class="kpi-dlt up">▲ 18% mês</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Posts Jul</div><div class="kpi-val">12</div><div class="kpi-dlt fl">→ 3/semana</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Alcance Médio</div><div class="kpi-val">3.8k</div><div class="kpi-dlt up">▲ 22%</div></div>
+        <div class="kpi coral"><div class="kpi-lbl">Taxa Engajamento</div><div class="kpi-val">6,2%</div><div class="kpi-dlt up">▲ referência 3%</div></div>
+        <div class="kpi ai"><div class="kpi-lbl">Leads via IG</div><div class="kpi-val">19</div><div class="kpi-dlt up">▲ 40%</div></div>
+      </div>
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">📝 Novo Post</div></div>
+          <div class="card-b">
+            <div class="f-row mb14">
+              <div>
+                <div class="field-lbl">Empreendimento em destaque</div>
+                <select class="field-sel" id="igEmp">
+                  <option>🏖️ Orla Recreio Reserva (RIVA)</option>
+                  <option>🌊 Ilha Mar Beach & Home (CURY)</option>
+                  <option>🏙️ ICONYC by YOO (EMCAMP)</option>
+                  <option>✈️ CFIAe — Benefício FAB (geral)</option>
+                </select>
+              </div>
+            </div>
+            <div class="f-row mb14">
+              <div>
+                <div class="field-lbl">Legenda / Caption</div>
+                <textarea class="field-ta" id="igCaption" style="min-height:100px" placeholder="✈️ Para quem serve ao Brasil, temos o imóvel dos sonhos..."></textarea>
+              </div>
+            </div>
+            <div class="f-row f-2 mb14">
+              <div><div class="field-lbl">Formato</div>
+                <select class="field-sel" id="igFormato">
+                  <option>Feed · Post único</option><option>Carrossel (4 imagens)</option><option>Reels · 30s</option><option>Story · 24h</option>
+                </select>
+              </div>
+              <div><div class="field-lbl">Agendar para</div><input class="field-inp" type="datetime-local" id="igData"></div>
+            </div>
+            <div class="f-row mb14">
+              <div>
+                <div class="field-lbl">Hashtags</div>
+                <input class="field-inp" id="igHashtags" value="#FABimóveis #CasaParaMilitares #CFIAe #ImóvelFAB #BarradaTijuca #RecreioDosB">
+              </div>
+            </div>
+            <div class="sp">
+              <button class="btn-ai btn" onclick="gerarCaptionIA()">🤖 Gerar caption com IA</button>
+              <button class="btn btn-sm" onclick="salvarPost('rascunho')">💾 Salvar rascunho</button>
+              <button class="btn-coral btn" onclick="publicarPost('Instagram')">📸 Agendar publicação</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">📈 Top Posts do Mês</div></div>
+          <div class="card-b" style="padding:0" id="igTopPosts"></div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">🎯 Anúncios Instagram Ads</div><span class="card-link" onclick="nav(document.querySelector('[onclick*=facebook]'),'facebook')">Meta Ads ›</span></div>
+        <div class="card-b" id="igAds"></div>
+      </div>
+    </div>
+
+    <!-- ══ FACEBOOK / META ADS ══ -->
+    <div class="panel" id="panel-facebook">
+      <div class="ph">
+        <div>
+          <div class="ph-eye" style="color:var(--fb2)">📘 Meta Ads Manager</div>
+          <div class="ph-title">Facebook & Instagram Ads</div>
+          <div class="ph-sub">Gerencie campanhas pagas no ecossistema Meta · audiences, criativos e budget</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-fb btn" onclick="criarAdMeta()">+ Criar Anúncio Meta</button>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi fb"><div class="kpi-lbl">Invest. Meta Ads</div><div class="kpi-val">R$2k</div><div class="kpi-dlt fl">→ Jul/26</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Impressões</div><div class="kpi-val">58k</div><div class="kpi-dlt up">▲ 34%</div></div>
+        <div class="kpi coral"><div class="kpi-lbl">Cliques</div><div class="kpi-val">412</div><div class="kpi-dlt up">▲ 28%</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Leads (Meta)</div><div class="kpi-val">15</div><div class="kpi-dlt up">▲ 25%</div></div>
+        <div class="kpi ig"><div class="kpi-lbl">CPL Meta</div><div class="kpi-val">R$133</div><div class="kpi-dlt dn">▼ vs mês</div></div>
+      </div>
+
+      <!-- Audiences configuradas -->
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎯 Audiências Configuradas</div><button class="btn btn-sm" onclick="toast('Abrindo Meta Ads Manager...','fb')">Editar no Meta ›</button></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:var(--card2);border:1px solid var(--fb-b);border-radius:8px;padding:12px">
+              <div class="flex-bet mb14">
+                <div><div class="fs12 fw6">🎖️ Militares FAB · Cluster RJ</div><div class="fs10 c-muted">Interesses: Força Aérea Brasileira, FAB, defesa militar</div></div>
+                <span class="bdg bg">Ativa</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                <div style="text-align:center"><div class="fs11 fw6 c-fb2">32k–45k</div><div class="fs10 c-muted">tamanho público</div></div>
+                <div style="text-align:center"><div class="fs11 fw6" style="color:var(--fb2)">7 leads</div><div class="fs10 c-muted">este mês</div></div>
+                <div style="text-align:center"><div class="fs11 fw6" style="color:var(--fb2)">R$114</div><div class="fs10 c-muted">CPL</div></div>
+              </div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--fb-b);border-radius:8px;padding:12px">
+              <div class="flex-bet mb14">
+                <div><div class="fs12 fw6">👥 Lookalike · Clientes WAL</div><div class="fs10 c-muted">Semelhantes a clientes que compraram via WAL</div></div>
+                <span class="bdg bg">Ativa</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
+                <div style="text-align:center"><div class="fs11 fw6" style="color:var(--fb2)">18k–25k</div><div class="fs10 c-muted">tamanho público</div></div>
+                <div style="text-align:center"><div class="fs11 fw6" style="color:var(--fb2)">5 leads</div><div class="fs10 c-muted">este mês</div></div>
+                <div style="text-align:center"><div class="fs11 fw6" style="color:var(--fb2)">R$160</div><div class="fs10 c-muted">CPL</div></div>
+              </div>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:12px">
+              <div class="flex-bet mb14">
+                <div><div class="fs12 fw6">🏠 Retargeting · Visitantes Site</div><div class="fs10 c-muted">Pixel Meta instalado em walservidor.com.br</div></div>
+                <span class="bdg ba">Configurando</span>
+              </div>
+              <div class="fs11 c-muted">Aguardando 1.000 eventos de pixel para ativar retargeting. Atual: 412 eventos.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Criativos em execução -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">🖼️ Criativos em Execução</div></div>
+          <div class="card-b" style="padding:0" id="metaAds"></div>
+        </div>
+      </div>
+
+      <!-- Budget e alocação -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">💰 Alocação de Budget Meta Ads · Julho</div></div>
+        <div class="card-b">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px">
+            <div>
+              <div class="field-lbl">Budget diário</div>
+              <div style="display:flex;align-items:center;gap:8px"><input class="field-inp" type="number" value="66" id="metaBudgetDia" style="width:90px"> <span class="fs11 c-muted">R$/dia = R$2.046/mês</span></div>
+            </div>
+            <div>
+              <div class="field-lbl">Objetivo da campanha</div>
+              <select class="field-sel"><option>Geração de Leads</option><option>Tráfego para site</option><option>Reconhecimento</option></select>
+            </div>
+            <div>
+              <div class="field-lbl">Placements</div>
+              <select class="field-sel"><option>Automático (Meta)</option><option>Somente Instagram</option><option>Somente Facebook</option></select>
+            </div>
+          </div>
+          <button class="btn-fb btn" style="margin-top:14px" onclick="toast('Configurações salvas no Meta Ads Manager!','fb')">💾 Salvar configurações Meta</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ GOOGLE ADS ══ -->
+    <div class="panel" id="panel-google">
+      <div class="ph">
+        <div>
+          <div class="ph-eye" style="color:var(--gg)">🔍 Google Ads</div>
+          <div class="ph-title">Google Search & Display</div>
+          <div class="ph-sub">Campanhas de busca e display para captura de intenção de compra</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-gg btn" onclick="criarAdGoogle()">+ Nova Campanha Google</button>
+        </div>
+      </div>
+
+      <div class="alert-box ab-amber mb20">
+        ⚠️ <strong>Ação necessária:</strong> Campanha "FAB Barra RJ" pausada automaticamente pelo Google por Quality Score abaixo de 4/10. Revise as keywords e a landing page. Use o botão "Otimizar com IA" para sugestões automáticas.
+        <button class="btn-ai btn btn-sm" style="margin-left:10px" onclick="otimizarGoogleIA()">🤖 Otimizar com IA</button>
+      </div>
+
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi gg"><div class="kpi-lbl">Invest. Google</div><div class="kpi-val">R$1,5k</div><div class="kpi-dlt fl">→ Jul/26</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Impressões</div><div class="kpi-val">22k</div><div class="kpi-dlt dn">▼ 12%</div></div>
+        <div class="kpi coral"><div class="kpi-lbl">Cliques</div><div class="kpi-val">189</div><div class="kpi-dlt dn">▼ 8%</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Leads Google</div><div class="kpi-val">7</div><div class="kpi-dlt dn">▼ vs meta</div></div>
+        <div class="kpi ai"><div class="kpi-lbl">Quality Score Médio</div><div class="kpi-val">5.8/10</div><div class="kpi-dlt dn">▼ precisa melhorar</div></div>
+      </div>
+
+      <!-- Campanhas Google -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">📊 Campanhas Google Ads</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="tblGoogleAds"></table>
+        </div>
+      </div>
+
+      <!-- Keywords -->
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🔑 Keywords Ativas</div><button class="btn btn-sm btn-ai" onclick="sugerirKeywords()">🤖 Sugerir com IA</button></div>
+          <div style="overflow-x:auto">
+            <table class="tbl" id="tblKeywords"></table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">📝 Extensões de Anúncio</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px">
+              <div class="fs11 fw6 c-gg mb-2">Sitelinks</div>
+              <div class="fs11 c-muted">Simulador CFIAe · Orla Recreio · Ilha Mar Beach · Fale com Corretor</div>
+              <span class="bdg bg" style="margin-top:4px">Ativo</span>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px">
+              <div class="fs11 fw6 c-gg mb-2">Chamadas</div>
+              <div class="fs11 c-muted">(21) 99999-9999 · Segunda a Sábado 8h–20h</div>
+              <span class="bdg bg" style="margin-top:4px">Ativo</span>
+            </div>
+            <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px">
+              <div class="fs11 fw6 c-gg mb-2">Snippets Estruturados</div>
+              <div class="fs11 c-muted">Empreendimentos: Orla Recreio, Ilha Mar Beach, ICONYC by YOO</div>
+              <span class="bdg ba" style="margin-top:4px">Configurar</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ WHATSAPP MARKETING ══ -->
+    <div class="panel" id="panel-whatsapp">
+      <div class="ph">
+        <div>
+          <div class="ph-eye" style="color:var(--wa)">💬 WhatsApp Business</div>
+          <div class="ph-title">WhatsApp Marketing</div>
+          <div class="ph-sub">Disparos em massa, templates aprovados e automações via API</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-wa btn" onclick="novoDisparo()">📤 Novo Disparo</button>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
+        <div class="kpi wa"><div class="kpi-lbl">Disparos Jul</div><div class="kpi-val">824</div><div class="kpi-dlt up">▲ 3 campanhas</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Taxa Abertura</div><div class="kpi-val">91%</div><div class="kpi-dlt up">▲ vs email 22%</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Taxa Resposta</div><div class="kpi-val">34%</div><div class="kpi-dlt up">▲ excelente</div></div>
+        <div class="kpi coral"><div class="kpi-lbl">Leads via WA</div><div class="kpi-val">6</div><div class="kpi-dlt up">▲ 50%</div></div>
+        <div class="kpi ai"><div class="kpi-lbl">CPL WhatsApp</div><div class="kpi-val">R$83</div><div class="kpi-dlt up">▲ melhor canal</div></div>
+      </div>
+
+      <div class="g2 mb20">
+        <!-- Templates aprovados -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">✅ Templates Aprovados (BSP)</div><button class="btn btn-sm" onclick="toast('Abrindo painel WhatsApp Business...','wa')">Painel WA ›</button></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:8px" id="waTemplates"></div>
+        </div>
+
+        <!-- Novo disparo -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">📤 Configurar Disparo</div></div>
+          <div class="card-b">
+            <div class="f-row mb14">
+              <div>
+                <div class="field-lbl">Template</div>
+                <select class="field-sel" id="waTemplate">
+                  <option>apresentacao_fab_v2</option>
+                  <option>follow_up_proposta</option>
+                  <option>convite_visita</option>
+                </select>
+              </div>
+            </div>
+            <div class="f-row f-2 mb14">
+              <div>
+                <div class="field-lbl">Segmento alvo</div>
+                <select class="field-sel" id="waSegmento">
+                  <option>Leads não respondidos (+7d)</option>
+                  <option>Leads em proposta parada</option>
+                  <option>Leads novos (hoje)</option>
+                  <option>Todos os leads ativos</option>
+                </select>
+              </div>
+              <div>
+                <div class="field-lbl">Empreendimento</div>
+                <select class="field-sel" id="waEmp">
+                  <option>Ilha Mar Beach (CURY)</option>
+                  <option>Orla Recreio (RIVA)</option>
+                  <option>ICONYC by YOO</option>
+                </select>
+              </div>
+            </div>
+            <div class="f-row mb14">
+              <div>
+                <div class="field-lbl">Preview da mensagem</div>
+                <div id="waPreview" style="background:var(--wa-dim);border:1px solid var(--wa-b);border-radius:8px;padding:12px;font-size:12px;line-height:1.6;color:var(--txt)">
+                  Olá [POSTO] [NOME]! 👋 Aqui é da WAL Consultoria. Vi que você demonstrou interesse no <strong>Ilha Mar Beach</strong> — temos uma condição especial para militares FAB esta semana. Posso te enviar uma simulação personalizada?
+                </div>
+              </div>
+            </div>
+            <div class="f-row f-2 mb14">
+              <div><div class="field-lbl">Contatos selecionados</div><input class="field-inp" type="number" value="38" readonly></div>
+              <div><div class="field-lbl">Agendar envio</div><input class="field-inp" type="datetime-local" id="waAgendamento"></div>
+            </div>
+            <div class="sp">
+              <button class="btn-ai btn" onclick="gerarMsgWAIA()">🤖 Gerar mensagem com IA</button>
+              <button class="btn-wa btn" onclick="dispararWA()">📤 Disparar agora</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histórico disparos -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">📊 Histórico de Disparos</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="tblWAHistorico"></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PEÇAS PUBLICITÁRIAS ══ -->
+    <div class="panel" id="panel-pecas">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🎨 Biblioteca de Criativos</div>
+          <div class="ph-title">Peças Publicitárias</div>
+          <div class="ph-sub">Todos os criativos aprovados para uso em campanhas e publicações</div>
+        </div>
+        <div class="ph-acts">
+          <select class="field-sel" id="pecaFiltCh" style="width:140px" onchange="renderPecas()">
+            <option value="">Todos os canais</option>
+            <option value="Instagram">Instagram</option>
+            <option value="Facebook">Facebook</option>
+            <option value="Google">Google Display</option>
+            <option value="WhatsApp">WhatsApp</option>
+          </select>
+          <select class="field-sel" id="pecaFiltEmp" style="width:160px" onchange="renderPecas()">
+            <option value="">Todos os empreend.</option>
+            <option value="Orla Recreio">Orla Recreio Reserva</option>
+            <option value="Ilha Mar">Ilha Mar Beach</option>
+            <option value="ICONYC">ICONYC by YOO</option>
+            <option value="FAB Geral">FAB / CFIAe Geral</option>
+          </select>
+          <button class="btn-coral btn" onclick="criarPeca()">+ Criar Peça</button>
+        </div>
+      </div>
+      <div class="peca-grid mb20" id="pecasGrid"></div>
+    </div>
+
+    <!-- ══ VÍDEOS ══ -->
+    <div class="panel" id="panel-videos">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🎬 Biblioteca de Vídeos</div>
+          <div class="ph-title">Vídeos & Reels</div>
+          <div class="ph-sub">Tour virtual, reels de empreendimentos, vídeos informativos sobre CFIAe e FAB</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn btn-sm">⬆ Upload Vídeo</button>
+          <button class="btn-coral btn" onclick="criarVideo()">+ Novo Vídeo</button>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi coral"><div class="kpi-lbl">Vídeos Publicados</div><div class="kpi-val">8</div><div class="kpi-dlt fl">→ todos os canais</div></div>
+        <div class="kpi ig"><div class="kpi-lbl">Views Totais</div><div class="kpi-val">24k</div><div class="kpi-dlt up">▲ 88%</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Retenção Média</div><div class="kpi-val">68%</div><div class="kpi-dlt up">▲ ótimo</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Leads via Vídeo</div><div class="kpi-val">8</div><div class="kpi-dlt up">▲ 33%</div></div>
+      </div>
+      <div class="g3 mb20" id="videoGrid"></div>
+    </div>
+
+    <!-- ══ IA CRIATIVA ══ -->
+    <div class="panel" id="panel-ia">
+      <div class="ph">
+        <div>
+          <div class="ph-eye" style="color:var(--ai2)">🤖 IA Marketing</div>
+          <div class="ph-title">Central de IA Criativa</div>
+          <div class="ph-sub">Claude AI especializado em marketing imobiliário FAB · cria, analisa e otimiza campanhas</div>
+        </div>
+      </div>
+
+      <div class="g2 mb20" style="gap:20px;align-items:start">
+        <!-- CHAT IA -->
+        <div class="ai-creator cs2">
+          <div class="ai-creator-h">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:18px">🤖</span>
+              <div>
+                <div class="fs12 fw6 c-ai2" style="color:var(--ai2)">WAL·Marketing IA</div>
+                <div class="fs10 c-muted">claude-sonnet-4-6 · especialista em marketing imobiliário FAB</div>
+              </div>
+            </div>
+            <div class="sp">
+              <span class="bdg bg" style="font-size:8px">● Online</span>
+              <button class="btn btn-sm" onclick="limparChat()">Limpar</button>
+            </div>
+          </div>
+          <div class="ai-msgs" id="aiMsgs"></div>
+          <div class="ai-chips" id="aiChips">
+            <div class="ai-chip" onclick="sendAiChip('Crie um post para Instagram sobre o Orla Recreio Reserva focado em militares FAB com taxa CFIAe 8,5%a.a. Use emojis e hashtags relevantes.')">📸 Post IG · Orla Recreio</div>
+            <div class="ai-chip" onclick="sendAiChip('Crie 3 variações de headline para anúncio Google Ads com foco em financiamento CFIAe para militares da Aeronáutica. Máximo 30 caracteres cada.')">🔍 Headlines Google Ads</div>
+            <div class="ai-chip" onclick="sendAiChip('Crie uma mensagem de WhatsApp para disparo em massa para militares FAB interessados em imóveis na Barra da Tijuca. Personalizada com [NOME] e [POSTO].')">💬 Mensagem WhatsApp FAB</div>
+            <div class="ai-chip" onclick="sendAiChip('Analise nosso funil de marketing: 128k impressões → 9.8k engajamento → 981 cliques → 47 leads → 4 vendas. O que melhorar?')">📊 Analisar nosso funil</div>
+            <div class="ai-chip" onclick="sendAiChip('Crie um roteiro de vídeo Reels de 30 segundos mostrando o benefício do CFIAe para Capitão da FAB comprando no Ilha Mar Beach. Inclua narração e legendas.')">🎬 Roteiro Reels 30s</div>
+            <div class="ai-chip" onclick="sendAiChip('Sugira 10 keywords para Google Ads focando militares FAB buscando imóvel no Rio de Janeiro. Inclua match type e CPC estimado.')">🔑 Keywords Google FAB</div>
+            <div class="ai-chip" onclick="sendAiChip('Crie um carrossel de 5 slides para Instagram sobre os 5 maiores benefícios do financiamento CFIAe para militares FAB vs. financiamento convencional.')">🎠 Carrossel CFIAe vs Banco</div>
+            <div class="ai-chip" onclick="sendAiChip('Desenvolva uma estratégia de conteúdo para o mês de agosto com foco em engajamento e geração de leads FAB. Include canal, formato, tema e CTA para cada semana.')">📅 Estratégia Ago/26</div>
+          </div>
+          <div class="ai-inp-row">
+            <textarea class="ai-inp" id="aiInp" placeholder="Peça à IA: criar copy, analisar campanha, sugerir keywords, roteiro de vídeo, estratégia de canal..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg()}"></textarea>
+            <button class="ai-send" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- AÇÕES RÁPIDAS IA -->
+      <div class="g3">
+        <div class="card">
+          <div class="card-h"><div class="card-title">✍️ Criação de Copy</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Crie 5 legendas para Instagram com formatos diferentes: 1 storytelling, 1 lista de benefícios, 1 pergunta engajadora, 1 depoimento simulado, 1 urgência/escassez. Tema: imóvel para militar FAB com CFIAe.')">📸 5 legendas IG diferentes</div>
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Crie um email marketing completo para lista de leads militares FAB com interesse em imóveis. Assunto, preheader, corpo e CTA. Foco: lançamento da campanha de Julho do Ilha Mar Beach.')">📧 Email marketing completo</div>
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Crie um script de story sequencial de 5 frames para apresentar o Orla Recreio Reserva. Frame 1: gancho. 2: problema. 3: solução. 4: prova social. 5: CTA com link.')">📱 Story sequencial 5 frames</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🔬 Análise e Otimização</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Nossa campanha Google Ads está com Quality Score 5.8/10 e foi pausada. Análise as possíveis causas (relevância do anúncio, CTR esperado, experiência na landing page) e sugira melhorias específicas.')">🔍 Diagnosticar Google Ads</div>
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Temos taxa de conversão de cliques para leads de 4,8% no Instagram e 3,7% no Facebook. O que pode explicar a diferença e como elevar o Facebook para ≥5%?')">📊 A/B test de canais</div>
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Com budget de R$6.000/mês para ads e meta de 50 unidades no ano, qual a alocação ideal entre Instagram, Meta Ads, Google Ads e WhatsApp? Justifique com benchmarks do mercado imobiliário.')">💰 Otimizar alocação budget</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎬 Roteiros e Vídeos</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Crie um roteiro completo de vídeo de 2 minutos explicando o CFIAe de forma simples: o que é, quem tem direito, taxas, prazos e como simular. Para distribuição no YouTube, Instagram TV e WhatsApp.')">🎬 Vídeo explicativo CFIAe 2min</div>
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Roteiro de depoimento simulado de um Capitão da FAB que comprou pelo CFIAe via WAL Consultoria. Deve ser autêntico, específico e incluir os benefícios reais: taxa, prazo, comodidade.')">🎤 Depoimento Capitão FAB</div>
+            <div style="padding:9px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--ai-b)'" onmouseout="this.style.borderColor='var(--bdr)'" onclick="sendAiChip('Roteiro de Reels de 60 segundos mostrando o processo completo: do primeiro contato com a WAL até a entrega das chaves. Formato: checklist animado com narração motivacional.')">📋 Reels: da consulta às chaves</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ANALYTICS UNIFICADO ══ -->
+    <div class="panel" id="panel-analytics">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📊 Analytics Unificado</div>
+          <div class="ph-title">Marketing Analytics — Visão 360°</div>
+          <div class="ph-sub">Todos os canais em um único painel · comparativo e tendências</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn" onclick="toast('Exportando relatório PDF...','')">⬇ Exportar PDF</button>
+          <button class="btn-gold btn" onclick="toast('Relatório enviado por e-mail!','green')">📧 Enviar Relatório</button>
+        </div>
+      </div>
+
+      <!-- comparativo de canais -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">📊 Comparativo de Canais — Julho 2026</div></div>
+        <div style="overflow-x:auto">
+          <table class="tbl" id="tblAnalytics"></table>
+        </div>
+      </div>
+
+      <div class="g2 mb20">
+        <!-- ROI por empreendimento -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">🏗️ ROI de Marketing por Empreendimento</div></div>
+          <div class="card-b">
+            <div class="prog-w">
+              <div class="prog-m"><span class="fw6">🏖️ Orla Recreio Reserva</span><span class="mono fs10">12 leads · 3 vendas · ROAS 9.4x</span></div>
+              <div class="prog-bar"><div class="pf pf-gold" style="width:85%"></div></div>
+            </div>
+            <div class="prog-w">
+              <div class="prog-m"><span class="fw6">🌊 Ilha Mar Beach</span><span class="mono fs10">18 leads · 2 vendas · ROAS 7.1x</span></div>
+              <div class="prog-bar"><div class="pf pf-ig" style="width:64%"></div></div>
+            </div>
+            <div class="prog-w">
+              <div class="prog-m"><span class="fw6">🏙️ ICONYC by YOO</span><span class="mono fs10">8 leads · 1 venda · ROAS 6.8x</span></div>
+              <div class="prog-bar"><div class="pf pf-coral" style="width:55%"></div></div>
+            </div>
+            <div class="prog-w">
+              <div class="prog-m"><span class="fw6">🌴 Ilha Mar Beach 2</span><span class="mono fs10">9 leads · 0 vendas · ROAS —</span></div>
+              <div class="prog-bar"><div class="pf pf-fb" style="width:20%"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evolução semanal -->
+        <div class="card">
+          <div class="card-h"><div class="card-title">📈 Evolução de Leads — Julho por Semana</div></div>
+          <div class="card-b" id="chartLeadsSemanal"></div>
+        </div>
+      </div>
+
+      <!-- Recomendações IA -->
+      <div class="card mb20">
+        <div class="card-h">
+          <div><div class="card-title">🤖 Recomendações da IA para Agosto</div><div class="card-sub">Com base na performance de Julho · gerado automaticamente</div></div>
+          <button class="btn-ai btn btn-sm" onclick="gerarRecomendacoesIA()">↺ Regenerar</button>
+        </div>
+        <div class="card-b" id="recomendacoesIA"></div>
+      </div>
+    </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL NOVA CAMPANHA -->
+<div class="modal-ov" id="modalCampanha">
+  <div class="modal-box">
+    <div class="modal-h"><div class="modal-title" style="color:var(--coral)">🎯 Nova Campanha</div><button class="modal-close" onclick="fecharModal('modalCampanha')">×</button></div>
+    <div class="modal-body">
+      <div class="f-sec">Identificação</div>
+      <div class="f-row f-2 mb14">
+        <div><div class="field-lbl">Nome da campanha *</div><input class="field-inp" id="cNome" placeholder="Ex: Campanha Agosto · Orla Recreio"></div>
+        <div><div class="field-lbl">Empreendimento</div>
+          <select class="field-sel" id="cEmp"><option>Orla Recreio Reserva</option><option>Ilha Mar Beach</option><option>ICONYC by YOO</option><option>Ilha Mar Beach 2</option><option>Geral FAB / CFIAe</option></select>
+        </div>
+      </div>
+      <div class="f-row f-3 mb14">
+        <div><div class="field-lbl">Início</div><input class="field-inp" type="date" id="cInicio"></div>
+        <div><div class="field-lbl">Fim</div><input class="field-inp" type="date" id="cFim"></div>
+        <div><div class="field-lbl">Budget total (R$)</div><input class="field-inp" type="number" id="cBudget" placeholder="6000"></div>
+      </div>
+      <div class="f-sec">Canais e Objetivo</div>
+      <div class="f-row mb14">
+        <div><div class="field-lbl">Canais ativos</div>
+          <div class="sp" style="gap:8px;margin-top:6px">
+            <label class="flex" style="gap:6px;cursor:pointer"><input type="checkbox" id="chIG" checked> 📸 Instagram</label>
+            <label class="flex" style="gap:6px;cursor:pointer"><input type="checkbox" id="chFB" checked> 📘 Meta Ads</label>
+            <label class="flex" style="gap:6px;cursor:pointer"><input type="checkbox" id="chGG"> 🔍 Google Ads</label>
+            <label class="flex" style="gap:6px;cursor:pointer"><input type="checkbox" id="chWA" checked> 💬 WhatsApp</label>
+          </div>
+        </div>
+      </div>
+      <div class="f-row f-2 mb14">
+        <div><div class="field-lbl">Meta de leads</div><input class="field-inp" type="number" id="cMetaLeads" placeholder="30"></div>
+        <div><div class="field-lbl">Objetivo</div>
+          <select class="field-sel" id="cObjetivo"><option>Geração de leads</option><option>Reconhecimento de marca</option><option>Tráfego para site</option><option>Engajamento</option></select>
+        </div>
+      </div>
+      <div class="f-row mb14">
+        <div><div class="field-lbl">Público-alvo</div><input class="field-inp" id="cPublico" placeholder="Militares FAB Oficial + Sargento, RJ e SP, 28–55 anos"></div>
+      </div>
+      <div class="f-row">
+        <div>
+          <div class="field-lbl">Brief da campanha (a IA usará para gerar os criativos)</div>
+          <textarea class="field-ta" id="cBrief" placeholder="Descreva o posicionamento, tom, diferenciais que quer comunicar, referências de campanhas anteriores..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalCampanha')">Cancelar</button>
+      <button class="btn-ai btn" onclick="gerarCriativosIA()">🤖 Gerar criativos com IA</button>
+      <button class="btn-coral btn" onclick="salvarCampanha()">🎯 Criar Campanha</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO POST -->
+<div class="modal-ov" id="modalPost">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-h"><div class="modal-title" style="color:var(--coral)">📅 Agendar Publicação</div><button class="modal-close" onclick="fecharModal('modalPost')">×</button></div>
+    <div class="modal-body">
+      <div class="f-row f-2 mb14">
+        <div><div class="field-lbl">Canal</div>
+          <select class="field-sel" id="postCanal">
+            <option>Instagram</option><option>Facebook</option><option>WhatsApp</option>
+          </select>
+        </div>
+        <div><div class="field-lbl">Empreendimento</div>
+          <select class="field-sel" id="postEmp">
+            <option>Orla Recreio Reserva</option><option>Ilha Mar Beach</option><option>ICONYC by YOO</option><option>CFIAe / FAB Geral</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-row mb14">
+        <div><div class="field-lbl">Título / Tema</div><input class="field-inp" id="postTitulo" placeholder="Ex: Carrossel — Benefícios do CFIAe para Capitão FAB"></div>
+      </div>
+      <div class="f-row f-2 mb14">
+        <div><div class="field-lbl">Data e hora</div><input class="field-inp" type="datetime-local" id="postData"></div>
+        <div><div class="field-lbl">Formato</div>
+          <select class="field-sel" id="postFormato">
+            <option>Feed</option><option>Carrossel</option><option>Reels</option><option>Story</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-row">
+        <div><div class="field-lbl">Responsável pelo conteúdo</div>
+          <select class="field-sel" id="postResp"><option>Equipe Marketing</option><option>IA Criativa</option><option>Corretor</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalPost')">Cancelar</button>
+      <button class="btn-ai btn" onclick="gerarPostIA()">🤖 Gerar com IA</button>
+      <button class="btn-coral btn" onclick="salvarPost('agendado')">📅 Agendar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PEÇA DETALHE -->
+<div class="modal-ov" id="modalPeca">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-h"><div class="modal-title" id="modalPecaTitle" style="color:var(--coral)">Peça Publicitária</div><button class="modal-close" onclick="fecharModal('modalPeca')">×</button></div>
+    <div class="modal-body" id="modalPecaBody"></div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalPeca')">Fechar</button>
+      <button class="btn btn-sm" onclick="toast('📋 Link da peça copiado!','green')">📋 Copiar link</button>
+      <button class="btn-coral btn" onclick="usarPecaCampanha()">🚀 Usar em campanha</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════ DATA ══════════════ */
+const CAMPANHAS_DATA = [
+  { id:'c1', nome:'Campanha Julho 2026 · FAB RJ', emp:'Multi-empreendimento', inicio:'01/07/26', fim:'31/07/26', status:'ativo', canais:['Instagram','Meta Ads','WhatsApp'], budget:6000, gasto:3850, leads:47, conversoes:4, impressoes:128000, cliques:981, cpl:127 },
+  { id:'c2', nome:'Lançamento Orla Recreio · Jun', emp:'Orla Recreio Reserva', inicio:'01/06/26', fim:'30/06/26', status:'encerrado', canais:['Instagram','Meta Ads'], budget:3500, gasto:3500, leads:33, conversoes:3, impressoes:78000, cliques:612, cpl:106 },
+  { id:'c3', nome:'Google Ads — FAB Barra RJ',    emp:'Ilha Mar Beach / ICONYC', inicio:'10/07/26', fim:'31/07/26', status:'pausado', canais:['Google Ads'], budget:1500, gasto:680, leads:7, conversoes:1, impressoes:22000, cliques:189, cpl:214 },
+];
+const POSTS_AGENDADOS = [
+  { canal:'Instagram', emp:'Orla Recreio Reserva', tema:'Carrossel · 5 diferenciais do Orla Recreio',      data:'29/06 · 10:00', formato:'Carrossel', status:'agendado' },
+  { canal:'WhatsApp',  emp:'Ilha Mar Beach',        tema:'Disparo · promoção de lançamento',                data:'30/06 · 08:30', formato:'Texto+imagem', status:'agendado' },
+  { canal:'Instagram', emp:'CFIAe Geral',           tema:'Reels · "Você sabia que militar FAB pode..."',    data:'01/07 · 18:00', formato:'Reels', status:'rascunho' },
+  { canal:'Facebook',  emp:'ICONYC by YOO',         tema:'Anúncio · Luxo na Barra da Tijuca',               data:'02/07 · 09:00', formato:'Feed', status:'agendado' },
+  { canal:'Instagram', emp:'Ilha Mar Beach',         tema:'Story · Tour virtual do apartamento modelo',      data:'03/07 · 12:00', formato:'Story', status:'produção' },
+];
+const KANBAN_DATA = {
+  'Ideia': [
+    { titulo:'Série "Vida de Militar em casa própria"', canal:'Instagram', emp:'Geral', tags:['Reels','Série'] },
+    { titulo:'Guia FGTS para militares — PDF rico',     canal:'WhatsApp', emp:'FAB Geral', tags:['Lead magnet'] },
+  ],
+  'Em Produção': [
+    { titulo:'Reels CFIAe explicado em 60s',           canal:'Instagram', emp:'FAB Geral', tags:['Reels','IA'] },
+    { titulo:'Carrossel "5 motivos Orla Recreio"',      canal:'Instagram', emp:'Orla Recreio', tags:['Carrossel'] },
+  ],
+  'Revisão': [
+    { titulo:'Anúncio Meta · Lookalike Capitão FAB',   canal:'Meta Ads', emp:'Ilha Mar Beach', tags:['Pago'] },
+  ],
+  'Aprovado': [
+    { titulo:'Disparo WhatsApp · oferta especial jul',  canal:'WhatsApp', emp:'Ilha Mar Beach', tags:['Urgência'] },
+  ],
+  'Publicado': [
+    { titulo:'Post feed · inauguração Orla Recreio',    canal:'Instagram', emp:'Orla Recreio', tags:['Feed'] },
+    { titulo:'Story · enquete qual apartamento',        canal:'Instagram', emp:'Geral', tags:['Engajamento'] },
+    { titulo:'Anúncio search · imóvel militar RJ',      canal:'Google Ads', emp:'Geral', tags:['Pago'] },
+  ],
+};
+const PECAS_DATA = [
+  { id:'p1', nome:'Banner Orla Recreio · Feed',     emp:'Orla Recreio Reserva', canal:'Instagram', formato:'1080×1080', tipo:'imagem', emoji:'🏖️', cor:'#E1306C', status:'aprovado', downloads:12 },
+  { id:'p2', nome:'Carrossel CFIAe · 5 slides',     emp:'FAB Geral',            canal:'Instagram', formato:'1080×1080', tipo:'carrossel', emoji:'📊', cor:'#6366F1', status:'aprovado', downloads:8  },
+  { id:'p3', nome:'Story Ilha Mar Beach',            emp:'Ilha Mar Beach',       canal:'Instagram', formato:'1080×1920', tipo:'story', emoji:'🌊', cor:'#1877F2', status:'aprovado', downloads:6  },
+  { id:'p4', nome:'Anúncio Meta · Lookalike',        emp:'Orla Recreio Reserva', canal:'Facebook',  formato:'1200×628', tipo:'imagem', emoji:'📘', cor:'#1877F2', status:'ativo', downloads:4   },
+  { id:'p5', nome:'Display Google · 728×90',         emp:'ICONYC by YOO',        canal:'Google',    formato:'728×90',   tipo:'banner', emoji:'🔍', cor:'#EA4335', status:'aprovado', downloads:3   },
+  { id:'p6', nome:'Imagem WA · Promoção Jul',        emp:'Ilha Mar Beach',       canal:'WhatsApp',  formato:'800×800',  tipo:'imagem', emoji:'💬', cor:'#25D366', status:'aprovado', downloads:15  },
+  { id:'p7', nome:'Reels Cover · ICONYC Luxo',       emp:'ICONYC by YOO',        canal:'Instagram', formato:'1080×1920', tipo:'vídeo', emoji:'🏙️', cor:'#7C3AED', status:'aprovado', downloads:9  },
+  { id:'p8', nome:'Banner Ilha Mar 2 · Pré-lança.',  emp:'Ilha Mar Beach 2',     canal:'Instagram', formato:'1080×1080', tipo:'imagem', emoji:'🌴', cor:'#059669', status:'rascunho', downloads:0  },
+];
+const VIDEOS_DATA = [
+  { id:'v1', nome:'Tour Virtual · Orla Recreio Reserva',    emp:'Orla Recreio', duracao:'3:24', views:8200,  likes:312, leads:3, tipo:'tour',        canais:['Instagram','YouTube'], emoji:'🏖️', status:'publicado' },
+  { id:'v2', nome:'CFIAe Explicado em 2 minutos',           emp:'FAB Geral',    duracao:'2:08', views:6400,  likes:289, leads:2, tipo:'informativo', canais:['Instagram','WhatsApp'], emoji:'✈️', status:'publicado' },
+  { id:'v3', nome:'Depoimento — Cap. Marcos (comprou RJ)',  emp:'FAB Geral',    duracao:'1:48', views:4100,  likes:198, leads:1, tipo:'depoimento', canais:['Instagram','Facebook'], emoji:'🎤', status:'publicado' },
+  { id:'v4', nome:'Simulação CFIAe ao vivo · Capitão FAB', emp:'FAB Geral',    duracao:'4:15', views:3200,  likes:144, leads:1, tipo:'informativo', canais:['YouTube','WhatsApp'], emoji:'🧮', status:'publicado' },
+  { id:'v5', nome:'Reels · "5 razões para comprar agora"', emp:'Ilha Mar',     duracao:'0:45', views:2100,  likes:87,  leads:1, tipo:'reels',       canais:['Instagram'], emoji:'🌊', status:'publicado' },
+  { id:'v6', nome:'Tour Virtual · Ilha Mar Beach',          emp:'Ilha Mar',     duracao:'2:52', views:0,     likes:0,   leads:0, tipo:'tour',        canais:[], emoji:'🌊', status:'producao' },
+  { id:'v7', nome:'ICONYC by YOO · Experience Video',       emp:'ICONYC',       duracao:'1:30', views:0,     likes:0,   leads:0, tipo:'tour',        canais:[], emoji:'🏙️', status:'roteiro' },
+  { id:'v8', nome:'Guia FGTS para Militares · Passo a Passo',emp:'FAB Geral',  duracao:'3:00', views:0,     likes:0,   leads:0, tipo:'informativo', canais:[], emoji:'💰', status:'roteiro' },
+];
+const WA_TEMPLATES_DATA = [
+  { nome:'apresentacao_fab_v2', status:'aprovado', tipo:'Marketing', vars:['NOME','POSTO','EMP'], msg:'Olá, [POSTO] [NOME]! Sou da WAL Consultoria. Temos o [EMP] com condição exclusiva para militares FAB: taxa 8,5%a.a. via CFIAe. Posso te enviar uma simulação?', usos:284 },
+  { nome:'follow_up_proposta',  status:'aprovado', tipo:'Marketing', vars:['NOME','POSTO','EMP','VALOR'], msg:'[POSTO] [NOME], nossa proposta para o [EMP] (R$[VALOR]) ainda está disponível! Mas as unidades estão esgotando. Podemos conversar hoje?', usos:156 },
+  { nome:'convite_visita',      status:'aprovado', tipo:'Utilidade', vars:['NOME','DATA','HORA','EMP'], msg:'Confirmando sua visita ao [EMP] em [DATA] às [HORA]. Nosso corretor vai te acompanhar. Alguma dúvida antes?', usos:89 },
+  { nome:'boas_vindas_lead',    status:'em revisão',tipo:'Marketing', vars:['NOME','POSTO'], msg:'Bem-vindo, [POSTO] [NOME]! Nosso consultor especializado em imóveis para militares FAB entrará em contato em breve.', usos:0 },
+];
+let _aiHistory = [];
+const AI_SYS = `Você é WAL·Marketing AI, especialista em marketing digital para o setor imobiliário militar brasileiro.
+
+EMPRESA: WAL Consultoria Imobiliária — especializada em imóveis para militares da Força Aérea Brasileira (FAB), servidores e pensionistas.
+
+PORTFÓLIO:
+• Orla Recreio Reserva (RIVA) · Recreio RJ · R$390k–R$890k · Entrega Dez/27
+• Ilha Mar Beach & Home (CURY) · Barra RJ · R$320k–R$520k · Entrega Jun/28  
+• ICONYC by YOO (EMCAMP) · Barra RJ · R$480k–R$1,2M · Entrega Mar/28
+• Ilha Mar Beach 2 (CURY) · Barra RJ · R$280k–R$420k · Entrega Dez/28
+
+DIFERENCIAL: CFIAe — financiamento exclusivo para militares FAB: 8,5%a.a.+TR, até 35 anos, 90% financiado, FGTS aceito.
+
+CANAIS: Instagram (@walconsultoriaimobiliaria), Meta Ads, Google Ads Search, WhatsApp Business API.
+
+META 2026: 50 unidades vendidas · budget de marketing R$6k/mês.
+
+PERSONA DO CLIENTE: Militar FAB (Cabo a Coronel), 28–55 anos, RJ e SP, renda R$4.500–R$25.000, busca 1º imóvel ou investimento, valoriza segurança e estabilidade.
+
+Ao criar conteúdo:
+• Use linguagem que ressoa com militares: disciplina, segurança, conquista, família
+• Destaque o CFIAe como diferencial exclusivo vs. bancos comuns
+• CTAs diretos: "Simule agora", "Fale com nosso especialista", "Reserve sua unidade"
+• Instagram: emojis moderados, hashtags relevantes, tom motivacional
+• Google Ads: headlines objetivos com keyword + benefício + CTA (max 30 chars)
+• WhatsApp: pessoal, direto, não agressivo
+• Sempre inclua dados específicos (taxas, prazos, valores) para credibilidade`;
+
+/* ══════════════ AUTH ══════════════ */
+function doLogin(){
+  const e=document.getElementById('lEmail').value.trim().toLowerCase();
+  const s=document.getElementById('lSenha').value;
+  if((e==='mkt@wal.com.br'||e==='marketing@wal.com.br')&&s==='1234'){
+    localStorage.setItem('wal_mkt_ok','1');
+    document.getElementById('lockScreen').style.display='none';
+    document.getElementById('appWrap').style.display='flex';
+    initApp();
+  } else {document.getElementById('lockErr').style.display='block'}
+}
+function doLogout(){localStorage.removeItem('wal_mkt_ok');location.reload()}
+window.addEventListener('DOMContentLoaded',()=>{
+  if(localStorage.getItem('wal_mkt_ok')==='1'){document.getElementById('lockScreen').style.display='none';document.getElementById('appWrap').style.display='flex';initApp()}
+});
+
+/* ══════════════ INIT ══════════════ */
+function initApp(){
+  tick();setInterval(tick,1000);
+  document.getElementById('igData').value=new Date().toISOString().slice(0,16);
+  document.getElementById('waAgendamento').value=new Date().toISOString().slice(0,16);
+  document.getElementById('postData').value=new Date().toISOString().slice(0,16);
+  renderAll();
+  addAiMsg('ai',`Olá! 👋 Sou o WAL·Marketing AI — especializado em marketing imobiliário para militares FAB.\n\nPosso ajudar você com:\n• Criar posts, captions, stories e reels para Instagram\n• Gerar headlines e keywords para Google Ads\n• Redigir mensagens de WhatsApp personalizadas\n• Analisar métricas e otimizar campanhas\n• Desenvolver roteiros de vídeo e depoimentos\n• Sugerir estratégia de conteúdo por canal\n\nEscolha uma opção rápida ou escreva o que precisa!`);
+}
+function tick(){const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');const el=document.getElementById('clock');if(el)el.textContent=`${h}:${m}:${s} BRT`}
+
+/* ══════════════ NAV ══════════════ */
+const TITLES={home:'Command Center',campanhas:'Campanhas',calendario:'Calendário Editorial',kanban:'Pipeline de Conteúdo',instagram:'Instagram',facebook:'Meta Ads',google:'Google Ads',whatsapp:'WhatsApp Marketing',pecas:'Peças Publicitárias',videos:'Vídeos & Reels',ia:'IA Criativa',analytics:'Analytics Unificado'};
+function nav(el,id){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el?.classList)el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('panel-'+id);if(t)t.classList.add('active');
+  document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+}
+
+/* ══════════════ RENDER ALL ══════════════ */
+function renderAll(){
+  renderHomeCampanhas();renderHomeProxPosts();renderHomePecas();renderHomeInsights();
+  renderCampanhas();
+  renderCalendario();
+  renderKanban();
+  renderIgTopPosts();renderIgAds();
+  renderMetaAds();
+  renderGoogleAds();
+  renderWATemplates();renderWAHistorico();
+  renderPecas();
+  renderVideos();
+  renderAnalytics();renderChartLeads();renderRecomendacoesIA();
+}
+
+/* ══════════════ HOME ══════════════ */
+function renderHomeCampanhas(){
+  const el=document.getElementById('homeCampanhas');if(!el)return;
+  el.innerHTML=CAMPANHAS_DATA.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bdr)">
+      <div style="flex:1">
+        <div class="fs12 fw6">${c.nome}</div>
+        <div class="fs10 c-muted">${c.inicio} – ${c.fim}</div>
+        <div class="sp" style="margin-top:4px">${c.canais.map(ch=>`<span class="bdg ${canalBdg(ch)} fs10">${ch}</span>`).join('')}</div>
+      </div>
+      <div style="text-align:right">
+        <span class="bdg ${c.status==='ativo'?'bg':c.status==='pausado'?'br':'bz'}">${c.status}</span>
+        <div class="fs10 c-muted" style="margin-top:4px">${c.leads} leads · R$${c.cpl}/lead</div>
+      </div>
+    </div>`).join('');
+}
+function renderHomeProxPosts(){
+  const el=document.getElementById('homeProxPosts');if(!el)return;
+  el.innerHTML=`<table class="tbl">${POSTS_AGENDADOS.slice(0,5).map(p=>`<tr>
+    <td><span class="bdg ${canalBdg(p.canal)}">${p.canal}</span></td>
+    <td class="fs11">${p.tema.substring(0,38)}...</td>
+    <td class="mono fs10 c-muted">${p.data}</td>
+    <td><span class="bdg ${p.status==='agendado'?'bg':p.status==='rascunho'?'bz':'ba'}">${p.status}</span></td>
+  </tr>`).join('')}</table>`;
+}
+function renderHomePecas(){
+  const el=document.getElementById('homePecas');if(!el)return;
+  el.innerHTML=PECAS_DATA.slice(0,4).map(p=>`
+    <div class="peca-card" onclick="abrirPeca('${p.id}')">
+      <div class="peca-preview" style="background:linear-gradient(135deg,${p.cor}22,${p.cor}44)">
+        <span style="font-size:42px">${p.emoji}</span>
+        <div class="peca-format-tag"><span class="bdg bz">${p.formato}</span></div>
+        <div class="peca-channel-tag"><span class="bdg ${canalBdg(p.canal)}">${p.canal}</span></div>
+      </div>
+      <div class="peca-body">
+        <div class="peca-nome">${p.nome}</div>
+        <div class="peca-emp">${p.emp}</div>
+      </div>
+    </div>`).join('');
+}
+function renderHomeInsights(){
+  const el=document.getElementById('homeInsights');if(!el)return;
+  el.innerHTML=[
+    { cor:'var(--coral)', ico:'🔥', titulo:'Instagram é seu canal mais eficiente', sub:'CPL R$105 vs. R$214 do Google. Aumente o budget do IG em 30% e corte Google até otimizar o Quality Score.' },
+    { cor:'#FCD34D', ico:'⚠️', titulo:'Google Ads precisa de ação imediata', sub:'Campanha pausada por baixo Quality Score. Revise landing page e adicione keywords de cauda longa como "imóvel para militar FAB RJ".' },
+    { cor:'#34D399', ico:'💡', titulo:'WhatsApp tem melhor custo/lead (R$83)', sub:'Canal subutilizado. Aumentar frequência de disparos com templates aprovados pode dobrar os leads sem custo significativo.' },
+    { cor:' var(--ai2)', ico:'🤖', titulo:'IA sugere: Conteúdo em vídeo gera 3x mais engajamento', sub:'Seus 8 vídeos geraram 24k views. Produza mais reels curtos (30–60s) sobre CFIAe — formato de maior conversão no nicho militar.' },
+  ].map(i=>`
+    <div style="display:flex;gap:10px;padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px">
+      <span style="font-size:18px;flex-shrink:0;margin-top:1px">${i.ico}</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:${i.cor};margin-bottom:3px">${i.titulo}</div>
+        <div class="fs11 c-muted">${i.sub}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══════════════ CAMPANHAS ══════════════ */
+function renderCampanhas(){
+  const el=document.getElementById('listaCampanhas');if(!el)return;
+  el.innerHTML=CAMPANHAS_DATA.map(c=>`
+    <div class="camp-card">
+      <div class="camp-header">
+        <div>
+          <div class="camp-nome">${c.nome}</div>
+          <div class="camp-periodo">${c.inicio} → ${c.fim} · R$${c.budget.toLocaleString()} budget</div>
+          <div class="camp-channels" style="margin-top:6px">${c.canais.map(ch=>`<span class="camp-ch bdg ${canalBdg(ch)}">${ch}</span>`).join('')}</div>
+        </div>
+        <span class="bdg ${c.status==='ativo'?'bg':c.status==='pausado'?'br':'bz'}">${c.status.toUpperCase()}</span>
+      </div>
+      <div class="camp-body">
+        <div class="camp-metrics">
+          <div class="camp-metric"><div class="camp-metric-val">${c.impressoes.toLocaleString()}</div><div class="camp-metric-lbl">Impressões</div></div>
+          <div class="camp-metric"><div class="camp-metric-val">${c.cliques}</div><div class="camp-metric-lbl">Cliques</div></div>
+          <div class="camp-metric"><div class="camp-metric-val">${c.leads}</div><div class="camp-metric-lbl">Leads</div></div>
+          <div class="camp-metric"><div class="camp-metric-val">${c.conversoes}</div><div class="camp-metric-lbl">Vendas</div></div>
+          <div class="camp-metric"><div class="camp-metric-val">R$${c.cpl}</div><div class="camp-metric-lbl">CPL</div></div>
+        </div>
+        <div class="ad-bar-wrap" style="margin-top:8px">
+          <div class="ad-bar-meta"><span class="fs10 c-muted">Budget utilizado</span><span class="fs10 mono">R$${c.gasto.toLocaleString()} / R$${c.budget.toLocaleString()}</span></div>
+          <div class="prog-bar"><div class="pf pf-coral" style="width:${Math.round(c.gasto/c.budget*100)}%"></div></div>
+        </div>
+        <div class="camp-actions">
+          <button class="btn btn-sm" onclick="toast('Abrindo relatório da campanha...','')">📊 Relatório</button>
+          <button class="btn-ai btn btn-sm" onclick="otimizarCampanhaIA('${c.id}')">🤖 Otimizar com IA</button>
+          ${c.status==='ativo'?`<button class="btn btn-sm" style="color:#FCD34D;border-color:rgba(252,211,77,.2)" onclick="toast('Campanha pausada!','amber')">⏸ Pausar</button>`:''}
+          ${c.status==='pausado'?`<button class="btn-green btn btn-sm" onclick="toast('Campanha reativada!','green')">▶ Reativar</button>`:''}
+          <button class="btn btn-sm" onclick="duplicarCampanha('${c.id}')">⧉ Duplicar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══════════════ CALENDÁRIO ══════════════ */
+function renderCalendario(){
+  const head=document.getElementById('calGradeHead');
+  const grade=document.getElementById('calGrade');
+  if(!head||!grade)return;
+  const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  head.innerHTML=dias.map(d=>`<div class="cal-head">${d}</div>`).join('');
+  // Julho 2026 começa na Quarta (índice 3)
+  const offset=3;
+  const totalDias=31;
+  const hoje=28; // demo
+  let html='';
+  for(let i=0;i<offset;i++) html+=`<div class="cal-day" style="opacity:.2"><div class="cal-day-num">—</div></div>`;
+  const postsPorDia={
+    1:['IG Post · Orla Recreio'],
+    3:['IG Story · CFIAe'],
+    5:['FB Ad · Lookalike'],
+    8:['IG Carrossel','WA Disparo'],
+    10:['GG Search'],
+    12:['IG Reels · 30s'],
+    15:['IG Post','FB Ad'],
+    17:['WA Disparo'],
+    19:['IG Story'],
+    22:['IG Carrossel','FB Ad'],
+    25:['IG Post · ICONYC'],
+    28:['IG Reels','WA Disparo'],
+    30:['IG Post · Ilha Mar 2'],
+  };
+  for(let d=1;d<=totalDias;d++){
+    const isHoje=d===hoje;
+    const posts=postsPorDia[d]||[];
+    html+=`<div class="cal-day${isHoje?' today':''}${posts.length?' has-post':''}">
+      <div class="cal-day-num">${d}</div>
+      ${posts.slice(0,2).map(p=>
+        p.startsWith('IG')?`<div class="cal-post-dot dot-ig">📸 ${p.replace('IG ','')}</div>`:
+        p.startsWith('FB')?`<div class="cal-post-dot dot-fb">📘 ${p.replace('FB ','')}</div>`:
+        p.startsWith('WA')?`<div class="cal-post-dot dot-wa">💬 ${p.replace('WA ','')}</div>`:
+        p.startsWith('GG')?`<div class="cal-post-dot dot-gg">🔍 ${p.replace('GG ','')}</div>`:''
+      ).join('')}
+      ${posts.length>2?`<div style="font-size:8px;color:var(--muted)">+${posts.length-2}</div>`:''}
+    </div>`;
+  }
+  grade.innerHTML=html;
+
+  const tbl=document.getElementById('tblPostsAgendados');if(!tbl)return;
+  tbl.innerHTML=`<thead><tr><th>Canal</th><th>Empreendimento</th><th>Tema / Conteúdo</th><th>Data/Hora</th><th>Formato</th><th>Status</th><th></th></tr></thead><tbody>${
+    POSTS_AGENDADOS.map(p=>`<tr>
+      <td><span class="bdg ${canalBdg(p.canal)}">${p.canal}</span></td>
+      <td class="fs11 c-muted">${p.emp}</td>
+      <td class="fs11">${p.tema}</td>
+      <td class="mono fs10 c-muted">${p.data}</td>
+      <td class="fs10 c-muted">${p.formato}</td>
+      <td><span class="bdg ${p.status==='agendado'?'bg':p.status==='rascunho'?'bz':p.status==='produção'?'ba':'bz'}">${p.status}</span></td>
+      <td class="flex" style="gap:5px">
+        <button class="btn btn-sm" onclick="toast('Editando post...','')">✏️</button>
+        <button class="btn btn-sm btn-ai" onclick="toast('IA aprimorando o post...','ai')">🤖</button>
+      </td>
+    </tr>`).join('')
+  }</tbody>`;
+}
+
+/* ══════════════ KANBAN ══════════════ */
+function renderKanban(){
+  const el=document.getElementById('kanbanBoard');if(!el)return;
+  const colunasCores={'Ideia':'var(--muted)','Em Produção':'var(--amber)','Revisão':'var(--ig)','Aprovado':'var(--ai2)','Publicado':'var(--green2)'};
+  el.innerHTML=Object.entries(KANBAN_DATA).map(([col,cards])=>`
+    <div class="kan-col">
+      <div class="kan-head">
+        <div class="kan-title" style="color:${colunasCores[col]||'#fff'}">${col}</div>
+        <div class="kan-count">${cards.length}</div>
+      </div>
+      <div class="kan-body">
+        ${cards.map(c=>`
+          <div class="kan-card">
+            <div class="kan-card-title">${c.titulo}</div>
+            <div class="kan-card-meta">
+              <span class="bdg ${canalBdg(c.canal)} fs10">${c.canal}</span>
+              ${c.tags.map(t=>`<span class="bdg bz" style="font-size:8px">${t}</span>`).join('')}
+            </div>
+          </div>`).join('')}
+        <div style="text-align:center;padding:10px;cursor:pointer;color:var(--muted);font-size:11px" onclick="abrirNovoPost()">+ adicionar</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══════════════ INSTAGRAM ══════════════ */
+function renderIgTopPosts(){
+  const el=document.getElementById('igTopPosts');if(!el)return;
+  const posts=[
+    {tema:'Carrossel · Benefícios CFIAe', alcance:'4.2k', eng:'8.4%', leads:4},
+    {tema:'Reels · Tour Orla Recreio',    alcance:'3.8k', eng:'7.1%', leads:3},
+    {tema:'Post · Depoimento Capitão',    alcance:'2.9k', eng:'6.3%', leads:2},
+    {tema:'Story · Simulação ao vivo',    alcance:'2.1k', eng:'5.9%', leads:2},
+  ];
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Conteúdo</th><th>Alcance</th><th>Eng.</th><th>Leads</th></tr></thead><tbody>${posts.map(p=>`<tr><td class="fs11">${p.tema}</td><td class="mono fs10 c-green">${p.alcance}</td><td class="mono fs10 c-amber">${p.eng}</td><td class="mono fs10 fw6">${p.leads}</td></tr>`).join('')}</tbody></table>`;
+}
+function renderIgAds(){
+  const el=document.getElementById('igAds');if(!el)return;
+  el.innerHTML=`
+    <div class="ad-card ig-card">
+      <div class="ad-top">
+        <div><div class="ad-nome">IG Ads · Ilha Mar Beach · Lançamento Jul</div><div class="ad-sub">Objetivo: Leads · Público: Militares FAB 28–50 anos · RJ</div></div>
+        <span class="bdg bg">Ativo</span>
+      </div>
+      <div class="ad-metrics">
+        <div class="ad-metric"><div class="ad-metric-val">28.4k</div><div class="ad-metric-lbl">Impressões</div></div>
+        <div class="ad-metric"><div class="ad-metric-val">1.4k</div><div class="ad-metric-lbl">Cliques</div></div>
+        <div class="ad-metric"><div class="ad-metric-val" style="color:#34D399">11</div><div class="ad-metric-lbl">Leads</div></div>
+        <div class="ad-metric"><div class="ad-metric-val">R$82</div><div class="ad-metric-lbl">CPL</div></div>
+      </div>
+      <div class="ad-bar-wrap"><div class="ad-bar-meta"><span class="fs10 c-muted">Budget diário</span><span class="fs10 mono">R$48 / R$66</span></div><div class="prog-bar"><div class="pf pf-ig" style="width:73%"></div></div></div>
+      <div class="ad-actions"><button class="btn btn-sm" onclick="toast('Abrindo no Meta Ads Manager...','')">Editar no Meta ›</button><button class="btn-ai btn btn-sm" onclick="toast('IA analisando performance do criativo...','ai')">🤖 Otimizar criativo</button></div>
+    </div>`;
+}
+
+/* ══════════════ META ADS ══════════════ */
+function renderMetaAds(){
+  const el=document.getElementById('metaAds');if(!el)return;
+  const ads=[
+    {nome:'Carrossel · Orla Recreio · FAB Oficial',   imp:'18.4k', cliq:214, leads:8,  cpl:125, status:'ativo',   cor:'var(--ig)'},
+    {nome:'Video · "Conheça o CFIAe" · Lookalike',   imp:'22.1k', cliq:198, leads:7,  cpl:143, status:'ativo',   cor:'var(--fb2)'},
+    {nome:'Imagem · Ilha Mar · Sgt/Suboficial',       imp:'17.5k', cliq:162, leads:5,  cpl:160, status:'ativo',   cor:'var(--fb2)'},
+  ];
+  el.innerHTML=ads.map(a=>`
+    <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:12px">
+      <div style="width:3px;align-self:stretch;border-radius:2px;background:${a.cor};flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <div class="fs12 fw6">${a.nome}</div>
+        <div class="flex" style="gap:10px;margin-top:4px">
+          <span class="fs10 c-muted">👁 ${a.imp}</span>
+          <span class="fs10 c-muted">🖱 ${a.cliq}</span>
+          <span class="fs10 c-green fw6">✔ ${a.leads} leads</span>
+          <span class="fs10 c-muted">CPL R$${a.cpl}</span>
+        </div>
+      </div>
+      <span class="bdg bg">${a.status}</span>
+    </div>`).join('');
+}
+
+/* ══════════════ GOOGLE ADS ══════════════ */
+function renderGoogleAds(){
+  const tbl=document.getElementById('tblGoogleAds');if(!tbl)return;
+  const camps=[
+    {nome:'FAB Imóvel RJ · Search',        status:'ativo',   imp:12000, cliq:98,  leads:4, cpl:250, qs:6.2, budget:800},
+    {nome:'FAB Barra RJ · Keywords',       status:'pausado', imp:8200,  cliq:71,  leads:2, cpl:200, qs:3.8, budget:500},
+    {nome:'Display · Financiamento FAB',   status:'ativo',   imp:1800,  cliq:20,  leads:1, cpl:300, qs:7.1, budget:200},
+  ];
+  tbl.innerHTML=`<thead><tr><th>Campanha</th><th>Status</th><th>Impressões</th><th>Cliques</th><th>Leads</th><th>CPL</th><th>Quality Score</th><th>Budget/Dia</th><th></th></tr></thead><tbody>${camps.map(c=>`<tr>
+    <td class="fw6">${c.nome}</td>
+    <td><span class="bdg ${c.status==='ativo'?'bg':c.status==='pausado'?'br':'ba'}">${c.status}</span></td>
+    <td class="mono fs10">${c.imp.toLocaleString()}</td>
+    <td class="mono fs10">${c.cliq}</td>
+    <td class="mono fs10 c-green fw6">${c.leads}</td>
+    <td class="mono fs10">R$${c.cpl}</td>
+    <td><span style="font-weight:700;color:${c.qs>=7?'#34D399':c.qs>=5?'#FCD34D':'#F87171'}">${c.qs}/10</span></td>
+    <td class="mono fs10">R$${c.budget}/d</td>
+    <td class="flex" style="gap:5px"><button class="btn btn-sm" onclick="toast('Editando campanha...','')">✏️</button><button class="btn-ai btn btn-sm" onclick="otimizarGoogleIA()">🤖</button></td>
+  </tr>`).join('')}</tbody>`;
+
+  const tblKw=document.getElementById('tblKeywords');if(!tblKw)return;
+  const kws=[
+    {kw:'"imóvel para militar FAB"',   tipo:'Exata', cliq:42, cpc:8.20, conv:2, qs:7},
+    {kw:'"financiamento CFIAe"',       tipo:'Exata', cliq:31, cpc:6.80, conv:2, qs:8},
+    {kw:'apartamento barra militar',   tipo:'Frase', cliq:28, cpc:5.40, conv:1, qs:5},
+    {kw:'imóvel aeronáutica RJ',       tipo:'Frase', cliq:22, cpc:7.10, conv:1, qs:6},
+    {kw:'comprar apartamento FAB RJ',  tipo:'Ampla', cliq:18, cpc:4.20, conv:0, qs:3},
+  ];
+  tblKw.innerHTML=`<thead><tr><th>Keyword</th><th>Tipo</th><th>Cliques</th><th>CPC Médio</th><th>Conversões</th><th>QS</th></tr></thead><tbody>${kws.map(k=>`<tr>
+    <td class="mono fs10">${k.kw}</td>
+    <td><span class="bdg bz">${k.tipo}</span></td>
+    <td class="mono fs10">${k.cliq}</td>
+    <td class="mono fs10 c-muted">R$${k.cpc}</td>
+    <td class="mono fs10 fw6 c-green">${k.conv}</td>
+    <td><span style="font-weight:700;font-size:11px;color:${k.qs>=7?'#34D399':k.qs>=5?'#FCD34D':'#F87171'}">${k.qs}/10</span></td>
+  </tr>`).join('')}</tbody>`;
+}
+
+/* ══════════════ WHATSAPP ══════════════ */
+function renderWATemplates(){
+  const el=document.getElementById('waTemplates');if(!el)return;
+  el.innerHTML=WA_TEMPLATES_DATA.map(t=>`
+    <div style="background:var(--card2);border:1px solid ${t.status==='aprovado'?'var(--wa-b)':'var(--bdr)'};border-radius:8px;padding:12px">
+      <div class="flex-bet mb14">
+        <div><div class="fs12 fw6 mono">${t.nome}</div><div class="fs10 c-muted">${t.tipo} · Variáveis: ${t.vars.join(', ')}</div></div>
+        <span class="bdg ${t.status==='aprovado'?'bg':t.status==='em revisão'?'ba':'bz'}">${t.status}</span>
+      </div>
+      <div style="font-size:11px;background:var(--wa-dim);border:1px solid var(--wa-b);border-radius:7px;padding:9px;line-height:1.6;color:var(--txt)">${t.msg}</div>
+      <div class="flex-bet" style="margin-top:8px">
+        <span class="fs10 c-muted">${t.usos} usos</span>
+        <div class="flex" style="gap:6px">
+          <button class="btn btn-sm" onclick="copiarTemplate('${t.nome}')">📋 Copiar</button>
+          ${t.status==='aprovado'?`<button class="btn-wa btn btn-sm" onclick="usarTemplate('${t.nome}')">📤 Usar</button>`:''}
+        </div>
+      </div>
+    </div>`).join('');
+}
+function renderWAHistorico(){
+  const tbl=document.getElementById('tblWAHistorico');if(!tbl)return;
+  const hist=[
+    {data:'24/06 08:30', template:'apresentacao_fab_v2', segmento:'Leads ativos Jun',  enviados:284, aberturas:258, respostas:97,  leads:4},
+    {data:'18/06 09:00', template:'follow_up_proposta',  segmento:'Proposta parada',   enviados:156, aberturas:141, respostas:38,  leads:2},
+    {data:'15/06 07:00', template:'convite_visita',      segmento:'Qualificados score≥70', enviados:89, aberturas:82, respostas:31, leads:1},
+  ];
+  tbl.innerHTML=`<thead><tr><th>Data/Hora</th><th>Template</th><th>Segmento</th><th>Enviados</th><th>Abertura</th><th>Respostas</th><th>Leads</th><th>Status</th></tr></thead><tbody>${hist.map(h=>`<tr>
+    <td class="mono fs10 c-muted">${h.data}</td>
+    <td class="mono fs10">${h.template}</td>
+    <td class="fs11">${h.segmento}</td>
+    <td class="mono fs10">${h.enviados}</td>
+    <td class="mono fs10 c-amber">${Math.round(h.aberturas/h.enviados*100)}%</td>
+    <td class="mono fs10">${Math.round(h.respostas/h.enviados*100)}%</td>
+    <td class="mono fs10 c-green fw6">${h.leads}</td>
+    <td><span class="bdg bg">Concluído</span></td>
+  </tr>`).join('')}</tbody>`;
+}
+
+/* ══════════════ PEÇAS ══════════════ */
+function renderPecas(){
+  const filtCh=document.getElementById('pecaFiltCh')?.value||'';
+  const filtEmp=document.getElementById('pecaFiltEmp')?.value||'';
+  let list=PECAS_DATA.filter(p=>(!filtCh||p.canal===filtCh)&&(!filtEmp||p.emp.includes(filtEmp)));
+  const el=document.getElementById('pecasGrid');if(!el)return;
+  el.innerHTML=list.map(p=>`
+    <div class="peca-card" onclick="abrirPeca('${p.id}')">
+      <div class="peca-preview" style="background:linear-gradient(135deg,${p.cor}22,${p.cor}55)">
+        <span style="font-size:48px">${p.emoji}</span>
+        <div class="peca-format-tag"><span class="bdg bz">${p.formato}</span></div>
+        <div class="peca-channel-tag"><span class="bdg ${canalBdg(p.canal)}">${p.canal}</span></div>
+      </div>
+      <div class="peca-body">
+        <div class="peca-nome">${p.nome}</div>
+        <div class="peca-emp">${p.emp}</div>
+        <div class="peca-actions">
+          <span class="bdg ${p.status==='aprovado'?'bg':p.status==='ativo'?'bt':p.status==='rascunho'?'ba':'bz'}">${p.status}</span>
+          <span class="fs10 c-muted" style="margin-left:auto">⬇ ${p.downloads}x</span>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function abrirPeca(id){
+  const p=PECAS_DATA.find(x=>x.id===id);if(!p)return;
+  document.getElementById('modalPecaTitle').textContent=p.nome;
+  document.getElementById('modalPecaBody').innerHTML=`
+    <div style="text-align:center;font-size:72px;padding:24px 0;background:linear-gradient(135deg,${p.cor}22,${p.cor}55);border-radius:8px;margin-bottom:16px">${p.emoji}</div>
+    <div class="sp mb14" style="justify-content:center">
+      <span class="bdg ${canalBdg(p.canal)}">${p.canal}</span>
+      <span class="bdg bz">${p.formato}</span>
+      <span class="bdg ${p.tipo==='vídeo'?'br':'bai'}">${p.tipo}</span>
+      <span class="bdg ${p.status==='aprovado'?'bg':'ba'}">${p.status}</span>
+    </div>
+    <div class="f-row f-2 mb14">
+      <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:12px;text-align:center"><div class="fs14 fw6">${p.downloads}</div><div class="fs10 c-muted">Downloads/usos</div></div>
+      <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:12px;text-align:center"><div class="fs14 fw6">${p.emp}</div><div class="fs10 c-muted">Empreendimento</div></div>
+    </div>
+    <div class="alert-box ab-ai">💡 Esta peça está aprovada para uso em campanhas. Clique em "Usar em campanha" para adicioná-la a uma campanha ativa ou copie o link para compartilhar com sua equipe.</div>`;
+  document.getElementById('modalPeca').classList.add('show');
+}
+
+/* ══════════════ VÍDEOS ══════════════ */
+function renderVideos(){
+  const el=document.getElementById('videoGrid');if(!el)return;
+  el.innerHTML=VIDEOS_DATA.map(v=>`
+    <div class="video-card" onclick="toast('Abrindo player de ${v.nome}...','')">
+      <div class="video-thumb">
+        <span style="font-size:40px">${v.emoji}</span>
+        <div class="video-duration">${v.duracao}</div>
+        <div style="position:absolute;top:8px;right:8px"><span class="bdg ${v.status==='publicado'?'bg':v.status==='producao'?'ba':'bz'}">${v.status}</span></div>
+      </div>
+      <div class="video-body">
+        <div class="video-nome">${v.nome}</div>
+        <div class="video-meta">${v.tipo} · ${v.emp}${v.canais.length?' · '+v.canais.join(', '):''}</div>
+        ${v.views>0?`<div class="video-stats">
+          <div class="video-stat"><div class="video-stat-val">${v.views>1000?(v.views/1000).toFixed(1)+'k':v.views}</div><div class="video-stat-lbl">Views</div></div>
+          <div class="video-stat"><div class="video-stat-val">${v.likes}</div><div class="video-stat-lbl">Likes</div></div>
+          <div class="video-stat"><div class="video-stat-val c-green">${v.leads}</div><div class="video-stat-lbl">Leads</div></div>
+        </div>`:'<div class="fs10 c-muted" style="margin:8px 0">Em produção · sem dados ainda</div>'}
+        <div class="sp">
+          ${v.status==='publicado'?`<button class="btn btn-sm" onclick="event.stopPropagation();toast('Abrindo no Instagram...','')">📸 Ver no IG</button>`:''}
+          <button class="btn-ai btn btn-sm" onclick="event.stopPropagation();sendAiChip('Crie um roteiro de vídeo similar ao tipo ${v.tipo} para o empreendimento ${v.emp}.')">🤖 Roteiro similar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ══════════════ ANALYTICS ══════════════ */
+function renderAnalytics(){
+  const tbl=document.getElementById('tblAnalytics');if(!tbl)return;
+  const rows=[
+    {canal:'📸 Instagram', invest:2000, imp:58000, cli:420, leads:19, vendas:2, cpl:105, roas:9.6, color:'var(--ig)'},
+    {canal:'📘 Meta Ads',  invest:2000, imp:42000, cli:340, leads:15, vendas:2, cpl:133, roas:7.2, color:'var(--fb2)'},
+    {canal:'🔍 Google',    invest:1500, imp:22000, cli:189, leads:7,  vendas:1, cpl:214, roas:4.8, color:'var(--gg)'},
+    {canal:'💬 WhatsApp',  invest:500,  imp:6000,  cli:32,  leads:6,  vendas:1, cpl:83,  roas:14.4,color:'var(--wa)'},
+    {canal:'TOTAL',        invest:6000, imp:128000,cli:981, leads:47, vendas:6, cpl:127, roas:8.2, color:'var(--gold)'},
+  ];
+  tbl.innerHTML=`<thead><tr><th>Canal</th><th>Investimento</th><th>Impressões</th><th>Cliques</th><th>Leads</th><th>Vendas</th><th>CPL</th><th>ROAS Est.</th></tr></thead><tbody>${rows.map((r,i)=>`<tr style="${i===4?'border-top:2px solid var(--bdr2);font-weight:700':''}">
+    <td><span style="color:${r.color};font-weight:700">${r.canal}</span></td>
+    <td class="mono fs10">R$${r.invest.toLocaleString()}</td>
+    <td class="mono fs10">${r.imp.toLocaleString()}</td>
+    <td class="mono fs10">${r.cli}</td>
+    <td class="mono fs10 c-green fw6">${r.leads}</td>
+    <td class="mono fs10 fw6">${r.vendas}</td>
+    <td class="mono fs10">R$${r.cpl}</td>
+    <td class="mono fs10" style="color:${r.roas>=8?'#34D399':r.roas>=6?'#FCD34D':'#F87171'};font-weight:700">${r.roas}x</td>
+  </tr>`).join('')}</tbody>`;
+}
+function renderChartLeads(){
+  const el=document.getElementById('chartLeadsSemanal');if(!el)return;
+  const semanas=[{lbl:'Sem 1',n:8},{lbl:'Sem 2',n:12},{lbl:'Sem 3',n:15},{lbl:'Sem 4',n:12}];
+  const max=Math.max(...semanas.map(s=>s.n));
+  el.innerHTML=`<div class="bar-chart">${semanas.map(s=>`
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center">
+      <div style="font-size:10px;color:var(--gold);font-weight:700;margin-bottom:4px">${s.n}</div>
+      <div class="bar-col pf-coral" style="height:${Math.round(s.n/max*56)+4}px;width:100%;opacity:.85"></div>
+      <div class="bar-lbl">${s.lbl}</div>
+    </div>`).join('')}</div>
+  <div style="margin-top:8px;font-size:10px;color:var(--muted);text-align:center">Total julho: 47 leads · meta: 50</div>`;
+}
+function renderRecomendacoesIA(){
+  const el=document.getElementById('recomendacoesIA');if(!el)return;
+  const recs=[
+    {prio:'Alta',    cor:'#F87171', ico:'🔴', titulo:'Resolver Quality Score Google Ads',         acao:'Reescrever anúncios com keywords na headline · Melhorar velocidade da landing page · Adicionar sitelinks relevantes. Impacto estimado: +30% em leads Google.'},
+    {prio:'Alta',    cor:'#F87171', ico:'🔴', titulo:'Ativar retargeting Meta (pixel com 412 ev.)',acao:'Criar audiência de retargeting com visitantes do simulador CFIAe. Custo estimado R$300/mês · CPL esperado: R$65 (melhor do portfólio).'},
+    {prio:'Média',   cor:'#FCD34D', ico:'🟡', titulo:'Aumentar budget Instagram em 30%',          acao:'Instagram tem o melhor CPL (R$105) e ROAS (9.6x). Realocar R$500 do Google pausado para IG aumentaria leads estimados em +6/mês.'},
+    {prio:'Média',   cor:'#FCD34D', ico:'🟡', titulo:'Produzir 2 novos vídeos Reels mensais',     acao:'Vídeos geram 3x mais engajamento. Priorizar: tour virtual Ilha Mar Beach e "Guia FGTS passo a passo". ROI esperado: +4 leads/vídeo.'},
+    {prio:'Baixa',   cor:'var(--ai2)', ico:'🔵', titulo:'Criar sequência de email para leads frios', acao:'368 leads históricos sem conversão. Sequência de 5 emails com conteúdo educativo (CFIAe, FGTS, checklist documentação) pode reativar 8–12%.'},
+  ];
+  el.innerHTML=recs.map(r=>`
+    <div style="display:flex;gap:12px;padding:12px;background:var(--card2);border:1px solid var(--bdr);border-radius:8px;margin-bottom:8px">
+      <span style="font-size:16px;flex-shrink:0">${r.ico}</span>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:${r.cor};margin-bottom:4px">[${r.prio}] ${r.titulo}</div>
+        <div class="fs11 c-muted">${r.acao}</div>
+      </div>
+      <button class="btn btn-sm btn-ai" style="flex-shrink:0;align-self:flex-start" onclick="sendAiChip('Me ajude a implementar esta ação de marketing: ${r.titulo}. ${r.acao}')">🤖 Implementar</button>
+    </div>`).join('');
+}
+
+/* ══════════════ IA ══════════════ */
+function addAiMsg(role,txt){
+  const el=document.getElementById('aiMsgs');if(!el)return;
+  const div=document.createElement('div');
+  div.className='ai-msg';
+  const isAI=role==='ai';
+  div.innerHTML=`<div class="ai-av ${isAI?'av-ai':'av-u'}">${isAI?'🤖':'Eu'}</div><div class="ai-bubble ${isAI?'ai-b-ai':'ai-b-u'}">${txt.replace(/\n/g,'<br>')}</div>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+function sendAiChip(msg){
+  const inp=document.getElementById('aiInp');if(!inp)return;
+  inp.value=msg;
+  if(document.getElementById('panel-ia').classList.contains('active')){
+    sendAiMsg();
+  } else {
+    nav(document.querySelector('[onclick*=ia]'),'ia');
+    setTimeout(sendAiMsg,200);
+  }
+}
+async function sendAiMsg(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addAiMsg('user',msg);
+  _aiHistory.push({role:'user',content:msg});
+  const btn=document.getElementById('aiSendBtn');
+  if(btn){btn.textContent='⏳';btn.disabled=true}
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1200,system:AI_SYS,messages:_aiHistory})
+    });
+    const d=await r.json();
+    const reply=d.content?.[0]?.text||'Erro na resposta da IA.';
+    _aiHistory.push({role:'assistant',content:reply});
+    addAiMsg('ai',reply);
+  }catch(e){addAiMsg('ai','⚠️ Erro de conexão com a IA. Verifique a API key e tente novamente.')}
+  if(btn){btn.textContent='➤';btn.disabled=false}
+}
+function limparChat(){_aiHistory=[];const el=document.getElementById('aiMsgs');if(el)el.innerHTML='';addAiMsg('ai','Chat reiniciado! Como posso ajudar com o marketing WAL?')}
+
+/* ══════════════ AÇÕES ══════════════ */
+function gerarCaptionIA(){
+  const emp=document.getElementById('igEmp').value;
+  const formato=document.getElementById('igFormato').value;
+  sendAiChip(`Crie uma legenda profissional para ${formato} no Instagram sobre "${emp}". Inclua emojis relevantes, call-to-action forte e hashtags para o nicho militar FAB imóveis.`);
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function gerarMsgWAIA(){
+  const template=document.getElementById('waTemplate').value;
+  const emp=document.getElementById('waEmp').value;
+  sendAiChip(`Crie uma mensagem de WhatsApp para o template "${template}" focada no ${emp}. Deve ser personalizada com [POSTO] e [NOME], direta, não invasiva e com CTA claro.`);
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function gerarCriativosIA(){
+  const nome=document.getElementById('cNome').value||'nova campanha';
+  const emp=document.getElementById('cEmp').value;
+  const brief=document.getElementById('cBrief').value;
+  fecharModal('modalCampanha');
+  sendAiChip(`Gere um pacote criativo completo para a campanha "${nome}" com foco em ${emp}. ${brief?'Brief: '+brief:''} Inclua: 1 post feed, 1 carrossel (5 slides), 1 story, 1 mensagem WhatsApp e 3 variações de headline Google Ads.`);
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function otimizarCampanhaIA(id){
+  const c=CAMPANHAS_DATA.find(x=>x.id===id);if(!c)return;
+  sendAiChip(`Analise a campanha "${c.nome}" com os seguintes dados: ${c.leads} leads, CPL R$${c.cpl}, ${c.impressoes.toLocaleString()} impressões, ${c.cliques} cliques, taxa conversão ${(c.cliques/c.impressoes*100).toFixed(2)}%. Canais: ${c.canais.join(', ')}. Sugira 5 otimizações concretas para melhorar o CPL e aumentar o número de leads.`);
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function otimizarGoogleIA(){
+  sendAiChip('Nossa campanha Google Ads "FAB Barra RJ" foi pausada com Quality Score 3.8/10. Os anúncios focam em "imóvel militar RJ" e "apartamento FAB Barra". A landing page é nosso simulador CFIAe em walservidor.com.br. Crie 3 novos anúncios de texto otimizados (headline 1, 2, 3 + descrição 1, 2) e sugira 10 keywords de cauda longa para reativar a campanha com QS ≥ 7.');
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function sugerirKeywords(){
+  sendAiChip('Sugira 20 keywords para Google Ads Search focando militares FAB buscando imóvel no Rio de Janeiro e São Paulo. Organize por intenção (informacional, comercial, transacional), tipo de match (exata, frase) e CPC estimado no mercado imobiliário RJ.');
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function gerarPostIA(){
+  const canal=document.getElementById('postCanal').value;
+  const emp=document.getElementById('postEmp').value;
+  const formato=document.getElementById('postFormato').value;
+  fecharModal('modalPost');
+  sendAiChip(`Crie um conteúdo completo de ${formato} para ${canal} sobre ${emp}. Inclua: roteiro/estrutura completa, copy para cada frame/slide/segundo, hashtags (se aplicável) e CTA final.`);
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+function gerarRecomendacoesIA(){
+  toast('🤖 Regenerando recomendações com IA...','ai');
+  setTimeout(()=>{renderRecomendacoesIA();toast('✅ Recomendações atualizadas!','green')},1500);
+}
+function publicarPost(canal){toast(`📤 Post agendado para publicação no ${canal}! Aguarde confirmação.`,'green')}
+function salvarPost(tipo){fecharModal('modalPost');toast(tipo==='agendado'?'📅 Post agendado com sucesso!':'💾 Rascunho salvo!',tipo==='agendado'?'green':'')}
+function salvarCampanha(){fecharModal('modalCampanha');toast('🎯 Campanha criada com sucesso! Configure os criativos nos painéis de cada canal.','green')}
+function duplicarCampanha(id){const c=CAMPANHAS_DATA.find(x=>x.id===id);if(!c)return;toast(`⧉ Campanha "${c.nome}" duplicada! Edite as datas e relance.`,'')}
+function criarAdMeta(){toast('📘 Abrindo criador de anúncio no Meta Ads Manager...','fb')}
+function criarAdGoogle(){toast('🔍 Abrindo criador de campanha no Google Ads...','gg')}
+function novoDisparo(){toast('💬 Abrindo configurador de disparo WhatsApp...','wa')}
+function dispararWA(){const n=document.getElementById('waSegmento').value;toast(`📤 Disparo WhatsApp agendado para: "${n}". Aguarde a confirmação da API.`,'wa')}
+function criarPeca(){sendAiChip('Crie o briefing de uma nova peça publicitária para nosso portfólio WAL. Sugira formato, canal, empreendimento em destaque, cores, headline, copy e CTA.');nav(document.querySelector('[onclick*=ia]'),'ia')}
+function criarVideo(){sendAiChip('Crie o roteiro completo de um novo vídeo para a WAL Consultoria. Inclua: tipo de vídeo, duração, estrutura de cenas, narração, texto na tela, música sugerida e distribuição por canal.');nav(document.querySelector('[onclick*=ia]'),'ia')}
+function usarPecaCampanha(){fecharModal('modalPeca');toast('🚀 Peça adicionada à campanha ativa! Acesse Campanhas para configurar.','green')}
+function copiarTemplate(nome){navigator.clipboard.writeText(nome).then(()=>toast(`📋 Template "${nome}" copiado!`,'wa')).catch(()=>toast('Copie manualmente: '+nome,''))}
+function usarTemplate(nome){document.getElementById('waTemplate').value=nome;toast(`✅ Template "${nome}" selecionado!`,'wa')}
+function abrirNovaCampanha(){document.getElementById('cInicio').value=new Date().toISOString().split('T')[0];abrirModal('modalCampanha')}
+function abrirNovoPost(){document.getElementById('postData').value=new Date().toISOString().slice(0,16);abrirModal('modalPost')}
+function abrirModal(id){document.getElementById(id).classList.add('show')}
+function fecharModal(id){document.getElementById(id).classList.remove('show')}
+
+/* ══════════════ HELPERS ══════════════ */
+function canalBdg(ch){
+  if(ch==='Instagram')return'big';
+  if(ch==='Facebook'||ch==='Meta Ads')return'bfb';
+  if(ch==='Google'||ch==='Google Ads')return'bgg';
+  if(ch==='WhatsApp')return'bwa';
+  return'bai';
+}
+function toast(msg,tipo=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(tipo?' t-'+tipo:'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='',5000);
+}
+</script>
+</body>
+</html>
