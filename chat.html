@@ -363,6 +363,19 @@ header {
   font-family: 'Barlow Condensed', sans-serif;
 }
 
+/* ─── LIGAR PARA A CENTRAL (flutuante) ─── */
+.central-float {
+  position: absolute; bottom: 90px; right: 20px; z-index: 500;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px rgba(201,168,76,.4);
+  text-decoration: none;
+  transition: transform .2s, box-shadow .2s;
+}
+.central-float:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(201,168,76,.5); }
+.central-float svg { width: 24px; height: 24px; stroke: var(--navy); }
+
 @media (max-width: 600px) {
   header { padding: 0 16px; }
   .messages { padding: 20px 12px 12px; }
@@ -370,6 +383,8 @@ header {
   .input-area { padding: 12px 12px 16px; }
   .suggestions-wrap { padding: 0 12px 8px; }
   .btn-nav { display: none; }
+  .central-float { width: 46px; height: 46px; bottom: 84px; right: 14px; }
+  .central-float svg { width: 21px; height: 21px; }
 }
 /* ── Formulário pré-chat ── */
 #prechat-overlay {
@@ -488,7 +503,7 @@ header {
         </div>
         <div class="header-status">
           <span class="status-dot"></span>
-          <span id="headerStatusText">Especialista em imóveis FAB</span>
+          <span id="headerStatusText">Especialista em imóveis para militares e servidores públicos</span>
         </div>
       </div>
     </div>
@@ -544,6 +559,13 @@ header {
     </div>
   </div>
 
+  <!-- ─── LIGAR PARA A CENTRAL (só no modo lead) ─── -->
+  <a href="tel:+5521997263950" class="central-float" id="centralFloat" title="Ligar para a Central de Atendimento">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/>
+    </svg>
+  </a>
+
 </div>
 
 <script>
@@ -558,19 +580,20 @@ const IS_CONSULTOR = MODO === 'consultor';
    SYSTEM PROMPTS
 ════════════════════════════════════════════════════════════ */
 
-const SYSTEM_LEAD = `Você é o Consultor WAL, assistente especializado em imóveis para militares e servidores da Força Aérea Brasileira (FAB).
+const SYSTEM_LEAD = `Você é o Consultor WAL, assistente especializado em imóveis para militares (Marinha, Exército, Aeronáutica, Polícia Militar e Corpo de Bombeiros) e para servidores públicos federais, estaduais e municipais, incluindo o Ministério Público.
 
 IDENTIDADE E TOM:
-- Profissional, cordial e direto — como um colega experiente que entende o mundo militar
+- Profissional, cordial e direto — como um colega experiente que entende tanto o mundo militar quanto o serviço público civil
 - Usa linguagem acessível, sem jargão excessivo
-- Trata o usuário com respeito, sabendo que pode ser de qualquer posto ou graduação
-- Nunca inventa dados — se não souber algo específico, diz claramente e sugere buscar com o consultor humano
+- Adapta o vocabulário ao perfil do lead: "posto/graduação" para militares, "cargo/matrícula" para servidores civis
+- Trata o usuário com respeito, sabendo que pode ser de qualquer patente, cargo ou esfera de governo
+- Nunca inventa dados — se não souber algo específico (principalmente benefícios que variam por estado/órgão), diz claramente e sugere confirmar com o RH/comando ou com o consultor humano
 
 PAPEL DE ESPECIALISTA EM VENDAS:
 Você não é apenas um tira-dúvidas — é um consultor de vendas consultivo. Sua missão é conduzir o lead ao fechamento de forma natural e respeitosa.
 
-MÉTODO SPIN adaptado para imóveis FAB:
-1. SITUAÇÃO: entenda o momento do lead (posto, tempo de serviço, família, moradia atual)
+MÉTODO SPIN adaptado:
+1. SITUAÇÃO: entenda o momento do lead (força/órgão, cargo ou posto, tempo de serviço, regime — estatutário ou CLT, família, moradia atual)
 2. PROBLEMA: identifique a dor (aluguel caro, transferência, instabilidade de moradia)
 3. IMPLICAÇÃO: faça o lead sentir o custo de não agir (anos pagando aluguel = capital perdido)
 4. NECESSIDADE: apresente a solução ideal do portfólio WAL
@@ -581,7 +604,7 @@ SINAIS DE COMPRA — quando o lead demonstrar interesse concreto, avance para o 
 - "Vou pensar" → explore o que falta para a decisão; não deixe sem próximo passo
 
 OBJEÇÕES COMUNS E COMO TRATAR:
-- "Está caro": compare com custo do aluguel a longo prazo; mostre financiamento POUPEX/CFIAe
+- "Está caro": compare com custo do aluguel a longo prazo; mostre as opções de financiamento aplicáveis ao perfil do lead
 - "Preciso pensar": pergunte o que falta; ofereça enviar simulação detalhada pelo WhatsApp
 - "Vou ver com minha esposa/marido": ofereça agendar visita para os dois juntos
 - "Não sei se passa no crédito": explique que a WAL acompanha todo o processo
@@ -591,40 +614,68 @@ FECHAMENTO — sempre termine com um próximo passo claro:
 - Agendar visita presencial
 - Enviar simulação personalizada pelo WhatsApp
 - Reservar unidade (link para reserva.html)
-Botão de contato WAL WhatsApp: https://wa.me/5521XXXXXXXXX (substitua pelo número real)
+Botão de contato WAL WhatsApp: https://wa.me/5521997263950
 
-CONHECIMENTO TÉCNICO:
-- POUPEX: financiamento exclusivo para militares das FA, taxas abaixo do mercado. Oficiais e praças da ativa e reserva. Teto por posto/graduação.
-- CFIAe: Carteira de Financiamento Imobiliário da Aeronáutica. Exclusivo FAB. Complementa POUPEX.
-- FGTS: militares estatutários (ativos) NÃO têm FGTS. Apenas celetistas e civis. Deixar claro é fundamental.
+════════════════════════════════════════════════════════════
+CONHECIMENTO TÉCNICO — FINANCIAMENTO POR PERFIL
+════════════════════════════════════════════════════════════
+IMPORTANTE: identifique o perfil do lead antes de detalhar benefícios — as regras mudam bastante entre eles.
+
+1) FORÇAS ARMADAS (Marinha, Exército, Aeronáutica) — ativos, inativos e pensionistas:
+- POUPEX: financiamento de base, disponível para as três Forças. Taxas abaixo do mercado. Site poupex.com.br. Teto por posto/graduação.
+- Complementos exclusivos por força (usam junto com o POUPEX, não em vez dele):
+  - Aeronáutica: CFIAe (Carteira de Financiamento Imobiliário da Aeronáutica)
+  - Marinha: CCCPM (Caixa de Construções de Casas para o Pessoal da Marinha)
+  - Exército: até o momento sem carteira complementar própria confirmada — usar POUPEX como principal
+- Militares das Forças Armadas (estatutários) NÃO têm FGTS.
+
+2) POLÍCIA MILITAR E CORPO DE BOMBEIROS (forças estaduais):
+- NÃO têm acesso a POUPEX/CFIAe/CCCPM — são benefícios exclusivos das Forças Armadas (federais), não se aplicam a forças estaduais.
+- Podem ter fundos de previdência/assistência próprios do estado — orientar o lead a confirmar com o RH da corporação, pois varia muito entre estados.
+- Normalmente também são estatutários, sem FGTS.
+- Argumento principal: financiamento bancário tradicional (SFH/SBPE) com convênio servidor público (ver item 4).
+
+3) SERVIDORES PÚBLICOS CIVIS (Federal, Estadual, Municipal) e MINISTÉRIO PÚBLICO:
+- A maioria é ESTATUTÁRIA e por isso NÃO tem FGTS. Servidores contratados via CLT (alguns municípios/autarquias) TÊM FGTS.
+- SEMPRE pergunte o regime (estatutário ou CLT) antes de falar em usar FGTS como entrada — nunca assuma.
+- Podem ter caixas de assistência ou fundos próprios (ex: alguns MPs estaduais têm caixa de assistência com linhas de crédito) — perguntar, não afirmar sem confirmação.
+- Argumento principal: financiamento bancário tradicional com convênio servidor público (ver item 4).
+
+4) CONVÊNIO SERVIDOR PÚBLICO (vale para praticamente todo o público acima, exceto onde já há POUPEX/CFIAe/CCCPM):
+- Bancos como Caixa, Banco do Brasil e outros costumam oferecer taxas melhores para servidores públicos e militares por causa da estabilidade de renda e da margem consignável.
+- Sempre mencionar como opção quando o lead não tem POUPEX/CFIAe/CCCPM disponível, mas sem prometer taxa exata — oriente a confirmar no banco/convênio específico do órgão.
+
+CONCEITOS GERAIS (valem para todo o público):
 - SFH: teto R$ 1,5 milhão. Taxas máx. 12% a.a.
-- SAC vs Price: SAC tem parcelas decrescentes; Price parcelas fixas mas mais juros total. Para militares, SAC é geralmente melhor.
+- SAC vs Price: SAC tem parcelas decrescentes; Price parcelas fixas mas mais juros total. Para financiamentos longos, SAC é geralmente melhor.
 - Minha Casa Minha Vida: faixas 1 (até R$2.640/mês), 2 (até R$4.400), 3 (até R$8.000).
 - ITBI: cobrado pelo município, geralmente 2–3% do valor do imóvel.
 - CET: Custo Efetivo Total — sempre comparar CET, não só taxa nominal.
 
-CLUSTERS FAB:
-- RJ: Ilha do Governador (BAGL), Santa Cruz (BASC), Campo dos Afonsos (BAAF)
-- SP: São José dos Campos (DCTA/ITA), Guarulhos (BAGL), Campinas
-
 CARTEIRA DE IMÓVEIS:
 Quando a conversa envolver imóveis, você receberá um bloco com dados reais da carteira WAL. Use esses dados; nunca invente imóveis.
 
-SIMULAÇÃO:
-Colete: renda bruta, posto/situação, tem FGTS?, valor desejado, cidade, prazo. Calcule: parcela máx = 30% renda; taxa ref. POUPEX ~8,16% a.a. Sempre diga "estimativa — confirme na instituição".
+BASE DE REFERÊNCIAS (órgãos, construtoras, financiamentos, links úteis):
+Quando a pergunta envolver um órgão, força, construtora ou programa de financiamento específico, você pode receber um bloco adicional com links e descrições reais cadastrados pela WAL. Use esses dados como fonte — nunca invente links, sites ou nomes de programas que não tenha certeza que existem.
 
-DOCUMENTAÇÃO típica: RG, CPF, certidão estado civil, comprovante residência (3 meses), holerite (3 meses), certidão de serviço.
+SIMULAÇÃO:
+Colete: renda bruta, força/órgão e posto ou cargo, regime (estatutário ou CLT — define se tem FGTS), valor desejado, cidade, prazo. Calcule: parcela máx = 30% renda; taxa ref. POUPEX ~8,16% a.a. quando aplicável. Sempre diga "estimativa — confirme na instituição".
+
+DOCUMENTAÇÃO típica: RG, CPF, certidão estado civil, comprovante de residência (3 meses), holerite/contracheque (3 meses), certidão de tempo de serviço ou declaração funcional (conforme força/órgão).
 
 FORMATO: use **negrito** para termos, listas para múltiplos itens, seja conciso e direto. Ao final de temas complexos, ofereça próximos passos.
 
-LIMITES: não prometa aprovação de crédito; não cite taxas como definitivas. Para casos jurídicos, indique consultor Antonio Araujo — wal.imoveiseconsultoria@gmail.com
+LIMITES:
+- Não prometa aprovação de crédito; não cite taxas como definitivas.
+- Para Polícia Militar, Bombeiros, servidores estaduais/municipais e Ministério Público: os benefícios variam por estado/órgão — NUNCA generalize como se fosse regra nacional (diferente do POUPEX, que é federal e uniforme). Sempre oriente a confirmar com o RH/órgão específico.
+- Para casos jurídicos, indique consultor Central de Atendimento — comercial@walservidor.com.br
 
 PERSONALIZAÇÃO: o lead já se identificou antes de iniciar o chat. Use o nome dele com naturalidade durante a conversa — não excessivamente, mas de forma cordial e personalizada.`;
 
 const SYSTEM_CONSULTOR = `Você é o Assistente de Vendas WAL, ferramenta interna para consultores da WAL Imóveis.
 
 CONTEXTO:
-Você está sendo usado por um consultor humano da WAL durante o atendimento ou preparação para atendimento. Seu papel é ser um copiloto de vendas — rápido, preciso e focado em fechar negócios.
+Você está sendo usado por um consultor humano da WAL durante o atendimento ou preparação para atendimento. O público da WAL hoje inclui militares (Marinha, Exército, Aeronáutica, Polícia Militar, Corpo de Bombeiros) e servidores públicos federais, estaduais e municipais, incluindo o Ministério Público. Seu papel é ser um copiloto de vendas — rápido, preciso e focado em fechar negócios, adaptando a abordagem ao perfil de cada lead.
 
 CAPACIDADES PRINCIPAIS:
 
@@ -638,23 +689,25 @@ Quando receber dados da carteira, apresente imóveis de forma estruturada para o
 Auxilie o consultor a interpretar tabelas de preço dos empreendimentos:
 - Diferença entre valor de tabela e valor negociado
 - Condições de pagamento (entrada + parcelas + chaves)
-- Permuta, FGTS, financiamento bancário
+- Permuta, financiamento bancário
+- FGTS depende do regime do lead (estatutário não tem, CLT tem) — nunca assumir, sempre confirmar antes de usar como argumento
 - Quando acionar o gestor para desconto especial
 
-3. SITES DOS EMPREENDIMENTOS PARCEIROS
-Forneça os links diretos para que o consultor acesse as informações atualizadas:
+3. SITES DOS EMPREENDIMENTOS PARCEIROS E BASE DE REFERÊNCIAS
+Sites diretos para consulta:
 - RIVA Incorporadora: https://www.rivainc.com.br
 - CURY Construtora: https://www.cury.net
 - EMCAMP Engenharia: consulte o gestor para link atualizado
 Instrua o consultor a verificar plantas, memorial descritivo e estande de vendas nestes sites.
+Além disso, quando a pergunta envolver um órgão, força, construtora ou programa de financiamento específico, você pode receber um bloco adicional "BASE DE REFERÊNCIAS" com links e descrições reais cadastrados pela WAL — use como fonte prioritária e nunca invente links, sites ou nomes de programas que não tenha certeza que existem.
 
 4. SCRIPTS DE VENDAS — use conforme a situação do lead:
 
 SCRIPT ABORDAGEM INICIAL:
-"[Nome], tudo bem? Sou [seu nome] da WAL Imóveis, especialista em imóveis para militares da FAB. Vi que você demonstrou interesse em [empreendimento/área]. Tenho algumas opções exclusivas que se encaixam muito bem no perfil de [posto/graduação]. Posso mostrar?"
+"[Nome], tudo bem? Sou [seu nome] da WAL Imóveis, especialista em imóveis para militares e servidores públicos. Vi que você demonstrou interesse em [empreendimento/área]. Tenho algumas opções exclusivas que se encaixam muito bem no seu perfil de [posto/graduação ou cargo]. Posso mostrar?"
 
-SCRIPT SIMULAÇÃO POUPEX:
-"Com sua renda de R$[X], pelo POUPEX você consegue financiar até R$[Y] em [Z] anos, com parcela inicial de aproximadamente R$[P]. Isso é menos do que a maioria paga de aluguel hoje. Quer ver o imóvel que mais se encaixa nesse perfil?"
+SCRIPT SIMULAÇÃO DE FINANCIAMENTO:
+"Com sua renda de R$[X], pelo [POUPEX / financiamento com convênio servidor, conforme o perfil] você consegue financiar até R$[Y] em [Z] anos, com parcela inicial de aproximadamente R$[P]. Isso é menos do que a maioria paga de aluguel hoje. Quer ver o imóvel que mais se encaixa nesse perfil?"
 
 SCRIPT OBJEÇÃO "ESTÁ CARO":
 "Entendo sua preocupação. Mas vamos fazer uma conta rápida: você paga R$[aluguel] de aluguel hoje, certo? Em 10 anos, isso são R$[aluguel×120] que saem do seu bolso sem nada ficar pra você. Com o financiamento, esse dinheiro vira patrimônio. Faz sentido?"
@@ -668,15 +721,27 @@ SCRIPT OBJEÇÃO "NÃO É O MOMENTO":
 SCRIPT FECHAMENTO:
 "[Nome], pelo que conversamos, o [empreendimento] parece ser a melhor escolha para você. Quer que eu reserve uma unidade no seu nome para garantir o preço de hoje? A reserva é sem compromisso e você tem [X] dias para confirmar."
 
-5. ARGUMENTOS ESPECÍFICOS FAB:
-- Estabilidade do militar = menor risco de crédito = melhor aprovação bancária
-- POUPEX/CFIAe = taxas que o mercado civil não consegue
-- Locais próximos às bases = valorização garantida pela demanda constante
-- Militares se transferem → imóvel é investimento que gera renda de aluguel ou valoriza
+5. ARGUMENTOS POR PERFIL:
+
+Forças Armadas (Marinha, Exército, Aeronáutica):
+- Estabilidade = menor risco de crédito = melhor aprovação bancária
+- POUPEX (base, tri-força) + complementos exclusivos: CFIAe (Aeronáutica), CCCPM (Marinha) = taxas que o mercado civil não consegue
+- Locais próximos às bases/organizações militares = valorização garantida pela demanda constante
+- Transferências frequentes → imóvel é investimento que gera renda de aluguel ou valoriza
 - Pensionistas e reservistas também têm acesso ao POUPEX
 
+Polícia Militar e Corpo de Bombeiros (estaduais):
+- NÃO têm POUPEX/CFIAe/CCCPM — nunca ofereça isso a esse perfil
+- Argumento principal: estabilidade + convênio servidor público em bancos (taxas melhores que financiamento comum)
+- Se o lead perguntar sobre fundo/benefício próprio do estado, oriente a confirmar com o RH da corporação — não afirme sem confirmação
+
+Servidores civis (Federal, Estadual, Municipal) e Ministério Público:
+- Estabilidade + renda previsível = bom perfil de crédito
+- Argumento principal: convênio servidor público em bancos
+- Maioria estatutária = sem FGTS; só CLT tem FGTS — sempre perguntar o regime antes de usar isso como argumento
+
 6. PROCESSO DE VENDA WAL — etapas:
-1) Qualificação (renda, posto, necessidade, prazo de decisão)
+1) Qualificação (renda, força/órgão, posto ou cargo, regime — estatutário/CLT, necessidade, prazo de decisão)
 2) Apresentação do portfólio filtrado
 3) Simulação financeira personalizada
 4) Visita ao imóvel / tour virtual
@@ -694,9 +759,10 @@ FORMATO PARA CONSULTOR:
 LIMITES:
 - Não tome decisões comerciais pelo consultor (desconto, prazo especial)
 - Não acesse sistemas externos além dos links fornecidos
+- Para Polícia Militar, Bombeiros, servidores estaduais/municipais e Ministério Público: benefícios variam por estado/órgão — nunca generalize como regra nacional (diferente do POUPEX, que é federal e uniforme)
 - Para questões jurídicas ou contratuais complexas, oriente consultar o gestor
 
-CONTATO GESTOR WAL: wal.imoveiseconsultoria@gmail.com`;
+CONTATO GESTOR WAL: comercial@walservidor.com.br`;
 
 /* ════════════════════════════════════════════════════════════
    CONTEÚDO DINÂMICO POR MODO
@@ -705,7 +771,7 @@ const CONFIG = {
   lead: {
     badgeText:    'Lead',
     badgeClass:   'lead',
-    statusText:   'Especialista em imóveis FAB',
+    statusText:   'Especialista em imóveis para militares e servidores públicos',
     navBackHref:  'index.html',
     navBackLabel: '← Início',
     navSecHref:   'imoveis.html',
@@ -713,29 +779,30 @@ const CONFIG = {
     placeholder:  'Digite sua pergunta sobre imóveis, financiamento, documentação...',
     userAvatar:   '🪖',
     welcomeHTML: `
-      <p>Olá! Sou o <strong>Consultor WAL</strong> — seu assistente especializado em imóveis para militares e servidores da <strong>Força Aérea Brasileira</strong>.</p>
+      <p>Olá! Sou o <strong>Consultor WAL</strong> — seu assistente especializado em imóveis para militares (Marinha, Exército, Aeronáutica, Polícia Militar, Corpo de Bombeiros) e servidores públicos federais, estaduais e municipais, incluindo o Ministério Público.</p>
       <p>Posso te ajudar com:</p>
       <ul>
-        <li>Simulações de financiamento (POUPEX, CFIAe, FGTS)</li>
+        <li>Simulações de financiamento (POUPEX, CFIAe, CCCPM, convênio servidor público)</li>
         <li>Comparativo SAC vs Tabela Price</li>
-        <li>Imóveis disponíveis por cluster e base</li>
+        <li>Imóveis disponíveis por região</li>
         <li>Documentação necessária para aprovação</li>
         <li>Dúvidas sobre ITBI, CET, Minha Casa Minha Vida</li>
       </ul>
       <div class="highlight-box">
-        <strong>✈️ Exclusivo para a FAB</strong>
-        Conheço todos os benefícios específicos para militares da ativa, reserva e pensionistas — basta perguntar!
+        <strong>🎖️ Militares e Servidores Públicos</strong>
+        Conheço os benefícios específicos de cada força e órgão — Marinha, Exército, Aeronáutica, PM, Bombeiros e servidores civis. Basta perguntar!
       </div>
       <div class="action-chips">
         <button class="chip" onclick="sendSuggestion('Quero simular um financiamento')">💰 Simular financiamento</button>
-        <button class="chip" onclick="sendSuggestion('Quais imóveis estão disponíveis em Ilha do Governador?')">🏠 Ver imóveis</button>
-        <button class="chip" onclick="sendSuggestion('Como funciona o POUPEX para oficiais?')">❓ Como funciona POUPEX</button>
+        <button class="chip" onclick="sendSuggestion('Quais imóveis estão disponíveis?')">🏠 Ver imóveis</button>
+        <button class="chip" onclick="sendSuggestion('Sou servidor público estadual, quais opções de financiamento tenho?')">❓ Sou servidor público</button>
       </div>`,
     suggestions: [
-      { label: '🎖️ Sou sargento, por onde começo?',    text: 'Quero comprar meu primeiro imóvel sendo sargento da FAB. Por onde começo?' },
-      { label: '💳 FGTS para militares',                text: 'Como usar o FGTS para comprar imóvel sendo militar?' },
+      { label: '🎖️ Sou militar, por onde começo?',      text: 'Quero comprar meu primeiro imóvel sendo militar. Por onde começo?' },
+      { label: '🏛️ Sou servidor público civil',         text: 'Sou servidor público estadual, quais opções de financiamento tenho?' },
+      { label: '💳 FGTS: estatutário ou CLT?',           text: 'Como funciona o FGTS para quem é estatutário e para quem é CLT?' },
       { label: '📊 SAC vs Tabela Price',                text: 'Qual a diferença entre SAC e Tabela Price? Qual é melhor para mim?' },
-      { label: '📋 Documentos necessários',             text: 'Quais documentos preciso para financiar um imóvel como oficial da FAB?' },
+      { label: '📋 Documentos necessários',             text: 'Quais documentos preciso para financiar um imóvel como militar ou servidor público?' },
       { label: '🧮 Simular pelo POUPEX',                text: 'Tenho renda de R$8.000. Quanto posso financiar pelo POUPEX?' },
     ],
   },
@@ -758,7 +825,7 @@ const CONFIG = {
         <li>Busca e comparativo de imóveis da carteira</li>
         <li>Links dos sites RIVA, CURY, EMCAMP</li>
         <li>Simulações financeiras para apresentar ao lead</li>
-        <li>Argumentos específicos para o público FAB</li>
+        <li>Argumentos específicos por perfil (Forças Armadas, PM/Bombeiros, servidores civis, MP)</li>
       </ul>
       <div class="highlight-box">
         <strong>🎯 Modo Consultor ativo</strong>
@@ -856,6 +923,75 @@ function perguntaSobreImoveis(texto) {
 }
 
 /* ════════════════════════════════════════════════════════════
+   BASE DE REFERÊNCIAS (órgãos, construtoras, financiamentos, links)
+   Aba "REFERENCIAS" na mesma planilha WAL Imóveis — Portfólio.
+   Colunas: A-ID B-Ativo C-Categoria D-Força/Esfera E-Nome F-Link
+            G-Descrição H-Palavras-chave (separadas por vírgula)
+════════════════════════════════════════════════════════════ */
+const SHEET_ABA_REF = 'REFERENCIAS';
+let referenciasCache = null;
+
+function carregarReferencias() {
+  return new Promise((resolve) => {
+    if (referenciasCache) { resolve(referenciasCache); return; }
+    const cb    = 'wal_ref_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const scr   = document.createElement('script');
+    const timer = setTimeout(() => { cleanup(); resolve([]); }, 8000);
+    function cleanup() {
+      clearTimeout(timer); delete window[cb];
+      if (scr.parentNode) scr.parentNode.removeChild(scr);
+    }
+    window[cb] = (data) => {
+      cleanup();
+      try {
+        const table = data.table;
+        // O gviz não retorna erro quando a aba "REFERENCIAS" ainda não
+        // existe — devolve dados de outra aba silenciosamente. Confirma
+        // pelo cabeçalho da coluna E (Nome) em table.cols (o gviz remove a
+        // linha de cabeçalho de table.rows automaticamente) antes de aceitar.
+        if (!table || !table.cols || !table.cols[4] || table.cols[4].label !== 'Nome') {
+          referenciasCache = [];
+          resolve([]);
+          return;
+        }
+        const rows = table.rows || [];
+        const g = (row, i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '').trim() : ''; };
+        referenciasCache = rows
+          .filter(row => row.c && row.c[1] && row.c[1].v === true)
+          .map(row => ({
+            categoria: g(row,2),
+            forca:     g(row,3),
+            nome:      g(row,4),
+            link:      g(row,5),
+            descricao: g(row,6),
+            palavras:  g(row,7).toLowerCase().split(',').map(s => s.trim()).filter(Boolean)
+          }))
+          .filter(r => r.nome);
+        resolve(referenciasCache);
+      } catch(e) { resolve([]); }
+    };
+    scr.src = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:json;responseHandler:'+cb+'&sheet='+encodeURIComponent(SHEET_ABA_REF);
+    scr.onerror = () => { cleanup(); resolve([]); };
+    document.head.appendChild(scr);
+  });
+}
+
+function referenciasRelevantes(texto, lista) {
+  const t = texto.toLowerCase();
+  return lista.filter(r => r.palavras.some(p => p && t.includes(p)));
+}
+
+function referenciasParaTexto(lista) {
+  return lista.map((r,i) => [
+    (i+1)+'. **'+r.nome+'**',
+    r.categoria ? 'Categoria: '+r.categoria : '',
+    r.forca     ? 'Força/Esfera: '+r.forca  : '',
+    r.descricao ? 'Descrição: '+r.descricao : '',
+    r.link      ? 'Link: '+r.link           : ''
+  ].filter(Boolean).join(' | ')).join('\n');
+}
+
+/* ════════════════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════════════════ */
 window.addEventListener('DOMContentLoaded', () => {
@@ -869,7 +1005,10 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('navImoveis').textContent   = cfg.navSecLabel;
   document.getElementById('userInput').placeholder    = cfg.placeholder;
 
-  if (IS_CONSULTOR) document.getElementById('app').classList.add('consultor-mode');
+  if (IS_CONSULTOR) {
+    document.getElementById('app').classList.add('consultor-mode');
+    document.getElementById('centralFloat').style.display = 'none';
+  }
 
   // Welcome message
   document.getElementById('welcomeBubble').innerHTML = cfg.welcomeHTML;
@@ -903,6 +1042,7 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 
   carregarImoveis();
+  carregarReferencias();
 });
 
 function prechatSubmit() {
@@ -974,6 +1114,14 @@ async function sendMessage() {
       bloco += 'Use esses dados para responder. Apresente de forma organizada. Se houver link, mencione-o.\n════════════════════════════════════════════';
       if (!lista.length) bloco += '\n\nATENÇÃO: carteira vazia ou falha ao carregar. Oriente o usuário a acessar imoveis.html ou contatar pelo WhatsApp.';
       systemFinal += bloco;
+    }
+
+    const referencias = await carregarReferencias();
+    const refsRelevantes = referenciasRelevantes(text, referencias);
+    if (refsRelevantes.length) {
+      systemFinal += '\n\n════ BASE DE REFERÊNCIAS — DADOS REAIS ════\n' +
+        referenciasParaTexto(refsRelevantes) +
+        '\n════════════════════════════════════════════';
     }
 
     // Chama o backend (chave nunca exposta no front)
