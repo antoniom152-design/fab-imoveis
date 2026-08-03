@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Gestão de Usuários &amp; Dashboards (Sistema Web — Fase 1)</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  --gold:#C9A84C;--gold2:#E8C96A;--gold-dim:rgba(201,168,76,.10);--gold-b:rgba(201,168,76,.22);
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.10);
+  --red:#DC2626;--red2:#F87171;--red-dim:rgba(220,38,38,.10);
+  --amber:#D97706;--amber2:#FBBF24;--amber-dim:rgba(217,119,6,.10);
+  --surf:#0D1B2E;--surf2:#111F35;--surf3:#152844;
+  --card:#152540;--card2:#1A2E50;
+  --bdr:rgba(255,255,255,.07);--bdr2:rgba(255,255,255,.13);
+  --txt:#E8EDF5;--muted:#7A90A8;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif;color:inherit}
+a{text-decoration:none;color:inherit}
+.hidden{display:none !important}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ══════ AUTH ══════ */
+#authScreen{position:fixed;inset:0;z-index:9999;background:radial-gradient(circle at 30% 20%,#0d2544 0%,var(--navy) 60%);display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--gold-b);border-radius:16px;padding:32px 28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.auth-box h1{font-family:'Playfair Display',serif;font-size:19px;color:var(--gold2);margin-bottom:4px}
+.auth-box .sub{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:22px}
+.auth-box input{width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:9px;padding:12px 14px;color:var(--txt);font-family:var(--mono);font-size:18px;text-align:center;letter-spacing:.3em;margin-bottom:14px}
+.auth-box input:focus{outline:none;border-color:var(--gold)}
+.auth-err{color:var(--red2);font-size:12px;margin-bottom:10px;min-height:16px}
+
+/* ══════ TOP BAR / SHELL ══════ */
+#app header.topbar{position:sticky;top:0;z-index:50;background:rgba(8,25,46,.97);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--bdr);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.tb-title{font-family:'Playfair Display',serif;font-size:16.5px;color:var(--gold2)}
+.tb-title small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:2px}
+.proto-badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;background:var(--amber-dim);color:var(--amber2);
+  border:1px solid rgba(217,119,6,.35);padding:5px 12px;border-radius:999px}
+.wrap{max-width:1280px;margin:0 auto;padding:22px 24px 80px}
+
+.banner{background:var(--amber-dim);border:1px solid rgba(217,119,6,.3);border-radius:10px;padding:12px 16px;
+  font-size:12.5px;color:#FDE7C4;margin-bottom:22px;line-height:1.6}
+.banner code{font-family:var(--mono)}
+
+.tabs{display:flex;gap:8px;margin-bottom:20px;border-bottom:1px solid var(--bdr)}
+.tab-btn{background:none;border:none;padding:10px 18px;font-size:13px;color:var(--muted);cursor:pointer;
+  border-bottom:2px solid transparent;font-weight:600}
+.tab-btn.active{color:var(--gold2);border-bottom-color:var(--gold)}
+.tabpanel.hidden{display:none}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+@media(max-width:760px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:16px 18px}
+.kpi .n{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--gold2)}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px}
+
+.panel{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.panel-h{padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.panel-h h2{font-family:'Playfair Display',serif;font-size:15px}
+.panel-actions{display:flex;gap:8px;align-items:center}
+
+.btn{font-family:'Inter',sans-serif;font-size:12px;font-weight:600;border-radius:8px;padding:9px 16px;border:1px solid var(--bdr2);
+  background:var(--surf2);color:var(--txt);cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--gold-b)}
+.btn.gold{background:var(--gold);border-color:var(--gold);color:var(--navy);font-weight:700}
+.btn.gold:hover{background:var(--gold2)}
+.btn.danger{background:var(--red-dim);border-color:rgba(220,38,38,.35);color:var(--red2)}
+.btn.sm{padding:6px 11px;font-size:11px}
+select.filter{background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:8px 12px;font-size:12px}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  padding:10px 14px;border-bottom:1px solid var(--bdr);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--bdr);vertical-align:middle}
+tbody tr:hover td{background:rgba(255,255,255,.02)}
+.empty-row td{text-align:center;color:var(--muted);padding:32px}
+
+.badge{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.04em;padding:3px 9px;border-radius:999px;text-transform:uppercase;display:inline-block}
+.badge.ativo{background:var(--green-dim);color:var(--green2)}
+.badge.inativo{background:var(--red-dim);color:var(--red2)}
+.badge.pendente{background:var(--amber-dim);color:var(--amber2)}
+.chip{display:inline-block;background:var(--surf3);border:1px solid var(--bdr2);border-radius:999px;padding:2px 9px;
+  font-size:10.5px;color:var(--gold2);margin:1px 3px 1px 0}
+.tbl-actions{display:flex;gap:6px;flex-wrap:wrap}
+
+/* ══════ MODAL ══════ */
+.modal-overlay{position:fixed;inset:0;background:rgba(3,8,20,.72);backdrop-filter:blur(2px);z-index:200;
+  display:flex;align-items:center;justify-content:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.show{opacity:1;pointer-events:auto}
+.modal{width:100%;max-width:520px;max-height:88vh;overflow-y:auto;background:var(--card);border:1px solid var(--bdr2);
+  border-radius:14px;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-head h3{font-family:'Playfair Display',serif;font-size:16px}
+.modal-close{background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1}
+.modal-body{padding:20px 22px}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--bdr);display:flex;justify-content:flex-end;gap:10px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid .full{grid-column:1/-1}
+label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+input[type=text],input[type=email],input[type=tel],input[type=number],select{
+  width:100%;background:var(--surf2);border:1px solid var(--bdr2);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--txt)}
+input:focus,select:focus{outline:none;border-color:var(--gold)}
+.checkbox-list{display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto;background:var(--surf2);
+  border:1px solid var(--bdr2);border-radius:8px;padding:10px 12px}
+.checkbox-list label{display:flex;align-items:center;gap:8px;text-transform:none;font-size:12.5px;color:var(--txt);margin:0}
+.checkbox-list input[type=checkbox]{width:auto}
+.field-hint{font-size:10.5px;color:var(--muted);margin-top:5px}
+
+#toastBox{position:fixed;bottom:24px;right:24px;z-index:500;display:flex;flex-direction:column;gap:8px}
+.toast{background:var(--card);border:1px solid var(--gold-b);border-radius:9px;padding:11px 16px;font-size:12.5px;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);animation:toastin .25s ease}
+.toast.err{border-color:rgba(220,38,38,.4)}
+@keyframes toastin{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+</style>
+</head>
+<body>
+
+<div id="authScreen">
+  <div class="auth-box">
+    <h1>Gestão de Usuários &amp; Dashboards</h1>
+    <div class="sub">Sistema Web · Cadastro Único · Fase 1</div>
+    <input type="password" id="pinInput" maxlength="20" placeholder="••••••••" autocomplete="off">
+    <div class="auth-err" id="authErr"></div>
+    <button class="btn gold" style="width:100%" onclick="tentarLogin()">Entrar</button>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="tb-title">Gestão de Usuários &amp; Dashboards
+      <small>Cadastro único · Sistema Web WAL Imóveis</small>
+    </div>
+    <span class="proto-badge">🧪 Fase 1 — backend próprio e isolado</span>
+  </header>
+
+  <div class="wrap">
+    <div class="banner" id="setupBanner">
+      ⚠️ Este backend é <b>novo</b>. Antes de usar: crie a planilha, cole o script
+      <code>painel/shared/apps-script-sistema-web-cadastro.gs</code>, rode <code>setupCadastroUnico()</code>,
+      implante como Web App e cole a URL em <code>CADASTRO_API_URL</code> no topo do <code>&lt;script&gt;</code>
+      deste arquivo (linha marcada <code>COLOQUE_AQUI</code>). Até lá, as listas abaixo ficam vazias.
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="usuarios" onclick="irParaTab('usuarios')">👤 Usuários</button>
+      <button class="tab-btn" data-tab="dashboards" onclick="irParaTab('dashboards')">🗂️ Dashboards</button>
+    </div>
+
+    <!-- ═══ USUÁRIOS ═══ -->
+    <section class="tabpanel" id="tab-usuarios">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="n" id="kpiUTotal">0</div><div class="l">Total</div></div>
+        <div class="kpi"><div class="n" id="kpiUAtivos">0</div><div class="l">Ativos</div></div>
+        <div class="kpi"><div class="n" id="kpiUInativos">0</div><div class="l">Inativos</div></div>
+        <div class="kpi"><div class="n" id="kpiUPendentes">0</div><div class="l">Pendentes</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <h2>Usuários cadastrados</h2>
+          <div class="panel-actions">
+            <select class="filter" id="filtroStatusUsuario" onchange="renderUsuarios()">
+              <option value="">Todos os status</option>
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+              <option value="pendente">Pendente</option>
+            </select>
+            <button class="btn sm" onclick="carregarUsuarios()">↻ Atualizar</button>
+            <button class="btn gold sm" onclick="abrirModalUsuario()">+ Novo Usuário</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>E-mail</th><th>Nome</th><th>Telefone</th><th>Dashboards</th><th>Padrão</th>
+              <th>Status</th><th>Construtora</th><th>Cadastrado por</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="tbodyUsuarios"><tr class="empty-row"><td colspan="9">Carregando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ DASHBOARDS ═══ -->
+    <section class="tabpanel hidden" id="tab-dashboards">
+      <div class="kpi-grid">
+        <div class="kpi"><div class="n" id="kpiDTotal">0</div><div class="l">Total</div></div>
+        <div class="kpi"><div class="n" id="kpiDAtivos">0</div><div class="l">Ativos</div></div>
+        <div class="kpi"><div class="n" id="kpiDInativos">0</div><div class="l">Inativos</div></div>
+        <div class="kpi"><div class="n" id="kpiDVazio">—</div><div class="l">&nbsp;</div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h">
+          <h2>Catálogo de dashboards</h2>
+          <div class="panel-actions">
+            <button class="btn sm" onclick="carregarDashboards()">↻ Atualizar</button>
+            <button class="btn gold sm" onclick="abrirModalDashboard()">+ Novo Dashboard</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table>
+            <thead><tr>
+              <th>Id</th><th>Ícone</th><th>Nome</th><th>Rota</th><th>Status</th><th>Ordem</th><th>Ações</th>
+            </tr></thead>
+            <tbody id="tbodyDashboards"><tr class="empty-row"><td colspan="7">Carregando…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ═══ MODAL USUÁRIO ═══ -->
+<div class="modal-overlay" id="modalUsuario">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalUsuarioTitulo">Novo Usuário</h3><button class="modal-close" onclick="fecharModal('modalUsuario')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="full"><label>E-mail (chave)</label><input type="email" id="fUEmail" placeholder="nome@exemplo.com"></div>
+        <div><label>Nome completo</label><input type="text" id="fUNome"></div>
+        <div><label>Telefone</label><input type="tel" id="fUTelefone" placeholder="(21) 90000-0000"></div>
+        <div><label>Status</label>
+          <select id="fUStatus"><option value="pendente">Pendente</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+        </div>
+        <div><label>Construtora/Empresa (opcional)</label><input type="text" id="fUConstrutora"></div>
+        <div class="full">
+          <label>Dashboards (pode marcar mais de um)</label>
+          <div class="checkbox-list" id="fUDashboardsList"></div>
+        </div>
+        <div class="full">
+          <label>Dashboard padrão (abre no botão "Acessar meu Dashboard")</label>
+          <select id="fUDashboardPadrao"><option value="">— selecione —</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="fecharModal('modalUsuario')">Cancelar</button>
+      <button class="btn gold" onclick="salvarUsuario()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL DASHBOARD ═══ -->
+<div class="modal-overlay" id="modalDashboard">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modalDashboardTitulo">Novo Dashboard</h3><button class="modal-close" onclick="fecharModal('modalDashboard')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div><label>Id (slug único)</label><input type="text" id="fDId" placeholder="EX: CORRETOR_AUTONOMO"></div>
+        <div><label>Ícone (emoji)</label><input type="text" id="fDIcone" placeholder="📊" maxlength="4"></div>
+        <div class="full"><label>Nome de exibição</label><input type="text" id="fDNome"></div>
+        <div class="full"><label>Descrição</label><input type="text" id="fDDescricao"></div>
+        <div class="full"><label>Rota/arquivo</label><input type="text" id="fDRota" placeholder="painel/corretor/dashboard-corretor.html"></div>
+        <div><label>Status</label>
+          <select id="fDStatus"><option value="ativo">Ativo</option><option value="em_construcao">Em construção</option><option value="inativo">Inativo</option></select>
+        </div>
+        <div><label>Ordem de exibição</label><input type="number" id="fDOrdem" value="0"></div>
+      </div>
+      <div class="field-hint" id="fDIdHint"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" onclick="fecharModal('modalDashboard')">Cancelar</button>
+      <button class="btn gold" onclick="salvarDashboard()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toastBox"></div>
+
+<script>
+/* Backend NOVO e ISOLADO — cole aqui a URL /exec depois de implantar
+   painel/shared/apps-script-sistema-web-cadastro.gs (ver instruções no
+   topo daquele arquivo). Não é nenhum dos scripts já usados por
+   admin.html/index.html/reserva.html nem o do Feirão Online. */
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+
+/* Mesmo PIN já usado para entrar em admin.html (ADMIN_PIN). */
+const PIN_ADMIN_SISTEMA = 'FAB2024';
+
+function apiConfigurada(){ return CADASTRO_API_URL && CADASTRO_API_URL.indexOf('COLOQUE_AQUI') !== 0; }
+
+let AUTH_PIN = '';
+let USUARIOS = [];
+let DASHBOARDS = [];
+
+/* ── Login (gate local, mesmo PIN usado como authPin nas escritas) ── */
+function tentarLogin(){
+  const pin = document.getElementById('pinInput').value.trim();
+  const err = document.getElementById('authErr');
+  if(pin !== PIN_ADMIN_SISTEMA){ err.textContent = 'PIN incorreto.'; return; }
+  err.textContent = '';
+  AUTH_PIN = pin;
+  document.getElementById('authScreen').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  if(apiConfigurada()) document.getElementById('setupBanner').classList.add('hidden');
+  carregarTudo();
+}
+document.getElementById('pinInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tentarLogin(); });
+
+/* ── Integração Apps Script (leitura JSONP / escrita no-cors) ── */
+function cadastroApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    if(!apiConfigurada()){ resolve(null); return; }
+    const cb = 'cadCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+function chamarCadastroApi(action, payload){
+  if(!apiConfigurada()){ toast('Configure CADASTRO_API_URL primeiro (ver aviso no topo).', true); return; }
+  try{
+    fetch(CADASTRO_API_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(Object.assign({action}, payload))
+    }).catch(()=>{});
+  }catch(e){}
+}
+
+function toast(msg, isErr){
+  const box = document.getElementById('toastBox');
+  const el = document.createElement('div');
+  el.className = 'toast'+(isErr?' err':'');
+  el.textContent = msg;
+  box.appendChild(el);
+  setTimeout(()=>el.remove(), 4000);
+}
+function fecharModal(id){ document.getElementById(id).classList.remove('show'); }
+
+function irParaTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab===tab));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('tab-'+tab).classList.remove('hidden');
+}
+
+async function carregarTudo(){
+  await carregarDashboards();
+  await carregarUsuarios();
+}
+
+/* ── USUÁRIOS ── */
+async function carregarUsuarios(){
+  const r = await cadastroApiJsonp('cadastro_listar_usuarios', {});
+  USUARIOS = (r && r.ok) ? r.itens : [];
+  if(apiConfigurada() && !r) toast('Não foi possível carregar Usuários (rede/API).', true);
+  else if(apiConfigurada() && !r.ok) toast(r.erro || 'Erro ao carregar.', true);
+  renderUsuarios();
+}
+function renderUsuarios(){
+  const filtro = document.getElementById('filtroStatusUsuario').value;
+  const lista = filtro ? USUARIOS.filter(u=>u.status===filtro) : USUARIOS;
+  const tbody = document.getElementById('tbodyUsuarios');
+  document.getElementById('kpiUTotal').textContent = USUARIOS.length;
+  document.getElementById('kpiUAtivos').textContent = USUARIOS.filter(u=>u.status==='ativo').length;
+  document.getElementById('kpiUInativos').textContent = USUARIOS.filter(u=>u.status==='inativo').length;
+  document.getElementById('kpiUPendentes').textContent = USUARIOS.filter(u=>u.status==='pendente').length;
+  if(!lista.length){ tbody.innerHTML = '<tr class="empty-row"><td colspan="9">Nenhum usuário encontrado.</td></tr>'; return; }
+  tbody.innerHTML = lista.map(u=>`
+    <tr>
+      <td><b>${escapeHtml(u.email)}</b></td>
+      <td>${escapeHtml(u.nome)}</td>
+      <td>${escapeHtml(u.telefone)}</td>
+      <td>${u.dashboards.map(d=>`<span class="chip">${escapeHtml(d)}</span>`).join('') || '—'}</td>
+      <td>${escapeHtml(u.dashboardPadrao) || '—'}</td>
+      <td><span class="badge ${u.status}">${escapeHtml(u.status)}</span></td>
+      <td>${escapeHtml(u.construtora) || '—'}</td>
+      <td>${escapeHtml(u.cadastradoPor) || '—'}</td>
+      <td class="tbl-actions">
+        <button class="btn sm" onclick="abrirModalUsuario('${escapeAttr(u.email)}')">Editar</button>
+        <button class="btn sm" onclick="toggleStatusUsuario('${escapeAttr(u.email)}','${u.status==='ativo'?'desativar':'ativar'}')">${u.status==='ativo'?'Desativar':'Ativar'}</button>
+        <button class="btn sm danger" onclick="excluirUsuario('${escapeAttr(u.email)}')">Excluir</button>
+      </td>
+    </tr>`).join('');
+}
+function popularCheckboxesDashboards(){
+  const box = document.getElementById('fUDashboardsList');
+  box.innerHTML = DASHBOARDS.map(d=>`
+    <label><input type="checkbox" value="${escapeAttr(d.id)}" onchange="atualizarSelectPadrao()"> ${escapeHtml(d.icone)} ${escapeHtml(d.nome)} <span style="color:var(--muted)">(${escapeHtml(d.id)})</span></label>
+  `).join('') || '<span style="color:var(--muted)">Nenhum dashboard cadastrado ainda — cadastre na aba Dashboards primeiro.</span>';
+}
+function atualizarSelectPadrao(){
+  const marcados = [...document.querySelectorAll('#fUDashboardsList input:checked')].map(c=>c.value);
+  const sel = document.getElementById('fUDashboardPadrao');
+  const atual = sel.value;
+  sel.innerHTML = '<option value="">— selecione —</option>' + marcados.map(id=>`<option value="${escapeAttr(id)}">${escapeHtml(id)}</option>`).join('');
+  if(marcados.includes(atual)) sel.value = atual;
+}
+function abrirModalUsuario(email){
+  popularCheckboxesDashboards();
+  const editando = !!email;
+  document.getElementById('modalUsuarioTitulo').textContent = editando ? 'Editar Usuário' : 'Novo Usuário';
+  const u = editando ? USUARIOS.find(x=>x.email===email) : null;
+  document.getElementById('fUEmail').value = u ? u.email : '';
+  document.getElementById('fUEmail').disabled = editando;
+  document.getElementById('fUNome').value = u ? u.nome : '';
+  document.getElementById('fUTelefone').value = u ? u.telefone : '';
+  document.getElementById('fUStatus').value = u ? u.status : 'pendente';
+  document.getElementById('fUConstrutora').value = u ? u.construtora : '';
+  if(u){
+    [...document.querySelectorAll('#fUDashboardsList input')].forEach(c=>{ c.checked = u.dashboards.includes(c.value); });
+  }
+  atualizarSelectPadrao();
+  if(u) document.getElementById('fUDashboardPadrao').value = u.dashboardPadrao;
+  document.getElementById('modalUsuario').classList.add('show');
+}
+function salvarUsuario(){
+  const email = document.getElementById('fUEmail').value.trim();
+  if(!email){ toast('Informe o e-mail.', true); return; }
+  const editando = document.getElementById('fUEmail').disabled;
+  const dashboards = [...document.querySelectorAll('#fUDashboardsList input:checked')].map(c=>c.value);
+  const payload = {
+    authPin: AUTH_PIN, operacao: editando ? 'atualizar' : 'criar', email,
+    nome: document.getElementById('fUNome').value.trim(),
+    telefone: document.getElementById('fUTelefone').value.trim(),
+    status: document.getElementById('fUStatus').value,
+    construtora: document.getElementById('fUConstrutora').value.trim(),
+    dashboards, dashboardPadrao: document.getElementById('fUDashboardPadrao').value
+  };
+  chamarCadastroApi('cadastro_usuario', payload);
+  toast('Enviado — atualizando lista em instantes…');
+  fecharModal('modalUsuario');
+  setTimeout(carregarUsuarios, 2500);
+}
+function toggleStatusUsuario(email, operacao){
+  chamarCadastroApi('cadastro_usuario', { authPin: AUTH_PIN, operacao, email });
+  const u = USUARIOS.find(x=>x.email===email);
+  if(u) u.status = operacao==='ativar' ? 'ativo' : 'inativo';
+  renderUsuarios();
+  toast('Status atualizado — confirmando com o servidor…');
+  setTimeout(carregarUsuarios, 2500);
+}
+function excluirUsuario(email){
+  if(!confirm('Excluir o usuário '+email+'? Esta ação não pode ser desfeita.')) return;
+  chamarCadastroApi('cadastro_usuario', { authPin: AUTH_PIN, operacao:'excluir', email });
+  USUARIOS = USUARIOS.filter(u=>u.email!==email);
+  renderUsuarios();
+  toast('Exclusão enviada.');
+  setTimeout(carregarUsuarios, 2500);
+}
+
+/* ── DASHBOARDS ── */
+async function carregarDashboards(){
+  const r = await cadastroApiJsonp('cadastro_listar_dashboards', {});
+  DASHBOARDS = (r && r.ok) ? r.itens : [];
+  if(apiConfigurada() && !r) toast('Não foi possível carregar Dashboards (rede/API).', true);
+  else if(apiConfigurada() && !r.ok) toast(r.erro || 'Erro ao carregar.', true);
+  renderDashboards();
+  popularCheckboxesDashboards();
+}
+function renderDashboards(){
+  const tbody = document.getElementById('tbodyDashboards');
+  document.getElementById('kpiDTotal').textContent = DASHBOARDS.length;
+  document.getElementById('kpiDAtivos').textContent = DASHBOARDS.filter(d=>d.status==='ativo').length;
+  document.getElementById('kpiDInativos').textContent = DASHBOARDS.filter(d=>d.status!=='ativo').length;
+  if(!DASHBOARDS.length){ tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Nenhum dashboard cadastrado.</td></tr>'; return; }
+  tbody.innerHTML = DASHBOARDS.slice().sort((a,b)=>a.ordem-b.ordem).map(d=>`
+    <tr>
+      <td><b>${escapeHtml(d.id)}</b></td>
+      <td>${escapeHtml(d.icone)}</td>
+      <td>${escapeHtml(d.nome)}</td>
+      <td style="font-family:var(--mono);font-size:11px;color:var(--muted)">${escapeHtml(d.rota)}</td>
+      <td><span class="badge ${d.status==='ativo'?'ativo':'inativo'}">${escapeHtml(d.status)}</span></td>
+      <td>${d.ordem}</td>
+      <td class="tbl-actions">
+        <button class="btn sm" onclick="abrirModalDashboard('${escapeAttr(d.id)}')">Editar</button>
+        <button class="btn sm" onclick="toggleStatusDashboard('${escapeAttr(d.id)}','${d.status==='ativo'?'desativar':'ativar'}')">${d.status==='ativo'?'Desativar':'Ativar'}</button>
+        <button class="btn sm danger" onclick="excluirDashboard('${escapeAttr(d.id)}')">Excluir</button>
+      </td>
+    </tr>`).join('');
+}
+function abrirModalDashboard(id){
+  const editando = !!id;
+  const d = editando ? DASHBOARDS.find(x=>x.id===id) : null;
+  document.getElementById('modalDashboardTitulo').textContent = editando ? 'Editar Dashboard' : 'Novo Dashboard';
+  document.getElementById('fDId').value = d ? d.id : '';
+  document.getElementById('fDId').disabled = editando;
+  document.getElementById('fDIdHint').textContent = editando ? '' : 'Vira maiúsculo e sem espaços automaticamente (ex.: CORRETOR_AUTONOMO).';
+  document.getElementById('fDIcone').value = d ? d.icone : '';
+  document.getElementById('fDNome').value = d ? d.nome : '';
+  document.getElementById('fDDescricao').value = d ? d.descricao : '';
+  document.getElementById('fDRota').value = d ? d.rota : '';
+  document.getElementById('fDStatus').value = d ? d.status : 'ativo';
+  document.getElementById('fDOrdem').value = d ? d.ordem : (DASHBOARDS.length+1);
+  document.getElementById('modalDashboard').classList.add('show');
+}
+function salvarDashboard(){
+  const id = document.getElementById('fDId').value.trim();
+  if(!id){ toast('Informe o Id do dashboard.', true); return; }
+  const editando = document.getElementById('fDId').disabled;
+  const payload = {
+    authPin: AUTH_PIN, operacao: editando ? 'atualizar' : 'criar', id,
+    nome: document.getElementById('fDNome').value.trim(),
+    descricao: document.getElementById('fDDescricao').value.trim(),
+    icone: document.getElementById('fDIcone').value.trim(),
+    rota: document.getElementById('fDRota').value.trim(),
+    status: document.getElementById('fDStatus').value,
+    ordem: Number(document.getElementById('fDOrdem').value) || 0
+  };
+  chamarCadastroApi('cadastro_dashboard', payload);
+  toast('Enviado — atualizando lista em instantes…');
+  fecharModal('modalDashboard');
+  setTimeout(carregarDashboards, 2500);
+}
+function toggleStatusDashboard(id, operacao){
+  chamarCadastroApi('cadastro_dashboard', { authPin: AUTH_PIN, operacao, id });
+  const d = DASHBOARDS.find(x=>x.id===id);
+  if(d) d.status = operacao==='ativar' ? 'ativo' : 'inativo';
+  renderDashboards();
+  toast('Status atualizado — confirmando com o servidor…');
+  setTimeout(carregarDashboards, 2500);
+}
+function excluirDashboard(id){
+  if(!confirm('Excluir o dashboard '+id+'? Usuários que apontam para ele ficarão com uma referência inválida.')) return;
+  chamarCadastroApi('cadastro_dashboard', { authPin: AUTH_PIN, operacao:'excluir', id });
+  DASHBOARDS = DASHBOARDS.filter(d=>d.id!==id);
+  renderDashboards();
+  toast('Exclusão enviada.');
+  setTimeout(carregarDashboards, 2500);
+}
+
+function escapeHtml(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s){ return escapeHtml(s).replace(/`/g,'&#96;'); }
+</script>
+</body>
+</html>

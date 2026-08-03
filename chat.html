@@ -1023,8 +1023,14 @@ window.addEventListener('DOMContentLoaded', () => {
     container.appendChild(btn);
   });
 
-  // Formulário pré-chat: só exibe para modo lead
-  if (IS_CONSULTOR) {
+  // Formulário pré-chat: só exibe para modo lead — pula se a pessoa já
+  // passou pelo gate de e-mail+OTP do index.html (nome+e-mail confirmados).
+  let _leadJaIdentificado = null;
+  try { _leadJaIdentificado = JSON.parse(sessionStorage.getItem('wal_lead_identificado') || 'null'); } catch (e) {}
+  if (IS_CONSULTOR || (_leadJaIdentificado && _leadJaIdentificado.email)) {
+    if (_leadJaIdentificado && _leadJaIdentificado.email) {
+      leadDados = { nome: _leadJaIdentificado.nome || '', telefone: '', email: _leadJaIdentificado.email };
+    }
     document.getElementById('prechat-overlay').style.display = 'none';
     document.getElementById('userInput').focus();
   } else {

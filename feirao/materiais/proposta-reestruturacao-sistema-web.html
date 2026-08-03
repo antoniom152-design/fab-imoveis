@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proposta — Nova Estrutura do Sistema Web WAL Imóveis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#0B1638;
+    --navy:#152253;
+    --navy-panel:#1A2E6E;
+    --blue:#2B5CE6;
+    --blue-light:#6EB3F7;
+    --gold:#D4AF37;
+    --gold-soft:#E8C766;
+    --white:#F5F7FC;
+    --muted:#8C9BC7;
+    --green:#34D399;
+    --red:#F87171;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(43,92,230,.18), transparent 60%),
+      radial-gradient(1000px 700px at 110% 10%, rgba(212,175,55,.10), transparent 55%),
+      var(--navy-deep);
+    font-family:'Inter',sans-serif;color:var(--white);min-height:100vh;line-height:1.5}
+  .wrap{max-width:1280px;margin:0 auto;padding:40px 24px 100px}
+  a{color:var(--blue-light)}
+
+  header{text-align:center;margin-bottom:10px}
+  .eyebrow{font-family:'JetBrains Mono',monospace;letter-spacing:.18em;text-transform:uppercase;
+    font-size:11.5px;color:var(--gold-soft);margin-bottom:12px}
+  h1{font-family:'Playfair Display',serif;font-weight:800;font-size:clamp(26px,4vw,40px);
+    margin:0 0 12px;line-height:1.2}
+  h1 span{color:var(--blue-light)}
+  .sub{color:var(--muted);font-size:15.5px;max-width:760px;margin:0 auto 6px;line-height:1.6}
+  .badge-proposal{display:inline-flex;align-items:center;gap:8px;margin-top:18px;
+    background:rgba(212,175,55,.12);border:1px solid rgba(212,175,55,.35);
+    border-radius:999px;padding:7px 16px;font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;letter-spacing:.05em;color:var(--gold-soft)}
+
+  nav.toc{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:34px 0 8px}
+  nav.toc a{font-size:12px;font-family:'JetBrains Mono',monospace;color:var(--muted);
+    border:1px solid rgba(255,255,255,.1);padding:7px 13px;border-radius:8px;text-decoration:none;
+    transition:border-color .15s,color .15s}
+  nav.toc a:hover{color:var(--blue-light);border-color:rgba(107,163,255,.4)}
+
+  section{margin-top:78px}
+  .sec-head{text-align:center;max-width:760px;margin:0 auto 34px}
+  .sec-eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--gold-soft);margin-bottom:8px}
+  h2{font-family:'Playfair Display',serif;font-size:clamp(22px,3vw,30px);font-weight:700;margin:0 0 10px}
+  .sec-sub{color:var(--muted);font-size:14px;line-height:1.6}
+
+  /* ===== Diagnóstico atual ===== */
+  .diag-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  @media(max-width:820px){.diag-grid{grid-template-columns:1fr}}
+  .diag-card{background:linear-gradient(160deg, rgba(26,46,110,.75), rgba(11,22,56,.9));
+    border:1px solid rgba(107,163,255,.25);border-radius:16px;padding:24px}
+  .diag-card.warn{border-color:rgba(212,175,55,.4)}
+  .diag-title{font-family:'Playfair Display',serif;font-weight:700;font-size:18px;margin:0 0 4px;
+    display:flex;align-items:center;gap:8px}
+  .diag-note{font-size:12.5px;color:var(--muted);margin-bottom:14px}
+  .diag-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .diag-list li{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--white);
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+    border-radius:7px;padding:7px 10px}
+  .diag-callout{margin-top:20px;padding-top:16px;border-top:1px dashed rgba(255,255,255,.12);
+    font-size:12.5px;color:var(--gold-soft);line-height:1.6}
+  .key-badge{display:inline-block;font-size:10.5px;margin-right:2px}
+
+  /* ===== Role cards ===== */
+  .role-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  @media(max-width:1080px){.role-grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:560px){.role-grid{grid-template-columns:1fr}}
+  .role-card{background:linear-gradient(160deg, rgba(26,46,110,.85), rgba(11,22,56,.9));
+    border:1px solid rgba(107,163,255,.25);border-radius:14px;padding:18px;cursor:pointer;
+    transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;position:relative}
+  .role-card:hover{transform:translateY(-4px);border-color:var(--blue-light);
+    box-shadow:0 14px 30px -12px rgba(43,92,230,.5)}
+  .role-card.is-new{border-color:rgba(52,211,153,.4)}
+  .role-card.is-new:hover{border-color:var(--green);box-shadow:0 14px 30px -12px rgba(52,211,153,.4)}
+  .role-card.is-existing{border-color:rgba(212,175,55,.45)}
+  .role-card.is-existing:hover{border-color:var(--gold);box-shadow:0 14px 30px -12px rgba(212,175,55,.5)}
+  .role-icon{font-size:24px;display:block;margin-bottom:8px}
+  .role-name{font-family:'Playfair Display',serif;font-weight:700;font-size:16px;margin:0 0 4px}
+  .role-tag{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.08em;
+    text-transform:uppercase;padding:2px 8px;border-radius:5px;display:inline-block;margin-bottom:8px}
+  .role-tag.new{background:rgba(52,211,153,.12);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+  .role-tag.existing{background:rgba(212,175,55,.12);color:var(--gold-soft);border:1px solid rgba(212,175,55,.3)}
+  .role-tag.keep{background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.12)}
+  .role-desc{font-size:12px;color:var(--muted);line-height:1.5;margin:0}
+  .role-cta{position:absolute;top:16px;right:16px;font-size:10px;color:var(--blue-light);
+    font-family:'JetBrains Mono',monospace}
+
+  /* ===== Drawer ===== */
+  .backdrop{position:fixed;inset:0;background:rgba(5,9,26,.72);backdrop-filter:blur(2px);
+    opacity:0;pointer-events:none;transition:opacity .25s ease;z-index:40}
+  .backdrop.open{opacity:1;pointer-events:auto}
+  .drawer{position:fixed;top:0;right:-100%;height:100%;width:min(560px,100%);
+    background:linear-gradient(175deg,#152253,#0B1638);border-left:1px solid rgba(107,163,255,.25);
+    z-index:41;transition:right .32s cubic-bezier(.2,.8,.25,1);overflow-y:auto;
+    box-shadow:-30px 0 60px -20px rgba(0,0,0,.6)}
+  .drawer.open{right:0}
+  .drawer-head{padding:26px 26px 18px;border-bottom:1px solid rgba(255,255,255,.08);
+    position:sticky;top:0;background:linear-gradient(175deg,#152253,#16234f);z-index:2}
+  .drawer-close{position:absolute;top:22px;right:22px;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);color:var(--white);width:32px;height:32px;border-radius:50%;
+    cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .drawer-close:hover{background:rgba(255,255,255,.14)}
+  .drawer-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--gold-soft);margin-bottom:8px}
+  .drawer-title{font-family:'Playfair Display',serif;font-size:23px;font-weight:800;margin:0 0 6px;
+    padding-right:40px}
+  .drawer-file{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--blue-light)}
+  .drawer-body{padding:22px 26px 40px}
+  .drawer-block{margin-bottom:22px}
+  .drawer-block h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);
+    margin:0 0 10px;font-family:'JetBrains Mono',monospace}
+  .drawer-block p{font-size:13.5px;color:#DCE3F5;margin:0 0 8px;line-height:1.6}
+  .drawer-block ul{margin:0;padding-left:18px;font-size:13px;color:#DCE3F5;line-height:1.7}
+  .drawer-model{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);
+    border-radius:9px;padding:11px 13px;font-size:12.5px;color:var(--gold-soft)}
+
+  /* ===== Sitemap tree ===== */
+  .tree{background:rgba(11,22,56,.55);border:1px solid rgba(107,163,255,.2);border-radius:14px;
+    padding:26px 30px;font-family:'JetBrains Mono',monospace;font-size:12.5px;line-height:2.05;
+    overflow-x:auto;color:#DCE3F5}
+  .tree .dir{color:var(--blue-light);font-weight:600}
+  .tree .new{color:var(--green)}
+  .tree .existing{color:var(--gold-soft)}
+  .tree .cmt{color:var(--muted);font-style:italic}
+  .tree-legend{display:flex;gap:22px;flex-wrap:wrap;margin-top:16px;font-size:11.5px;color:var(--muted)}
+  .tree-legend span b{padding:1px 6px;border-radius:4px}
+  .tree-legend .new b{color:var(--green)}
+  .tree-legend .existing b{color:var(--gold-soft)}
+  .tree-legend .keep b{color:var(--muted)}
+
+  /* ===== Flow diagram ===== */
+  .flow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:8px 4px 24px}
+  .flow-step{flex:0 0 190px;background:linear-gradient(160deg, rgba(26,46,110,.85), rgba(11,22,56,.9));
+    border:1px solid rgba(107,163,255,.25);border-radius:12px;padding:16px;position:relative}
+  .flow-step .fi{font-size:20px;display:block;margin-bottom:6px}
+  .flow-step b{font-family:'Playfair Display',serif;font-size:14px;display:block;margin-bottom:4px}
+  .flow-step p{font-size:11.5px;color:var(--muted);margin:0;line-height:1.5}
+  .flow-arrow{flex:0 0 40px;display:flex;align-items:center;justify-content:center;color:var(--gold-soft);
+    font-size:20px}
+  .flow-branch{flex:0 0 190px;border-color:rgba(212,175,55,.4)}
+
+  /* ===== Data model table ===== */
+  .dm-table{width:100%;border-collapse:collapse;font-size:12.5px}
+  .dm-table th{text-align:left;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--gold-soft);
+    border-bottom:1px solid rgba(212,175,55,.3);padding:10px 12px}
+  .dm-table td{padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06);vertical-align:top;color:#DCE3F5}
+  .dm-table tr:hover td{background:rgba(107,163,255,.05)}
+  .dm-domain{font-weight:700;color:var(--white)}
+  .dm-abas{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--blue-light)}
+  .dm-wrap{background:rgba(11,22,56,.5);border:1px solid rgba(107,163,255,.2);border-radius:14px;
+    padding:6px 20px;overflow-x:auto}
+  .dm-note{margin-top:18px;background:rgba(43,92,230,.1);border:1px solid rgba(107,163,255,.3);
+    border-radius:10px;padding:14px 18px;font-size:13px;color:#DCE3F5;line-height:1.6}
+
+  /* ===== Roadmap ===== */
+  .roadmap{display:flex;flex-direction:column;gap:0;max-width:820px;margin:0 auto}
+  .rm-item{display:grid;grid-template-columns:120px 24px 1fr;gap:0}
+  .rm-phase{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--gold-soft);padding:16px 12px 16px 0;
+    text-align:right}
+  .rm-line{display:flex;flex-direction:column;align-items:center}
+  .rm-dot{width:12px;height:12px;border-radius:50%;background:var(--navy-panel);border:2px solid var(--blue-light);
+    margin-top:18px;flex:0 0 auto}
+  .rm-dot.done{background:var(--green);border-color:var(--green)}
+  .rm-bar{width:2px;flex:1;background:rgba(107,163,255,.25)}
+  .rm-item:last-child .rm-bar{display:none}
+  .rm-content{padding:12px 0 28px 16px}
+  .rm-content b{font-family:'Playfair Display',serif;font-size:15.5px;display:block;margin-bottom:4px}
+  .rm-content p{font-size:12.5px;color:var(--muted);margin:0;line-height:1.6}
+
+  footer{margin-top:90px;text-align:center;padding-top:26px;border-top:1px solid rgba(255,255,255,.08)}
+  footer p{font-size:12px;color:var(--muted);max-width:600px;margin:0 auto 6px}
+  footer .stamp{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--gold-soft);margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">WAL Imóveis · Sistema Web</div>
+    <h1>Proposta de Nova Estrutura do <span>Sistema Web</span></h1>
+    <p class="sub">Como unificar o site principal com os papéis já validados no Feirão Online — Agente,
+    Cliente, Atendente, Gerente Comercial, Corretor Autônomo, Marketing e Diretoria — com um cadastro único
+    de usuários e dashboards, preparando o terreno para migrar de planilhas Google para um banco de dados real.</p>
+    <div class="badge-proposal">📐 Documento de proposta — nenhum código do sistema atual foi alterado</div>
+  </header>
+
+  <nav class="toc">
+    <a href="#diagnostico">1 · Diagnóstico</a>
+    <a href="#papeis">2 · Novos papéis</a>
+    <a href="#mapa">3 · Mapa de arquivos</a>
+    <a href="#fluxo">4 · Fluxo entre papéis</a>
+    <a href="#dados">5 · Dados → banco de dados</a>
+    <a href="#cadastro">6 · Cadastro único & login</a>
+    <a href="#roadmap">7 · Roadmap</a>
+  </nav>
+
+  <!-- ============ 1. DIAGNÓSTICO ============ -->
+  <section id="diagnostico">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Ponto de partida</div>
+      <h2>Hoje existem dois sistemas, não um</h2>
+      <p class="sec-sub">O site principal e o Feirão Online cresceram em paralelo. O Feirão já provou, em
+      produção, todos os padrões que faltam no site principal — só que isolados dentro de <code>feirao/</code>.</p>
+    </div>
+    <div class="diag-grid">
+      <div class="diag-card">
+        <div class="diag-title">🌐 Sistema Web principal</div>
+        <div class="diag-note">9 páginas públicas + 1 painel administrativo, sem conceito de "papel" além de visitante e admin</div>
+        <ul class="diag-list">
+          <li>index.html · imoveis.html · imovel.html</li>
+          <li>simulador.html · reserva.html · chat.html</li>
+          <li>ebook-financiamento-servidor-publico.html</li>
+          <li>marketing.html <span class="cmt">— existe, nunca foi implantado</span></li>
+          <li>admin.html <span class="cmt">— painel único, técnico/transversal</span></li>
+        </ul>
+      </div>
+      <div class="diag-card warn">
+        <div class="diag-title">🎪 Feirão Online (feirao/)</div>
+        <div class="diag-note">Backend único (Apps Script + Sheets, 28 abas) e 5 dashboards de papel já em produção</div>
+        <ul class="diag-list">
+          <li>feirao/cliente/dashboard-feirao-lead.html</li>
+          <li>feirao/agente/dashboard-agente.html</li>
+          <li>feirao/consultor/dashboard-feirao-atendente.html</li>
+          <li>feirao/diretoria/dashboard-diretor-wal.html</li>
+          <li>feirao/viabilizador/dashboard-viabilizador-wal.html</li>
+        </ul>
+      </div>
+    </div>
+    <div class="diag-callout">
+      ⚠️ Consequência prática: um lead que entra por <b>reserva.html</b> some assim que fecha o navegador — não
+      existe painel de cliente fora do Feirão. Um corretor sem evento ativo não tem onde trabalhar. E o
+      <b>marketing.html</b> foi desenhado sem nenhuma conexão com os dados reais de leads que já existem nas
+      planilhas do Feirão.
+    </div>
+  </section>
+
+  <!-- ============ 2. PAPÉIS ============ -->
+  <section id="papeis">
+    <div class="sec-head">
+      <div class="sec-eyebrow">O que muda</div>
+      <h2>Nove papéis, um único Sistema Web</h2>
+      <p class="sec-sub">Clique em cada card para ver o que é novo, o que já existe e qual dashboard do Feirão
+      serve de modelo. <span style="color:var(--green)">Verde</span> = painel novo · <span style="color:var(--gold-soft)">Dourado</span>
+      = já existe e recebe ajustes (promoção ao site principal, gate de OTP, tela própria) · <span style="color:var(--muted)">Cinza</span> = mantém como está.
+      Os oito papéis com dashboard próprio compartilham o mesmo cadastro único — ver <a href="#cadastro">seção 6</a>.
+      O Visitante não tem dashboard, mas ganha um gate de e-mail nas ações-chave que alimenta esse mesmo cadastro.</p>
+    </div>
+    <div class="role-grid" id="roleGrid"></div>
+  </section>
+
+  <!-- ============ 3. MAPA DE ARQUIVOS ============ -->
+  <section id="mapa">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Estrutura de pastas</div>
+      <h2>Novo mapa de arquivos proposto</h2>
+      <p class="sec-sub">As páginas públicas não mudam de lugar. Os painéis novos entram numa pasta
+      <code>painel/</code> — mesmo padrão de organização que <code>feirao/</code> já usa por papel — e todos
+      compartilham o backend que já existe em <code>feirao/shared/</code>.</p>
+    </div>
+    <div class="tree" id="treeBox"></div>
+  </section>
+
+  <!-- ============ 4. FLUXO ============ -->
+  <section id="fluxo">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Como os papéis se conectam</div>
+      <h2>Da campanha de marketing ao contrato assinado</h2>
+      <p class="sec-sub">O mesmo lead atravessa vários painéis — cada um lê e escreve nas mesmas abas da
+      planilha operacional, sem precisar de um "Feirão" ativo para existir.</p>
+    </div>
+    <div class="flow" id="flowBox"></div>
+  </section>
+
+  <!-- ============ 5. DADOS ============ -->
+  <section id="dados">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Preparando o futuro</div>
+      <h2>O que já é, sem perceber, um banco de dados</h2>
+      <p class="sec-sub">A planilha "WAL Feirão — Dados Operacionais" já tem 28 abas organizadas como tabelas
+      relacionais (<code>feirao/shared/apps-script-feirao-operacional.gs</code>). Migrar para um banco de dados
+      real não exige redesenhar nada — exige trocar o motor, mantendo o mesmo contrato.</p>
+    </div>
+    <div class="dm-wrap">
+      <table class="dm-table" id="dmTable"></table>
+    </div>
+    <div class="dm-note">
+      💡 <b>O ponto-chave:</b> os dashboards nunca falam diretamente com o Google Sheets — eles chamam uma URL
+      de API (<code>feirao_listar_leads</code>, <code>feirao_reserva</code>, etc.) que hoje é respondida pelo
+      Apps Script. No dia da migração, essa mesma URL passa a ser respondida por um backend real (Node/Postgres,
+      por exemplo) com as mesmas ações — os 9 painéis não precisam saber que a troca aconteceu.
+    </div>
+  </section>
+
+  <!-- ============ 6. CADASTRO ÚNICO ============ -->
+  <section id="cadastro">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Ideia do Antonio · 01/08/2026</div>
+      <h2>Um cadastro único para todos os dashboards</h2>
+      <p class="sec-sub">Hoje o acesso é fragmentado — PIN de Diretoria/Viabilizador na aba
+      <code>AUTORIZADOS</code>, PIN de Atendente/Gerente na aba <code>ATENDENTES</code>, cadastro de Agente
+      na aba <code>AGENTES</code>, cada um num lugar. A proposta: uma única planilha de usuários (chave =
+      e-mail) e um catálogo de dashboards, para que um botão "ACESSAR MEU DASHBOARD" saiba sempre para onde
+      levar quem está entrando.</p>
+    </div>
+
+    <div class="diag-grid">
+      <div class="diag-card">
+        <div class="diag-title">📇 Aba nova · <code style="font-size:13px">USUARIOS</code></div>
+        <div class="diag-note">Cadastro único — um registro por pessoa, qualquer que seja o papel</div>
+        <ul class="diag-list">
+          <li><span class="key-badge">🔑</span> Email <span class="cmt">— chave de acesso e de login (OTP)</span></li>
+          <li>Nome completo · Telefone</li>
+          <li>Dashboards <span class="cmt">— lista, uma pessoa pode ter mais de um</span></li>
+          <li>Dashboard padrão <span class="cmt">— o que abre no botão principal</span></li>
+          <li>Status <span class="cmt">— ativo / inativo / pendente de aprovação</span></li>
+          <li>Construtora/Empresa <span class="cmt">— quando fizer sentido para o papel</span></li>
+          <li>Cadastrado por · Data de cadastro · Último acesso</li>
+        </ul>
+      </div>
+      <div class="diag-card warn">
+        <div class="diag-title">🗂️ Aba nova · <code style="font-size:13px">DASHBOARDS</code></div>
+        <div class="diag-note">Catálogo dos painéis que o sistema possui — hoje e no futuro</div>
+        <ul class="diag-list">
+          <li><span class="key-badge">🔑</span> Id_Dashboard <span class="cmt">— ex.: DIRETORIA, CORRETOR_AUTONOMO</span></li>
+          <li>Nome de exibição · Ícone</li>
+          <li>Rota/arquivo <span class="cmt">— ex.: painel/corretor/dashboard-corretor.html</span></li>
+          <li>Status <span class="cmt">— ativo / em construção / desativado</span></li>
+          <li>Ordem de exibição</li>
+        </ul>
+        <div class="diag-callout" style="margin-top:14px">
+          💡 Adicionar um 10º dashboard no futuro vira uma linha nova nesta aba — não exige mexer no código
+          de login/roteamento.
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-head" style="margin-top:48px">
+      <h2 style="font-size:20px">Como funciona o botão "Acessar meu Dashboard"</h2>
+    </div>
+    <div class="flow" id="loginFlowBox"></div>
+
+    <div class="dm-note" style="margin-top:28px">
+      👑 <b>Nova função da Diretoria:</b> o painel da Diretoria ganha uma tela de <b>Gestão de Usuários &amp;
+      Dashboards</b> — cadastrar/editar/inativar pessoas, definir qual(is) dashboard(s) cada e-mail acessa, e
+      manter o catálogo de dashboards atualizado. É a mesma ideia do cadastro de PIN que já existe hoje em
+      <code>acompanhamento-pre-cadastro.html</code>, só que unificada para os nove papéis em vez de espalhada.
+      Isso já estava previsto no status <i>"pendente de aprovação"</i> da aba USUARIOS: é a Diretoria quem
+      libera o acesso de novos Agentes Parceiros, e confirma o de novos Agentes/Corretores Autônomos que o
+      Gerente Comercial cadastrar — ver o card Diretoria na seção 2.
+    </div>
+    <div class="dm-note" style="margin-top:14px">
+      🔓 <b>De onde vem o primeiro registro do Cliente:</b> o gate de e-mail + OTP que o card Visitante/Público
+      (seção 2) passa a ter no Simulador, na Reserva, no Consultor IA, no "Ver Todos", no E-book e no "Quero
+      ser Contactado" do imovel.html é o mesmo mecanismo de OTP do Lead do Feirão — e é ele quem cria o
+      primeiro registro do visitante como Cliente em USUARIOS/PARTICIPANTES, antes mesmo de ele abrir o
+      próprio painel.
+    </div>
+    <div class="dm-note" style="margin-top:14px">
+      ✅ <b>Decidido com o Antonio (04/08/2026):</b> o campo <code>Dashboards</code> fica como lista (não um
+      valor único) — uma mesma pessoa pode acumular papéis com o tempo, como um Corretor que vira Gerente
+      Comercial, ou um Gerente que também quer enxergar a visão da Diretoria.
+    </div>
+  </section>
+
+  <!-- ============ 7. ROADMAP ============ -->
+  <section id="roadmap">
+    <div class="sec-head">
+      <div class="sec-eyebrow">Como chegar lá</div>
+      <h2>Roadmap em fases</h2>
+      <p class="sec-sub">Cada fase entrega algo utilizável sozinho — nenhuma depende de "big bang".</p>
+    </div>
+    <div class="roadmap" id="roadmapBox"></div>
+  </section>
+
+  <footer>
+    <p>Este documento é uma proposta de arquitetura para discussão. Nenhum arquivo do Sistema Web ou do
+    Feirão Online foi modificado para produzi-lo — os nomes de arquivo, pastas e abas citados refletem o
+    estado real do repositório em 01/08/2026.</p>
+    <div class="stamp">feirao/materiais/proposta-reestruturacao-sistema-web.html</div>
+  </footer>
+
+</div>
+
+<div class="backdrop" id="backdrop"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-head">
+    <button class="drawer-close" id="drawerClose">✕</button>
+    <div class="drawer-eyebrow" id="dwEyebrow"></div>
+    <div class="drawer-title" id="dwTitle"></div>
+    <div class="drawer-file" id="dwFile"></div>
+  </div>
+  <div class="drawer-body" id="dwBody"></div>
+</div>
+
+<script>
+const ROLES = [
+  {
+    icon:'🌐', name:'Visitante / Público', tag:'existing', tagLabel:'ganha gate de e-mail',
+    file:'index.html · imoveis.html · imovel.html · simulador.html · ebook-financiamento-servidor-publico.html · chat.html',
+    desc:'Portas de entrada do site — mas as ações que capturam intenção real passam a exigir e-mail confirmado por código OTP.',
+    model:null,
+    what:'Continuam existindo como estão — são a origem de todo o funil que os demais papéis atendem. A mudança é no que acontece quando o visitante tenta ir além de navegar.',
+    features:['Navegação de imóveis (imoveis.html/imovel.html)','Simulação de financiamento anônima','Ebook e conteúdo educativo','Primeiro contato via chat.html'],
+    changes:['O acesso ao Simulador, Reserva de Imóveis, Consultor IA, "Ver Todos" e "Acessar E-book Gratuitamente" passa a exigir login por e-mail + código OTP — mesmo modelo de PIN de 6 dígitos por e-mail já implantado no Lead do Feirão.','No imovel.html, o botão "Quero ser Contactado" também passa pelo mesmo modelo de OTP.'],
+    goal:'Não deixar que o Cliente/Lead navegue o site inteiro sem deixar algum dado que permita identificá-lo (e-mail comprovado). É esse mesmo e-mail confirmado que abre o primeiro registro do papel Cliente — ver seção 6.',
+    reuse:null
+  },
+  {
+    icon:'🏠', name:'Cliente (Comprador / Lead)', tag:'new', tagLabel:'novo painel',
+    file:'painel/cliente/dashboard-cliente.html',
+    desc:'Hoje o lead de reserva.html/simulador.html não tem "para onde voltar". Este painel dá continuidade fora de qualquer evento.',
+    model:'feirao/cliente/dashboard-feirao-lead.html',
+    what:'Área permanente do cliente, ativada assim que ele faz uma simulação ou reserva no site principal — sem depender de o Feirão estar no ar.',
+    features:['Simulação salva e comparativo de financiamento','Status da reserva/proposta em andamento','Chat direto com o Atendente ou Corretor responsável','Histórico e documentos da negociação'],
+    reuse:'Login por e-mail + código OTP, simulador comparativo e chat já validados em produção no dashboard-feirao-lead.html — reaproveitados quase 1:1.'
+  },
+  {
+    icon:'🤝', name:'Agente Parceiro (Indicador)', tag:'existing', tagLabel:'promover ao site principal',
+    file:'feirao/agente/dashboard-agente.html → painel/agente/dashboard-agente.html',
+    desc:'Já existe e funciona, mas vive isolado dentro de feirao/. A "figura do Agente" também ganha uma página pública de recrutamento.',
+    model:'feirao/agente/dashboard-agente.html (Portal do Agente Parceiro)',
+    what:'Pessoa física externa que indica clientes em troca de comissão. Proposta: criar uma página pública "Seja um Agente Parceiro" acessível a partir do index.html, e mover o dashboard para o Sistema Web principal.',
+    features:['Cadastro e onboarding do agente','Indicação de novos clientes/leads','Acompanhamento de comissão por indicação','Dados bancários para repasse'],
+    reuse:'Já opera sobre as abas AGENTES, AGENTES_DADOS_BANCARIOS, COMISSOES e INDICACOES — nenhuma mudança de dados necessária, só de "endereço" no site. O dashboard-agente.html atual ainda está em desenvolvimento dentro de feirao/, então essa promoção acontece junto da sua finalização.'
+  },
+  {
+    icon:'🎧', name:'Atendente (time interno)', tag:'new', tagLabel:'novo painel',
+    file:'painel/atendente/dashboard-atendente.html',
+    desc:'Papel interno de triagem: recebe leads atribuídos pelo Gerente Comercial, faz o primeiro contato e qualifica.',
+    model:'feirao/agente/dashboard-agente.html (interface enxuta, focada em fila de trabalho) — a proposta é dar a esse papel uma tela própria, dashboard-atendente.html',
+    what:'Diferente do Corretor Autônomo: o Atendente não conduz a venda até o fim — ele recebe o lead do Gerente Comercial, qualifica rápido e encaminha para um Corretor quando o cliente está pronto para negociar.',
+    features:['Fila de leads recebidos do Gerente Comercial','Chat de primeiro contato com o cliente','Qualificação/checklist rápido','Encaminhamento para Corretor Autônomo','Auxilia o Lead a manusear o seu próprio Dashboard','Auxilia na escolha do imóvel mais adequado','Auxilia na simulação e no processo de fluxo de pagamento','Informa ao Gerente Comercial o andamento do atendimento'],
+    reuse:'Reaproveita a lógica de feirao_lead_atribuir e a aba ATENDENTES, já implementadas no backend do Feirão (Fase 1), aplicando-as fora do contexto de evento.'
+  },
+  {
+    icon:'👥', name:'Gerente Comercial', tag:'existing', tagLabel:'separar de dentro do Feirão',
+    file:'painel/gerente-comercial/dashboard-gerente-comercial.html',
+    desc:'Hoje é só um PIN com mais poder dentro do dashboard-feirao-atendente.html (PIN_GERENTE_ATENDIMENTO). Proposta: um painel próprio para quem gerencia o time.',
+    model:'feirao/consultor/dashboard-feirao-atendente.html (visão de Gerente, hoje escondida atrás do PIN 9090) — a proposta é dar a esse papel uma tela própria, dashboard-gerente-comercial.html',
+    what:'Não atende cliente diretamente (mas pode assumir o atendimento em uma necessidade). Distribui os leads que chegam para os Atendentes e Corretores Autônomos, acompanha a fila e o funil de toda a equipe e alimenta a Diretoria com os números consolidados.',
+    features:['Visão dos leads e sua origem (visitante do site, campanha, promoção, indicação de Agente etc.)','Atribuição de leads aos Atendentes (feirao_lead_atribuir)','Atribuição de leads aos Corretores Autônomos, quando julgar mais eficiente','Visão da fila e do funil de toda a equipe','Acompanhar os atendimentos dos leads','Desempenho individual de cada Atendente/Corretor','Acompanhar as visitas agendadas e redirecionar quando necessário','Fazer simulação (Simulador Financeiro)','Escalonamento e priorização de leads quentes','Cadastro de Empreendimentos/Construtoras no Sistema Web','Cadastro de Atendentes e Corretores Autônomos','Reservar unidade','Acompanhar as mensagens enviadas pelos leads','Acesso ao Consultor IA para auxiliar a sua equipe'],
+    reuse:'A lógica de atribuição e a visão de fila já existem dentro do dashboard-feirao-atendente.html sob o PIN de Gerente — a proposta é dar a esse papel uma tela própria, em vez de compartilhar arquivo com o Atendente comum.'
+  },
+  {
+    icon:'🧑‍💼', name:'Corretor Autônomo', tag:'new', tagLabel:'novo painel',
+    file:'painel/corretor/dashboard-corretor.html',
+    desc:'O papel de venda completa: dono da carteira de leads qualificados, do interesse até o contrato assinado.',
+    model:'feirao/consultor/dashboard-feirao-atendente.html (o mais completo já validado em produção)',
+    what:'É o painel com mais funcionalidade dos nove — por isso usa como base o dashboard que já passou por 5 fases de evolução e testes reais no Feirão.',
+    features:['Catálogo de construtoras/empreendimentos/unidades','Simulador comparativo (SAC, PRICE, CEF, POUPEX)','Análise de crédito e reserva de unidade','PIX, fluxo de pagamento e histórico de atendimento','Chat com o cliente e escalonamento'],
+    reuse:'Herda 1:1 tudo que já foi construído e corrigido no dashboard-feirao-atendente.html (catálogo, reservas, chat, histórico sincronizado) — o trabalho de estabilização já foi feito.'
+  },
+  {
+    icon:'📣', name:'Marketing', tag:'existing', tagLabel:'ampliar e conectar',
+    file:'marketing.html → painel/marketing/dashboard-marketing.html',
+    desc:'marketing.html já existe mas nunca foi implantado e não conversa com dados reais. Proposta: ampliar o escopo e ligar aos dados de leads/origem.',
+    model:'marketing.html (estrutura visual atual, escopo ampliado)',
+    what:'Hoje o marketing não tem visibilidade de onde os leads vêm nem do que acontece com eles depois. O novo painel fecha esse loop.',
+    features:['Origem dos leads por canal/campanha','Funil: visitante → lead → atendente/corretor → venda','Gestão de conteúdo (banners, destaques, ebooks do index.html)','Acompanhamento das indicações de Agentes Parceiros','Criação de campanhas nas redes sociais e outros canais','Criação de promoções recebidas das construtoras'],
+    reuse:'Reaproveita o layout/base já feito em marketing.html; passa a consultar PARTICIPANTES, JORNADA_EVENTOS e INDICACOES para ter dados reais em vez de estático.'
+  },
+  {
+    icon:'📊', name:'Diretoria', tag:'new', tagLabel:'novo painel',
+    file:'painel/diretoria/dashboard-diretoria.html',
+    desc:'Visão executiva contínua do negócio — não de um evento com início e fim.',
+    model:'feirao/diretoria/dashboard-diretor-wal.html (hoje é uma "Torre de Controle" pensada para o Feirão)',
+    what:'Adapta a Torre de Controle do Feirão para operação permanente: em vez de acompanhar um evento, acompanha o negócio todo, todos os dias.',
+    features:['Visão consolidada de vendas de todos os Corretores','Desempenho de Atendentes e fila de leads','Indicações e comissões de Agentes Parceiros','Controle de pagamento de comissões (Atendentes, Agentes e Corretores Autônomos)','Funil de Marketing e financeiro consolidado','Controle de acesso ao Sistema Web (inclusive tela de manutenção para mudanças)','Controle de acesso dos usuários (ativo/desativado) de todos os Dashboards do Sistema Web','Liberação/autorização de novos Agentes para usar seu Dashboard','Liberação/autorização de novos Agentes e Corretores Autônomos cadastrados pelo Gerente Comercial','Auditoria/log de acesso sensível'],
+    reuse:'Mantém os mesmos princípios de PIN de acesso e papéis (AUTORIZADOS) já validados, mas troca o recorte "por evento" por um recorte "por período" (mês/trimestre).'
+  },
+  {
+    icon:'🛠️', name:'Admin (configuração)', tag:'keep', tagLabel:'mantém, unifica cadastro',
+    file:'admin.html',
+    desc:'Papel técnico transversal que já existe e cuida da configuração do site principal.',
+    model:null,
+    what:'Continua existindo como está. Ganha, opcionalmente, a responsabilidade de centralizar o cadastro de Atendentes/Corretores/PINs/Dashboards, hoje espalhado entre admin.html e acompanhamento-pre-cadastro.html.',
+    features:['Gestão de conteúdo do site principal','Configuração geral do Sistema Web','(proposto) Cadastro unificado de papéis, PINs de acesso e Dashboards'],
+    reuse:'Nenhuma mudança estrutural exigida nesta fase — é o único papel que não ganha um novo dashboard.'
+  }
+];
+
+const grid = document.getElementById('roleGrid');
+ROLES.forEach((r,i)=>{
+  const card = document.createElement('div');
+  card.className = 'role-card ' + (r.tag==='new'?'is-new':r.tag==='existing'?'is-existing':'');
+  card.innerHTML = `
+    <span class="role-icon">${r.icon}</span>
+    <div class="role-name">${r.name}</div>
+    <span class="role-tag ${r.tag}">${r.tagLabel}</span>
+    <p class="role-desc">${r.desc}</p>
+    <span class="role-cta">detalhes →</span>
+  `;
+  card.addEventListener('click', ()=>openDrawer(i));
+  grid.appendChild(card);
+});
+
+const drawer = document.getElementById('drawer');
+const backdrop = document.getElementById('backdrop');
+function openDrawer(i){
+  const r = ROLES[i];
+  document.getElementById('dwEyebrow').textContent = r.tagLabel.toUpperCase();
+  document.getElementById('dwTitle').textContent = r.name;
+  document.getElementById('dwFile').textContent = r.file;
+  let html = `<div class="drawer-block"><h4>O que é</h4><p>${r.what}</p></div>`;
+  html += `<div class="drawer-block"><h4>Funcionalidades</h4><ul>${r.features.map(f=>`<li>${f}</li>`).join('')}</ul></div>`;
+  if(r.changes){
+    html += `<div class="drawer-block"><h4>As alterações</h4><ul>${r.changes.map(c=>`<li>${c}</li>`).join('')}</ul></div>`;
+  }
+  if(r.goal){
+    html += `<div class="drawer-block"><h4>Objetivo</h4><p>${r.goal}</p></div>`;
+  }
+  if(r.model){
+    html += `<div class="drawer-block"><h4>Modelo / referência</h4><div class="drawer-model">${r.model}</div></div>`;
+  }
+  if(r.reuse){
+    html += `<div class="drawer-block"><h4>O que é reaproveitado</h4><p>${r.reuse}</p></div>`;
+  }
+  document.getElementById('dwBody').innerHTML = html;
+  drawer.classList.add('open');
+  backdrop.classList.add('open');
+}
+function closeDrawer(){ drawer.classList.remove('open'); backdrop.classList.remove('open'); }
+document.getElementById('drawerClose').addEventListener('click', closeDrawer);
+backdrop.addEventListener('click', closeDrawer);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeDrawer(); });
+
+// ===== Sitemap tree =====
+document.getElementById('treeBox').innerHTML = `
+<span class="dir">/</span>  <span class="cmt">raiz do Sistema Web — sem mudanças</span>
+├─ index.html, imoveis.html, imovel.html, simulador.html, reserva.html
+├─ chat.html, ebook-financiamento-servidor-publico.html
+├─ marketing.html  <span class="cmt">→ conteúdo migra para painel/marketing/</span>
+└─ admin.html
+
+<span class="dir">painel/</span>  <span class="new">← pasta nova, um subdiretório por papel (mesmo padrão de feirao/)</span>
+├─ <span class="dir">cliente/</span>dashboard-cliente.html          <span class="new">[novo]</span>
+├─ <span class="dir">agente/</span>dashboard-agente.html            <span class="existing">[promovido de feirao/agente/]</span>
+├─ <span class="dir">atendente/</span>dashboard-atendente.html      <span class="new">[novo]</span>
+├─ <span class="dir">gerente-comercial/</span>dashboard-gerente-comercial.html <span class="existing">[separado do PIN de Gerente]</span>
+├─ <span class="dir">corretor/</span>dashboard-corretor.html        <span class="new">[novo]</span>
+├─ <span class="dir">marketing/</span>dashboard-marketing.html      <span class="existing">[amplia marketing.html]</span>
+└─ <span class="dir">diretoria/</span>dashboard-diretoria.html      <span class="new">[novo, adapta dashboard-diretor-wal.html]</span>
+
+<span class="dir">feirao/</span>  <span class="cmt">continua existindo — evento sazonal usa a mesma base</span>
+└─ <span class="dir">shared/</span>apps-script-feirao-operacional.gs, chat-widget.js
+   <span class="cmt">↳ backend único, compartilhado por feirao/ E por painel/</span>
+`;
+
+// ===== Flow diagram =====
+const flow = [
+  {i:'📣', t:'Marketing', d:'Campanhas e conteúdo geram tráfego', branch:false},
+  {i:'🌐', t:'Visitante', d:'index.html, imoveis.html, simulador.html', branch:false},
+  {i:'📝', t:'Lead capturado', d:'reserva.html / chat.html grava em PARTICIPANTES', branch:false},
+  {i:'👥', t:'Gerente Comercial', d:'Distribui o lead para um Atendente', branch:false},
+  {i:'🎧', t:'Atendente', d:'Recebe da fila, qualifica, escala', branch:false},
+  {i:'🧑‍💼', t:'Corretor Autônomo', d:'Conduz até reserva e contrato', branch:false},
+  {i:'📊', t:'Diretoria', d:'Vê tudo, todos os papéis, em tempo real', branch:false},
+];
+const flowBox = document.getElementById('flowBox');
+flow.forEach((s,idx)=>{
+  const step = document.createElement('div');
+  step.className = 'flow-step';
+  step.innerHTML = `<span class="fi">${s.i}</span><b>${s.t}</b><p>${s.d}</p>`;
+  flowBox.appendChild(step);
+  if(idx < flow.length-1){
+    const arrow = document.createElement('div');
+    arrow.className = 'flow-arrow';
+    arrow.textContent = '→';
+    flowBox.appendChild(arrow);
+  }
+});
+const branchStep = document.createElement('div');
+branchStep.className = 'flow-step flow-branch';
+branchStep.innerHTML = `<span class="fi">🤝</span><b>Agente Parceiro</b><p>Indicação entra direto no Corretor, sem passar pelo Atendente</p>`;
+const clienteStep = document.createElement('div');
+clienteStep.className = 'flow-step flow-branch';
+clienteStep.style.marginLeft='16px';
+clienteStep.innerHTML = `<span class="fi">🏠</span><b>Cliente</b><p>Acompanha tudo isso pelo próprio painel, do início ao fim</p>`;
+flowBox.appendChild(document.createElement('div'));
+flowBox.appendChild(branchStep);
+flowBox.appendChild(clienteStep);
+
+// ===== Login flow (cadastro único) =====
+const loginFlow = [
+  {i:'👆', t:'1 · Clique', d:'Usuário clica em "Acessar meu Dashboard" no site principal'},
+  {i:'✉️', t:'2 · E-mail', d:'Informa o e-mail — chave única em USUARIOS'},
+  {i:'🔐', t:'3 · OTP', d:'Sistema confirma status ativo e envia código (mesmo padrão do dashboard-feirao-lead.html)'},
+  {i:'🗂️', t:'4 · Consulta', d:'Lê o campo Dashboard(s) do usuário e busca a rota no catálogo DASHBOARDS'},
+  {i:'🚪', t:'5 · Acesso', d:'Redireciona direto (ou mostra seletor, se a pessoa tiver mais de um dashboard)'},
+];
+const loginFlowBox = document.getElementById('loginFlowBox');
+loginFlow.forEach((s,idx)=>{
+  const step = document.createElement('div');
+  step.className = 'flow-step';
+  step.innerHTML = `<span class="fi">${s.i}</span><b>${s.t}</b><p>${s.d}</p>`;
+  loginFlowBox.appendChild(step);
+  if(idx < loginFlow.length-1){
+    const arrow = document.createElement('div');
+    arrow.className = 'flow-arrow';
+    arrow.textContent = '→';
+    loginFlowBox.appendChild(arrow);
+  }
+});
+
+// ===== Data model table =====
+const DM = [
+  {domain:'Identidade & Acesso', abas:'AUTORIZADOS, ATENDENTES, AGENTES → unificar em USUARIOS + DASHBOARDS (novo), AGENTES_DADOS_BANCARIOS, OTP_CODES, LOG_ACESSO_SENSIVEL', table:'users, dashboards, user_dashboards, agent_bank_accounts, otp_codes, access_log', note:'USUARIOS + DASHBOARDS (seção 6) vira a base de autenticação única dos 9 painéis, substituindo os 3 cadastros hoje espalhados.'},
+  {domain:'Cliente & Jornada', abas:'PARTICIPANTES, JORNADA_EVENTOS, INSCRITOS, HISTORICO_ATENDIMENTO, ESCALONAMENTOS', table:'leads, lead_events, lead_history, escalations', note:'Núcleo do CRM — hoje já funciona como um, só que em planilha.'},
+  {domain:'Catálogo Imobiliário', abas:'CONSTRUTORAS, EMPREENDIMENTOS, UNIDADES', table:'developers, developments, units', note:'Já usa IDs sequenciais e CRUD dedicado — migração quase direta.'},
+  {domain:'Vendas & Financeiro', abas:'SIMULACOES / SIMULACOES_FEIRAO, ANALISES_CREDITO, RESERVAS, RESERVAS_PIX_FEIRAO, FLUXO_PAGAMENTO, CONTRATOS, COMISSOES, INDICACOES', table:'simulations, credit_analyses, reservations, payments, contracts, commissions, referrals', note:'Maior domínio — separado por função para permitir permissões finas por papel.'},
+  {domain:'Comunicação', abas:'MENSAGENS_CONSULTOR, CHAT_MENSAGENS, FILA_NOTIFICACOES', table:'messages, chat_messages, notification_queue', note:'Troca de Sheets por banco resolve o polling de 30s por algo em tempo real (websocket/SSE).'},
+  {domain:'Operação / Sistema', abas:'SOLICITACOES_VIABILIZADOR, CONTROLE, CONFIG', table:'feasibility_requests, system_control, config', note:'Configuração e feature flags do sistema como um todo.'},
+];
+document.getElementById('dmTable').innerHTML = `
+<tr><th>Domínio</th><th>Abas hoje (Google Sheets)</th><th>Tabelas propostas (banco relacional)</th><th>Observação</th></tr>
+${DM.map(d=>`<tr><td class="dm-domain">${d.domain}</td><td class="dm-abas">${d.abas}</td><td class="dm-abas">${d.table}</td><td>${d.note}</td></tr>`).join('')}
+`;
+
+// ===== Roadmap =====
+const RM = [
+  {phase:'Fase 0', done:true, t:'Feirão validado', d:'5 dashboards e 28 abas já em produção — a prova de conceito de todos os papéis já existe e funciona.'},
+  {phase:'Fase 1', done:false, t:'Alinhar esta proposta', d:'Validar com Antonio quais dos 8 papéis entram primeiro e quais nomes/telas fazem sentido antes de codar qualquer linha.'},
+  {phase:'Fase 2', done:false, t:'Construir painel/', d:'Criar Cliente, Atendente, Gerente Comercial, Corretor Autônomo e Marketing ampliado, reaproveitando componentes já validados no Feirão.'},
+  {phase:'Fase 3', done:false, t:'Cadastro único & login', d:'Criar as abas USUARIOS e DASHBOARDS, migrar os cadastros hoje espalhados (AUTORIZADOS/ATENDENTES/AGENTES) para lá, e construir o botão único "Acessar meu Dashboard" com a tela de Gestão de Usuários &amp; Dashboards na Diretoria.'},
+  {phase:'Fase 4', done:false, t:'Adaptar Diretoria', d:'Trocar o recorte "por evento" do dashboard-diretor-wal.html por um recorte contínuo (mês/trimestre) para a Diretoria.'},
+  {phase:'Fase 5', done:false, t:'Migrar Sheets → banco de dados', d:'Trocar o motor por trás da mesma API JSON (feirao_*) por um banco real — invisível para os 9 painéis já prontos.'},
+];
+document.getElementById('roadmapBox').innerHTML = RM.map(r=>`
+  <div class="rm-item">
+    <div class="rm-phase">${r.phase}</div>
+    <div class="rm-line"><div class="rm-dot ${r.done?'done':''}"></div><div class="rm-bar"></div></div>
+    <div class="rm-content"><b>${r.t}</b><p>${r.d}</p></div>
+  </div>
+`).join('');
+</script>
+</body>
+</html>
