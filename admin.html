@@ -1633,7 +1633,7 @@ function onEdit(e) {
         <div class="qf-group"><label class="qf-label">De</label><input class="qf-input" type="date" id="vis-de"></div>
         <div class="qf-group"><label class="qf-label">Até</label><input class="qf-input" type="date" id="vis-ate"></div>
         <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas()">&#128269; Ranking</button></div>
-        <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas('detalhe')" style="background:var(--navy-light);border:1px solid var(--border)">&#128203; Detalhar</button></div>
+        <div class="qf-group"><label class="qf-label">&nbsp;</label><button class="btn-query" onclick="consultarVisitas('detalhe')" style="background:var(--navy-light);border:1px solid var(--border);color:#fff">&#128203; Detalhar</button></div>
       </div>
       <div class="query-count" id="vis-count"></div>
       <div style="display:flex;gap:10px;margin-top:10px">
@@ -2382,7 +2382,7 @@ function jsonOut(obj) {
 <script>
 /* ── CONFIGURAÇÕES ── */
 const ADMIN_PIN           = 'FAB2024';
-const APPS_SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbxwklDy6PqzVdn1J2tRYmuLcbuBOx56YmLf4Agg3oKDeJwwLz8c482R6-eZwns0Ddolsw/exec';
+const APPS_SCRIPT_URL     = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
 const DEFAULT_SHEET_URL   = 'https://docs.google.com/spreadsheets/d/1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk/edit?usp=sharing';
 const PLANILHA_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 
@@ -3267,6 +3267,28 @@ function queryScript(action) {
   });
 }
 
+// Extrai um Date de uma string em dd/MM/yyyy[ HH:mm:ss] ou yyyy-MM-dd[ HH:mm:ss]
+// — usado tanto pra filtrar por período quanto pra ordenar por data.
+function parseDataStr(str) {
+  const s = String(str || '').trim();
+  if (!s) return null;
+
+  // dd/MM/yyyy ou d/M/yyyy (com ou sem zero padding), hora opcional
+  let m = s.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) {
+    const dia = parseInt(m[1]), mes = parseInt(m[2]), ano = parseInt(m[3]);
+    if (mes >= 1 && mes <= 12 && dia >= 1 && dia <= 31) {
+      return new Date(ano, mes - 1, dia, m[4]?parseInt(m[4]):0, m[5]?parseInt(m[5]):0, m[6]?parseInt(m[6]):0);
+    }
+  }
+
+  // yyyy-MM-dd (ISO), hora opcional
+  m = s.match(/(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2})(?::(\d{2}))?)?/);
+  if (m) return new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]), m[4]?parseInt(m[4]):0, m[5]?parseInt(m[5]):0, m[6]?parseInt(m[6]):0);
+
+  return null;
+}
+
 // Filtra por período — robusto para vários formatos de data
 function filtraPorData(dateStr, de, ate) {
   // Se não há filtro, inclui sempre
@@ -3274,24 +3296,7 @@ function filtraPorData(dateStr, de, ate) {
   // Se a data está vazia/ausente, inclui (não descarta registros sem data)
   if (!dateStr || !String(dateStr).trim()) return true;
 
-  const str = String(dateStr).trim();
-  let d = null;
-
-  // Tenta dd/MM/yyyy ou d/M/yyyy (com ou sem zero padding)
-  let m = str.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
-  if (m) {
-    const dia = parseInt(m[1]), mes = parseInt(m[2]), ano = parseInt(m[3]);
-    // Detecta se é dd/MM ou MM/dd: se mes > 12, assume que é dd/MM com mês no campo 2
-    if (mes >= 1 && mes <= 12 && dia >= 1 && dia <= 31) {
-      d = new Date(ano, mes - 1, dia); // trata como dd/MM/yyyy (pt-BR)
-    }
-  }
-
-  // Tenta yyyy-MM-dd (ISO)
-  if (!d) {
-    m = str.match(/(\d{4})-(\d{2})-(\d{2})/);
-    if (m) d = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
-  }
+  const d = parseDataStr(dateStr);
 
   // Não conseguiu parsear → inclui o registro
   if (!d || isNaN(d.getTime())) return true;
@@ -3632,6 +3637,19 @@ function getPrimeiraData(r) {
   return '';
 }
 
+// Ordena por data crescente (mais antigo primeiro); registros sem data
+// reconhecível vão para o final, sem quebrar a ordenação dos demais.
+function ordenarPorData(rows) {
+  return rows.slice().sort((a, b) => {
+    const da = parseDataStr(getPrimeiraData(a));
+    const db = parseDataStr(getPrimeiraData(b));
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return da - db;
+  });
+}
+
 async function consultarLeads() {
   const de  = document.getElementById('leads-de').value;
   const ate = document.getElementById('leads-ate').value;
@@ -3641,6 +3659,7 @@ async function consultarLeads() {
     if (result.error) throw new Error(result.error);
     let rows = result.rows || [];
     if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
+    rows = ordenarPorData(rows);
     document.getElementById('leads-count').textContent = rows.length + ' registro(s) encontrado(s)';
     document.getElementById('leads-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('leads-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
@@ -3655,6 +3674,7 @@ async function consultarReservas() {
     if (result.error) throw new Error(result.error);
     let rows = result.rows || [];
     if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
+    rows = ordenarPorData(rows);
     document.getElementById('res-count').textContent = rows.length + ' registro(s) encontrado(s)';
     document.getElementById('res-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('res-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
@@ -3669,6 +3689,7 @@ async function consultarSimulacoes() {
     if (result.error) throw new Error(result.error);
     let rows = result.rows || [];
     if (de || ate) rows = rows.filter(r => filtraPorData(getPrimeiraData(r), de, ate));
+    rows = ordenarPorData(rows);
     document.getElementById('sim-count').textContent = rows.length + ' registro(s) encontrado(s)';
     document.getElementById('sim-table-wrap').innerHTML = tabelaHtml(rows); // usa todas as colunas da planilha
   } catch(e) { document.getElementById('sim-table-wrap').innerHTML = '<div class="empty-table">❌ '+e.message+'</div>'; }
@@ -3709,12 +3730,13 @@ async function consultarLanding() {
 
     let rows = all;
     if (de || ate) rows = rows.filter(r => filtraPorData(r['Data'] || getPrimeiraData(r), de, ate));
+    rows = ordenarPorData(rows);
 
     document.getElementById('lp-count').textContent = rows.length + ' registro(s) no período';
 
     if (!rows.length) { wrap.innerHTML = '<div class="empty-table">Nenhuma visita no período.</div>'; return; }
 
-    wrap.innerHTML = tabelaHtml([...rows].reverse().slice(0, 500),
+    wrap.innerHTML = tabelaHtml(rows.slice(0, 500),
       ['Data/Hora', 'Data', 'Página', 'Origem', 'Tempo']);
   } catch(e) { wrap.innerHTML = '<div class="empty-table">❌ ' + e.message + '</div>'; }
 }
@@ -3734,36 +3756,40 @@ async function consultarVisitas(modo) {
       return m ? new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1])) : null;
     };
     const getD = r => parseD(r['Data'] || r['data'] || getPrimeiraData(r));
+    // Cada linha já é um total diário (Data+Empreendimento) — soma o Contador
+    // em vez de contar linhas, senão subestima o total de visitas reais.
+    const getC = r => Number(r['Contador']) || 0;
+    const somaContador = list => list.reduce((s, r) => s + getC(r), 0);
 
     const hoje = new Date(); hoje.setHours(0,0,0,0);
     const sem  = new Date(hoje - 6*86400000); sem.setHours(0,0,0,0);
     const mes  = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
 
-    document.getElementById('vis-hoje').textContent   = all.filter(r => { const d=getD(r); return d&&d>=hoje; }).length;
-    document.getElementById('vis-semana').textContent = all.filter(r => { const d=getD(r); return d&&d>=sem; }).length;
-    document.getElementById('vis-mes').textContent    = all.filter(r => { const d=getD(r); return d&&d>=mes; }).length;
-    document.getElementById('vis-total').textContent  = all.length;
+    document.getElementById('vis-hoje').textContent   = somaContador(all.filter(r => { const d=getD(r); return d&&d>=hoje; }));
+    document.getElementById('vis-semana').textContent = somaContador(all.filter(r => { const d=getD(r); return d&&d>=sem; }));
+    document.getElementById('vis-mes').textContent    = somaContador(all.filter(r => { const d=getD(r); return d&&d>=mes; }));
+    document.getElementById('vis-total').textContent  = somaContador(all);
 
     let rows = all;
     if (de || ate) rows = rows.filter(r => filtraPorData(r['Data'] || getPrimeiraData(r), de, ate));
 
     document.getElementById('vis-count').textContent =
-      rows.length + ' visita(s) · ' + (modo === 'detalhe' ? 'detalhamento individual' : 'ranking por empreendimento');
+      somaContador(rows) + ' visita(s) · ' + (modo === 'detalhe' ? 'detalhamento por dia' : 'ranking por empreendimento');
 
     if (!rows.length) { wrap.innerHTML = '<div class="empty-table">Nenhuma visita no período.</div>'; return; }
 
     if (modo === 'detalhe') {
-      wrap.innerHTML = tabelaHtml([...rows].reverse().slice(0, 500),
-        ['Data','Hora','imovelId','Empreendimento']);
+      wrap.innerHTML = tabelaHtml(ordenarPorData(rows).slice(0, 500),
+        ['Data','imovelId','Empreendimento','Contador']);
       return;
     }
 
-    // Agrupa por empreendimento e gera ranking
+    // Agrupa por empreendimento e gera ranking, somando o Contador de cada dia
     const grupos = {};
     rows.forEach(r => {
       const key = r['Empreendimento'] || r['imovelId'] || '(sem nome)';
       if (!grupos[key]) grupos[key] = { empreendimento: key, id: r['imovelId']||'', total: 0 };
-      grupos[key].total++;
+      grupos[key].total += getC(r);
     });
     const ranking = Object.values(grupos).sort((a, b) => b.total - a.total);
     const medals  = ['🥇','🥈','🥉'];

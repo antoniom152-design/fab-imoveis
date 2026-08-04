@@ -410,6 +410,17 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Consultor IA
     </a>
+    <a href="#" onclick="compartilharSite();return false;" style="
+      display:inline-flex;align-items:center;gap:7px;
+      font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
+      letter-spacing:.14em;text-transform:uppercase;
+      color:var(--gold);background:none;
+      border:1px solid rgba(201,168,76,0.45);padding:7px 14px;cursor:pointer;text-decoration:none;
+      transition:all .2s;border-radius:2px;
+    " onmouseover="this.style.background='rgba(201,168,76,0.12)';this.style.borderColor='#C9A84C'" onmouseout="this.style.background='none';this.style.borderColor='rgba(201,168,76,0.45)'">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+      Compartilhar Site
+    </a>
     <a href="index.html" class="nav-back">
       <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
       Voltar ao site
@@ -608,6 +619,7 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 <script>
 // ── PRÉ-FORMULÁRIO ──
 const CRM_URL_SIM = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+const SITE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
 
 function registrarNoCRMSim(lead, nota) {
   fetch(CRM_URL_SIM, {
@@ -1522,6 +1534,108 @@ function esperarLibs(tentativas=0){
     if(tentativas>30){ rej(new Error('Bibliotecas PDF não carregaram. Verifique sua conexão.')); return; }
     setTimeout(()=>esperarLibs(tentativas+1).then(res).catch(rej), 300);
   });
+}
+
+/* ─── COMPARTILHAR SITE ─── */
+let _linkCompartilharSite = '';
+let _compartilharEmailDadosSite = null;
+
+function compartilharSite() {
+  const link = 'https://www.walservidor.com.br';
+  _linkCompartilharSite = link;
+
+  const texto   = '🏠 Olá! Vi esse Site da WAL Imóveis e Consultoria e achei interessante:\n' +
+                  'Encontrar o apartamento/imóvel certo fica muito mais fácil neste Site. *Simulação de financiamento na hora e grátis*, imóveis em *ótimas localizações e valorização* no (RJ e SP), especialmente selecionados para *militares e funcionários públicos*, um *consultor virtual disponível 24h* para responder qualquer pergunta, e um *E-book* explicando tudo que você precisa saber sobre como comprar um imóvel financiado. Vale a pena conferir.\n' +
+                  'Saiba mais: ' + link;
+  const assunto = 'WAL Imóveis — Encontre o imóvel certo para você';
+  _compartilharEmailDadosSite = { assunto, corpo: texto };
+
+  const modal = document.createElement('div');
+  modal.id = 'compartilharModalSite';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(26,21,16,.75);z-index:9000;display:flex;align-items:center;justify-content:center';
+
+  const wppHref  = 'https://wa.me/?text=' + encodeURIComponent(texto);
+  const btnStyle = 'display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-decoration:none;';
+
+  modal.innerHTML =
+    '<div style="background:var(--cream);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative;border-radius:var(--radius)">' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--ink-muted);font-size:18px;cursor:pointer">✕</button>' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:16px">Compartilhar Site</div>' +
+      '<div id="compartilharOpcoesSite" style="display:flex;flex-direction:column;gap:10px">' +
+        '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;border-radius:var(--radius)">📱 Enviar pelo WhatsApp</a>' +
+        '<button onclick="mostrarFormEmailSite()" style="' + btnStyle + 'background:var(--cream-dark);border:1px solid var(--border);color:var(--ink);cursor:pointer;width:100%;border-radius:var(--radius)">✉️ Enviar por E-mail</button>' +
+        '<button onclick="copiarLinkSite(this)" style="' + btnStyle + 'background:var(--cream-dark);border:1px solid var(--border);color:var(--ink);cursor:pointer;width:100%;border-radius:var(--radius)">🔗 Copiar Link</button>' +
+      '</div>' +
+      '<div id="compartilharFormEmailSite" style="display:none;flex-direction:column;gap:10px">' +
+        '<label style="font-size:11px;color:var(--ink-muted)">E-mail do destinatário</label>' +
+        '<input type="email" id="compartilharEmailInputSite" placeholder="nome@email.com" style="padding:11px 14px;border:1px solid var(--border);font-family:\'DM Sans\',sans-serif;font-size:14px;background:var(--cream-dark);color:var(--ink);outline:none;border-radius:var(--radius)">' +
+        '<div id="compartilharEmailErrSite" style="display:none;font-size:11px;color:#DC2626"></div>' +
+        '<button id="btnEnviarEmailSite" onclick="enviarEmailSite()" style="' + btnStyle + 'justify-content:center;background:var(--gold);color:var(--ink);border:none;cursor:pointer;width:100%;border-radius:var(--radius)">Enviar →</button>' +
+        '<button onclick="voltarOpcoesSite()" style="background:none;border:none;color:var(--ink-muted);font-size:12px;cursor:pointer;text-align:center;padding:4px">← Voltar</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function mostrarFormEmailSite() {
+  document.getElementById('compartilharOpcoesSite').style.display = 'none';
+  const form = document.getElementById('compartilharFormEmailSite');
+  form.style.display = 'flex';
+  document.getElementById('compartilharEmailErrSite').style.display = 'none';
+  const inp = document.getElementById('compartilharEmailInputSite');
+  inp.value = ''; inp.focus();
+}
+
+function voltarOpcoesSite() {
+  document.getElementById('compartilharFormEmailSite').style.display = 'none';
+  document.getElementById('compartilharOpcoesSite').style.display = 'flex';
+}
+
+function copiarLinkSite(btn) {
+  navigator.clipboard.writeText(_linkCompartilharSite).then(() => {
+    btn.textContent = '✅ Link copiado!';
+    setTimeout(() => { btn.textContent = '🔗 Copiar Link'; }, 2000);
+  });
+}
+
+async function enviarEmailSite() {
+  const inp = document.getElementById('compartilharEmailInputSite');
+  const destinatario = (inp.value || '').trim();
+  const errEl = document.getElementById('compartilharEmailErrSite');
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinatario)) {
+    errEl.textContent = 'Digite um e-mail válido.'; errEl.style.display = 'block'; return;
+  }
+  errEl.style.display = 'none';
+  const btn = document.getElementById('btnEnviarEmailSite');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try {
+    const res  = await fetch(SITE_SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        tipo: 'compartilhar_email', destinatario,
+        assunto: _compartilharEmailDadosSite.assunto,
+        corpo:   _compartilharEmailDadosSite.corpo
+      })
+    });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      document.getElementById('compartilharFormEmailSite').innerHTML =
+        '<div style="text-align:center;padding:16px 0;color:var(--gold);font-weight:700">✅ E-mail enviado para ' + destinatario + '!</div>';
+      setTimeout(() => { document.getElementById('compartilharModalSite')?.remove(); }, 2200);
+    } else {
+      errEl.textContent = data.message || 'Não foi possível enviar agora. Tente novamente.';
+      errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar →';
+    }
+  } catch(e) {
+    errEl.textContent = 'Falha na conexão. Tente novamente.';
+    errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Enviar →';
+  }
 }
 </script>
 </body>
