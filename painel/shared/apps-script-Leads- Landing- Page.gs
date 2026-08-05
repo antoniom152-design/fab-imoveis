@@ -17,6 +17,9 @@ var ABA_SIMULACOES = 'SIMULACOES';
 var ABA_VISITAS    = 'VISITAS';
 var ABA_VISITAS_EMP = 'VISITAS_EMPREENDIMENTOS';
 var ABA_EBOOK      = 'EBOOK FINANCIAMENTO';
+var ABA_CONSTRUTORAS    = 'CONSTRUTORAS';
+var PLANILHA_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk'; // WAL Imóveis — Portfólio
+var ABA_IMOVEIS         = 'IMOVEISDISPONIVEIS';
 var PASTA_DRIVE_ID = '';
 var TZ              = Session.getScriptTimeZone() || 'America/Sao_Paulo';
 
@@ -92,6 +95,8 @@ function doGet(e) {
       result = checkTelefone(ABA_SIMULACOES, e.parameter.fone || '');
     } else if (action === 'checkEbook') {
       result = checkTelefone(ABA_EBOOK, e.parameter.fone || '');
+    } else if (action === 'getConstrutoras') {
+      result = lerAba(ABA_CONSTRUTORAS);
     } else {
       result = { error: 'Ação desconhecida: ' + action };
     }
@@ -182,6 +187,8 @@ function doPost(e) {
     else if (data.tipo === 'compartilhar_email')  processarCompartilharEmail(data);
     else if (data.tipo === 'visita')              processarVisita(data);
     else if (data.tipo === 'visita_empreendimento') processarVisitaEmpreendimento(data);
+    else if (data.tipo === 'imovel')              processarImovel(data);
+    else if (data.tipo === 'construtora')         processarConstrutora(data);
     return ContentService
       .createTextOutput(JSON.stringify({ status: 'ok' }))
       .setMimeType(ContentService.MimeType.JSON);
@@ -575,6 +582,210 @@ function processarVisitaEmpreendimento(data) {
     }
     aba.appendRow([hoje, imovelId, data.nome || '', 1]);
   } catch (e) { Logger.log('VisitaEmpreendimento erro: ' + e.message); }
+}
+
+/* ─── IMÓVEL — criar ou editar linha na planilha de imóveis ─ */
+function processarImovel(data) {
+  try {
+    var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+    var aba = ss.getSheetByName(ABA_IMOVEIS);
+    if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
+
+    // Monta a linha na ordem das colunas A→W
+    // A=ID | B=Ativo | C=Tipo | D=Construtora | E=Cidade | F=Nome
+    // G=Descricao | H=Imagem | I=Faixa | J=Valor | K=Qtd | L=Blog
+    // M=Data | N=Obs | O=Destaque | P=UF | Q=Bairro | R=Link Drive
+    // (R já é usado pelo admin.html — campo "Link Drive", ver linha
+    //  ~848 e coletarDadosForm()/g(17) em admin.html — por isso os
+    //  campos novos do feirão entram DEPOIS dele, a partir de S)
+    // S=Quartos | T=Preço Mín (R$) | U=Preço Máx (R$) | V=Entrega Prevista
+    // W=Feirao_On_Line (colunas novas — feirão de imóveis, ver
+    //   configurarCamposFeirao())
+    var ativo    = data.ativo    === true || data.ativo    === 'true';
+    var destaque = data.destaque === true || data.destaque === 'true';
+    var feiraoOnLine = (data.feirao_on_line === true || data.feirao_on_line === 'true' || data.feirao_on_line === 'Sim') ? 'Sim' : 'Não';
+
+    if (data.operacao === 'editar' && data.id) {
+      // Localiza a linha pelo ID (col A)
+      var dados = aba.getDataRange().getValues();
+      var linhaIdx = -1;
+      for (var i = 1; i < dados.length; i++) {
+        if (String(dados[i][0]) === String(data.id)) { linhaIdx = i + 1; break; }
+      }
+      if (linhaIdx === -1) { Logger.log('ID não encontrado: ' + data.id); return; }
+
+      // Atualiza coluna por coluna (preserva ID e Data)
+      var r = aba.getRange(linhaIdx, 1, 1, 23).getValues()[0];
+      r[1]  = ativo;
+      r[2]  = data.tipo_imovel  || r[2];
+      r[3]  = data.construtora  || r[3];
+      r[4]  = data.cidade       || r[4];
+      r[5]  = data.nome         || r[5];
+      r[6]  = data.descricao    !== undefined ? data.descricao  : r[6];
+      r[7]  = data.imagem       !== undefined ? data.imagem     : r[7];
+      r[8]  = data.faixa        || r[8];
+      r[9]  = data.valor        !== undefined ? data.valor      : r[9];
+      r[10] = data.qtd          !== undefined ? data.qtd        : r[10];
+      r[11] = data.blog         !== undefined ? data.blog       : r[11];
+      // r[12] = Data — preserva
+      r[13] = data.obs          !== undefined ? data.obs        : r[13];
+      r[14] = destaque;
+      r[15] = data.uf           || r[15];
+      r[16] = data.bairro       !== undefined ? data.bairro     : r[16];
+      r[17] = data.link_drive   !== undefined ? data.link_drive : r[17];
+      r[18] = data.quartos      !== undefined ? data.quartos    : r[18];
+      r[19] = data.preco_min    !== undefined ? parseFloat(data.preco_min) || 0 : r[19];
+      r[20] = data.preco_max    !== undefined ? parseFloat(data.preco_max) || 0 : r[20];
+      r[21] = data.entrega      !== undefined ? data.entrega    : r[21];
+      r[22] = data.feirao_on_line !== undefined ? feiraoOnLine  : r[22];
+      aba.getRange(linhaIdx, 1, 1, 23).setValues([r]);
+      Logger.log('Imóvel atualizado: ID ' + data.id);
+
+    } else {
+      // Novo imóvel — gera ID no padrão "IMO-NNN" já usado na planilha
+      // (busca o maior número já usado em col A, IMO-551 ou 551, e soma 1 —
+      // não usa o número da linha, que gerava IDs sem o prefixo IMO- e sem
+      // relação com a numeração real já em uso)
+      var colA    = aba.getRange(2, 1, Math.max(aba.getLastRow() - 1, 0), 1).getValues();
+      var maiorNum = 0;
+      colA.forEach(function(linha) {
+        var m = String(linha[0] || '').match(/(\d+)/);
+        if (m) {
+          var n = parseInt(m[1], 10);
+          if (n > maiorNum) maiorNum = n;
+        }
+      });
+      var novoId = 'IMO-' + (maiorNum + 1);
+      var hoje = new Date().toLocaleDateString('pt-BR');
+      aba.appendRow([
+        novoId, ativo,
+        data.tipo_imovel  || '',
+        data.construtora  || '',
+        data.cidade       || '',
+        data.nome         || '',
+        data.descricao    || '',
+        data.imagem       || '',
+        data.faixa        || '',
+        data.valor        || 0,
+        data.qtd          || '',
+        data.blog         || '',
+        hoje,
+        data.obs          || '',
+        destaque,
+        data.uf           || '',
+        data.bairro       || '',
+        data.link_drive   || '',
+        data.quartos      || '',
+        parseFloat(data.preco_min) || 0,
+        parseFloat(data.preco_max) || 0,
+        data.entrega      || '',
+        feiraoOnLine
+      ]);
+      Logger.log('Imóvel criado: ' + data.nome);
+    }
+  } catch(e) { Logger.log('processarImovel erro: ' + e.message); }
+}
+
+/* ─── CONSTRUTORA — criar, editar ou excluir linha ─────── */
+function processarConstrutora(data) {
+  try {
+    var ss  = SpreadsheetApp.openById(PLANILHA_ID);
+    var aba = ss.getSheetByName(ABA_CONSTRUTORAS);
+
+    // Cria aba se não existir
+    if (!aba) {
+      aba = ss.insertSheet(ABA_CONSTRUTORAS);
+      aba.appendRow([
+        'ID','Nome','Telefone','Site','Viabilizador','Tel Viabilizador',
+        'Comissão (%)','Link Drive','Data Inclusão',
+        'Estados de Atuação','Cidades de Atuação','Observações'
+      ]);
+      aba.getRange(1,1,1,12).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+      aba.setFrozenRows(1);
+      Logger.log('Aba CONSTRUTORAS criada');
+    }
+
+    var d = data.dados || {};
+    var acao = data.acao || 'criar';
+
+    if (acao === 'excluir') {
+      var linhas = aba.getDataRange().getValues();
+      for (var i = 1; i < linhas.length; i++) {
+        if (String(linhas[i][0]) === String(d.id)) {
+          aba.deleteRow(i + 1);
+          Logger.log('Construtora excluída: ID ' + d.id);
+          return;
+        }
+      }
+      Logger.log('Construtora não encontrada para excluir: ' + d.id);
+      return;
+    }
+
+    if (acao === 'editar') {
+      var linhas2 = aba.getDataRange().getValues();
+      for (var j = 1; j < linhas2.length; j++) {
+        if (String(linhas2[j][0]) === String(d.id)) {
+          aba.getRange(j + 1, 1, 1, 12).setValues([[
+            d.id, d.nome, d.telefone, d.site,
+            d.viabilizador, d.tel_viab, d.comissao,
+            d.drive, d.data, d.estados, d.cidades, d.obs
+          ]]);
+          Logger.log('Construtora atualizada: ' + d.nome);
+          return;
+        }
+      }
+      Logger.log('ID não encontrado para editar: ' + d.id);
+      return;
+    }
+
+    // criar
+    aba.appendRow([
+      d.id, d.nome, d.telefone, d.site,
+      d.viabilizador, d.tel_viab, d.comissao,
+      d.drive, d.data, d.estados, d.cidades, d.obs
+    ]);
+    Logger.log('Construtora criada: ' + d.nome);
+
+  } catch(e) { Logger.log('processarConstrutora erro: ' + e.message); }
+}
+
+/* ─── FEIRÃO DE IMÓVEIS — adiciona as colunas novas S→W na aba
+   IMOVEISDISPONIVEIS (Quartos, Preço Mín, Preço Máx, Entrega Prevista,
+   Feirao_On_Line). Rodar uma única vez. Não mexe nas colunas A→R
+   existentes (R = Link Drive, já usada pelo admin.html), então não
+   quebra nada que já lê/grava essa planilha. Referência apenas — essas
+   colunas já existem em produção, não precisa rodar de novo. ─── */
+function configurarCamposFeirao() {
+  var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+  var aba = ss.getSheetByName(ABA_IMOVEIS);
+  if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
+
+  var headerRow = aba.getRange(1, 19, 1, 5);
+  headerRow.setValues([[
+    'Quartos', 'Preço Mín (R$)', 'Preço Máx (R$)', 'Entrega Prevista', 'Feirao_On_Line'
+  ]]);
+  headerRow.setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  headerRow.protect().setDescription('Cabeçalho — não editar').setWarningOnly(true);
+
+  aba.getRange('W2:W999').setDataValidation(
+    SpreadsheetApp.newDataValidation()
+      .requireValueInList(['Sim', 'Não'], true)
+      .setAllowInvalid(false).build());
+  aba.getRange('W2:W999').setValue('Não');
+
+  aba.setColumnWidth(19, 90);
+  aba.setColumnWidth(20, 110);
+  aba.setColumnWidth(21, 110);
+  aba.setColumnWidth(22, 130);
+  aba.setColumnWidth(23, 120);
+
+  SpreadsheetApp.getUi().alert(
+    '✅ Colunas do Feirão criadas em IMOVEISDISPONIVEIS!\n\n' +
+    'Preencha (ou peça para a equipe preencher, ou use o admin.html\n' +
+    'atualizado) Quartos, Preço Mín/Máx, Entrega e marque\n' +
+    'Feirao_On_Line = "Sim" nos imóveis que devem aparecer na Vitrine\n' +
+    'do 1º Feirão de Imóveis.'
+  );
 }
 
 /* ─── AUXILIAR: linha HTML ─────────────────────────────── */
