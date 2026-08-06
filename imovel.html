@@ -704,19 +704,26 @@
       <div class="sidebar-card-title">Tenho Interesse</div>
       <div class="form-group">
         <label class="form-label">Nome completo</label>
-        <input type="text" id="cc-nome" class="form-input" placeholder="Seu nome">
+        <input type="text" id="cc-nome" class="form-input" placeholder="Seu nome"
+               oninput="limparErroCampoInteresse('cc-nome')" onblur="validarNomeCampoInteresse()">
+        <span id="cc-nome-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe nome e sobrenome, sem números ou símbolos.</span>
       </div>
       <div class="form-group">
         <label class="form-label">E-mail</label>
-        <input type="email" id="cc-email" class="form-input" placeholder="seu@email.com">
+        <input type="email" id="cc-email" class="form-input" placeholder="seu@email.com"
+               oninput="limparErroCampoInteresse('cc-email')" onblur="validarEmailCampoInteresse()">
+        <span id="cc-email-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe um e-mail válido.</span>
       </div>
       <div class="form-group">
         <label class="form-label">WhatsApp</label>
-        <input type="tel" id="cc-wpp" class="form-input" placeholder="(21) 99999-9999">
+        <input type="tel" id="cc-wpp" class="form-input" placeholder="(21) 99999-9999" maxlength="15"
+               oninput="mascaraTelefoneInteresse(this);limparErroCampoInteresse('cc-wpp')" onblur="validarWppCampoInteresse()">
+        <span id="cc-wpp-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe um WhatsApp válido com DDD.</span>
       </div>
       <div class="form-group">
         <label class="form-label">Posto / Cargo</label>
-        <select id="cc-posto" class="form-select">
+        <select id="cc-posto" class="form-select"
+                onchange="limparErroCampoInteresse('cc-posto')">
           <option value="">Selecione...</option>
           <optgroup label="Oficiais">
             <option>Oficial General</option>
@@ -737,6 +744,7 @@
             <option>Outro</option>
           </optgroup>
         </select>
+        <span id="cc-posto-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Selecione seu posto/cargo.</span>
       </div>
       <button class="btn-interesse" onclick="enviarInteresse()">
         Quero ser contactado
@@ -753,7 +761,7 @@
     <div class="sidebar-card">
       <div class="sidebar-card-title">Links Úteis</div>
       <div class="util-links" id="util-links">
-        <a href="simulador.html" class="util-link">
+        <a href="simulador.html" class="util-link" onclick="irParaSimulador(this);return false;">
           <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a4 4 0 0 1 0 8 4 4 0 0 1 0-8zm0 10c2.67 0 8 1.34 8 4v1H4v-1c0-2.66 5.33-4 8-4z"/></svg>
           Simular Financiamento
         </a>
@@ -1081,7 +1089,7 @@ function renderImovel(im, todos) {
       </a>`;
   }
   dlHtml += `
-    <a href="simulador.html" class="download-item">
+    <a href="simulador.html" class="download-item" onclick="irParaSimulador(this);return false;">
       <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
       <div>
         <div class="download-label">Simulador de Financiamento</div>
@@ -1355,30 +1363,95 @@ async function enviarEmailSite() {
   }
 }
 
-let _interessePendingData  = null;
+let _interessePendingData   = null;
 let _interesseEmailPendente = '';
+let _interesseDestino       = 'whatsapp'; // 'whatsapp' (Quero ser contactado) | 'simulador' (botões Simular Financiamento)
 
 function validarEmailInteresse(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || '').trim());
 }
 
-function enviarInteresse() {
-  const nome  = document.getElementById('cc-nome').value.trim();
-  const email = document.getElementById('cc-email').value.trim().toLowerCase();
-  const wpp   = document.getElementById('cc-wpp').value.trim();
-  const posto = document.getElementById('cc-posto').value;
+// Nome completo: exige nome + sobrenome, só letras/acentos/espaços/pontuação
+// de patente (ex: "Ten.") — mesma regra do formulário do index.html.
+function validarNomeCompletoInteresse(nome) {
+  const limpo = (nome || '').trim();
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+  const partes = limpo.split(/\s+/).filter(Boolean);
+  return partes.length >= 2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length >= 4;
+}
 
-  if (!nome || !wpp) {
-    mostrarToast('⚠️ Preencha nome e WhatsApp.');
-    return;
-  }
-  if (!validarEmailInteresse(email)) {
-    mostrarToast('⚠️ Informe um e-mail válido.');
-    return;
-  }
-  if (!imovelAtual) return;
+// WhatsApp: DDD (11-99) + número com 8 ou 9 dígitos
+function validarWhatsAppInteresse(tel) {
+  const digitos = (tel || '').replace(/\D/g, '');
+  if (digitos.length < 10 || digitos.length > 11) return false;
+  const ddd = parseInt(digitos.slice(0,2), 10);
+  return ddd >= 11 && ddd <= 99;
+}
 
-  const data = {
+function mascaraTelefoneInteresse(el) {
+  let v = el.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 10)     v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+  else if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+  else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+  el.value = v;
+}
+
+function limparErroCampoInteresse(id) {
+  const erro = document.getElementById(id + '-erro');
+  const campo = document.getElementById(id);
+  if (erro) erro.style.display = 'none';
+  if (campo) campo.style.borderColor = '';
+}
+
+function marcarErroCampoInteresse(id, mostrar) {
+  const erro = document.getElementById(id + '-erro');
+  const campo = document.getElementById(id);
+  if (erro)  erro.style.display  = mostrar ? 'block' : 'none';
+  if (campo) campo.style.borderColor = mostrar ? '#DC2626' : '';
+  return !mostrar;
+}
+
+function validarNomeCampoInteresse() {
+  const val = document.getElementById('cc-nome').value;
+  if (!val.trim()) { limparErroCampoInteresse('cc-nome'); return true; }
+  return marcarErroCampoInteresse('cc-nome', !validarNomeCompletoInteresse(val));
+}
+function validarEmailCampoInteresse() {
+  const val = document.getElementById('cc-email').value;
+  if (!val.trim()) { limparErroCampoInteresse('cc-email'); return true; }
+  return marcarErroCampoInteresse('cc-email', !validarEmailInteresse(val));
+}
+function validarWppCampoInteresse() {
+  const val = document.getElementById('cc-wpp').value;
+  if (!val.trim()) { limparErroCampoInteresse('cc-wpp'); return true; }
+  return marcarErroCampoInteresse('cc-wpp', !validarWhatsAppInteresse(val));
+}
+
+// Lê e valida os 4 campos do formulário "Tenho Interesse" — retorna o
+// payload pronto pra gravar, ou null se algo estiver vazio/inconsistente
+// (marca em vermelho cada campo problemático, pra não deixar gravar lixo).
+// Reaproveitado tanto pelo botão "Quero ser contactado" quanto pelos
+// botões "Simular Financiamento", que agora exigem o mesmo preenchimento
+// antes de deixar seguir pro simulador.html.
+function coletarDadosInteresse() {
+  const nomeEl  = document.getElementById('cc-nome');
+  const emailEl = document.getElementById('cc-email');
+  const wppEl   = document.getElementById('cc-wpp');
+  const postoEl = document.getElementById('cc-posto');
+
+  const nome  = nomeEl.value.trim();
+  const email = emailEl.value.trim().toLowerCase();
+  const wpp   = wppEl.value.trim();
+  const posto = postoEl.value;
+
+  const nomeOk  = marcarErroCampoInteresse('cc-nome',  !validarNomeCompletoInteresse(nome));
+  const emailOk = marcarErroCampoInteresse('cc-email', !validarEmailInteresse(email));
+  const wppOk   = marcarErroCampoInteresse('cc-wpp',   !validarWhatsAppInteresse(wpp));
+  const postoOk = marcarErroCampoInteresse('cc-posto', !posto);
+
+  if (!nomeOk || !emailOk || !wppOk || !postoOk || !imovelAtual) return null;
+
+  return {
     tipo:             'lead',
     timestamp:        new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
     nome, email, whatsapp: wpp, posto,
@@ -1389,27 +1462,56 @@ function enviarInteresse() {
     faixa_valor:      imovelAtual.faixa,
     origem:           'pagina_imovel'
   };
+}
 
+function avisarPreencherInteresse() {
+  mostrarToast('⚠️ Dados inconsistentes ou inválidos. Confira nome, e-mail, WhatsApp e posto/cargo.');
+  const card = document.getElementById('cc-nome').closest('.sidebar-card');
+  if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  document.getElementById('cc-nome').focus();
+}
+
+function marcarBotaoCarregando(el, carregando) {
+  if (!el) return;
+  if (el.tagName === 'BUTTON') el.disabled = carregando;
+  el.style.pointerEvents = carregando ? 'none' : '';
+  el.style.opacity       = carregando ? '0.6'  : '';
+}
+
+function iniciarGateInteresse(data, btnEl) {
   // Antes de gravar, confirma que o e-mail é de verdade — mesmo gate de
   // código de 6 dígitos (10 min) já usado no formulário do index.html.
   _interessePendingData   = data;
-  _interesseEmailPendente = email;
-  chamarCadastroApi('cadastro_login_solicitar_codigo', { email });
+  _interesseEmailPendente = data.email;
+  chamarCadastroApi('cadastro_login_solicitar_codigo', { email: data.email });
 
-  const btn = document.querySelector('.btn-interesse');
-  const btnTextoOriginal = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = 'Enviando código...';
+  marcarBotaoCarregando(btnEl, true);
 
   setTimeout(() => {
-    btn.disabled = false;
-    btn.textContent = btnTextoOriginal;
-    document.getElementById('interesseGateEmailAlvo').textContent = email;
+    marcarBotaoCarregando(btnEl, false);
+    document.getElementById('interesseGateEmailAlvo').textContent = data.email;
     document.getElementById('interesseGate-codigo').value = '';
     document.getElementById('interesseGateCodigoErr').style.display = 'none';
     document.getElementById('interesseGateOverlay').style.display = 'flex';
     document.getElementById('interesseGate-codigo').focus();
   }, 700);
+}
+
+function enviarInteresse() {
+  const data = coletarDadosInteresse();
+  if (!data) { avisarPreencherInteresse(); return; }
+  _interesseDestino = 'whatsapp';
+  iniciarGateInteresse(data, document.querySelector('.btn-interesse'));
+}
+
+// Botões "Simular Financiamento" (sidebar e lista de downloads) — mesma
+// validação/gate do "Quero ser contactado", mas ao confirmar o código
+// segue pro simulador.html em vez de abrir o WhatsApp.
+function irParaSimulador(btnEl) {
+  const data = coletarDadosInteresse();
+  if (!data) { avisarPreencherInteresse(); return; }
+  _interesseDestino = 'simulador';
+  iniciarGateInteresse(data, btnEl);
 }
 
 async function doVerificarCodigoInteresse() {
@@ -1449,6 +1551,17 @@ function enviarInteresseFinal(data) {
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(data)
   });
+
+  if (_interesseDestino === 'simulador') {
+    // já verificamos o e-mail por OTP — o simulador.html não precisa
+    // pedir identificação de novo (mesmo mecanismo do index.html)
+    sessionStorage.setItem('sim_identificado', '1');
+    mostrarToast('✅ Recebemos seu interesse! Abrindo o simulador...');
+    setTimeout(function() {
+      window.location.href = 'simulador.html';
+    }, 900);
+    return;
+  }
 
   mostrarToast('✅ Recebemos seu interesse! Entraremos em contato em breve.');
   const msg = encodeURIComponent('Olá! Sou ' + data.nome + ' e tenho interesse no ' + imovelAtual.nome + ' em ' + imovelAtual.cidade + '.');
