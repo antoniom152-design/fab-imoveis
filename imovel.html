@@ -1433,7 +1433,7 @@ function validarWppCampoInteresse() {
 // Reaproveitado tanto pelo botão "Quero ser contactado" quanto pelos
 // botões "Simular Financiamento", que agora exigem o mesmo preenchimento
 // antes de deixar seguir pro simulador.html.
-function coletarDadosInteresse() {
+function coletarDadosInteresse(origemSufixo) {
   const nomeEl  = document.getElementById('cc-nome');
   const emailEl = document.getElementById('cc-email');
   const wppEl   = document.getElementById('cc-wpp');
@@ -1460,7 +1460,7 @@ function coletarDadosInteresse() {
     cidade:           imovelAtual.cidade,
     bairro_desejado:  imovelAtual.bairro,
     faixa_valor:      imovelAtual.faixa,
-    origem:           'pagina_imovel'
+    origem:           'pagina_imovel' + (origemSufixo ? ' - ' + origemSufixo : '')
   };
 }
 
@@ -1498,7 +1498,7 @@ function iniciarGateInteresse(data, btnEl) {
 }
 
 function enviarInteresse() {
-  const data = coletarDadosInteresse();
+  const data = coletarDadosInteresse('Quero Ser Contactado');
   if (!data) { avisarPreencherInteresse(); return; }
   _interesseDestino = 'whatsapp';
   iniciarGateInteresse(data, document.querySelector('.btn-interesse'));
@@ -1508,7 +1508,7 @@ function enviarInteresse() {
 // validação/gate do "Quero ser contactado", mas ao confirmar o código
 // segue pro simulador.html em vez de abrir o WhatsApp.
 function irParaSimulador(btnEl) {
-  const data = coletarDadosInteresse();
+  const data = coletarDadosInteresse('Simulador');
   if (!data) { avisarPreencherInteresse(); return; }
   _interesseDestino = 'simulador';
   iniciarGateInteresse(data, btnEl);
