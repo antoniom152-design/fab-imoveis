@@ -213,11 +213,13 @@ function processarLead(data) {
         aba.appendRow([
           'Timestamp','Nome','WhatsApp','Posto/Cargo','Base/Unidade',
           'Cidade Desejada','Faixa de Valor','Forma de Pagamento','Origem',
-          'Estado','Bairro Desejado','Imovel de Interesse'
+          'Estado','Bairro Desejado','Imovel de Interesse','E-mail'
         ]);
-        aba.getRange(1,1,1,12).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+        aba.getRange(1,1,1,13).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
         aba.setFrozenRows(1);
       }
+      // Coluna 'E-mail' entrou depois (05/08/2026) — vai como col M, no fim,
+      // pra não mexer na ordem das colunas A→L já em uso na aba real.
       aba.appendRow([
         data.timestamp        || '',   // col A — Timestamp
         data.nome             || '',   // col B — Nome
@@ -230,7 +232,8 @@ function processarLead(data) {
         data.origem           || '',   // col I — Origem
         data.estado           || '',   // col J — Estado
         data.bairro_desejado  || '',   // col K — Bairro Desejado
-        data.imovel_interesse || ''    // col L — Imovel de Interesse
+        data.imovel_interesse || '',   // col L — Imovel de Interesse
+        data.email             || ''   // col M — E-mail
       ]);
       Logger.log('Lead salvo na aba ' + ABA_LEADS);
     } catch (e) { Logger.log('Lead planilha erro: ' + e.message); }
@@ -247,6 +250,7 @@ function processarLead(data) {
         '<div style="padding:24px;background:#f9f9f9">' +
           '<table style="width:100%;border-collapse:collapse;font-size:14px">' +
             linhaHtml('Nome',                 data.nome) +
+            linhaHtml('E-mail',               data.email) +
             linhaHtml('WhatsApp',             data.whatsapp) +
             linhaHtml('Posto/Cargo',          data.posto) +
             linhaHtml('Base/Unidade',         data.base) +
@@ -859,11 +863,30 @@ function testarPlanilha() {
   }
 }
 
-/* ─── TESTE LEAD (grava linha real com todos os 12 campos) */
+/* ─── CONFIGURA COLUNA 'E-mail' NA ABA LEADS JÁ EXISTENTE ───
+   processarLead() só escreve o cabeçalho quando cria a aba do zero —
+   como ABA_LEADS já existia em produção antes da coluna E-mail (col M)
+   ser adicionada, o cabeçalho da coluna M nunca foi escrito sozinho.
+   Rode esta função uma única vez (▶ no editor, sem precisar publicar
+   nova versão) pra adicionar o rótulo 'E-mail' em M1 com a mesma
+   formatação do resto do cabeçalho. Se preferir, também dá pra digitar
+   "E-mail" na célula M1 manualmente — o efeito é o mesmo. */
+function configurarColunaEmailLeads() {
+  var ss  = SpreadsheetApp.openById(PLANILHA_ID);
+  var aba = ss.getSheetByName(ABA_LEADS);
+  if (!aba) { Logger.log('Aba ' + ABA_LEADS + ' não encontrada'); return; }
+  var celula = aba.getRange(1, 13);
+  celula.setValue('E-mail');
+  celula.setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  Logger.log('✅ Cabeçalho "E-mail" adicionado em M1 da aba ' + ABA_LEADS);
+}
+
+/* ─── TESTE LEAD (grava linha real com todos os 13 campos, incl. E-mail) */
 function testarLead() {
   var dados = {
     timestamp:        new Date().toLocaleString('pt-BR'),
     nome:             'TESTE Automático',
+    email:            'teste@walservidor.com.br',
     whatsapp:         '(21) 99999-9999',
     posto:            'Sargento',
     base:             'Galeão',

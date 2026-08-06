@@ -2039,13 +2039,13 @@ function excluirLead(sheet, id) {
 }
 
 function criarOuAtualizarLead(sheet, lead, interacao) {
-  var telBusca   = String(lead.telefone || '').replace(/\D/g, '');
-  var emailBusca = String(lead.email    || '').toLowerCase().trim();
+  // Chave = E-mail (05/08/2026). Antes tambem casava por Telefone (OR);
+  // agora so casa por E-mail, a pedido do Antonio.
+  var emailBusca = String(lead.email || '').toLowerCase().trim();
   var vals = sheet.getDataRange().getValues();
   for (var i = 1; i < vals.length; i++) {
-    var rowTel   = String(vals[i][4] || '').replace(/\D/g, '');
     var rowEmail = String(vals[i][5] || '').toLowerCase().trim();
-    if ((telBusca && rowTel === telBusca) || (emailBusca && rowEmail === emailBusca)) {
+    if (emailBusca && rowEmail === emailBusca) {
       var hist = [];
       try { hist = JSON.parse(String(vals[i][16]||'[]')); } catch(x){}
       if (interacao) hist.push(interacao);

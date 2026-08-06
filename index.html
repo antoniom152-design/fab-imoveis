@@ -1175,7 +1175,8 @@
           <div class="stat-label">Atendimento<br>disponível</div>
         </div>
       </div>
-      <div style="animation: fadeUp 0.8s 0.35s ease both; display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+      <!-- 34) Botões "Quero Reservar" e "Simular Financiamento" desativados a pedido do Antonio (05/08/2026) — por enquanto, não remover -->
+      <div style="animation: fadeUp 0.8s 0.35s ease both; display:none; flex-wrap:wrap; gap:12px; align-items:center;">
         <a href="#" class="btn-reserva" onclick="abrirGateLead('Reserva','reserva.html');return false;" style="margin:0;">Quero Reservar o meu Imóvel Agora.</a>
         <a href="#" class="btn-simulador" onclick="abrirGateLead('Simulador','simulador.html');return false;" style="margin:0;">Simular Financiamento (Grátis)</a>
       </div>
@@ -1192,6 +1193,12 @@
             <input class="form-input" id="f-nome" type="text" placeholder="Ex: Ten. João Silva" required
                    oninput="limparErroCampo('f-nome')" onblur="validarNomeCampo()">
             <span id="f-nome-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe seu nome completo (nome e sobrenome, sem números).</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">E-mail</label>
+            <input class="form-input" id="f-email" type="email" placeholder="seu@email.com" required
+                   oninput="limparErroCampo('f-email')" onblur="validarEmailCampo()">
+            <span id="f-email-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">⚠ Informe um e-mail válido.</span>
           </div>
           <div class="form-row">
             <div class="form-group">
@@ -2114,6 +2121,42 @@
   </div>
 </div>
 
+<!-- ═══ CONFIRMAÇÃO DE E-MAIL — formulário "Quero conhecer as opções" ═══ -->
+<div id="formGateOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.9);
+     z-index:9500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--navy-mid);border:1px solid var(--border);
+              padding:36px 40px;max-width:420px;width:90%;position:relative">
+    <button onclick="document.getElementById('formGateOverlay').style.display='none'"
+      style="position:absolute;top:14px;right:16px;background:none;border:none;
+             color:var(--ink-muted);font-size:20px;cursor:pointer">✕</button>
+
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;
+                letter-spacing:.2em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:14px">
+      Confirme seu e-mail
+    </div>
+    <p style="font-size:14px;color:var(--ink-muted);margin-bottom:20px;line-height:1.6">
+      Enviamos um código de 6 dígitos para <strong id="formGateEmailAlvo" style="color:var(--navy)"></strong>. Vale por 10 minutos.
+    </p>
+    <input id="formGate-codigo" inputmode="numeric" maxlength="6" placeholder="000000"
+      onkeydown="if(event.key==='Enter')doVerificarCodigoFormLead()"
+      style="width:100%;background:var(--surf);border:1px solid var(--border);
+             color:var(--navy);padding:12px 14px;font-family:'Barlow',sans-serif;
+             font-size:18px;letter-spacing:.3em;text-align:center;outline:none;margin-bottom:10px">
+    <div id="formGateCodigoErr" style="display:none;font-size:11px;color:#DC2626;margin-bottom:10px"></div>
+    <button id="btnVerificarCodigoFormLead" onclick="doVerificarCodigoFormLead()"
+      style="width:100%;background:var(--gold);color:var(--navy);border:none;cursor:pointer;
+             padding:13px;font-family:'Barlow Condensed',sans-serif;
+             font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase">
+      Confirmar e enviar →
+    </button>
+    <div style="font-size:11px;color:var(--ink-muted);margin-top:16px;text-align:center">
+      <a href="#" onclick="event.preventDefault();trocarEmailFormLead()" style="color:var(--gold-ink);text-decoration:none">Trocar e-mail</a>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="event.preventDefault();doReenviarCodigoFormLead()" style="color:var(--gold-ink);text-decoration:none">Reenviar código</a>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-copy">© 2026 WAL Imóveis — CRECI 12261-J. Todos os direitos reservados.</div>
@@ -2286,6 +2329,11 @@
     return partes.length >= 2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length >= 4;
   }
 
+  // E-mail: formato básico nome@dominio.tld
+  function validarEmailForm(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || '').trim());
+  }
+
   // WhatsApp: DDD (11-99) + número com 8 ou 9 dígitos
   function validarWhatsAppForm(tel) {
     const digitos = (tel || '').replace(/\D/g, '');
@@ -2315,6 +2363,12 @@
     return marcarErroCampo('f-wpp', !validarWhatsAppForm(val));
   }
 
+  function validarEmailCampo() {
+    const val = document.getElementById('f-email').value;
+    if (!val.trim()) { limparErroCampo('f-email'); return true; }
+    return marcarErroCampo('f-email', !validarEmailForm(val));
+  }
+
   function validarBaseCampo() {
     const val = document.getElementById('f-base').value;
     if (!val.trim()) { limparErroCampo('f-base'); return true; }
@@ -2333,22 +2387,28 @@
       const sel = document.getElementById(id);
       if (sel) sel.innerHTML = '<option value="" disabled selected>Selecione primeiro o campo anterior</option>';
     });
-    ['f-nome','f-wpp','f-base'].forEach(limparErroCampo);
+    ['f-nome','f-email','f-wpp','f-base'].forEach(limparErroCampo);
     document.getElementById('f-nome').focus();
   }
+
+  /* ─── ESTADO PENDENTE DO FORMULÁRIO ENQUANTO VERIFICA O E-MAIL ─── */
+  let _formLeadPendingData  = null;
+  let _formLeadEmailPendente = '';
 
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const nomeOk = marcarErroCampo('f-nome', !validarNomeCompleto(document.getElementById('f-nome').value));
-    const wppOk  = marcarErroCampo('f-wpp',  !validarWhatsAppForm(document.getElementById('f-wpp').value));
-    const baseOk = marcarErroCampo('f-base', !validarUnidadeOrg(document.getElementById('f-base').value));
-    if (!nomeOk) { document.getElementById('f-nome').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-nome').focus(); return; }
-    if (!wppOk)  { document.getElementById('f-wpp').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-wpp').focus(); return; }
-    if (!baseOk) { document.getElementById('f-base').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-base').focus(); return; }
+    const nomeOk  = marcarErroCampo('f-nome',  !validarNomeCompleto(document.getElementById('f-nome').value));
+    const emailOk = marcarErroCampo('f-email', !validarEmailForm(document.getElementById('f-email').value));
+    const wppOk   = marcarErroCampo('f-wpp',   !validarWhatsAppForm(document.getElementById('f-wpp').value));
+    const baseOk  = marcarErroCampo('f-base',  !validarUnidadeOrg(document.getElementById('f-base').value));
+    if (!nomeOk)  { document.getElementById('f-nome').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-nome').focus(); return; }
+    if (!emailOk) { document.getElementById('f-email').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-email').focus(); return; }
+    if (!wppOk)   { document.getElementById('f-wpp').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-wpp').focus(); return; }
+    if (!baseOk)  { document.getElementById('f-base').scrollIntoView({behavior:'smooth', block:'center'}); document.getElementById('f-base').focus(); return; }
 
     const btn = e.target.querySelector('.btn-submit');
-    btn.textContent = 'Enviando...';
+    btn.textContent = 'Enviando código de confirmação...';
     btn.disabled = true;
 
     // h-* são campos hidden atualizados no onchange de cada select
@@ -2361,6 +2421,7 @@
       tipo:             'lead',
       timestamp:        new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
       nome:             v('f-nome'),
+      email:            v('f-email').trim().toLowerCase(),
       whatsapp:         v('f-wpp'),
       posto:            v('f-posto'),
       base:             v('f-base'),
@@ -2374,6 +2435,56 @@
       origem:           document.referrer || 'Direto'
     };
 
+    // Antes de gravar em qualquer planilha, confirma que o e-mail informado
+    // é de verdade — envia o código de 6 dígitos e guarda os dados do
+    // formulário pra só gravar depois que o código for confirmado.
+    _formLeadPendingData   = data;
+    _formLeadEmailPendente = data.email;
+    chamarCadastroApi('cadastro_login_solicitar_codigo', { email: data.email });
+
+    setTimeout(() => {
+      btn.textContent = 'Quero conhecer as opções →';
+      btn.disabled = false;
+      document.getElementById('formGateEmailAlvo').textContent = data.email;
+      document.getElementById('formGate-codigo').value = '';
+      document.getElementById('formGateCodigoErr').style.display = 'none';
+      document.getElementById('formGateOverlay').style.display = 'flex';
+      document.getElementById('formGate-codigo').focus();
+    }, 700);
+  }
+
+  async function doVerificarCodigoFormLead() {
+    const codigo = document.getElementById('formGate-codigo').value.trim();
+    const err = document.getElementById('formGateCodigoErr');
+    if (!/^[0-9]{6}$/.test(codigo)) { err.style.display='block'; err.textContent='Digite os 6 dígitos do código.'; return; }
+    err.style.display='none';
+    const btn = document.getElementById('btnVerificarCodigoFormLead');
+    btn.disabled=true; btn.textContent='Confirmando...';
+    const resp = await cadastroApiJsonp('cadastro_email_verificar_codigo', { email:_formLeadEmailPendente, codigo });
+    btn.disabled=false; btn.textContent='Confirmar e enviar →';
+    if (!resp || resp.status!=='ok' || resp.ok===false) {
+      err.style.display='block';
+      err.textContent = (resp && (resp.message || resp.erro)) || 'Não foi possível verificar o código agora. Tente novamente.';
+      return;
+    }
+    document.getElementById('formGateOverlay').style.display = 'none';
+    await enviarLeadFormData(_formLeadPendingData);
+  }
+
+  function doReenviarCodigoFormLead() {
+    chamarCadastroApi('cadastro_login_solicitar_codigo', { email: _formLeadEmailPendente });
+    document.getElementById('formGate-codigo').value = '';
+    document.getElementById('formGateCodigoErr').style.display = 'none';
+  }
+
+  function trocarEmailFormLead() {
+    document.getElementById('formGateOverlay').style.display = 'none';
+    const campo = document.getElementById('f-email');
+    campo.scrollIntoView({behavior:'smooth', block:'center'});
+    campo.focus();
+  }
+
+  async function enviarLeadFormData(data) {
     try {
       await fetch(GOOGLE_SCRIPT_URL, {
         method: 'POST', mode: 'no-cors',
@@ -2384,7 +2495,7 @@
 
     // Registra no CRM
     registrarNoCRM(
-      { nome: data.nome, telefone: data.whatsapp, origem: 'Conhecer Opções' },
+      { nome: data.nome, telefone: data.whatsapp, email: data.email, origem: 'Conhecer Opções' },
       'Solicitou conhecer as opções de imóveis'
     );
 
@@ -2424,7 +2535,7 @@
         'Forma de Pagamento: '+ (data.forma_pagamento  || '')
       );
     }
-    const waUrl = 'https://wa.me/5521977263950?text=' + mensagem;
+    const waUrl = 'https://wa.me/5521972443592?text=' + mensagem;
 
     const btn = document.getElementById('wa-lead-btn');
     if (btn) btn.href = waUrl;

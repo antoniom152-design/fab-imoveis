@@ -453,6 +453,39 @@ function cadastro_leadVerificarCodigo_(data) {
   });
 }
 
+/* ══════════════════ VERIFICAÇÃO DE E-MAIL — formulário "Quero
+   conhecer as opções" (index.html) ══════════════════
+   Só confirma que o código bate e não expirou (mesma validação
+   duplicada de cadastro_loginVerificarCodigo_/cadastro_leadVerificarCodigo_,
+   de propósito — não reaproveita nenhuma das duas pra não arriscar mexer
+   numa função já em produção) — sem nenhum efeito colateral em USUARIOS
+   nem na aba LEADS do CRM. Quem grava os dados do formulário depois disso
+   é o próprio index.html, direto nos backends que aquele formulário já
+   usava antes (GOOGLE_SCRIPT_URL e CRM_URL) — este script só prova que o
+   e-mail é de verdade. */
+function cadastro_email_verificar_codigo_(data) {
+  var email = normalizarEmail_(data.email);
+  var codigo = s_(data.codigo).trim();
+  if (!email || !codigo) return { status: 'error', message: 'E-mail e código são obrigatórios.' };
+
+  return comLock_(function () {
+    var ss = SpreadsheetApp.openById(PLANILHA_CADASTRO_ID);
+    var abaOtp = ss.getSheetByName(ABA_OTP);
+    var linhaOtp = acharLinhaPorChave_(abaOtp, 'Email', email);
+    if (linhaOtp === -1) return { status: 'error', message: 'Solicite um novo código.' };
+    var vals = abaOtp.getRange(linhaOtp, 1, 1, 7).getValues()[0];
+    var expiraEm = new Date(vals[2]);
+    if (codigo !== s_(vals[1])) return { status: 'error', message: 'Código incorreto.' };
+    if (!isNaN(expiraEm.getTime()) && expiraEm < new Date()) return { status: 'error', message: 'Código expirado. Solicite outro.' };
+
+    var token = gerarToken_();
+    var tokenExpira = new Date(Date.now() + 24 * 3600000).toISOString();
+    abaOtp.getRange(linhaOtp, 4, 1, 3).setValues([[true, token, tokenExpira]]);
+
+    return { status: 'ok', sessionToken: token };
+  });
+}
+
 /* Confirma que este e-mail passou pelo OTP (Verificado=true, token
    confere, sessão ainda não expirou) antes de deixar gravar um lead
    novo — mesmo princípio de validarSessaoLead_ do Feirão. */
@@ -503,6 +536,7 @@ function doGet(e) {
       case 'cadastro_listar_dashboards': result = { ok: true, itens: cadastro_listarDashboards_(p) }; break;
       case 'cadastro_login_verificar_codigo': result = cadastro_loginVerificarCodigo_(p); break;
       case 'cadastro_lead_verificar_codigo':  result = cadastro_leadVerificarCodigo_(p); break;
+      case 'cadastro_email_verificar_codigo': result = cadastro_email_verificar_codigo_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
