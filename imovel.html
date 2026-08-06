@@ -707,11 +707,15 @@
         <input type="text" id="cc-nome" class="form-input" placeholder="Seu nome">
       </div>
       <div class="form-group">
+        <label class="form-label">E-mail</label>
+        <input type="email" id="cc-email" class="form-input" placeholder="seu@email.com">
+      </div>
+      <div class="form-group">
         <label class="form-label">WhatsApp</label>
         <input type="tel" id="cc-wpp" class="form-input" placeholder="(21) 99999-9999">
       </div>
       <div class="form-group">
-        <label class="form-label">Posto / Graduação</label>
+        <label class="form-label">Posto / Cargo</label>
         <select id="cc-posto" class="form-select">
           <option value="">Selecione...</option>
           <optgroup label="Oficiais">
@@ -791,6 +795,42 @@
   <div id="fotoModalNome"></div>
 </div>
 
+<!-- ═══ CONFIRMAÇÃO DE E-MAIL — formulário "Tenho Interesse" ═══ -->
+<div id="interesseGateOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.75);
+     z-index:9500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--navy-mid);border:1px solid var(--border);
+              padding:36px 40px;max-width:420px;width:90%;position:relative;border-radius:4px">
+    <button onclick="document.getElementById('interesseGateOverlay').style.display='none'"
+      style="position:absolute;top:14px;right:16px;background:none;border:none;
+             color:var(--ink-muted);font-size:20px;cursor:pointer">✕</button>
+
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;
+                letter-spacing:.2em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:14px">
+      Confirme seu e-mail
+    </div>
+    <p style="font-size:14px;color:var(--ink-muted);margin-bottom:20px;line-height:1.6">
+      Enviamos um código de 6 dígitos para <strong id="interesseGateEmailAlvo" style="color:var(--navy)"></strong>. Vale por 10 minutos.
+    </p>
+    <input id="interesseGate-codigo" inputmode="numeric" maxlength="6" placeholder="000000"
+      onkeydown="if(event.key==='Enter')doVerificarCodigoInteresse()"
+      style="width:100%;background:var(--surf);border:1px solid var(--border);
+             color:var(--navy);padding:12px 14px;font-family:'Barlow',sans-serif;
+             font-size:18px;letter-spacing:.3em;text-align:center;outline:none;margin-bottom:10px">
+    <div id="interesseGateCodigoErr" style="display:none;font-size:11px;color:#DC2626;margin-bottom:10px"></div>
+    <button id="btnVerificarCodigoInteresse" onclick="doVerificarCodigoInteresse()"
+      style="width:100%;background:var(--gold);color:var(--navy);border:none;cursor:pointer;
+             padding:13px;font-family:'Barlow Condensed',sans-serif;
+             font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase">
+      Confirmar e enviar →
+    </button>
+    <div style="font-size:11px;color:var(--ink-muted);margin-top:16px;text-align:center">
+      <a href="#" onclick="event.preventDefault();trocarEmailInteresse()" style="color:var(--gold-ink);text-decoration:none">Trocar e-mail</a>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="event.preventDefault();doReenviarCodigoInteresse()" style="color:var(--gold-ink);text-decoration:none">Reenviar código</a>
+    </div>
+  </div>
+</div>
+
 <!-- WPP FLUTUANTE -->
 <a id="wpp-float" href="#" class="wpp-float" target="_blank" rel="noopener" title="WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
@@ -803,7 +843,35 @@
 const SHEET_ID   = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 const SHEET_NAME = 'IMOVEISDISPONIVEIS';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
-const WPP_NUM    = '5521977263950';
+const WPP_NUM    = '5521972443592';
+
+/* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
+   — usado só para o gate de e-mail/OTP do formulário "Tenho Interesse",
+   mesmo padrão já validado no index.html. */
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+
+function cadastroApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    const cb = 'acessoCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+function chamarCadastroApi(action, payload){
+  try{
+    fetch(CADASTRO_API_URL, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(Object.assign({action}, payload))
+    }).catch(()=>{});
+  }catch(e){}
+}
 
 const SITE_BASE_URL = (function() {
   const o = window.location.origin;
@@ -1287,8 +1355,16 @@ async function enviarEmailSite() {
   }
 }
 
+let _interessePendingData  = null;
+let _interesseEmailPendente = '';
+
+function validarEmailInteresse(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || '').trim());
+}
+
 function enviarInteresse() {
   const nome  = document.getElementById('cc-nome').value.trim();
+  const email = document.getElementById('cc-email').value.trim().toLowerCase();
   const wpp   = document.getElementById('cc-wpp').value.trim();
   const posto = document.getElementById('cc-posto').value;
 
@@ -1296,24 +1372,86 @@ function enviarInteresse() {
     mostrarToast('⚠️ Preencha nome e WhatsApp.');
     return;
   }
+  if (!validarEmailInteresse(email)) {
+    mostrarToast('⚠️ Informe um e-mail válido.');
+    return;
+  }
   if (!imovelAtual) return;
 
+  const data = {
+    tipo:             'lead',
+    timestamp:        new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+    nome, email, whatsapp: wpp, posto,
+    imovel_interesse: imovelAtual.nome,
+    estado:           imovelAtual.uf,
+    cidade:           imovelAtual.cidade,
+    bairro_desejado:  imovelAtual.bairro,
+    faixa_valor:      imovelAtual.faixa,
+    origem:           'pagina_imovel'
+  };
+
+  // Antes de gravar, confirma que o e-mail é de verdade — mesmo gate de
+  // código de 6 dígitos (10 min) já usado no formulário do index.html.
+  _interessePendingData   = data;
+  _interesseEmailPendente = email;
+  chamarCadastroApi('cadastro_login_solicitar_codigo', { email });
+
+  const btn = document.querySelector('.btn-interesse');
+  const btnTextoOriginal = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Enviando código...';
+
+  setTimeout(() => {
+    btn.disabled = false;
+    btn.textContent = btnTextoOriginal;
+    document.getElementById('interesseGateEmailAlvo').textContent = email;
+    document.getElementById('interesseGate-codigo').value = '';
+    document.getElementById('interesseGateCodigoErr').style.display = 'none';
+    document.getElementById('interesseGateOverlay').style.display = 'flex';
+    document.getElementById('interesseGate-codigo').focus();
+  }, 700);
+}
+
+async function doVerificarCodigoInteresse() {
+  const codigo = document.getElementById('interesseGate-codigo').value.trim();
+  const err = document.getElementById('interesseGateCodigoErr');
+  if (!/^[0-9]{6}$/.test(codigo)) { err.style.display='block'; err.textContent='Digite os 6 dígitos do código.'; return; }
+  err.style.display='none';
+  const btn = document.getElementById('btnVerificarCodigoInteresse');
+  btn.disabled=true; btn.textContent='Confirmando...';
+  const resp = await cadastroApiJsonp('cadastro_email_verificar_codigo', { email:_interesseEmailPendente, codigo });
+  btn.disabled=false; btn.textContent='Confirmar e enviar →';
+  if (!resp || resp.status!=='ok' || resp.ok===false) {
+    err.style.display='block';
+    err.textContent = (resp && (resp.message || resp.erro)) || 'Não foi possível verificar o código agora. Tente novamente.';
+    return;
+  }
+  document.getElementById('interesseGateOverlay').style.display = 'none';
+  enviarInteresseFinal(_interessePendingData);
+}
+
+function doReenviarCodigoInteresse() {
+  chamarCadastroApi('cadastro_login_solicitar_codigo', { email: _interesseEmailPendente });
+  document.getElementById('interesseGate-codigo').value = '';
+  document.getElementById('interesseGateCodigoErr').style.display = 'none';
+}
+
+function trocarEmailInteresse() {
+  document.getElementById('interesseGateOverlay').style.display = 'none';
+  const campo = document.getElementById('cc-email');
+  campo.scrollIntoView({behavior:'smooth', block:'center'});
+  campo.focus();
+}
+
+function enviarInteresseFinal(data) {
   fetch(SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      tipo:        'lead',
-      timestamp:   new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-      nome, whatsapp: wpp, posto,
-      base:        imovelAtual.nome,
-      cidade:      imovelAtual.cidade,
-      faixa_valor: imovelAtual.faixa,
-      origem:      'pagina_imovel'
-    })
+    body: JSON.stringify(data)
   });
 
   mostrarToast('✅ Recebemos seu interesse! Entraremos em contato em breve.');
-  const msg = encodeURIComponent('Olá! Sou ' + nome + ' e tenho interesse no ' + imovelAtual.nome + ' em ' + imovelAtual.cidade + '.');
+  const msg = encodeURIComponent('Olá! Sou ' + data.nome + ' e tenho interesse no ' + imovelAtual.nome + ' em ' + imovelAtual.cidade + '.');
   setTimeout(function() {
     window.open('https://wa.me/' + WPP_NUM + '?text=' + msg, '_blank');
   }, 1200);
