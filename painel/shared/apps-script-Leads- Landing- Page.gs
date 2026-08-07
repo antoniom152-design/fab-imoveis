@@ -4,7 +4,7 @@
    Data: 04-08-26 as 08:40h
 ══════════════════════════════════════════════════════════ */
 
-var EMAIL_DESTINO  = 'wal.imoveiseconsultoria@gmail.com';
+var EMAIL_DESTINO  = 'comercial@walservidor.com.br';
 var WPP_DADOS      = [
   { phone: '5522998136409', apikey: '8406411' },
   { phone: '5521972443592', apikey: '' }

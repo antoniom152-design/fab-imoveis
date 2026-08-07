@@ -585,10 +585,18 @@
         <div class="fg">
           <label class="form-label">Nome Completo <span class="req">*</span></label>
           <input class="form-input" type="text" id="nome" placeholder="Seu nome completo" required>
+          <span id="nome-erro" style="display:none;font-size:11px;color:#DC2626;
+                margin-top:5px;align-items:center;gap:5px">
+            ⚠ Informe nome e sobrenome, só letras — sem números ou símbolos
+          </span>
         </div>
         <div class="fg">
           <label class="form-label">Data de Nascimento <span class="req">*</span></label>
           <input class="form-input" type="date" id="nascimento" required>
+          <span id="nascimento-erro" style="display:none;font-size:11px;color:#DC2626;
+                margin-top:5px;align-items:center;gap:5px">
+            ⚠ Data inválida — você precisa ter entre 18 e 100 anos
+          </span>
         </div>
       </div>
 
@@ -596,6 +604,10 @@
         <div class="fg">
           <label class="form-label">Telefone / WhatsApp <span class="req">*</span></label>
           <input class="form-input" type="tel" id="telefone" placeholder="(00) 00000-0000" required>
+          <span id="telefone-erro" style="display:none;font-size:11px;color:#DC2626;
+                margin-top:5px;align-items:center;gap:5px">
+            ⚠ Telefone inválido — informe DDD + número (10 ou 11 dígitos)
+          </span>
         </div>
         <div class="fg">
           <label class="form-label">E-mail <span class="req">*</span></label>
@@ -641,10 +653,16 @@
         <div class="fg">
           <label class="form-label">Nome Completo <span class="req">*</span></label>
           <input class="form-input" type="text" id="nome2" placeholder="Nome completo do cônjuge / companheiro(a)">
+          <span id="nome2-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">
+            ⚠ Informe nome e sobrenome do cônjuge, só letras
+          </span>
         </div>
         <div class="fg">
           <label class="form-label">Data de Nascimento <span class="req">*</span></label>
           <input class="form-input" type="date" id="nascimento2">
+          <span id="nascimento2-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">
+            ⚠ Data inválida — o cônjuge precisa ter entre 18 e 100 anos
+          </span>
         </div>
       </div>
 
@@ -652,6 +670,9 @@
         <div class="fg">
           <label class="form-label">Telefone / WhatsApp <span class="req">*</span></label>
           <input class="form-input" type="tel" id="telefone2" placeholder="(00) 00000-0000">
+          <span id="telefone2-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">
+            ⚠ Telefone do cônjuge inválido — informe DDD + número
+          </span>
         </div>
         <div class="fg">
           <label class="form-label">E-mail</label>
@@ -678,6 +699,9 @@
       <div class="fg">
         <label class="form-label">Nome do Empreendimento / Imóvel Pretendido <span class="req">*</span></label>
         <input class="form-input" type="text" id="empreendimento" placeholder="Ex: Reserva Atlântica, Gran Vitória Residencial..." required>
+        <span id="empreendimento-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">
+          ⚠ Informe o nome do empreendimento — não pode ser vazio ou inconsistente
+        </span>
       </div>
 
       <div class="row-3 fg">
@@ -696,6 +720,9 @@
         <div class="fg">
           <label class="form-label">Valor de Entrada <span class="req">*</span></label>
           <input class="form-input" type="text" id="valor_entrada" placeholder="R$ 0,00" required>
+          <span id="valor_entrada-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">
+            ⚠ Informe um valor de entrada maior que zero
+          </span>
         </div>
         <div class="fg">
           <label class="form-label">Forma de Pagamento <span class="req">*</span></label>
@@ -908,6 +935,43 @@
   </div>
 </div>
 
+<!-- ═══ CONFIRMAÇÃO DE E-MAIL — antes de gravar a reserva ═══ -->
+<div id="reservaGateOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.75);
+     z-index:9500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--navy-mid);border:1px solid var(--border);
+              padding:36px 40px;max-width:420px;width:90%;position:relative;border-radius:4px">
+    <button onclick="document.getElementById('reservaGateOverlay').style.display='none'"
+      style="position:absolute;top:14px;right:16px;background:none;border:none;
+             color:var(--ink-muted);font-size:20px;cursor:pointer">✕</button>
+
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:11px;
+                letter-spacing:.2em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:14px">
+      Confirme seu e-mail
+    </div>
+    <p style="font-size:14px;color:var(--ink-muted);margin-bottom:20px;line-height:1.6">
+      Enviamos um código de 6 dígitos para <strong id="reservaGateEmailAlvo" style="color:var(--navy)"></strong>. Vale por 10 minutos.
+      Sua reserva só é gravada depois da confirmação.
+    </p>
+    <input id="reservaGate-codigo" inputmode="numeric" maxlength="6" placeholder="000000"
+      onkeydown="if(event.key==='Enter')doVerificarCodigoReserva()"
+      style="width:100%;background:var(--surf);border:1px solid var(--border);
+             color:var(--navy);padding:12px 14px;font-family:'Barlow',sans-serif;
+             font-size:18px;letter-spacing:.3em;text-align:center;outline:none;margin-bottom:10px">
+    <div id="reservaGateCodigoErr" style="display:none;font-size:11px;color:#DC2626;margin-bottom:10px"></div>
+    <button id="btnVerificarCodigoReserva" onclick="doVerificarCodigoReserva()"
+      style="width:100%;background:var(--gold);color:var(--navy);border:none;cursor:pointer;
+             padding:13px;font-family:'Barlow Condensed',sans-serif;
+             font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase">
+      Confirmar e enviar →
+    </button>
+    <div style="font-size:11px;color:var(--ink-muted);margin-top:16px;text-align:center">
+      <a href="#" onclick="event.preventDefault();trocarEmailReserva()" style="color:var(--gold-ink);text-decoration:none">Trocar e-mail</a>
+      &nbsp;·&nbsp;
+      <a href="#" onclick="event.preventDefault();doReenviarCodigoReserva()" style="color:var(--gold-ink);text-decoration:none">Reenviar código</a>
+    </div>
+  </div>
+</div>
+
 <!-- FOOTER -->
 <footer>
   <div class="footer-copy">© 2026 WAL Imóveis — CRECI 12261-J. Todos os direitos reservados.</div>
@@ -915,7 +979,7 @@
 </footer>
 
 <!-- WA FLOAT -->
-<a class="wa-float" href="https://wa.me/5521972443592?text=Olá,%20preciso%20de%20ajuda%20com%20a%20reserva%20de%20um%20imóvel" target="_blank" title="Atendimento 24hs">
+<a class="wa-float" href="https://wa.me/5521997263950?text=Olá,%20preciso%20de%20ajuda%20com%20a%20reserva%20de%20um%20imóvel" target="_blank" title="Atendimento 24hs">
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 </a>
 
@@ -939,9 +1003,38 @@
       body: JSON.stringify(payload)
     }).catch(() => {});
   }
-  const WPP_CONS_1  = '5522998136409';
+  const WPP_CONS_1  = '5521972443592';
   const WPP_CONS_2  = '5521972443592';
   const MAX_FILE_MB = 5;
+
+  /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
+     — usado só para o gate de e-mail/OTP antes de gravar a reserva,
+     mesmo padrão já validado no index.html e no imovel.html. */
+  const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+  let _reservaEmailPendente = '';
+
+  function cadastroApiJsonp(action, params){
+    return new Promise((resolve)=>{
+      const cb = 'acessoCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+      const s = document.createElement('script');
+      const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+      function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+      window[cb] = (data)=>{ cleanup(); resolve(data); };
+      const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+      s.onerror = ()=>{ cleanup(); resolve(null); };
+      s.src = CADASTRO_API_URL+'?'+qs.toString();
+      document.body.appendChild(s);
+    });
+  }
+  function chamarCadastroApi(action, payload){
+    try{
+      fetch(CADASTRO_API_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain'},
+        body:JSON.stringify(Object.assign({action}, payload))
+      }).catch(()=>{});
+    }catch(e){}
+  }
 
   /* Documentos obrigatórios (id do input, descrição) */
   const DOCS_REQUIRED = [
@@ -1079,6 +1172,108 @@
       .replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
   });
 
+  /* ─── VALIDAÇÃO RÍGIDA — nome, telefone, nascimento, empreendimento,
+     valor de entrada (titular e cônjuge). Não permite gravar lixo:
+     nome sem números/símbolos, telefone com DDD e dígitos corretos,
+     nascimento condizente com maioridade, empreendimento com conteúdo
+     real, entrada maior que zero. ─── */
+
+  // Filtra em tempo real: só deixa digitar letras/espaço/apóstrofo/ponto
+  // no campo de nome — mesmo princípio das máscaras de telefone/CPF já
+  // usadas neste arquivo, aplicado a texto em vez de números.
+  function filtrarNomeReserva(el) {
+    el.value = el.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'.\s]/g, '');
+  }
+
+  function validarNomeCompletoReserva(nome) {
+    const limpo = (nome || '').trim();
+    if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+    const partes = limpo.split(/\s+/).filter(Boolean);
+    return partes.length >= 2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length >= 4;
+  }
+
+  function validarTelefoneReserva(tel) {
+    const digitos = (tel || '').replace(/\D/g, '');
+    if (digitos.length < 10 || digitos.length > 11) return false;
+    const ddd = parseInt(digitos.slice(0,2), 10);
+    return ddd >= 11 && ddd <= 99;
+  }
+
+  function validarNascimentoReserva(dataStr) {
+    if (!dataStr) return false;
+    const data = new Date(dataStr + 'T00:00:00');
+    if (isNaN(data.getTime())) return false;
+    const idadeAnos = (Date.now() - data.getTime()) / (1000*60*60*24*365.25);
+    return idadeAnos >= 18 && idadeAnos <= 100;
+  }
+
+  function validarEmpreendimentoReserva(texto) {
+    const limpo = (texto || '').trim();
+    const soLetrasNumeros = limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ0-9]/g, '');
+    if (soLetrasNumeros.length < 3) return false;
+    if (/^(.)\1+$/.test(limpo.replace(/\s/g,''))) return false; // "aaaaaa"
+    return true;
+  }
+
+  function validarValorEntradaReserva(valorStr) {
+    const num = parseFloat((valorStr || '').replace(/[R$\s.]/g,'').replace(',','.'));
+    return !isNaN(num) && num > 0;
+  }
+
+  // Liga/limpa erro inline em qualquer campo com padrão id / id-erro
+  function setErroCampoReserva(id, mostrar) {
+    const campo = document.getElementById(id);
+    const erro  = document.getElementById(id + '-erro');
+    if (campo) campo.style.borderColor = mostrar ? '#DC2626' : '';
+    if (erro)  erro.style.display      = mostrar ? 'flex'   : 'none';
+  }
+
+  document.getElementById('nome').addEventListener('input', function() {
+    filtrarNomeReserva(this);
+    setErroCampoReserva('nome', false);
+  });
+  document.getElementById('nome').addEventListener('blur', function() {
+    if (this.value.trim()) setErroCampoReserva('nome', !validarNomeCompletoReserva(this.value));
+  });
+  document.getElementById('nome2').addEventListener('input', function() {
+    filtrarNomeReserva(this);
+    setErroCampoReserva('nome2', false);
+  });
+  document.getElementById('nome2').addEventListener('blur', function() {
+    if (!temConjuge() || !this.value.trim()) return;
+    setErroCampoReserva('nome2', !validarNomeCompletoReserva(this.value));
+  });
+
+  document.getElementById('telefone').addEventListener('input', function() { setErroCampoReserva('telefone', false); });
+  document.getElementById('telefone').addEventListener('blur', function() {
+    if (this.value.trim()) setErroCampoReserva('telefone', !validarTelefoneReserva(this.value));
+  });
+  document.getElementById('telefone2').addEventListener('input', function() { setErroCampoReserva('telefone2', false); });
+  document.getElementById('telefone2').addEventListener('blur', function() {
+    if (!temConjuge() || !this.value.trim()) return;
+    setErroCampoReserva('telefone2', !validarTelefoneReserva(this.value));
+  });
+
+  document.getElementById('nascimento').addEventListener('input', function() { setErroCampoReserva('nascimento', false); });
+  document.getElementById('nascimento').addEventListener('blur', function() {
+    if (this.value) setErroCampoReserva('nascimento', !validarNascimentoReserva(this.value));
+  });
+  document.getElementById('nascimento2').addEventListener('input', function() { setErroCampoReserva('nascimento2', false); });
+  document.getElementById('nascimento2').addEventListener('blur', function() {
+    if (!temConjuge() || !this.value) return;
+    setErroCampoReserva('nascimento2', !validarNascimentoReserva(this.value));
+  });
+
+  document.getElementById('empreendimento').addEventListener('input', function() { setErroCampoReserva('empreendimento', false); });
+  document.getElementById('empreendimento').addEventListener('blur', function() {
+    if (this.value.trim()) setErroCampoReserva('empreendimento', !validarEmpreendimentoReserva(this.value));
+  });
+
+  document.getElementById('valor_entrada').addEventListener('blur', function() {
+    if (this.value.trim()) setErroCampoReserva('valor_entrada', !validarValorEntradaReserva(this.value));
+  });
+  document.getElementById('valor_entrada').addEventListener('input', function() { setErroCampoReserva('valor_entrada', false); });
+
   /* ─── FILE HANDLER ─────────────────────────────────────── */
   function onFile(input) {
     // IDs do HTML são fn-identidade, fn-cpf-doc etc.
@@ -1129,10 +1324,10 @@
   }
 
   /* ─── SUBMIT PRINCIPAL ─────────────────────────────────── */
-  async function handleReserva(e) {
+  function handleReserva(e) {
     e.preventDefault();
 
-    /* 1. Validação dos campos de texto obrigatórios */
+    /* 1. Campos obrigatórios em branco */
     const camposObrigatorios = [
       'nome','nascimento','telefone','email','cpf',
       'estado_civil','empreendimento','faixa_valor',
@@ -1149,25 +1344,49 @@
       }
     }
 
-    /* 2. Validação do E-mail */
+    /* 2. Nome — nome e sobrenome, só letras */
+    if (!validarNomeCompletoReserva(document.getElementById('nome').value)) {
+      setErroCampoReserva('nome', true);
+      document.getElementById('nome').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('⚠ Nome inconsistente ou inválido!\nInforme seu nome completo (nome e sobrenome), sem números ou símbolos.');
+      return;
+    }
+
+    /* 3. Data de nascimento — maioridade e faixa plausível */
+    if (!validarNascimentoReserva(document.getElementById('nascimento').value)) {
+      setErroCampoReserva('nascimento', true);
+      document.getElementById('nascimento').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('⚠ Data de nascimento inconsistente ou inválida!\nVocê precisa ter entre 18 e 100 anos para prosseguir com a reserva.');
+      return;
+    }
+
+    /* 4. Telefone — DDD + dígitos válidos */
+    if (!validarTelefoneReserva(document.getElementById('telefone').value)) {
+      setErroCampoReserva('telefone', true);
+      document.getElementById('telefone').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('⚠ Telefone inconsistente ou inválido!\nInforme um número válido com DDD, ex: (21) 99999-9999.');
+      return;
+    }
+
+    /* 5. E-mail */
     const emailVal = document.getElementById('email').value;
     if (!validarEmail(emailVal)) {
       setEmailErro(true);
       document.getElementById('email').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      alert('⚠ E-mail inválido!\nVerifique o endereço digitado.\nFormato correto: nome@dominio.com');
+      alert('⚠ E-mail inconsistente ou inválido!\nVerifique o endereço digitado.\nFormato correto: nome@dominio.com');
       return;
     }
 
-    /* 4. Validação do CPF */
+    /* 6. CPF */
     const cpfVal = document.getElementById('cpf').value;
     if (!validarCPF(cpfVal)) {
       setCPFErro(true);
       document.getElementById('cpf').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      alert('⚠ CPF inválido!\nVerifique os 11 dígitos digitados e tente novamente.');
+      alert('⚠ CPF inconsistente ou inválido!\nVerifique os 11 dígitos digitados e tente novamente.');
       return;
     }
 
-    /* 4-B. Validação dos campos e documentos do cônjuge */
+    /* 7. Campos e documentos do cônjuge */
     if (temConjuge()) {
       const camposConjuge = ['nome2','nascimento2','telefone2','cpf2'];
       for (const id of camposConjuge) {
@@ -1180,15 +1399,49 @@
           return;
         }
       }
+      if (!validarNomeCompletoReserva(document.getElementById('nome2').value)) {
+        setErroCampoReserva('nome2', true);
+        document.getElementById('nome2').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('⚠ Nome do cônjuge inconsistente ou inválido!\nInforme nome completo, sem números ou símbolos.');
+        return;
+      }
+      if (!validarNascimentoReserva(document.getElementById('nascimento2').value)) {
+        setErroCampoReserva('nascimento2', true);
+        document.getElementById('nascimento2').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('⚠ Data de nascimento do cônjuge inconsistente ou inválida!\nÉ preciso ter entre 18 e 100 anos.');
+        return;
+      }
+      if (!validarTelefoneReserva(document.getElementById('telefone2').value)) {
+        setErroCampoReserva('telefone2', true);
+        document.getElementById('telefone2').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        alert('⚠ Telefone do cônjuge inconsistente ou inválido!\nInforme um número válido com DDD.');
+        return;
+      }
       if (!validarCPF(document.getElementById('cpf2').value)) {
         document.getElementById('cpf2-erro').style.display = 'flex';
         document.getElementById('cpf2').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        alert('⚠ CPF do cônjuge inválido!\nVerifique os dígitos e tente novamente.');
+        alert('⚠ CPF do cônjuge inconsistente ou inválido!\nVerifique os dígitos e tente novamente.');
         return;
       }
     }
 
-    /* 5. Validação dos documentos obrigatórios */
+    /* 8. Nome do empreendimento — não pode ser lixo/vazio de conteúdo */
+    if (!validarEmpreendimentoReserva(document.getElementById('empreendimento').value)) {
+      setErroCampoReserva('empreendimento', true);
+      document.getElementById('empreendimento').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('⚠ Nome do empreendimento inconsistente ou inválido!\nDescreva de forma real o imóvel pretendido.');
+      return;
+    }
+
+    /* 9. Valor de entrada — precisa ser maior que zero */
+    if (!validarValorEntradaReserva(document.getElementById('valor_entrada').value)) {
+      setErroCampoReserva('valor_entrada', true);
+      document.getElementById('valor_entrada').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('⚠ Valor de entrada inconsistente ou inválido!\nInforme um valor maior que R$ 0,00.');
+      return;
+    }
+
+    /* 10. Documentos obrigatórios */
     for (const doc of DOCS_REQUIRED) {
       const el = document.getElementById(doc.id);
       if (!el.files.length) {
@@ -1221,7 +1474,70 @@
       }
     }
 
-    /* 3. Bloqueia botão e inicia progress */
+    /* 11. Tudo validado — antes de gravar, confirma o e-mail por código
+       de 6 dígitos (10 min de validade). Só depois disso os dados e
+       documentos são efetivamente enviados (ver finalizarReserva()). */
+    iniciarGateReserva();
+  }
+
+  /* ─── GATE DE E-MAIL (código de 6 dígitos) — antes de gravar ─── */
+  function iniciarGateReserva() {
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    _reservaEmailPendente = email;
+    chamarCadastroApi('cadastro_login_solicitar_codigo', { email });
+
+    const btn = document.getElementById('btnReserva');
+    marcarBotaoCarregandoReserva(btn, true, 'Enviando código...');
+
+    setTimeout(() => {
+      marcarBotaoCarregandoReserva(btn, false, 'Confirmar Reserva e Enviar Documentos →');
+      document.getElementById('reservaGateEmailAlvo').textContent = email;
+      document.getElementById('reservaGate-codigo').value = '';
+      document.getElementById('reservaGateCodigoErr').style.display = 'none';
+      document.getElementById('reservaGateOverlay').style.display = 'flex';
+      document.getElementById('reservaGate-codigo').focus();
+    }, 700);
+  }
+
+  function marcarBotaoCarregandoReserva(btn, carregando, texto) {
+    if (!btn) return;
+    btn.disabled = carregando;
+    if (texto) btn.textContent = texto;
+  }
+
+  async function doVerificarCodigoReserva() {
+    const codigo = document.getElementById('reservaGate-codigo').value.trim();
+    const err = document.getElementById('reservaGateCodigoErr');
+    if (!/^[0-9]{6}$/.test(codigo)) { err.style.display='block'; err.textContent='Digite os 6 dígitos do código.'; return; }
+    err.style.display='none';
+    const btn = document.getElementById('btnVerificarCodigoReserva');
+    btn.disabled=true; btn.textContent='Confirmando...';
+    const resp = await cadastroApiJsonp('cadastro_email_verificar_codigo', { email:_reservaEmailPendente, codigo });
+    btn.disabled=false; btn.textContent='Confirmar e enviar →';
+    if (!resp || resp.status!=='ok' || resp.ok===false) {
+      err.style.display='block';
+      err.textContent = 'Não foi possível confirmar o código. É necessário informar um e-mail válido para prosseguir com a reserva.';
+      return;
+    }
+    document.getElementById('reservaGateOverlay').style.display = 'none';
+    finalizarReserva();
+  }
+
+  function doReenviarCodigoReserva() {
+    chamarCadastroApi('cadastro_login_solicitar_codigo', { email: _reservaEmailPendente });
+    document.getElementById('reservaGate-codigo').value = '';
+    document.getElementById('reservaGateCodigoErr').style.display = 'none';
+  }
+
+  function trocarEmailReserva() {
+    document.getElementById('reservaGateOverlay').style.display = 'none';
+    const campo = document.getElementById('email');
+    campo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    campo.focus();
+  }
+
+  /* ─── ENVIO EFETIVO — só roda depois do código confirmado ─── */
+  async function finalizarReserva() {
     const btn = document.getElementById('btnReserva');
     btn.textContent = 'Processando...';
     btn.disabled    = true;
