@@ -455,7 +455,7 @@
   }
 
   /* ─── MODAL GALERIA ─── */
-  #galeriaModal {
+  #galeriaModal, #docFinModal {
     display: none; position: fixed; inset: 0; z-index: 1000;
     background: rgba(10,22,40,.96); flex-direction: column;
     overflow: hidden;
@@ -769,6 +769,10 @@
           <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
           Reservar este Imóvel
         </a>
+        <a href="#" class="util-link" onclick="abrirDocFinanciamento();return false;">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM6 20V4h5v7h7v9H6zm2-7h8v2H8v-2zm0 4h8v2H8v-2z"/></svg>
+          Documentação Financiamento
+        </a>
       </div>
     </div>
 
@@ -794,6 +798,27 @@
     <button class="galeria-close" onclick="fecharGaleria()">&#10005;</button>
   </div>
   <div class="galeria-body" id="galeriaGrid"></div>
+</div>
+
+<!-- MODAL DOCUMENTAÇÃO DE FINANCIAMENTO (PDF) -->
+<div id="docFinModal">
+  <div class="galeria-header">
+    <div class="galeria-header-title">&#128196; Informativo de Financiamento Imobiliário</div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <a href="informativo-financiamento-wal.pdf" download
+         style="display:inline-flex;align-items:center;gap:7px;background:var(--gold);color:var(--navy);
+                text-decoration:none;padding:8px 16px;border-radius:3px;
+                font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+                letter-spacing:.12em;text-transform:uppercase">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Baixar PDF
+      </a>
+      <button class="galeria-close" onclick="fecharDocFinanciamento()">&#10005;</button>
+    </div>
+  </div>
+  <div class="galeria-body" id="docFinBody"></div>
 </div>
 
 <!-- LIGHTBOX FOTO -->
@@ -1615,6 +1640,31 @@ function fecharGaleria() {
   document.getElementById('galeriaModal').style.display = 'none';
   document.getElementById('galeriaGrid').innerHTML = '';
 }
+
+/* ─── DOCUMENTAÇÃO DE FINANCIAMENTO (PDF) ───
+   O iframe só é criado ao abrir (e removido ao fechar) para o PDF de 4 MB
+   não ser baixado no carregamento da página. Se o navegador não tiver
+   visualizador de PDF embutido, o próprio iframe mostra o link de download. */
+const DOC_FINANCIAMENTO_PDF = 'informativo-financiamento-wal.pdf';
+
+function abrirDocFinanciamento() {
+  document.getElementById('docFinBody').innerHTML =
+    '<iframe src="' + DOC_FINANCIAMENTO_PDF + '#view=FitH" title="Informativo de Financiamento Imobiliário WAL"></iframe>';
+  document.getElementById('docFinModal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharDocFinanciamento() {
+  document.getElementById('docFinModal').style.display = 'none';
+  document.getElementById('docFinBody').innerHTML = '';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && document.getElementById('docFinModal').style.display === 'flex') {
+    fecharDocFinanciamento();
+  }
+});
 
 /* ─── INIT ─── */
 document.addEventListener('DOMContentLoaded', async function() {
