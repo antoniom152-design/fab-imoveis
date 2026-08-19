@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    WAL Imóveis — Sistema Web · Cadastro Único (USUARIOS / DASHBOARDS)
+   Data: 17-08-2026 as 22:22hs
    ═══════════════════════════════════════════════════════════════════
    Backend NOVO e ISOLADO, criado só para este recurso. Não compartilha
    planilha nem implantação com nenhum dos backends já em produção do
@@ -99,7 +100,17 @@ var DASHBOARDS_SEED_ = [
 /* ══════════════════ helpers genéricos ══════════════════ */
 function agora_() { return Utilities.formatDate(new Date(), TZ, "yyyy-MM-dd'T'HH:mm:ss"); }
 function s_(v) { return (v === null || v === undefined) ? '' : String(v); }
+/* O Sheets converte sozinho strings tipo "2026-08-16T01:33:53" (o
+   formato que agora_() grava) em objeto Date ao salvar — s_() nesse
+   caso devolveria o Date.toString() cheio ("Sun Aug 16 2026 ...").
+   Usar esta função (não s_) em todo campo que guarda datas/timestamps
+   gravados por agora_(). */
+function dataStr_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, "yyyy-MM-dd'T'HH:mm:ss") : s_(v); }
 function normalizarEmail_(v) { return s_(v).trim().toLowerCase(); }
+/* Cabeçalhos lidos SEMPRE aqui (nunca .getRange(1,1,1,n).getValues()[0]
+   direto) — trim() evita que um espaço a mais digitado na planilha
+   quebre silenciosamente o indexOf() de qualquer função abaixo. */
+function headersDe_(aba) { return aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0].map(function (h) { return String(h).trim(); }); }
 function jsonOut_(obj) { return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON); }
 function jsonpOut_(callback, obj) {
   var body = JSON.stringify(obj);
@@ -261,7 +272,7 @@ function cadastro_usuarioCrud_(data) {
       if (acharLinhaPorChave_(aba, 'Email', email) !== -1) return { status: 'error', message: 'Já existe um usuário com esse e-mail.' };
       var id = gerarId_(aba, 'US');
       var dashboardsLista = Array.isArray(data.dashboards) ? data.dashboards.join(',') : s_(data.dashboards);
-      var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var headers = headersDe_(aba);
       var camposCriar = {
         ID: id, Email: email, Nome: data.nome || '', Telefone: data.telefone || '',
         Dashboards: dashboardsLista, Dashboard_Padrao: data.dashboardPadrao || '',
@@ -278,14 +289,14 @@ function cadastro_usuarioCrud_(data) {
       return { status: 'ok' };
     }
     if (data.operacao === 'ativar' || data.operacao === 'desativar') {
-      var headersStatus = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var headersStatus = headersDe_(aba);
       aba.getRange(linha, headersStatus.indexOf('Status') + 1).setValue(data.operacao === 'ativar' ? 'ativo' : 'inativo');
       return { status: 'ok' };
     }
     if (data.operacao === 'atualizar') {
       var campos = ['Nome', 'Telefone', 'Dashboards', 'Dashboard_Padrao', 'Status', 'Construtora'];
       var chaves = ['nome', 'telefone', 'dashboards', 'dashboardPadrao', 'status', 'construtora'];
-      var headers2 = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var headers2 = headersDe_(aba);
       campos.forEach(function (campoHeader, idx) {
         var chave = chaves[idx];
         if (data[chave] === undefined) return;
@@ -320,7 +331,7 @@ function cadastro_dashboardCrud_(data) {
       var idDash = s_(data.id).trim().toUpperCase().replace(/\s+/g, '_');
       if (!idDash) return { status: 'error', message: 'Id do dashboard é obrigatório.' };
       if (acharLinhaPorChave_(aba, 'Id_Dashboard', idDash) !== -1) return { status: 'error', message: 'Já existe um dashboard com esse Id.' };
-      var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var headers = headersDe_(aba);
       var camposCriar = {
         Id_Dashboard: idDash, Nome: data.nome || '', Descricao: data.descricao || '',
         Icone: data.icone || '', Rota: data.rota || '', Status: data.status || 'ativo', Ordem: data.ordem || 0
@@ -335,14 +346,14 @@ function cadastro_dashboardCrud_(data) {
       return { status: 'ok' };
     }
     if (data.operacao === 'ativar' || data.operacao === 'desativar') {
-      var headersStatus = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var headersStatus = headersDe_(aba);
       aba.getRange(linha, headersStatus.indexOf('Status') + 1).setValue(data.operacao === 'ativar' ? 'ativo' : 'inativo');
       return { status: 'ok' };
     }
     if (data.operacao === 'atualizar') {
       var campos = ['Nome', 'Descricao', 'Icone', 'Rota', 'Status', 'Ordem'];
       var chaves = ['nome', 'descricao', 'icone', 'rota', 'status', 'ordem'];
-      var headers2 = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+      var headers2 = headersDe_(aba);
       campos.forEach(function (campoHeader, idx) {
         if (data[chaves[idx]] !== undefined) aba.getRange(linha, headers2.indexOf(campoHeader) + 1).setValue(data[chaves[idx]]);
       });
@@ -407,7 +418,7 @@ function cadastro_loginVerificarCodigo_(data) {
     // primeiro login verificado). A Diretoria ativa depois pela tela
     // de gestão.
     if (linhaUsu === -1) {
-      var headersUsu = abaUsu.getRange(1, 1, 1, abaUsu.getLastColumn()).getValues()[0];
+      var headersUsu = headersDe_(abaUsu);
       var id = gerarId_(abaUsu, 'US');
       var camposCriar = {
         ID: id, Email: email, Nome: '', Telefone: '', Dashboards: '', Dashboard_Padrao: '',
@@ -417,7 +428,7 @@ function cadastro_loginVerificarCodigo_(data) {
       return { status: 'ok', sessionToken: token, situacao: 'novo_pendente' };
     }
 
-    var headersUsu2 = abaUsu.getRange(1, 1, 1, abaUsu.getLastColumn()).getValues()[0];
+    var headersUsu2 = headersDe_(abaUsu);
     abaUsu.getRange(linhaUsu, headersUsu2.indexOf('Ultimo_Acesso') + 1).setValue(agora_());
     var usuario = lerAbaObjetos_(abaUsu).find(function (u) { return normalizarEmail_(u.Email) === email; });
     var status = s_(usuario.Status).toLowerCase() || 'pendente';
@@ -474,7 +485,7 @@ function cadastro_leadVerificarCodigo_(data) {
     var linhaLead = acharLinhaPorChave_(abaLeads, 'Email', email);
     if (linhaLead === -1) return { status: 'ok', sessionToken: token, conhecido: false };
 
-    var headersLead = abaLeads.getRange(1, 1, 1, abaLeads.getLastColumn()).getValues()[0];
+    var headersLead = headersDe_(abaLeads);
     var colAtualizado = headersLead.indexOf('Atualizado em');
     if (colAtualizado !== -1) abaLeads.getRange(linhaLead, colAtualizado + 1).setValue(agora_());
     var colNome = headersLead.indexOf('Nome');
@@ -543,7 +554,7 @@ function cadastro_leadRegistrar_(data) {
     // Corrida entre "verificar" e "registrar" (ex.: duplo clique) já pode
     // ter criado a linha — não duplica.
     if (acharLinhaPorChave_(aba, 'Email', email) !== -1) return { status: 'ok' };
-    var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+    var headers = headersDe_(aba);
     var agoraStr = agora_();
     var camposCriar = {
       ID: 'CRM_' + Date.now(), Status: 'novo', Prioridade: 'alta', Nome: nome, Email: email,
@@ -575,11 +586,11 @@ function crm_pessoaAba_(tipo) {
 function crm_pessoaParaObjeto_(p) {
   return {
     id: s_(p.Id), nome: s_(p.Nome), email: s_(p.Email), cpf: s_(p.CPF), whatsapp: s_(p.WhatsApp),
-    nascimento: s_(p.Nascimento), profissao: s_(p.Profissao), status: s_(p.Status) || 'ativo',
+    nascimento: dataStr_(p.Nascimento), profissao: s_(p.Profissao), status: s_(p.Status) || 'ativo',
     habilitado: p.Habilitado === true || /^(true|sim)$/i.test(s_(p.Habilitado)),
     uf: s_(p.UF), cidade: s_(p.Cidade), creci: s_(p.CRECI), foto: s_(p.Foto),
     banco: s_(p.Banco), agencia: s_(p.Agencia), conta: s_(p.Conta), tipoConta: s_(p.Tipo_Conta), pix: s_(p.Pix),
-    classificacao: s_(p.Classificacao), criadoEm: s_(p.Criado_em), atualizadoEm: s_(p.Atualizado_em), ultimoAcesso: s_(p.Ultimo_Acesso)
+    classificacao: s_(p.Classificacao), criadoEm: dataStr_(p.Criado_em), atualizadoEm: dataStr_(p.Atualizado_em), ultimoAcesso: dataStr_(p.Ultimo_Acesso)
   };
   // Senha_Hash de propósito fora deste objeto — login é 100% por OTP,
   // a coluna existe na planilha mas não é usada nem exposta aqui.
@@ -588,10 +599,10 @@ function crm_indicacaoParaObjeto_(i) {
   return {
     id: s_(i.Id), nomeCliente: s_(i.Nome_Cliente), telefone: s_(i.Telefone), email: s_(i.Email),
     empId: s_(i.Emp_Id), orcamento: s_(i.Orcamento), interesse: s_(i.Interesse), status: s_(i.Status) || 'agente',
-    criadoEm: s_(i.Criado_em), ultimaAtualizacao: s_(i.Ultima_atualizacao), postoCargo: s_(i.Posto_Cargo),
+    criadoEm: dataStr_(i.Criado_em), ultimaAtualizacao: dataStr_(i.Ultima_atualizacao), postoCargo: s_(i.Posto_Cargo),
     residenciaAtual: s_(i.Residencia_Atual), formaPgto: s_(i.Forma_Pgto),
     corretorId: s_(i.Corretor_Id), agenteId: s_(i.Agente_Id), atendenteId: s_(i.Atendente_Id),
-    obsIndicador: s_(i.Obs_do_Indicador), obsGerencia: s_(i.Obs_Gerencia_Comercial)
+    obsIndicador: s_(i.Obs_Do_Indicador), obsGerencia: s_(i.Obs_Gerencia_Comercial)
   };
 }
 
@@ -625,7 +636,7 @@ function crm_pessoa_verificar_codigo_(data) {
     var linhaPessoa = acharLinhaPorChave_(ctx.aba, 'Email', email);
     if (linhaPessoa === -1) return { status: 'ok', sessionToken: token, tipo: ctx.tipo, cadastrado: false };
 
-    var headers = ctx.aba.getRange(1, 1, 1, ctx.aba.getLastColumn()).getValues()[0];
+    var headers = headersDe_(ctx.aba);
     var colAcesso = headers.indexOf('Ultimo_Acesso');
     if (colAcesso !== -1) ctx.aba.getRange(linhaPessoa, colAcesso + 1).setValue(agora_());
     var pessoa = lerAbaObjetos_(ctx.aba).find(function (p) { return normalizarEmail_(p.Email) === email; });
@@ -648,7 +659,7 @@ function crm_pessoa_cadastrar_(data) {
 
   return comLock_(function () {
     if (acharLinhaPorChave_(ctx.aba, 'Email', email) !== -1) return { status: 'error', message: 'Já existe um cadastro com esse e-mail.' };
-    var headers = ctx.aba.getRange(1, 1, 1, ctx.aba.getLastColumn()).getValues()[0];
+    var headers = headersDe_(ctx.aba);
     var id = gerarId_(ctx.aba, ctx.prefixo);
     var agoraStr = agora_();
     var campos = {
@@ -675,7 +686,7 @@ function crm_pessoa_atualizar_perfil_(data) {
     if (linha === -1) return { status: 'error', message: 'Cadastro não encontrado.' };
     var campos = ['Nome', 'WhatsApp', 'Nascimento', 'Profissao', 'UF', 'Cidade', 'CRECI', 'Foto'];
     var chaves = ['nome', 'whatsapp', 'nascimento', 'profissao', 'uf', 'cidade', 'creci', 'foto'];
-    var headers = ctx.aba.getRange(1, 1, 1, ctx.aba.getLastColumn()).getValues()[0];
+    var headers = headersDe_(ctx.aba);
     campos.forEach(function (campoHeader, idx) {
       if (data[chaves[idx]] !== undefined) ctx.aba.getRange(linha, headers.indexOf(campoHeader) + 1).setValue(data[chaves[idx]]);
     });
@@ -696,7 +707,7 @@ function crm_pessoa_atualizar_bancario_(data) {
     if (linha === -1) return { status: 'error', message: 'Cadastro não encontrado.' };
     var campos = ['Banco', 'Agencia', 'Conta', 'Tipo_Conta', 'Pix'];
     var chaves = ['banco', 'agencia', 'conta', 'tipoConta', 'pix'];
-    var headers = ctx.aba.getRange(1, 1, 1, ctx.aba.getLastColumn()).getValues()[0];
+    var headers = headersDe_(ctx.aba);
     campos.forEach(function (campoHeader, idx) {
       if (data[chaves[idx]] !== undefined) ctx.aba.getRange(linha, headers.indexOf(campoHeader) + 1).setValue(data[chaves[idx]]);
     });
@@ -732,15 +743,15 @@ function crm_indicacao_criar_(data) {
       Emp_Id: s_(data.empId), Orcamento: s_(data.orcamento), Interesse: s_(data.interesse),
       Status: ctx.tipo, Criado_em: agoraStr, Ultima_atualizacao: agoraStr,
       Posto_Cargo: s_(data.postoCargo), Residencia_Atual: s_(data.residenciaAtual), Forma_Pgto: s_(data.formaPgto),
-      Obs_do_Indicador: s_(data.obs), Obs_Gerencia_Comercial: ''
+      Obs_Do_Indicador: s_(data.obs), Obs_Gerencia_Comercial: ''
     };
     camposInd[ctx.idCol] = s_(pessoa.Id);
-    var headersInd = abaInd.getRange(1, 1, 1, abaInd.getLastColumn()).getValues()[0];
+    var headersInd = headersDe_(abaInd);
     abaInd.appendRow(headersInd.map(function (h) { return camposInd[h] !== undefined ? camposInd[h] : ''; }));
 
     var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
     if (abaLeads) {
-      var headersLeads = abaLeads.getRange(1, 1, 1, abaLeads.getLastColumn()).getValues()[0];
+      var headersLeads = headersDe_(abaLeads);
       var camposLead = {
         ID: id, Status: 'novo', Prioridade: 'media', Nome: nomeCliente, Telefone: telefone,
         Email: s_(data.emailCliente), Origem: 'Indicação · ' + ctx.tipo, Consultor: s_(pessoa.Nome),
@@ -788,11 +799,11 @@ function crm_indicacao_atualizar_(data) {
     if (!abaInd) return { status: 'error', message: 'Aba INDICACOES não encontrada.' };
     var linha = acharLinhaPorChave_(abaInd, 'Id', idInd);
     if (linha === -1) return { status: 'error', message: 'Indicação não encontrada.' };
-    var headers = abaInd.getRange(1, 1, 1, abaInd.getLastColumn()).getValues()[0];
+    var headers = headersDe_(abaInd);
     var dono = s_(abaInd.getRange(linha, headers.indexOf(ctx.idCol) + 1).getValue());
     if (dono !== s_(pessoa.Id)) return { status: 'error', message: 'Esta indicação não pertence a este cadastro.' };
 
-    var campos = ['Nome_Cliente', 'Telefone', 'Email', 'Emp_Id', 'Orcamento', 'Interesse', 'Status', 'Posto_Cargo', 'Residencia_Atual', 'Forma_Pgto', 'Obs_do_Indicador'];
+    var campos = ['Nome_Cliente', 'Telefone', 'Email', 'Emp_Id', 'Orcamento', 'Interesse', 'Status', 'Posto_Cargo', 'Residencia_Atual', 'Forma_Pgto', 'Obs_Do_Indicador'];
     var chaves = ['nomeCliente', 'telefone', 'emailCliente', 'empId', 'orcamento', 'interesse', 'status', 'postoCargo', 'residenciaAtual', 'formaPgto', 'obs'];
     campos.forEach(function (campoHeader, idx) {
       var chave = chaves[idx];
@@ -805,7 +816,7 @@ function crm_indicacao_atualizar_(data) {
     var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
     var linhaLead = abaLeads ? acharLinhaPorChave_(abaLeads, 'ID', idInd) : -1;
     if (linhaLead !== -1) {
-      var headersLeads = abaLeads.getRange(1, 1, 1, abaLeads.getLastColumn()).getValues()[0];
+      var headersLeads = headersDe_(abaLeads);
       var atualizaCampo = function (header, valor) {
         var c = headersLeads.indexOf(header);
         if (c !== -1) abaLeads.getRange(linhaLead, c + 1).setValue(valor);
@@ -835,7 +846,7 @@ function crm_indicacao_excluir_(data) {
     if (!abaInd) return { status: 'error', message: 'Aba INDICACOES não encontrada.' };
     var linha = acharLinhaPorChave_(abaInd, 'Id', idInd);
     if (linha === -1) return { status: 'error', message: 'Indicação não encontrada.' };
-    var headers = abaInd.getRange(1, 1, 1, abaInd.getLastColumn()).getValues()[0];
+    var headers = headersDe_(abaInd);
     var dono = s_(abaInd.getRange(linha, headers.indexOf(ctx.idCol) + 1).getValue());
     if (dono !== s_(pessoa.Id)) return { status: 'error', message: 'Esta indicação não pertence a este cadastro.' };
     abaInd.deleteRow(linha);
@@ -861,7 +872,7 @@ function crm_comissoes_listar_(p) {
   var minhas = todas.filter(function (c) { return s_(c.Pessoa_Id) === s_(pessoa.Id) && s_(c.AT_AG_CO_GE).toUpperCase() === ctx.papelCodigo; });
   return {
     status: 'ok', itens: minhas.map(function (c) {
-      return { id: s_(c.Id), tipo: s_(c.Tipo), cliente: s_(c.Cliente), empId: s_(c.Emp_Id), valor: Number(c.Valor) || 0, status: s_(c.Status), data: s_(c.Data), obs: s_(c.Obs) };
+      return { id: s_(c.Id), tipo: s_(c.Tipo), cliente: s_(c.Cliente), empId: s_(c.Emp_Id), valor: Number(c.Valor) || 0, status: s_(c.Status), data: dataStr_(c.Data), obs: s_(c.Obs) };
     })
   };
 }
@@ -871,7 +882,7 @@ function crm_comissoes_listar_(p) {
    para qualquer visitante), sem exigir sessão OTP. */
 function crm_empreendimentoParaObjeto_(i) {
   return {
-    id: s_(i.Id),
+    id: s_(i.ID),
     tipo: s_(i['Tipo de Imóvel']),
     construtora: s_(i['Construtora / Proprietário']),
     cidade: s_(i.Cidade),

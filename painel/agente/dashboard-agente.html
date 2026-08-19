@@ -1334,6 +1334,13 @@ let _aiHistory = [];
    precisa de resposta (login, indicações, empreendimentos); POST
    no-cors só para o que é disparar-e-esquecer (não usado aqui, mas
    mantido pelo padrão do arquivo). */
+/* Mesma URL do projeto "WAL Sistema Web — Cadastro Único" já usada em
+   index.html/imovel.html/reserva.html (dashboard-gestao-usuarios.html) —
+   NÃO é a URL do CRM (essa é outro projeto, "Script CRM - Criacao",
+   nunca deve receber este arquivo — ver incidente de 16/08/2026 na
+   memória do projeto). Precisa que este projeto receba a versão atual
+   de apps-script-sistema-web-cadastro.gs (com as funções crm_*) e seja
+   republicado com "Nova versão" para essa URL funcionar de verdade. */
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
 function cadastroApiJsonp(action, params){
   return new Promise((resolve)=>{
@@ -1356,7 +1363,7 @@ function chamarCadastroApi(action, payload){
 
 /* ═══ UTILS ═══ */
 function hoje(d=0){const dt=new Date();dt.setDate(dt.getDate()+d);return dt.toISOString().split('T')[0]}
-function fmtDt(s){if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`}
+function fmtDt(s){if(!s)return'—';const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:String(s)}
 function toast(msg,tipo=''){
   const t=document.getElementById('toast');
   t.textContent=msg;t.className='show'+(tipo?' t-'+tipo:'');
@@ -1571,6 +1578,16 @@ async function carregarDadosIniciais(){
   renderComissBadge();
 }
 function nomeEmp_(empId){ const e=_empreendimentos.find(x=>x.id===empId); return e?e.nome:(empId?'—':'Em aberto'); }
+/* Copiado de imovel.html — a coluna "URL da Imagem" do Portfólio guarda
+   link de "view" do Drive (.../d/ID/view), que não renderiza em <img>
+   direto; precisa converter pro formato lh3.googleusercontent.com. */
+function fixDriveUrl(url) {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
 function popularSelectEmpreendimentos(){
   const sel=document.getElementById('indEmp');
   if(!sel)return;
@@ -1841,7 +1858,7 @@ function renderEmps(){
   if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum empreendimento disponível no momento.</div>`;return}
   el.innerHTML=list.map(e=>`
     <div class="emp-card" onclick="toast('Peça o material de ${e.nome} em Materiais de Apoio!','')">
-      <div class="emp-img">${e.imagem?`<img src="${e.imagem}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:42px;position:relative;z-index:1">🏗️</span>`}</div>
+      <div class="emp-img">${e.imagem?`<img src="${fixDriveUrl(e.imagem)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:42px;position:relative;z-index:1">🏗️</span>`}</div>
       <div class="emp-body">
         <div class="emp-nome">${e.nome}</div>
         <div class="emp-const">${e.construtora} · ${e.bairro} · ${e.cidade}/${e.uf}</div>
