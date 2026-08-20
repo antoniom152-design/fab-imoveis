@@ -1099,6 +1099,10 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
     Estrutura da Planilha
   </button>
+  <button class="tab-btn" onclick="switchTab('painel3d')" id="tab-painel3d">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></svg>
+    Painel 3D
+  </button>
   <button class="tab-btn" onclick="window.open('https://tabelasempreendimentoswal.blogspot.com/p/tabelas-de-precos-dos-empreendimentos.html','_blank')" id="tab-tabelas">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M9 21V9"/><line x1="13" y1="13" x2="17" y2="13"/><line x1="13" y1="17" x2="17" y2="17"/></svg>
     Tabela de Preços
@@ -1799,6 +1803,29 @@ function onEdit(e) {
     <div class="empty-table">Nenhuma construtora cadastrada ainda.</div>
   </div>
 
+</div>
+</div>
+
+<!-- ══════════════ TAB: PAINEL 3D ══════════════ -->
+<div class="tab-panel" id="panel-painel3d">
+<div class="main">
+  <div class="alert alert-info">
+    Painel de Monitoramento 3D do Reviver Centro — visualização tridimensional oficial da Prefeitura do Rio (ArcGIS), com o licenciamento urbanístico, o estoque de edificações existentes e os terrenos vazios com seus parâmetros construtivos. Uso interno da administração, para estudo — não aparece no site público.
+  </div>
+  <div class="table-wrap">
+    <div class="table-head-row"><span>Painel 3D — Prefeitura do Rio (Reviver Centro)</span></div>
+    <div class="table-wrap-inner" style="padding:0">
+      <iframe src="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0"
+              title="Painel de Monitoramento 3D do Reviver Centro"
+              style="width:100%;height:750px;border:0;display:block"
+              allowfullscreen></iframe>
+    </div>
+  </div>
+  <div style="margin-top:12px">
+    <a href="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0" target="_blank" style="color:var(--gold-ink);font-weight:600;text-decoration:none">
+      Abrir em tela cheia (nova aba) →
+    </a>
+  </div>
 </div>
 </div>
 
