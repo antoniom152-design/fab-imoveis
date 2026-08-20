@@ -2,6 +2,7 @@
    WAL IMÓVEIS — Apps Script · Formulário de Reserva e Leads
    ⚙ CONFIGURE as variáveis abaixo antes de implantar
    Data: 04-08-26 as 08:40h
+   Alterado: 20-08-2026 as 10:30hs
 ══════════════════════════════════════════════════════════ */
 
 var EMAIL_DESTINO  = 'comercial@walservidor.com.br';
@@ -605,9 +606,29 @@ function processarImovel(data) {
     // S=Quartos | T=Preço Mín (R$) | U=Preço Máx (R$) | V=Entrega Prevista
     // W=Feirao_On_Line (colunas novas — feirão de imóveis, ver
     //   configurarCamposFeirao())
+    // X=Projeto (coluna nova — Porto Maravilha/Praça Onze Maravilha/etc.,
+    //   ver configurarCampoProjeto())
     var ativo    = data.ativo    === true || data.ativo    === 'true';
     var destaque = data.destaque === true || data.destaque === 'true';
     var feiraoOnLine = (data.feirao_on_line === true || data.feirao_on_line === 'true' || data.feirao_on_line === 'Sim') ? 'Sim' : 'Não';
+
+    if (data.operacao === 'corrigir_id' && data.id && data.novoId) {
+      // Corrige só a coluna A (ID) de uma linha existente — usado pra
+      // consertar IDs sem o prefixo "IMO-" gerados por engano (ver
+      // conversa 18/08/2026). Não usa o "editar" normal porque aquele
+      // nunca toca na coluna A de propósito (preserva o ID).
+      var dadosCorrigir = aba.getDataRange().getValues();
+      var linhaCorrigir = -1;
+      for (var ci = 1; ci < dadosCorrigir.length; ci++) {
+        if (String(dadosCorrigir[ci][0]) === String(data.id)) { linhaCorrigir = ci + 1; break; }
+      }
+      if (linhaCorrigir === -1) { Logger.log('corrigir_id: ID não encontrado: ' + data.id); return; }
+      var jaExiste = dadosCorrigir.some(function(l) { return String(l[0]) === String(data.novoId); });
+      if (jaExiste) { Logger.log('corrigir_id: novoId já existe, abortado: ' + data.novoId); return; }
+      aba.getRange(linhaCorrigir, 1).setValue(data.novoId);
+      Logger.log('ID corrigido: ' + data.id + ' → ' + data.novoId);
+      return;
+    }
 
     if (data.operacao === 'editar' && data.id) {
       // Localiza a linha pelo ID (col A)
@@ -619,7 +640,7 @@ function processarImovel(data) {
       if (linhaIdx === -1) { Logger.log('ID não encontrado: ' + data.id); return; }
 
       // Atualiza coluna por coluna (preserva ID e Data)
-      var r = aba.getRange(linhaIdx, 1, 1, 23).getValues()[0];
+      var r = aba.getRange(linhaIdx, 1, 1, 24).getValues()[0];
       r[1]  = ativo;
       r[2]  = data.tipo_imovel  || r[2];
       r[3]  = data.construtora  || r[3];
@@ -642,7 +663,8 @@ function processarImovel(data) {
       r[20] = data.preco_max    !== undefined ? parseFloat(data.preco_max) || 0 : r[20];
       r[21] = data.entrega      !== undefined ? data.entrega    : r[21];
       r[22] = data.feirao_on_line !== undefined ? feiraoOnLine  : r[22];
-      aba.getRange(linhaIdx, 1, 1, 23).setValues([r]);
+      r[23] = data.projeto       !== undefined ? data.projeto  : r[23];
+      aba.getRange(linhaIdx, 1, 1, 24).setValues([r]);
       Logger.log('Imóvel atualizado: ID ' + data.id);
 
     } else {
@@ -683,7 +705,8 @@ function processarImovel(data) {
         parseFloat(data.preco_min) || 0,
         parseFloat(data.preco_max) || 0,
         data.entrega      || '',
-        feiraoOnLine
+        feiraoOnLine,
+        data.projeto      || ''
       ]);
       Logger.log('Imóvel criado: ' + data.nome);
     }
@@ -790,6 +813,32 @@ function configurarCamposFeirao() {
     'Feirao_On_Line = "Sim" nos imóveis que devem aparecer na Vitrine\n' +
     'do 1º Feirão de Imóveis.'
   );
+}
+
+/* ─── PROJETO — adiciona a coluna X (24ª) na aba IMOVEISDISPONIVEIS
+   ('Porto Maravilha', 'Praça Onze Maravilha', 'Expansão Porto
+   Maravilha - São Cristóvão', 'Reviver Centro', ou outra digitada
+   pelo usuário no admin.html). Rodar uma única vez. Não mexe nas
+   colunas A→W existentes, então não quebra nada que já lê/grava essa
+   planilha. Referência apenas — depois de rodada uma vez não precisa
+   rodar de novo. ─── */
+function configurarCampoProjeto() {
+  var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+  var aba = ss.getSheetByName(ABA_IMOVEIS);
+  if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
+
+  var headerCell = aba.getRange(1, 24, 1, 1);
+  headerCell.setValue('Projeto');
+  headerCell.setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  headerCell.protect().setDescription('Cabeçalho — não editar').setWarningOnly(true);
+
+  aba.setColumnWidth(24, 160);
+
+  // Sem SpreadsheetApp.getUi().alert() de propósito — travava (esperando um
+  // popup que só renderiza com a planilha aberta numa aba do navegador) ao
+  // rodar direto pelo editor do Apps Script. Ver Logger de execução (Ver →
+  // Registros) para confirmar que rodou.
+  Logger.log('Coluna "Projeto" criada em IMOVEISDISPONIVEIS (coluna X).');
 }
 
 /* ─── AUXILIAR: linha HTML ─────────────────────────────── */

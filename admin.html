@@ -657,6 +657,7 @@
           <input type="hidden" id="cadUFVal">
           <input type="hidden" id="cadCidadeVal">
           <input type="hidden" id="cadBairroVal">
+          <input type="hidden" id="cadProjetoVal">
 
           <div class="cad-grid" style="grid-template-columns:80px 1fr 1fr;margin-bottom:14px">
             <!-- UF -->
@@ -762,8 +763,32 @@
               <input class="cad-input" type="text" id="cadConstrutora" placeholder="Ex: Cyrela, MRV...">
             </div>
             <div class="cad-field">
-              <label class="cad-label">Construtora / Proprietário</label>
-              <input class="cad-input" type="text" id="cadConstrutora" placeholder="Ex: Cyrela, MRV...">
+              <label class="cad-label">Projeto</label>
+              <select class="cad-select" id="cadProjeto" onchange="onCadProjeto()">
+                <option value="">Selecione</option>
+                <option>Porto Maravilha</option>
+                <option>Praça Onze Maravilha</option>
+                <option>Expansão Porto Maravilha - São Cristóvão</option>
+                <option>Reviver Centro</option>
+                <option value="__outra__">➕ Outra...</option>
+              </select>
+              <div id="cadProjetoOutraWrap" style="display:none;margin-top:6px">
+                <input class="cad-input" type="text" id="cadProjetoOutra" placeholder="Digite o nome do projeto"
+                       style="width:100%"
+                       oninput="confirmarOutra('cadProjetoVal',this.value,'cadProjetoConfirm')">
+                <div style="display:flex;gap:8px;margin-top:4px;align-items:center">
+                  <button type="button" id="cadProjetoConfirm"
+                          onclick="confirmarOutraBtn('cadProjeto','cadProjetoOutra','cadProjetoVal','cadProjetoConfirm')"
+                          style="font-size:11px;color:var(--gold-ink);background:none;border:1px solid var(--gold);
+                                 border-radius:3px;cursor:pointer;padding:2px 8px;display:none">
+                    ✓ Usar este valor
+                  </button>
+                  <button type="button" onclick="voltarCadSelect('cadProjeto','cadProjetoOutraWrap')"
+                          style="font-size:11px;color:var(--ink-muted);background:none;border:none;cursor:pointer;padding:0">
+                    ✕ Voltar para a lista
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -2526,7 +2551,8 @@ function parseGvizToAdmin(table) {
       destaque: row.c && row.c[14] && row.c[14].v === true,
       uf: g(15), bairro: g(16), linkDrive: g(17),
       quartos: g(18), precoMin: parseFloat(g(19)) || 0, precoMax: parseFloat(g(20)) || 0,
-      entrega: g(21), feiraoOnLine: g(22) === 'Sim'
+      entrega: g(21), feiraoOnLine: g(22) === 'Sim',
+      projeto: g(23)
     };
   }).filter(r => r.nome);
 }
@@ -2585,7 +2611,7 @@ function voltarCadSelect(selId, wrapId) {
   document.getElementById(selId).value = '';
   document.getElementById(wrapId).style.display = 'none';
   // Limpa o hidden correspondente
-  const hiddenMap = { cadUF:'cadUFVal', cadCidade:'cadCidadeVal', cadBairro:'cadBairroVal' };
+  const hiddenMap = { cadUF:'cadUFVal', cadCidade:'cadCidadeVal', cadBairro:'cadBairroVal', cadProjeto:'cadProjetoVal' };
   if (hiddenMap[selId]) document.getElementById(hiddenMap[selId]).value = '';
   if (selId === 'cadUF')    { _resetCidade(); _resetBairro(); }
   if (selId === 'cadCidade'){ _resetBairro(); }
@@ -2677,6 +2703,20 @@ function onCadBairro() {
   }
   document.getElementById('cadBairroOutraWrap').style.display = 'none';
   document.getElementById('cadBairroVal').value = sel.value;
+}
+
+function onCadProjeto() {
+  const sel = document.getElementById('cadProjeto');
+  if (sel.value === '__outra__') {
+    document.getElementById('cadProjetoOutraWrap').style.display = 'block';
+    document.getElementById('cadProjetoOutra').value = '';
+    document.getElementById('cadProjetoVal').value   = '';
+    document.getElementById('cadProjetoConfirm').style.display = 'none';
+    document.getElementById('cadProjetoOutra').focus();
+    return;
+  }
+  document.getElementById('cadProjetoOutraWrap').style.display = 'none';
+  document.getElementById('cadProjetoVal').value = sel.value;
 }
 
 /* getCidadeValue mantido para compatibilidade */
@@ -2782,9 +2822,12 @@ function abrirFormNovo() {
   document.getElementById('cadUFVal').value     = '';
   document.getElementById('cadCidadeVal').value = '';
   document.getElementById('cadBairroVal').value = '';
+  document.getElementById('cadProjetoVal').value = '';
   document.getElementById('cadUFOutraWrap').style.display     = 'none';
   document.getElementById('cadCidadeOutraWrap').style.display = 'none';
   document.getElementById('cadBairroOutraWrap').style.display = 'none';
+  document.getElementById('cadProjetoOutraWrap').style.display = 'none';
+  document.getElementById('cadProjeto').value = '';
   _cadPopulateSelect('cadCidade', [], 'Selecione primeiro a UF',     true);
   _cadPopulateSelect('cadBairro', [], 'Selecione primeiro a cidade', true);
   document.getElementById('cadOverlay').classList.add('show');
@@ -2858,6 +2901,22 @@ function abrirFormEdit(id) {
     document.getElementById('cadBairroOutraWrap').style.display  = 'none';
   }
 
+  // ── Projeto ──
+  const projetoVal  = d.projeto || '';
+  const projetoSel  = document.getElementById('cadProjeto');
+  const projetoOpts = Array.from(projetoSel.options).map(o => o.value);
+  document.getElementById('cadProjetoVal').value = projetoVal;
+  if (projetoVal && !projetoOpts.includes(projetoVal)) {
+    projetoSel.value = '__outra__';
+    document.getElementById('cadProjetoOutraWrap').style.display  = 'block';
+    document.getElementById('cadProjetoOutra').value              = projetoVal;
+    document.getElementById('cadProjetoConfirm').textContent      = '✓ ' + projetoVal;
+    document.getElementById('cadProjetoConfirm').style.display    = 'inline-block';
+  } else {
+    projetoSel.value = projetoVal;
+    document.getElementById('cadProjetoOutraWrap').style.display  = 'none';
+  }
+
   document.getElementById('cadFaixa').value        = d.faixa       || '';
   document.getElementById('cadValor').value        = d.valor ? 'R$ ' + Number(d.valor).toLocaleString('pt-BR') : '';
   document.getElementById('cadQtd').value          = d.qtd         || '';
@@ -2900,6 +2959,7 @@ function coletarDadosForm() {
     tipo_imovel:  document.getElementById('cadTipo').value,
     construtora:  document.getElementById('cadConstrutora').value.trim(),
     cidade:       document.getElementById('cadCidadeVal').value,
+    projeto:      document.getElementById('cadProjetoVal').value,
     faixa:        document.getElementById('cadFaixa').value,
     valor:        parseFloat(document.getElementById('cadValor').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     qtd:          document.getElementById('cadQtd').value.trim(),
@@ -3222,7 +3282,7 @@ function imprimirPortfolio() {
         <tr>
           <th>Status</th><th>Nome do Empreendimento</th><th>Tipo</th>
           <th>UF</th><th>Cidade</th><th>Bairro</th>
-          <th>Construtora</th><th>Faixa de Valor</th><th>Tipologia</th>
+          <th>Construtora</th><th>Projeto</th><th>Faixa de Valor</th><th>Tipologia</th>
           <th>Destaque</th><th>Data</th>
         </tr>
       </thead>
@@ -3236,6 +3296,7 @@ function imprimirPortfolio() {
             <td>${d.cidade||'—'}</td>
             <td>${d.bairro||'—'}</td>
             <td>${d.construtora||'—'}</td>
+            <td>${d.projeto||'—'}</td>
             <td>${d.faixa||'—'}</td>
             <td>${d.qtd||'—'}</td>
             <td class="${d.destaque?'tag-dest':''}">${d.destaque?'★ Sim':'—'}</td>

@@ -196,6 +196,27 @@
     animation: fadeUp 0.8s 0.3s ease both;
   }
 
+  .hero-banner {
+    display: block;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    animation: fadeUp 0.8s 0.32s ease both;
+    transition: border-color .2s, transform .2s;
+  }
+
+  .hero-banner:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  .hero-banner img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
   .stat {
     border-left: 2px solid var(--gold);
     padding-left: 14px;
@@ -1175,6 +1196,9 @@
           <div class="stat-label">Atendimento<br>disponível</div>
         </div>
       </div>
+      <a href="Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html" target="_blank" rel="noopener" class="hero-banner">
+        <img src="capa-projetos-rio-de-janeiro.png" alt="Os grandes projetos que estão redesenhando o Porto e o Centro do Rio — Praça Onze Maravilha">
+      </a>
       <!-- 34) Botões "Quero Reservar" e "Simular Financiamento" desativados a pedido do Antonio (05/08/2026) — por enquanto, não remover -->
       <div style="animation: fadeUp 0.8s 0.35s ease both; display:none; flex-wrap:wrap; gap:12px; align-items:center;">
         <a href="#" class="btn-reserva" onclick="abrirGateLead('Reserva','reserva.html');return false;" style="margin:0;">Quero Reservar o meu Imóvel Agora.</a>
