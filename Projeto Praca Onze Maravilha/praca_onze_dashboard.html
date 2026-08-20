@@ -1086,6 +1086,7 @@
             <div id="rc-content" class="project-content">
                 <div class="media-tabs" id="rc-subtabs">
                     <button class="media-tab active" onclick="switchSubTab(event, 'rc-videos', 'rc-subtabs')">📹 Vídeos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'rc-3d', 'rc-subtabs')">🧊 Painel 3D</button>
                     <button class="media-tab" onclick="switchSubTab(event, 'rc-fotos', 'rc-subtabs')">📸 Galeria de Fotos</button>
                     <button class="media-tab" onclick="switchSubTab(event, 'rc-documentos', 'rc-subtabs')">📄 Documentos Oficiais</button>
                     <button class="media-tab" onclick="switchSubTab(event, 'rc-empreendimentos', 'rc-subtabs')">🏢 Empreendimentos</button>
@@ -1098,6 +1099,18 @@
                     </div>
                 </div>
                 
+                <div id="rc-3d" class="media-content">
+                    <div style="background: #f0fbfd; border-left: 4px solid #06b6d4; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <strong style="color: #2c3e50;">Painel de Monitoramento 3D do Reviver Centro (Prefeitura do Rio):</strong>
+                        <p style="color: #555; margin-top: 8px; line-height: 1.6;">Visualização tridimensional da área central do Rio com o licenciamento urbanístico associado ao Reviver Centro, o estoque de edificações existentes e os terrenos vazios com seus parâmetros construtivos.</p>
+                    </div>
+                    <iframe src="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0"
+                            title="Painel de Monitoramento 3D do Reviver Centro"
+                            style="width: 100%; height: 640px; border: 0; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: block;"
+                            allowfullscreen></iframe>
+                    <a href="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Abrir em tela cheia (nova aba) →</a>
+                </div>
+
                 <div id="rc-fotos" class="media-content">
                     <div style="display: grid; gap: 15px;">
                         <a href="https://irph.prefeitura.rio/category/reviver-centro/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
