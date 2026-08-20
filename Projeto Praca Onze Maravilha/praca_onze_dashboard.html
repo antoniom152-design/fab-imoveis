@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Praça Onze Maravilha - Portal Imobiliário | WAL Novo Centro RJ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #222;
+            background: #e4e7eb;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+        }
+        
+        .logo {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .logo-sub {
+            font-size: 0.7em;
+            color: #06b6d4;
+            display: block;
+            font-weight: 400;
+        }
+        
+        .logo-intelligence {
+            font-size: 0.7em;
+            color: #f39c12;
+            display: block;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: #555;
+            font-weight: 500;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+        
+        .nav-links a:hover {
+            color: #06b6d4;
+        }
+        
+        .btn-contact {
+            background: #06b6d4;
+            color: black;
+            padding: 10px 20px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-contact:hover {
+            background: #0891b2;
+        }
+        
+        .hero {
+            background: linear-gradient(135deg, #2c3e50 0%, #06b6d4 100%);
+            color: black;
+            padding: 80px 30px;
+            text-align: center;
+        }
+        
+        .hero-content {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .hero h1 {
+            font-size: 3.5em;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .hero p {
+            font-size: 1.3em;
+            opacity: 0.95;
+            margin-bottom: 30px;
+        }
+        
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+        
+        .stat {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: 700;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 30px;
+        }
+        
+        .section-title {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 40px;
+            background: #06b6d4;
+            border-radius: 2px;
+        }
+        
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-group label {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95em;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1em;
+            color: #555;
+            transition: border-color 0.3s;
+        }
+        
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 60px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .card:hover {
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            transform: translateY(-4px);
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 220px;
+            background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7f8c8d;
+            font-size: 3em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .card-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: #06b6d4;
+            color: black;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .card-badge.pronta {
+            background: #3498db;
+        }
+        
+        .card-badge.lancamento {
+            background: #e74c3c;
+        }
+        
+        .card-content {
+            padding: 20px;
+        }
+        
+        .card-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .card-region {
+            color: #06b6d4;
+            font-weight: 600;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+        }
+        
+        .card-description {
+            color: #7f8c8d;
+            font-size: 0.95em;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+        
+        .card-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 12px 0;
+            border-top: 1px solid #ecf0f1;
+            border-bottom: 1px solid #ecf0f1;
+            margin: 12px 0;
+            font-size: 0.9em;
+        }
+        
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .meta-label {
+            color: #95a5a6;
+            font-size: 0.85em;
+        }
+        
+        .meta-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+        
+        .card-footer {
+            display: flex;
+            gap: 10px;
+            padding-top: 12px;
+        }
+        
+        .btn-small {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .btn-primary {
+            background: #06b6d4;
+            color: black;
+        }
+        
+        .btn-primary:hover {
+            background: #0891b2;
+        }
+        
+        .btn-secondary {
+            background: #ecf0f1;
+            color: #2c3e50;
+            border: 1px solid #bdc3c7;
+        }
+        
+        .btn-secondary:hover {
+            background: #d5dbdb;
+        }
+        
+        .media-section {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
+        .section-divider {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 30px;
+        }
+        
+        .section-divider::after {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #06b6d4, transparent);
+            opacity: 0.5;
+        }
+        
+        .container {
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+        
+        .media-tabs {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ecf0f1;
+            flex-wrap: wrap;
+        }
+        
+        .media-tab {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #7f8c8d;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+        
+        .media-tab.active {
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
+        }
+        
+        .media-tab:hover {
+            color: #2c3e50;
+        }
+        
+        .media-content {
+            display: none;
+        }
+        
+        .media-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .project-content {
+            display: none;
+        }
+        
+        .project-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .media-item {
+            aspect-ratio: 16/9;
+            background: #ecf0f1;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .media-item:hover {
+            transform: scale(1.05);
+        }
+        
+        .media-item img,
+        .media-item iframe {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .timeline {
+            position: relative;
+            padding: 40px 0;
+        }
+        
+        .timeline-item {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+            align-items: start;
+        }
+        
+        .timeline-date {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #06b6d4;
+            text-align: right;
+            padding-top: 8px;
+        }
+        
+        .timeline-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border-left: 4px solid #06b6d4;
+        }
+        
+        .timeline-content h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1.2em;
+        }
+        
+        .timeline-content p {
+            color: #7f8c8d;
+            margin-bottom: 12px;
+        }
+        
+        .timeline-status {
+            display: inline-block;
+            background: #06b6d4;
+            color: black;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+        
+        .timeline-status.em-planejamento {
+            background: #f39c12;
+        }
+        
+        .timeline-status.em-construcao {
+            background: #3498db;
+        }
+        
+        .timeline-status.pronto {
+            background: #06b6d4;
+        }
+        
+        .quote-section {
+            background: linear-gradient(135deg, #2c3e50 0%, #06b6d4 100%);
+            color: black;
+            padding: 60px 30px;
+            text-align: center;
+            border-radius: 10px;
+            margin: 40px 0;
+        }
+        
+        .quote-section h3 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+        
+        .quote-section p {
+            font-size: 1.1em;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+        
+        .cta-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .form-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .form-modal.active {
+            display: flex;
+        }
+        
+        .form-content {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .form-close {
+            float: right;
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+        
+        .form-close:hover {
+            color: #2c3e50;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 12px;
+            border: 1px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 1em;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.1);
+        }
+        
+        .form-submit {
+            background: #06b6d4;
+            color: black;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        
+        .form-submit:hover {
+            background: #0891b2;
+        }
+        
+        .footer {
+            background: #2c3e50;
+            color: black;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        
+        .footer-section h4 {
+            margin-bottom: 15px;
+            color: #06b6d4;
+        }
+        
+        .footer-section p {
+            color: #bdc3c7;
+            font-size: 0.95em;
+            line-height: 1.8;
+        }
+        
+        .footer-bottom {
+            border-top: 1px solid #34495e;
+            padding-top: 20px;
+            color: #95a5a6;
+        }
+        
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2em;
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .timeline-item {
+                grid-template-columns: 1fr;
+            }
+            
+            .timeline-date {
+                text-align: left;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-title {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-content">
+            <div class="logo">
+                🏗️ Novo Rio
+                <span class="logo-sub">WAL IMÓVEIS - Novo Centro RJ</span>
+                <span class="logo-intelligence">WAL Intelligence</span>
+            </div>
+            <div class="nav-links">
+                <a onclick="scrollToSection('empreendimentos')">Empreendimentos/Imóveis</a>
+                <a onclick="scrollToSection('conteudo')">Conteúdo</a>
+                <a onclick="scrollToSection('timeline')">Lançamentos</a>
+                <button class="btn-contact" onclick="openForm('contato')">Contato</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="hero">
+        <div class="hero-content">
+            <h1>O NOVO RIO ESTÁ NASCENDO</h1>
+            <p>Os grandes projetos que estão redesenhando o Porto e o Centro do Rio — e criando novas oportunidades para morar, investir e construir patrimônio</p>
+			<p>PORTO MARAVILHA | PRAÇA ONZE | REVIVER CENTRO | EXPANSÃO DO PORTO </p>
+            <div class="hero-stats">
+                <div class="stat">
+                    <span class="stat-number">20K+</span>
+                    <span class="stat-label">Novos Apartamentos</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">R$ 8+bi</span>
+                    <span class="stat-label">VGV Total</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">5-10</span>
+                    <span class="stat-label">Anos de Desenvolvimento</span>
+                </div>
+                <div class="stat">
+                    <span class="stat-number">Porto→Centro</span>
+                    <span class="stat-label">Corredor Urbano</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-divider"></div>
+    
+    <div class="container" id="conteudo">
+        <h2 class="section-title">Conteúdo & Documentação</h2>
+        
+        <!-- PRIMEIRA CAMADA: ABAS DE PROJETOS -->
+        <div class="media-section">
+            <div class="media-tabs" id="project-tabs">
+                <button class="media-tab active" onclick="switchProjectTab(event, 'pm-content')">Porto Maravilha</button>
+                <button class="media-tab" onclick="switchProjectTab(event, 'po-content')">Praça Onze Maravilha</button>
+                <button class="media-tab" onclick="switchProjectTab(event, 'epm-content')">Expansão Porto Maravilha</button>
+                <button class="media-tab" onclick="switchProjectTab(event, 'rc-content')">Reviver Centro</button>
+            </div>
+            
+            <!-- ========== PORTO MARAVILHA ========== -->
+            <div id="pm-content" class="project-content active">
+                <!-- SEGUNDA CAMADA: SUB-ABAS -->
+                <div class="media-tabs" id="pm-subtabs">
+                    <button class="media-tab active" onclick="switchSubTab(event, 'pm-videos', 'pm-subtabs')">📹 Vídeos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'pm-fotos', 'pm-subtabs')">📸 Galeria de Fotos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'pm-documentos', 'pm-subtabs')">📄 Documentos Oficiais</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'pm-empreendimentos', 'pm-subtabs')">🏢 Empreendimentos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'pm-blog', 'pm-subtabs')">📰 Blog & Notícias</button>
+                </div>
+                
+                <div id="pm-videos" class="media-content active">
+                    <div class="media-grid">
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/l_fdlSQBD7M" title="A expansão do projeto Porto Maravilha - Caminhos do Rio" frameborder="0" allowfullscreen></iframe></div>
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/LfNQCkpzAfQ" title="Novo Masterplan do Porto Maravilha - CAIXA" frameborder="0" allowfullscreen></iframe></div>
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/8NBmneIyWlA" title="Residencial Porto Maravilha - Andamento da Obra" frameborder="0" allowfullscreen></iframe></div>
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/Hyu2v8Gc5xA" title="Porto Maravilha - A parte renovada do Rio" frameborder="0" allowfullscreen></iframe></div>
+                    </div>
+                </div>
+                
+                <div id="pm-fotos" class="media-content">
+                    <p style="color: #7f8c8d; margin-bottom: 20px;">Acervo fotográfico oficial mantido pela CCPar (ex-CDURP), gestora da Operação Urbana Porto Maravilha:</p>
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://www.ccpar.rio/pt/projetos/porto-maravilha/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📸</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Galeria oficial CCPar — Porto Maravilha</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">ccpar.rio — acervo institucional de obras e requalificação urbana</div>
+                            </div>
+                        </a>
+                        <a href="https://pt.wikipedia.org/wiki/Porto_Maravilha" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📸</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Acervo histórico — Wikipédia Porto Maravilha</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Imagens do Túnel Rio450, VLT, Boulevard Olímpico e Museu do Amanhã</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="pm-documentos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://www.ccpar.rio/pt/projetos/porto-maravilha/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Portal oficial CCPar — Porto Maravilha</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Legislação, prospecto da OUC, balanços e transparência</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                        <a href="https://cbic.org.br/wp-content/uploads/sites/20/2017/11/OUC-RJ-PPP-Porto-Maravilha.pdf" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Prospecto da OUC Porto Maravilha (PDP)</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">PDF — CEPACs, modelagem financeira e histórico da PPP</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Download →</span>
+                        </a>
+                        <a href="http://www.portonovosa.com/pt-br/porto-maravilha" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Concessionária Porto Novo — visão geral da obra</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Sistema viário, VLT e infraestrutura entregue</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="pm-empreendimentos" class="media-content">
+                    <div style="background: #f0fbfd; border-left: 4px solid #06b6d4; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <strong style="color: #2c3e50;">Dados oficiais (2025):</strong>
+                        <p style="color: #555; margin-top: 8px; line-height: 1.6;">Maior operação urbana consorciada do Brasil: mais de <strong>R$ 8,9 bilhões</strong> investidos e <strong>12 mil unidades residenciais</strong> já lançadas (90% comercializadas). O m² saltou de R$ 5.500 (2021) para R$ 9.500 (2025) — alta de 73%. Projeção: 45 mil novos moradores até 2029. Fonte: ADEMI-RJ.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🚋</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">INFRAESTRUTURA ENTREGUE</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">VLT Carioca + Boulevard Olímpico</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Sistema de mobilidade e requalificação da orla que sustenta a valorização imobiliária da região.</p>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🏛️</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">MARCO CULTURAL</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">Museu do Amanhã e Praça Mauá</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Âncora turística e cultural que impulsiona novos lançamentos residenciais no entorno.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="pm-blog" class="media-content">
+                    <div style="display: grid; gap: 20px;">
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 Setembro 2025 — Fonte: ADEMI-RJ</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Porto Maravilha dispara: novos residenciais vão atrair 45 mil moradores até 2029</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">A operação urbana ultrapassou as fronteiras da região portuária e chegou a São Cristóvão, ampliando de 5 milhões para 8,7 milhões de m² a área de requalificação. O prefeito Eduardo Paes destacou a infraestrutura de trem, metrô, VLT, aeroporto e BRT já disponível na região.</p>
+                            <a href="https://ademi.org.br/porto-maravilha-dispara-novos-residenciais-vao-atrair-45-mil" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 25 de Setembro, 2025 — Rio Construção Summit</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Caixa apresenta novo Masterplan do Porto Maravilha</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">Durante painel no Píer Mauá, a Caixa (gestora do FGTS) apresentou o plano de mais de 100 mil novas unidades residenciais até 2064, com potencial de movimentar R$ 50 bilhões em vendas e atrair 250 mil novos moradores.</p>
+                            <a href="https://rioconstrucaosummit.com.br/expansao-do-porto-maravilha-e-urbanismo-global-marcam-o-segundo-dia-do-rio-construcao-summit-2025/" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== PRAÇA ONZE MARAVILHA ========== -->
+            <div id="po-content" class="project-content">
+                <div class="media-tabs" id="po-subtabs">
+                    <button class="media-tab active" onclick="switchSubTab(event, 'po-videos', 'po-subtabs')">📹 Vídeos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'po-fotos', 'po-subtabs')">📸 Galeria de Fotos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'po-documentos', 'po-subtabs')">📄 Documentos Oficiais</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'po-empreendimentos', 'po-subtabs')">🏢 Empreendimentos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'po-blog', 'po-subtabs')">📰 Blog & Notícias</button>
+                </div>
+                
+                <div id="po-videos" class="media-content active">
+                    <div style="background: #fff8e6; border-left: 4px solid #f39c12; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; color: #7a5c00; font-size: 0.9em;">
+                        ⚡ Projeto sancionado em 09/07/2026 (Lei Complementar nº 301/2026) — conteúdo audiovisual oficial ainda em produção pela Prefeitura.
+                    </div>
+                    <div class="media-grid">
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/RlnXFs1KqT4" title="Praça Onze Maravilha - Novo Parque do Porto" frameborder="0" allowfullscreen></iframe></div>
+                    </div>
+                </div>
+                
+                <div id="po-fotos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://desenvolvimentourbano.prefeitura.rio/praca-onze-maravilha/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📸</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Página oficial SMDU — Praça Onze Maravilha</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Mapas do perímetro AEIU e material de divulgação da Prefeitura</div>
+                            </div>
+                        </a>
+                        <a href="https://diariodorio.com/requalificacao-da-praca-onze-conheca-acervo-historico-da-regiao-que-recebera-grandes-obras-da-prefeitura-do-rio" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📸</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Acervo histórico do Catumbi e Praça Onze</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Diário do Rio — patrimônio arquitetônico da região</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="po-documentos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://desenvolvimentourbano.prefeitura.rio/wp-content/uploads/sites/52/2026/07/LEI-COMPLEMENTAR-No-301-DE-9-DE-JULHO-DE-2026.pdf" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Lei Complementar nº 301, de 09/07/2026</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">PDF oficial — institui a AEIU Praça Onze Maravilha (texto integral)</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Download →</span>
+                        </a>
+                        <a href="https://desenvolvimentourbano.prefeitura.rio/praca-onze-maravilha/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Página oficial do projeto — SMDU</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Objetivos, perímetro e cronograma do AEIU Praça Onze Maravilha</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="po-empreendimentos" class="media-content">
+                    <div style="background: #f0fbfd; border-left: 4px solid #06b6d4; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <strong style="color: #2c3e50;">Dados oficiais (LC 301/2026):</strong>
+                        <p style="color: #555; margin-top: 8px; line-height: 1.6;">Investimento de <strong>R$ 1,7 bilhão</strong> em 20 anos, transformando <strong>458 mil m²</strong> na região da Praça Onze, Cidade Nova, Estácio e Catumbi. Meta de <strong>37 mil novas unidades residenciais</strong>.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">📚</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">MARCO ARQUITETÔNICO</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">Biblioteca dos Saberes</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Projeto do arquiteto Francis Kéré (Pritzker 2022), a ser erguida no Terreirão do Samba.</p>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🏘️</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">RESTAURO HISTÓRICO</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">Vila Operária Salvador de Sá</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Conjunto histórico de casas incluído entre os projetos contemplados pela nova lei.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="po-blog" class="media-content">
+                    <div style="display: grid; gap: 20px;">
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 09 de Julho, 2026 — Prefeitura do Rio</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Prefeitura do Rio sanciona lei do Praça Onze Maravilha</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">O prefeito Eduardo Cavaliere sancionou a Lei Complementar nº 301, criando a AEIU Praça Onze Maravilha. O ato incluiu a recuperação da Vila Operária Salvador de Sá e previu um portal público de acompanhamento de licenciamentos e obras.</p>
+                            <a href="https://prefeitura.rio/cidade/prefeitura-do-rio-sanciona-lei-do-praca-onze-maravilha/" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 10 de Julho, 2026 — Agência Brasil</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Região histórica do Rio, Praça Onze será revitalizada</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">Uma das regiões mais importantes do Rio passará por revitalização total, consolidando a requalificação urbana iniciada com o Porto Maravilha e o Reviver Centro. Entre as mudanças está a retirada do Elevado 31 de Março.</p>
+                            <a href="https://agenciabrasil.ebc.com.br/cultura/noticia/2026-07/regiao-historica-do-rio-praca-onze-sera-revitalizada" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== EXPANSÃO PORTO MARAVILHA ========== -->
+            <div id="epm-content" class="project-content">
+                <div class="media-tabs" id="epm-subtabs">
+                    <button class="media-tab active" onclick="switchSubTab(event, 'epm-videos', 'epm-subtabs')">📹 Vídeos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'epm-fotos', 'epm-subtabs')">📸 Galeria de Fotos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'epm-documentos', 'epm-subtabs')">📄 Documentos Oficiais</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'epm-empreendimentos', 'epm-subtabs')">🏢 Empreendimentos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'epm-blog', 'epm-subtabs')">📰 Blog & Notícias</button>
+                </div>
+                
+                <div id="epm-videos" class="media-content active">
+                    <div class="media-grid">
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/l_fdlSQBD7M" title="A expansão do projeto Porto Maravilha para São Cristóvão" frameborder="0" allowfullscreen></iframe></div>
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/LfNQCkpzAfQ" title="Novo Masterplan - Expansão São Cristóvão" frameborder="0" allowfullscreen></iframe></div>
+                    </div>
+                </div>
+                
+                <div id="epm-fotos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://ademi.org.br/porto-maravilha-dispara-novos-residenciais-vao-atrair-45-mil" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📸</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">ADEMI-RJ — cobertura da expansão para São Cristóvão</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Imagens do Terminal Gentileza e da Quinta da Boa Vista</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="epm-documentos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://www.camara.rio/comunicacao/noticias/1921-agora-e-lei-porto-maravilha-recebe-expansao-ate-a-area-de-sao-cristovao" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Lei Complementar nº 267/2023</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Câmara Municipal — expande a OUC do Porto para São Cristóvão (+3,7 milhões de m²)</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                        <a href="https://www.ccpar.rio/pt/projetos/porto-maravilha/operacao-urbana/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">CCPar — Operação Urbana (área expandida)</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Projeções de adensamento: de 32 mil para 100 mil habitantes em 10 anos</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="epm-empreendimentos" class="media-content">
+                    <div style="background: #f0fbfd; border-left: 4px solid #06b6d4; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <strong style="color: #2c3e50;">Dados oficiais:</strong>
+                        <p style="color: #555; margin-top: 8px; line-height: 1.6;">Área de requalificação ampliada de <strong>5 milhões para 8,7 milhões de m²</strong>. Masterplan da Caixa prevê <strong>100 mil unidades residenciais até 2064</strong>, R$ 50 bilhões em vendas e 250 mil novos moradores.</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🚌</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">MOBILIDADE</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">Terminal Intermodal Gentileza</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Desde 2024 integra o BRT à região, conectando São Cristóvão ao Porto Maravilha.</p>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🏛️</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">PATRIMÔNIO E CULTURA</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">Quinta da Boa Vista e Museu Nacional</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Âncoras institucionais e culturais do novo eixo de desenvolvimento estratégico.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="epm-blog" class="media-content">
+                    <div style="display: grid; gap: 20px;">
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 14 de Novembro, 2023 — Câmara Municipal do Rio</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Aprovada expansão da OUC do Porto Maravilha para São Cristóvão</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">Com 37 votos favoráveis, a Câmara aprovou o PLC 129/2023, incluindo o bairro imperial de São Cristóvão na Operação Urbana Consorciada, acrescentando 3,7 milhões de m² para uso de CEPACs geridos pela Caixa.</p>
+                            <a href="https://www.camara.rio/comunicacao/noticias/1880-aprovada-expansao-da-operacao-urbana-consorciada-do-porto-maravilha-para-sao-cristovao" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 Setembro 2025 — Sinduscon-Rio</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">São Cristóvão agora é Porto Maravilha</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">Mais de 8,7 milhões de m² serão requalificados, com R$ 50 bilhões em vendas estimadas até 2064. O bairro deve ganhar 250 mil moradores nos próximos 40 anos, segundo a Caixa Econômica Federal.</p>
+                            <a href="https://www.sinduscon-rio.com.br/wp/noticias/da-quinta-da-boa-vista-ao-museu-do-amanha-sao-cristovao-agora-e-porto-maravilha/" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ========== REVIVER CENTRO ========== -->
+            <div id="rc-content" class="project-content">
+                <div class="media-tabs" id="rc-subtabs">
+                    <button class="media-tab active" onclick="switchSubTab(event, 'rc-videos', 'rc-subtabs')">📹 Vídeos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'rc-fotos', 'rc-subtabs')">📸 Galeria de Fotos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'rc-documentos', 'rc-subtabs')">📄 Documentos Oficiais</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'rc-empreendimentos', 'rc-subtabs')">🏢 Empreendimentos</button>
+                    <button class="media-tab" onclick="switchSubTab(event, 'rc-blog', 'rc-subtabs')">📰 Blog & Notícias</button>
+                </div>
+                
+                <div id="rc-videos" class="media-content active">
+                    <div class="media-grid">
+                        <div class="media-item"><iframe src="https://www.youtube.com/embed/nPBrLicqYRY" title="Avanços e Conquistas: Reviver Centro transforma o Rio" frameborder="0" allowfullscreen></iframe></div>
+                    </div>
+                </div>
+                
+                <div id="rc-fotos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://irph.prefeitura.rio/category/reviver-centro/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📸</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">IRPH — acervo do Reviver Centro</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Instituto Rio Patrimônio da Humanidade — fotos de imóveis restaurados</div>
+                            </div>
+                        </a>
+                        <a href="https://reviver-centro-pcrj.hub.arcgis.com/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">🗺️</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Painel geográfico oficial (ArcGIS)</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Mapas, dados e storymaps do Plano Reviver Centro</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="rc-documentos" class="media-content">
+                    <div style="display: grid; gap: 15px;">
+                        <a href="https://reviver.rio" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Portal oficial Reviver.Rio</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Painel 3D de Monitoramento com licenciamentos em tempo real</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                        <a href="https://desenvolvimento.prefeitura.rio/reviver-patrimonio-pro-apac/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Reviver Patrimônio Pró-APAC — SMDE</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Decreto Rio nº 56.396/2025, editais e FAQ do programa</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                        <a href="https://carioca.rio/servicos/reviver-centro/" target="_blank" style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #ecf0f1; display: flex; align-items: center; gap: 15px; text-decoration: none;">
+                            <span style="font-size: 2em;">📄</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; color: #2c3e50;">Portal Carioca Digital — Reviver Centro</div>
+                                <div style="color: #7f8c8d; font-size: 0.9em;">Benefícios, requisitos e como aplicar ao programa (LC 229/2021)</div>
+                            </div>
+                            <span style="color: #06b6d4; font-weight: 600;">Acessar →</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <div id="rc-empreendimentos" class="media-content">
+                    <div style="background: #f0fbfd; border-left: 4px solid #06b6d4; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+                        <strong style="color: #2c3e50;">Painel Oficial de Monitoramento (agosto/2026):</strong>
+                        <p style="color: #555; margin-top: 8px; line-height: 1.6;">Desde 2021: <strong>81 licenças concedidas</strong>, somando <strong>8.998 unidades</strong> (8.903 residenciais + 95 comerciais/serviços/culturais). Só em 2026: <strong>1.528 moradias em 12 empreendimentos</strong>. Mais 27 pedidos em análise (potencial de +824 unidades).</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🏢</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">1º LANÇAMENTO DO PROGRAMA</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">Cores do Rio (Construtora W3)</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Rua Irineu Marinho, 52. 122 unidades, majoritariamente studios — primeiro projeto licenciado nos parâmetros do Reviver Centro.</p>
+                            </div>
+                        </div>
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                            <div style="width: 100%; height: 140px; background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); display: flex; align-items: center; justify-content: center; font-size: 3em; color: white;">🏛️</div>
+                            <div style="padding: 20px;">
+                                <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">REVIVER PATRIMÔNIO PRÓ-APAC</div>
+                                <h4 style="font-size: 1.1em; color: #2c3e50; margin-bottom: 10px;">11 imóveis históricos restaurados</h4>
+                                <p style="color: #7f8c8d; font-size: 0.9em;">Chaves entregues em 12/08/2026, no Real Gabinete Português de Leitura, com subsídio integral a fundo perdido.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="rc-blog" class="media-content">
+                    <div style="display: grid; gap: 20px;">
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 12 de Agosto, 2026 — Prefeitura do Rio</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Prefeitura entrega chaves dos primeiros imóveis do Reviver Centro Patrimônio Pró-APAC</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">Segundo o Painel Oficial de Monitoramento, o programa já soma 8.998 novas unidades desde 2021. A presidente do IRPH, Laura Di Blasi, destacou que a entrega marca as políticas municipais de preservação e requalificação urbana.</p>
+                            <a href="https://prefeitura.rio/ccpar/prefeitura-do-rio-entrega-chaves-dos-primeiros-imoveis-do-reviver-centro-patrimonio-pro-apac/" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                        <article style="background: white; padding: 25px; border-radius: 8px; border-left: 4px solid #06b6d4;">
+                            <div style="color: #06b6d4; font-weight: 600; font-size: 0.9em; margin-bottom: 8px;">📰 15 de Maio, 2025 — Prefeitura do Rio</div>
+                            <h3 style="font-size: 1.2em; color: #2c3e50; margin-bottom: 12px;">Prefeitura lança Reviver Centro Patrimônio Pró-APAC</h3>
+                            <p style="color: #7f8c8d; line-height: 1.6;">O prefeito Eduardo Paes lançou o novo programa de requalificação de imóveis degradados, com subsídio de R$ 3.212 por m² às empresas que reformarem os imóveis qualificados, pagos por fases da recuperação.</p>
+                            <a href="https://prefeitura.rio/cidade/prefeitura-lanca-novo-programa-para-revitalizacao-de-imoveis-no-centro-do-rio/" target="_blank" style="color: #06b6d4; font-weight: 600; text-decoration: none; display: inline-block; margin-top: 12px;">Ler notícia completa →</a>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="section-divider"></div>
+    
+	 <div class="container"  id="empreendimentos" >
+        <h2 class="section-title">Empreendimentos Disponíveis</h2>
+        
+        <div class="section-card">
+        <div class="filters" id="Conteudo">
+            <div class="filter-group">
+                <label>Projeto (Região)</label>
+                <select id="filterRegiao">
+                    <option value="">Todas as regiões</option>
+                    <option value="porto-maravilha">Porto Maravilha</option>
+                    <option value="praca-onze">Praça Onze Maravilha</option>
+                    <option value="sao-cristovao">Expansão Porto Maravilha - São Cristóvão</option>
+                    <option value="centro">Reviver Centro</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Tipo</label>
+                <select id="filterTipo">
+                    <option value="">Todos os tipos</option>
+                    <option value="1q">1 Quarto</option>
+                    <option value="2q">2 Quartos</option>
+                    <option value="3q">3 Quartos</option>
+                    <option value="studio">Studio</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Preço</label>
+                <select id="filterPreco">
+                    <option value="">Qualquer valor</option>
+                    <option value="ate-300">Até R$ 300k</option>
+                    <option value="300-500">R$ 300k - R$ 500k</option>
+                    <option value="500-1000">R$ 500k - R$ 1mi</option>
+                    <option value="acima-1000">Acima de R$ 1mi</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="filterStatus">
+                    <option value="">Todos</option>
+                    <option value="lancamento">Lançamento</option>
+                    <option value="construcao">Em Construção</option>
+                    <option value="pronto">Pronto para Morar</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grid" id="gridEmpreendimentos">
+            <div class="card">
+                <div class="card-image">🏢</div>
+                <div class="card-badge lancamento">Lançamento</div>
+                <div class="card-content">
+                    <div class="card-region">Porto Maravilha</div>
+                    <div class="card-title">Porto Vida Residencial</div>
+                    <div class="card-description">Empreendimento de alto padrão com 45 unidades, localização privilegiada próxima à Perimetral e Porto.</div>
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Tipo</span>
+                            <span class="meta-value">2 e 3Q</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Preço</span>
+                            <span class="meta-value">R$ 550k</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
+                        <button class="btn-small btn-secondary">Mais info</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-image">🏘️</div>
+                <div class="card-badge pronta">Pronto</div>
+                <div class="card-content">
+                    <div class="card-region">Praça Onze</div>
+                    <div class="card-title">Centro Premium Living</div>
+                    <div class="card-description">120 unidades prontas para ocupação. Infraestrutura completa, estacionamento, academia e coworking.</div>
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Tipo</span>
+                            <span class="meta-value">1, 2 e 3Q</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Preço</span>
+                            <span class="meta-value">R$ 350k</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
+                        <button class="btn-small btn-secondary">Mais info</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-image">🏗️</div>
+                <div class="card-badge">Em Construção</div>
+                <div class="card-content">
+                    <div class="card-region">São Cristóvão</div>
+                    <div class="card-title">Cristóvão Modern Home</div>
+                    <div class="card-description">60 unidades com preço pré-obra. Entrega prevista para Q3 2027. Financiamento pela construtora.</div>
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Tipo</span>
+                            <span class="meta-value">2Q</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Preço</span>
+                            <span class="meta-value">R$ 420k</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
+                        <button class="btn-small btn-secondary">Mais info</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <div class="section-divider"></div>
+    
+    <div class="container" id="timeline">
+        <h2 class="section-title">Timeline de Lançamentos</h2>
+        
+        <div class="section-card">
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-date">Q3 2026</div>
+                <div class="timeline-content">
+                    <h4>Fase 1 - Porto Maravilha</h4>
+                    <p>Início das vendas de 3 empreendimentos em Porto Maravilha, com 450 unidades disponíveis. Preço de lançamento com desconto de até 8%.</p>
+                    <span class="timeline-status lancamento">LANÇAMENTO</span>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">Q4 2026</div>
+                <div class="timeline-content">
+                    <h4>Fase 2 - Praça Onze</h4>
+                    <p>Liberação de empreendimentos em Praça Onze. Primeiro bloco com 280 unidades em construção avançada (60% concluído).</p>
+                    <span class="timeline-status em-construcao">EM CONSTRUÇÃO</span>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">Q1 2027</div>
+                <div class="timeline-content">
+                    <h4>Fase 3 - São Cristóvão</h4>
+                    <p>Lançamento de 5 empreendimentos em São Cristóvão com preço pré-obra. Opções de financiamento direto com construtoras.</p>
+                    <span class="timeline-status em-planejamento">LANÇAMENTO PREVISTO</span>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">Q2 2027</div>
+                <div class="timeline-content">
+                    <h4>Fase 4 - Centro</h4>
+                    <p>Abertura de propostas para transformação de edifícios históricos. Reformulação urbana do Centro com 800 novas unidades.</p>
+                    <span class="timeline-status em-planejamento">PLANEJAMENTO</span>
+                </div>
+            </div>
+            
+            <div class="timeline-item">
+                <div class="timeline-date">2027-2028</div>
+                <div class="timeline-content">
+                    <h4>Entregas Progressivas</h4>
+                    <p>Entrega de primeiras unidades em Porto Maravilha (Q2 2027). Sequência de entregas até fim de 2028.</p>
+                    <span class="timeline-status pronto">ENTREGA</span>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    
+    <div class="quote-section">
+        <h3>Transformando a forma de morar no Rio</h3>
+        <p>Mais de 20 mil apartamentos em um dos maiores projetos de revitalização urbana do Brasil.</p>
+        <div class="cta-group">
+            <button class="btn-contact" onclick="openForm('contato')">Solicitar Consulta</button>
+            <button style="background: transparent; border: 2px solid white; color: black; padding: 10px 25px; border-radius: 6px; cursor: pointer; font-weight: 600;" onclick="openForm('calculadora')">Calcular Financiamento</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <h2 class="section-title">Por que investir no Praça Onze?</h2>
+        
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 3em; margin-bottom: 15px;">🌍</div>
+                <h3 style="color: #2c3e50; margin-bottom: 10px;">Localização Estratégica</h3>
+                <p style="color: #7f8c8d;">Proximidade com polos de trabalho (FAB, Marinha, Prédios de órgãos federais) e boa acessibilidade.</p>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 3em; margin-bottom: 15px;">💰</div>
+                <h3 style="color: #2c3e50; margin-bottom: 10px;">Preços Competitivos</h3>
+                <p style="color: #7f8c8d;">Valores alinhados com poder de compra de servidores. Financiamento com até 35 anos.</p>
+            </div>
+            
+            <div style="background: white; padding: 30px; border-radius: 10px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08);">
+                <div style="font-size: 3em; margin-bottom: 15px;">📈</div>
+                <h3 style="color: #2c3e50; margin-bottom: 10px;">Potencial de Valorização</h3>
+                <p style="color: #7f8c8d;">Região em transformação. Projeto de 10+ anos com investimento de bilhões em infraestrutura.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>WAL - Novo Rio</h4>
+                <p>Especialistas em oportunidades imobiliárias no novo eixo de desenvolvimento do Rio — para servidores públicos e militares.</p>
+				<button class="btn-contact" onclick="openForm('contato')">Contato</button>
+				
+            </div>
+            <div class="footer-section">
+                <h4>Central de Atendimento</h4>
+                <p>📞  (21) 99726-3950<br>📧 comercial@walservidor.com.br<br>💬 (21) 97244-3592 WhatsApp</p>
+            </div>
+            <div class="footer-section">
+                <h4>Horário</h4>
+                <p>Segunda a Sexta: 8h - 20h<br>Sábado: 9h - 18h<br>Domingo: Plantão Online <br>Consultor IA (24hs)</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 WAL Imóveis e Consultoria. CRECI 12261-J. Todos os direitos reservados.</p>
+        </div>
+    </div>
+    
+    <div class="form-modal" id="formModal">
+        <div class="form-content">
+            <button class="form-close" onclick="closeForm()">✕</button>
+            
+            <div id="formContato" style="display: none;">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">Entre em Contato</h2>
+                <form onsubmit="submitForm(event)">
+                    <div class="form-group">
+                        <label>Nome completo</label>
+                        <input type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone/WhatsApp</label>
+                        <input type="tel" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Órgão/Segmento</label>
+                        <select required>
+                            <option value="">Selecione</option>
+                            <option value="fab">FAB</option>
+                            <option value="marinha">Marinha</option>
+                            <option value="exercito">Exército</option>
+                            <option value="policia">Polícia Militar</option>
+							  <option value="municipal">Policia Civil</option>
+                            <option value="bombeiros">Bombeiros</option>
+                            <option value="federal">Servidor Federal</option>
+                            <option value="estadual">Servidor Estadual</option>
+                            <option value="municipal">Servidor Municipal</option>
+							<option value="municipal">Ministério Público</option>
+							<option value="municipal">Outro</option>
+							
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Mensagem</label>
+                        <textarea rows="4" required placeholder="Como podemos ajudar?"></textarea>
+                    </div>
+                    <button type="submit" class="form-submit">Enviar Solicitação</button>
+                </form>
+            </div>
+            
+            <div id="formProposta" style="display: none;">
+                <h2 style="color: #2c3e50; margin-bottom: 20px;">Solicitar Proposta</h2>
+                <form onsubmit="submitForm(event)">
+                    <div class="form-group">
+                        <label>Qual empreendimento te interessa?</label>
+                        <select required>
+                            <option value="">Selecione</option>
+                            <option value="porto-vida">Porto Vida Residencial</option>
+                            <option value="centro-premium">Centro Premium Living</option>
+                            <option value="cristovao-modern">Cristóvão Modern Home</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone/WhatsApp</label>
+                        <input type="tel" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de imóvel desejado</label>
+                        <select required>
+                            <option value="">Selecione</option>
+                            <option value="1q">1 Quarto</option>
+                            <option value="2q">2 Quartos</option>
+                            <option value="3q">3 Quartos</option>
+                            <option value="studio">Studio</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="form-submit">Solicitar Proposta</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openForm(type) {
+            const modal = document.getElementById('formModal');
+            const formContato = document.getElementById('formContato');
+            const formProposta = document.getElementById('formProposta');
+            
+            formContato.style.display = 'none';
+            formProposta.style.display = 'none';
+            
+            if (type === 'contato') {
+                formContato.style.display = 'block';
+            } else if (type === 'proposta') {
+                formProposta.style.display = 'block';
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeForm() {
+            document.getElementById('formModal').classList.remove('active');
+        }
+        
+        function submitForm(event) {
+            event.preventDefault();
+            alert('Obrigado! Entraremos em contato em breve.');
+            closeForm();
+        }
+        
+        function switchProjectTab(event, projectContentId) {
+            // Remove active de todos os tabs de projeto
+            const projectTabs = document.querySelectorAll('#project-tabs .media-tab');
+            projectTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active de todos os conteúdos de projeto
+            const projectContents = document.querySelectorAll('.project-content');
+            projectContents.forEach(content => content.classList.remove('active'));
+            
+            // Adiciona active ao tab clicado e seu conteúdo
+            event.target.classList.add('active');
+            document.getElementById(projectContentId).classList.add('active');
+        }
+        
+        function switchSubTab(event, contentId, tabGroupId) {
+            // Remove active de todos os tabs dentro deste grupo
+            const tabGroup = document.getElementById(tabGroupId);
+            const tabs = tabGroup.querySelectorAll('.media-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active de todos os conteúdos dentro do parent
+            const parent = tabGroup.closest('.project-content');
+            const contents = parent.querySelectorAll('.media-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Adiciona active ao tab clicado e seu conteúdo
+            event.target.classList.add('active');
+            document.getElementById(contentId).classList.add('active');
+        }
+        
+        function switchTab(event, tabName) {
+            const tabs = document.querySelectorAll('.media-tab');
+            const contents = document.querySelectorAll('.media-content');
+            
+            tabs.forEach(tab => tab.classList.remove('active'));
+            contents.forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+        
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('formModal');
+            if (event.target === modal) {
+                closeForm();
+            }
+        }
+    </script>
+</body>
+</html>
