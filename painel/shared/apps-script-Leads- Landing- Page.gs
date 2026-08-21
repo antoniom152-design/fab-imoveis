@@ -636,6 +636,8 @@ function processarImovel(data) {
     // Y=Latitude | Z=Longitude (colunas novas — cadastradas manualmente
     //   uma vez por empreendimento no admin.html, usadas pelo mapa de
     //   empreendimentos, ver configurarCamposLatLng())
+    // AA=Endereço (coluna nova — rua/número, texto livre, ver
+    //   configurarCampoEndereco())
     var ativo    = data.ativo    === true || data.ativo    === 'true';
     var destaque = data.destaque === true || data.destaque === 'true';
     var feiraoOnLine = (data.feirao_on_line === true || data.feirao_on_line === 'true' || data.feirao_on_line === 'Sim') ? 'Sim' : 'Não';
@@ -668,7 +670,7 @@ function processarImovel(data) {
       if (linhaIdx === -1) { Logger.log('ID não encontrado: ' + data.id); return; }
 
       // Atualiza coluna por coluna (preserva ID e Data)
-      var r = aba.getRange(linhaIdx, 1, 1, 26).getValues()[0];
+      var r = aba.getRange(linhaIdx, 1, 1, 27).getValues()[0];
       r[1]  = ativo;
       r[2]  = data.tipo_imovel  || r[2];
       r[3]  = data.construtora  || r[3];
@@ -694,7 +696,8 @@ function processarImovel(data) {
       r[23] = data.projeto       !== undefined ? data.projeto  : r[23];
       r[24] = data.lat           !== undefined ? data.lat      : r[24];
       r[25] = data.lng           !== undefined ? data.lng      : r[25];
-      aba.getRange(linhaIdx, 1, 1, 26).setValues([r]);
+      r[26] = data.endereco      !== undefined ? data.endereco : r[26];
+      aba.getRange(linhaIdx, 1, 1, 27).setValues([r]);
       Logger.log('Imóvel atualizado: ID ' + data.id);
 
     } else {
@@ -738,7 +741,8 @@ function processarImovel(data) {
         feiraoOnLine,
         data.projeto      || '',
         data.lat          || '',
-        data.lng          || ''
+        data.lng          || '',
+        data.endereco     || ''
       ]);
       Logger.log('Imóvel criado: ' + data.nome);
     }
@@ -894,6 +898,27 @@ function configurarCamposLatLng() {
   // Sem SpreadsheetApp.getUi().alert() de propósito — mesmo motivo do
   // configurarCampoProjeto() acima (trava fora da sessão da planilha aberta).
   Logger.log('Colunas "Latitude" e "Longitude" criadas em IMOVEISDISPONIVEIS (colunas Y e Z).');
+}
+
+/* ─── ENDEREÇO — adiciona a coluna AA (27ª) na aba IMOVEISDISPONIVEIS.
+   Texto livre (rua/número), cadastrado uma vez por empreendimento no
+   admin.html, junto de Latitude/Longitude. Rodar uma única vez. Não
+   mexe nas colunas A→Z existentes. ─── */
+function configurarCampoEndereco() {
+  var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+  var aba = ss.getSheetByName(ABA_IMOVEIS);
+  if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
+
+  var headerCell = aba.getRange(1, 27, 1, 1);
+  headerCell.setValue('Endereço');
+  headerCell.setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  headerCell.protect().setDescription('Cabeçalho — não editar').setWarningOnly(true);
+
+  aba.setColumnWidth(27, 220);
+
+  // Sem SpreadsheetApp.getUi().alert() de propósito — mesmo motivo das
+  // demais funções de setup acima.
+  Logger.log('Coluna "Endereço" criada em IMOVEISDISPONIVEIS (coluna AA).');
 }
 
 /* ─── AUXILIAR: linha HTML ─────────────────────────────── */
