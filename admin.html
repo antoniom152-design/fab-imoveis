@@ -2598,7 +2598,12 @@ async function fetchPreview() {
 function parseGvizToAdmin(table) {
   if (!table || !table.rows) return [];
   return table.rows.map(row => {
-    const g = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
+    const g  = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
+    // gv() lê o valor BRUTO da célula (não o texto formatado) — necessário
+    // pra Latitude/Longitude porque o Sheets formata decimais com vírgula
+    // (locale pt-BR: "-23,0272579"), e parseFloat() do JS para de ler no
+    // primeiro caractere inválido (a vírgula), truncando pra "-23".
+    const gv = (i) => { const c = row.c && row.c[i]; return c && typeof c.v === 'number' ? c.v : null; };
     return {
       id: g(0), ativo: row.c && row.c[1] && row.c[1].v === true,
       tipo: g(2), construtora: g(3), cidade: g(4), nome: g(5),
@@ -2609,8 +2614,8 @@ function parseGvizToAdmin(table) {
       quartos: g(18), precoMin: parseFloat(g(19)) || 0, precoMax: parseFloat(g(20)) || 0,
       entrega: g(21), feiraoOnLine: g(22) === 'Sim',
       projeto: g(23),
-      lat: g(24) !== '' && !isNaN(parseFloat(g(24))) ? parseFloat(g(24)) : null,
-      lng: g(25) !== '' && !isNaN(parseFloat(g(25))) ? parseFloat(g(25)) : null,
+      lat: gv(24),
+      lng: gv(25),
       endereco: g(26)
     };
   }).filter(r => r.nome);
