@@ -214,13 +214,17 @@ function processarLead(data) {
         aba.appendRow([
           'Timestamp','Nome','WhatsApp','Posto/Cargo','Base/Unidade',
           'Cidade Desejada','Faixa de Valor','Forma de Pagamento','Origem',
-          'Estado','Bairro Desejado','Imovel de Interesse','E-mail'
+          'Estado','Bairro Desejado','Imovel de Interesse','E-mail','Mensagem'
         ]);
-        aba.getRange(1,1,1,13).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+        aba.getRange(1,1,1,14).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
         aba.setFrozenRows(1);
       }
       // Coluna 'E-mail' entrou depois (05/08/2026) — vai como col M, no fim,
       // pra não mexer na ordem das colunas A→L já em uso na aba real.
+      // Coluna 'Mensagem' entrou depois (21/08/2026) — col N, no fim, pelo
+      // mesmo motivo — usada pelos formulários Contato/Proposta do
+      // dashboard Praça Onze Maravilha (texto livre e/ou tipo de imóvel
+      // desejado, que não tem coluna estruturada própria).
       aba.appendRow([
         data.timestamp        || '',   // col A — Timestamp
         data.nome             || '',   // col B — Nome
@@ -234,7 +238,8 @@ function processarLead(data) {
         data.estado           || '',   // col J — Estado
         data.bairro_desejado  || '',   // col K — Bairro Desejado
         data.imovel_interesse || '',   // col L — Imovel de Interesse
-        data.email             || ''   // col M — E-mail
+        data.email             || '',  // col M — E-mail
+        data.mensagem          || ''   // col N — Mensagem
       ]);
       Logger.log('Lead salvo na aba ' + ABA_LEADS);
     } catch (e) { Logger.log('Lead planilha erro: ' + e.message); }
@@ -262,6 +267,7 @@ function processarLead(data) {
             linhaHtml('Forma de Pagamento',   data.forma_pagamento) +
             linhaHtml('Imóvel de Interesse',  data.imovel_interesse) +
             linhaHtml('Quer Agendar',         data.quer_agendar) +
+            linhaHtml('Mensagem',             data.mensagem) +
             linhaHtml('Origem',               data.origem) +
           '</table>' +
         '</div>' +
@@ -269,6 +275,25 @@ function processarLead(data) {
           '<p style="color:#555;font-size:11px;margin:0">WAL Imóveis · CRECI 12261-J</p>' +
         '</div></div>');
   } catch (e) { Logger.log('Lead email erro: ' + e.message); }
+}
+
+/* ─── LEADS — adiciona a coluna N (Mensagem) na aba já existente em
+   produção. Rodar uma única vez, depois de publicar esta versão do
+   script. Não mexe nas colunas A→M existentes. Sem
+   SpreadsheetApp.getUi().alert() de propósito — trava esperando um
+   popup que só renderiza com a planilha aberta numa aba do navegador
+   (mesmo motivo do configurarCampoProjeto() em processarImovel). ─── */
+function configurarColunaMensagemLeads() {
+  var ss  = SpreadsheetApp.openById(PLANILHA_ID);
+  var aba = ss.getSheetByName(ABA_LEADS);
+  if (!aba) { Logger.log('Aba ' + ABA_LEADS + ' não encontrada'); return; }
+
+  var headerCell = aba.getRange(1, 14, 1, 1);
+  headerCell.setValue('Mensagem');
+  headerCell.setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+
+  aba.setColumnWidth(14, 260);
+  Logger.log('Coluna "Mensagem" criada na aba ' + ABA_LEADS + ' (coluna N).');
 }
 
 /* ─── RESERVA COMPLETA (reserva.html) ─────────────────── */
