@@ -850,11 +850,15 @@
           </div>
         </div>
 
-        <!-- LOCALIZAÇÃO NO MAPA -->
+        <!-- ENDEREÇO E LOCALIZAÇÃO NO MAPA -->
         <div class="cad-section">
-          <div class="cad-section-title">Localização no Mapa</div>
+          <div class="cad-section-title">Endereço e Localização no Mapa</div>
           <div class="alert alert-info" style="margin-bottom:14px">
             Usado no mapa de empreendimentos. Não precisa ser o endereço exato — o centro do terreno/quadra já é suficiente. Preencha uma vez por empreendimento.
+          </div>
+          <div class="cad-field" style="margin-bottom:14px">
+            <label class="cad-label">Endereço</label>
+            <input class="cad-input" type="text" id="cadEndereco" placeholder="Ex: Av. das Américas, 500">
           </div>
           <div class="cad-grid cad-grid-3">
             <div class="cad-field">
@@ -2606,7 +2610,8 @@ function parseGvizToAdmin(table) {
       entrega: g(21), feiraoOnLine: g(22) === 'Sim',
       projeto: g(23),
       lat: g(24) !== '' && !isNaN(parseFloat(g(24))) ? parseFloat(g(24)) : null,
-      lng: g(25) !== '' && !isNaN(parseFloat(g(25))) ? parseFloat(g(25)) : null
+      lng: g(25) !== '' && !isNaN(parseFloat(g(25))) ? parseFloat(g(25)) : null,
+      endereco: g(26)
     };
   }).filter(r => r.nome);
 }
@@ -2980,6 +2985,7 @@ function abrirFormEdit(id) {
   document.getElementById('cadPrecoMin').value     = d.precoMin ? 'R$ ' + Number(d.precoMin).toLocaleString('pt-BR') : '';
   document.getElementById('cadPrecoMax').value     = d.precoMax ? 'R$ ' + Number(d.precoMax).toLocaleString('pt-BR') : '';
   document.getElementById('cadEntrega').value      = d.entrega     || '';
+  document.getElementById('cadEndereco').value     = d.endereco    || '';
   document.getElementById('cadLat').value          = d.lat != null ? d.lat : '';
   document.getElementById('cadLng').value          = d.lng != null ? d.lng : '';
   atualizarLinkMapa();
@@ -3005,17 +3011,22 @@ function atualizarImgPreview() {
   else img.style.display = 'none';
 }
 
-// Abre o Google Maps buscando pelo nome/bairro/cidade — ajuda a achar o
-// ponto certo pra depois copiar a Latitude/Longitude de lá (o Google Maps
-// não tem como devolver a coordenada pra cá automaticamente sem API paga).
+// Abre o Google Maps buscando pelo endereço (se preenchido — busca bem
+// mais precisa) ou, na falta dele, por nome/bairro/cidade — ajuda a
+// achar o ponto certo pra depois copiar a Latitude/Longitude de lá (o
+// Google Maps não tem como devolver a coordenada pra cá automaticamente
+// sem API paga).
 function buscarCoordenadasGoogleMaps() {
-  const partes = [
-    document.getElementById('cadNome').value.trim(),
-    document.getElementById('cadBairroVal').value,
-    document.getElementById('cadCidadeVal').value,
-    document.getElementById('cadUFVal').value
-  ].filter(Boolean);
-  if (!partes.length) { alert('Preencha ao menos o nome ou a cidade antes de buscar.'); return; }
+  const endereco = document.getElementById('cadEndereco').value.trim();
+  const partes = endereco
+    ? [endereco, document.getElementById('cadCidadeVal').value, document.getElementById('cadUFVal').value].filter(Boolean)
+    : [
+        document.getElementById('cadNome').value.trim(),
+        document.getElementById('cadBairroVal').value,
+        document.getElementById('cadCidadeVal').value,
+        document.getElementById('cadUFVal').value
+      ].filter(Boolean);
+  if (!partes.length) { alert('Preencha ao menos o endereço, o nome ou a cidade antes de buscar.'); return; }
   const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(partes.join(', '));
   window.open(url, '_blank');
 }
@@ -3056,6 +3067,7 @@ function coletarDadosForm() {
     preco_min:    parseFloat(document.getElementById('cadPrecoMin').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     preco_max:    parseFloat(document.getElementById('cadPrecoMax').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     entrega:      document.getElementById('cadEntrega').value.trim(),
+    endereco:     document.getElementById('cadEndereco').value.trim(),
     lat:          (function(){ const v = parseFloat(document.getElementById('cadLat').value); return isNaN(v) ? '' : v; })(),
     lng:          (function(){ const v = parseFloat(document.getElementById('cadLng').value); return isNaN(v) ? '' : v; })(),
     descricao:    document.getElementById('cadDescricao').value.trim(),
@@ -3371,7 +3383,7 @@ function imprimirPortfolio() {
       <thead>
         <tr>
           <th>Status</th><th>Nome do Empreendimento</th><th>Tipo</th>
-          <th>UF</th><th>Cidade</th><th>Bairro</th><th>Coordenadas</th>
+          <th>UF</th><th>Cidade</th><th>Bairro</th><th>Endereço</th><th>Coordenadas</th>
           <th>Construtora</th><th>Projeto</th><th>Faixa de Valor</th><th>Tipologia</th>
           <th>Destaque</th><th>Data</th>
         </tr>
@@ -3385,6 +3397,7 @@ function imprimirPortfolio() {
             <td>${d.uf||'—'}</td>
             <td>${d.cidade||'—'}</td>
             <td>${d.bairro||'—'}</td>
+            <td>${d.endereco||'—'}</td>
             <td>${(d.lat!=null && d.lng!=null) ? d.lat+', '+d.lng : '—'}</td>
             <td>${d.construtora||'—'}</td>
             <td>${d.projeto||'—'}</td>
