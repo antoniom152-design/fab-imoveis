@@ -850,6 +850,31 @@
           </div>
         </div>
 
+        <!-- LOCALIZAÇÃO NO MAPA -->
+        <div class="cad-section">
+          <div class="cad-section-title">Localização no Mapa</div>
+          <div class="alert alert-info" style="margin-bottom:14px">
+            Usado no mapa de empreendimentos. Não precisa ser o endereço exato — o centro do terreno/quadra já é suficiente. Preencha uma vez por empreendimento.
+          </div>
+          <div class="cad-grid cad-grid-3">
+            <div class="cad-field">
+              <label class="cad-label">Latitude</label>
+              <input class="cad-input" type="text" id="cadLat" placeholder="Ex: -22.9068" oninput="atualizarLinkMapa()">
+            </div>
+            <div class="cad-field">
+              <label class="cad-label">Longitude</label>
+              <input class="cad-input" type="text" id="cadLng" placeholder="Ex: -43.1729" oninput="atualizarLinkMapa()">
+            </div>
+            <div class="cad-field" style="justify-content:flex-end">
+              <label class="cad-label">&nbsp;</label>
+              <button type="button" class="btn-cad-cancel" style="width:100%" onclick="buscarCoordenadasGoogleMaps()">🔍 Buscar no Google Maps</button>
+            </div>
+          </div>
+          <div id="cadMapaPreviewWrap" style="margin-top:10px;display:none">
+            <a id="cadLinkVerMapa" href="#" target="_blank" style="color:var(--gold-ink);font-weight:600;font-size:12px;text-decoration:none">📍 Ver este ponto no Google Maps →</a>
+          </div>
+        </div>
+
         <!-- CONTEÚDO -->
         <div class="cad-section">
           <div class="cad-section-title">Conteúdo e Links</div>
@@ -2579,7 +2604,9 @@ function parseGvizToAdmin(table) {
       uf: g(15), bairro: g(16), linkDrive: g(17),
       quartos: g(18), precoMin: parseFloat(g(19)) || 0, precoMax: parseFloat(g(20)) || 0,
       entrega: g(21), feiraoOnLine: g(22) === 'Sim',
-      projeto: g(23)
+      projeto: g(23),
+      lat: g(24) !== '' && !isNaN(parseFloat(g(24))) ? parseFloat(g(24)) : null,
+      lng: g(25) !== '' && !isNaN(parseFloat(g(25))) ? parseFloat(g(25)) : null
     };
   }).filter(r => r.nome);
 }
@@ -2855,6 +2882,7 @@ function abrirFormNovo() {
   document.getElementById('cadBairroOutraWrap').style.display = 'none';
   document.getElementById('cadProjetoOutraWrap').style.display = 'none';
   document.getElementById('cadProjeto').value = '';
+  document.getElementById('cadMapaPreviewWrap').style.display = 'none';
   _cadPopulateSelect('cadCidade', [], 'Selecione primeiro a UF',     true);
   _cadPopulateSelect('cadBairro', [], 'Selecione primeiro a cidade', true);
   document.getElementById('cadOverlay').classList.add('show');
@@ -2952,6 +2980,9 @@ function abrirFormEdit(id) {
   document.getElementById('cadPrecoMin').value     = d.precoMin ? 'R$ ' + Number(d.precoMin).toLocaleString('pt-BR') : '';
   document.getElementById('cadPrecoMax').value     = d.precoMax ? 'R$ ' + Number(d.precoMax).toLocaleString('pt-BR') : '';
   document.getElementById('cadEntrega').value      = d.entrega     || '';
+  document.getElementById('cadLat').value          = d.lat != null ? d.lat : '';
+  document.getElementById('cadLng').value          = d.lng != null ? d.lng : '';
+  atualizarLinkMapa();
   document.getElementById('cadDescricao').value    = d.descricao   || '';
   document.getElementById('cadImagem').value       = d.imagem      || '';
   document.getElementById('cadBlog').value         = d.blog        || '';
@@ -2972,6 +3003,36 @@ function atualizarImgPreview() {
   const img  = document.getElementById('imgPreview');
   if (url) { img.src = url; img.style.display = 'block'; }
   else img.style.display = 'none';
+}
+
+// Abre o Google Maps buscando pelo nome/bairro/cidade — ajuda a achar o
+// ponto certo pra depois copiar a Latitude/Longitude de lá (o Google Maps
+// não tem como devolver a coordenada pra cá automaticamente sem API paga).
+function buscarCoordenadasGoogleMaps() {
+  const partes = [
+    document.getElementById('cadNome').value.trim(),
+    document.getElementById('cadBairroVal').value,
+    document.getElementById('cadCidadeVal').value,
+    document.getElementById('cadUFVal').value
+  ].filter(Boolean);
+  if (!partes.length) { alert('Preencha ao menos o nome ou a cidade antes de buscar.'); return; }
+  const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(partes.join(', '));
+  window.open(url, '_blank');
+}
+
+// Mostra/atualiza o link "Ver este ponto no Google Maps" conforme o
+// admin digita Latitude/Longitude, pra conferir antes de salvar.
+function atualizarLinkMapa() {
+  const lat = parseFloat(document.getElementById('cadLat').value);
+  const lng = parseFloat(document.getElementById('cadLng').value);
+  const wrap = document.getElementById('cadMapaPreviewWrap');
+  const link = document.getElementById('cadLinkVerMapa');
+  if (!isNaN(lat) && !isNaN(lng)) {
+    link.href = 'https://www.google.com/maps?q=' + lat + ',' + lng;
+    wrap.style.display = 'block';
+  } else {
+    wrap.style.display = 'none';
+  }
 }
 
 function coletarDadosForm() {
@@ -2995,6 +3056,8 @@ function coletarDadosForm() {
     preco_min:    parseFloat(document.getElementById('cadPrecoMin').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     preco_max:    parseFloat(document.getElementById('cadPrecoMax').value.replace(/[R$\s.]/g,'').replace(',','.')) || 0,
     entrega:      document.getElementById('cadEntrega').value.trim(),
+    lat:          (function(){ const v = parseFloat(document.getElementById('cadLat').value); return isNaN(v) ? '' : v; })(),
+    lng:          (function(){ const v = parseFloat(document.getElementById('cadLng').value); return isNaN(v) ? '' : v; })(),
     descricao:    document.getElementById('cadDescricao').value.trim(),
     imagem:       document.getElementById('cadImagem').value.trim(),
     blog:         document.getElementById('cadBlog').value.trim(),
@@ -3308,7 +3371,7 @@ function imprimirPortfolio() {
       <thead>
         <tr>
           <th>Status</th><th>Nome do Empreendimento</th><th>Tipo</th>
-          <th>UF</th><th>Cidade</th><th>Bairro</th>
+          <th>UF</th><th>Cidade</th><th>Bairro</th><th>Coordenadas</th>
           <th>Construtora</th><th>Projeto</th><th>Faixa de Valor</th><th>Tipologia</th>
           <th>Destaque</th><th>Data</th>
         </tr>
@@ -3322,6 +3385,7 @@ function imprimirPortfolio() {
             <td>${d.uf||'—'}</td>
             <td>${d.cidade||'—'}</td>
             <td>${d.bairro||'—'}</td>
+            <td>${(d.lat!=null && d.lng!=null) ? d.lat+', '+d.lng : '—'}</td>
             <td>${d.construtora||'—'}</td>
             <td>${d.projeto||'—'}</td>
             <td>${d.faixa||'—'}</td>

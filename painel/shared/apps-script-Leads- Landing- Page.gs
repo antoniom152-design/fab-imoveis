@@ -633,6 +633,9 @@ function processarImovel(data) {
     //   configurarCamposFeirao())
     // X=Projeto (coluna nova — Porto Maravilha/Praça Onze Maravilha/etc.,
     //   ver configurarCampoProjeto())
+    // Y=Latitude | Z=Longitude (colunas novas — cadastradas manualmente
+    //   uma vez por empreendimento no admin.html, usadas pelo mapa de
+    //   empreendimentos, ver configurarCamposLatLng())
     var ativo    = data.ativo    === true || data.ativo    === 'true';
     var destaque = data.destaque === true || data.destaque === 'true';
     var feiraoOnLine = (data.feirao_on_line === true || data.feirao_on_line === 'true' || data.feirao_on_line === 'Sim') ? 'Sim' : 'Não';
@@ -665,7 +668,7 @@ function processarImovel(data) {
       if (linhaIdx === -1) { Logger.log('ID não encontrado: ' + data.id); return; }
 
       // Atualiza coluna por coluna (preserva ID e Data)
-      var r = aba.getRange(linhaIdx, 1, 1, 24).getValues()[0];
+      var r = aba.getRange(linhaIdx, 1, 1, 26).getValues()[0];
       r[1]  = ativo;
       r[2]  = data.tipo_imovel  || r[2];
       r[3]  = data.construtora  || r[3];
@@ -689,7 +692,9 @@ function processarImovel(data) {
       r[21] = data.entrega      !== undefined ? data.entrega    : r[21];
       r[22] = data.feirao_on_line !== undefined ? feiraoOnLine  : r[22];
       r[23] = data.projeto       !== undefined ? data.projeto  : r[23];
-      aba.getRange(linhaIdx, 1, 1, 24).setValues([r]);
+      r[24] = data.lat           !== undefined ? data.lat      : r[24];
+      r[25] = data.lng           !== undefined ? data.lng      : r[25];
+      aba.getRange(linhaIdx, 1, 1, 26).setValues([r]);
       Logger.log('Imóvel atualizado: ID ' + data.id);
 
     } else {
@@ -731,7 +736,9 @@ function processarImovel(data) {
         parseFloat(data.preco_max) || 0,
         data.entrega      || '',
         feiraoOnLine,
-        data.projeto      || ''
+        data.projeto      || '',
+        data.lat          || '',
+        data.lng          || ''
       ]);
       Logger.log('Imóvel criado: ' + data.nome);
     }
@@ -864,6 +871,29 @@ function configurarCampoProjeto() {
   // rodar direto pelo editor do Apps Script. Ver Logger de execução (Ver →
   // Registros) para confirmar que rodou.
   Logger.log('Coluna "Projeto" criada em IMOVEISDISPONIVEIS (coluna X).');
+}
+
+/* ─── LATITUDE/LONGITUDE — adiciona as colunas Y e Z (25ª e 26ª) na aba
+   IMOVEISDISPONIVEIS. Cadastradas manualmente uma vez por empreendimento
+   no admin.html (seção "Localização no Mapa"), usadas pelo mapa de
+   empreendimentos. Rodar uma única vez. Não mexe nas colunas A→X
+   existentes. ─── */
+function configurarCamposLatLng() {
+  var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+  var aba = ss.getSheetByName(ABA_IMOVEIS);
+  if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
+
+  var headerRow = aba.getRange(1, 25, 1, 2);
+  headerRow.setValues([['Latitude', 'Longitude']]);
+  headerRow.setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+  headerRow.protect().setDescription('Cabeçalho — não editar').setWarningOnly(true);
+
+  aba.setColumnWidth(25, 110);
+  aba.setColumnWidth(26, 110);
+
+  // Sem SpreadsheetApp.getUi().alert() de propósito — mesmo motivo do
+  // configurarCampoProjeto() acima (trava fora da sessão da planilha aberta).
+  Logger.log('Colunas "Latitude" e "Longitude" criadas em IMOVEISDISPONIVEIS (colunas Y e Z).');
 }
 
 /* ─── AUXILIAR: linha HTML ─────────────────────────────── */
