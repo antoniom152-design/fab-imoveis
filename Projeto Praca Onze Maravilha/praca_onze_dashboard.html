@@ -1202,10 +1202,10 @@
                 <label>Projeto (Região)</label>
                 <select id="filterRegiao">
                     <option value="">Todas as regiões</option>
-                    <option value="porto-maravilha">Porto Maravilha</option>
-                    <option value="praca-onze">Praça Onze Maravilha</option>
-                    <option value="sao-cristovao">Expansão Porto Maravilha - São Cristóvão</option>
-                    <option value="centro">Reviver Centro</option>
+                    <option value="Porto Maravilha">Porto Maravilha</option>
+                    <option value="Praça Onze Maravilha">Praça Onze Maravilha</option>
+                    <option value="Expansão Porto Maravilha - São Cristóvão">Expansão Porto Maravilha - São Cristóvão</option>
+                    <option value="Reviver Centro">Reviver Centro</option>
                 </select>
             </div>
             
@@ -1243,77 +1243,7 @@
         </div>
         
         <div class="grid" id="gridEmpreendimentos">
-            <div class="card">
-                <div class="card-image">🏢</div>
-                <div class="card-badge lancamento">Lançamento</div>
-                <div class="card-content">
-                    <div class="card-region">Porto Maravilha</div>
-                    <div class="card-title">Porto Vida Residencial</div>
-                    <div class="card-description">Empreendimento de alto padrão com 45 unidades, localização privilegiada próxima à Perimetral e Porto.</div>
-                    <div class="card-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Tipo</span>
-                            <span class="meta-value">2 e 3Q</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Preço</span>
-                            <span class="meta-value">R$ 550k</span>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
-                        <button class="btn-small btn-secondary">Mais info</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-image">🏘️</div>
-                <div class="card-badge pronta">Pronto</div>
-                <div class="card-content">
-                    <div class="card-region">Praça Onze</div>
-                    <div class="card-title">Centro Premium Living</div>
-                    <div class="card-description">120 unidades prontas para ocupação. Infraestrutura completa, estacionamento, academia e coworking.</div>
-                    <div class="card-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Tipo</span>
-                            <span class="meta-value">1, 2 e 3Q</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Preço</span>
-                            <span class="meta-value">R$ 350k</span>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
-                        <button class="btn-small btn-secondary">Mais info</button>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card">
-                <div class="card-image">🏗️</div>
-                <div class="card-badge">Em Construção</div>
-                <div class="card-content">
-                    <div class="card-region">São Cristóvão</div>
-                    <div class="card-title">Cristóvão Modern Home</div>
-                    <div class="card-description">60 unidades com preço pré-obra. Entrega prevista para Q3 2027. Financiamento pela construtora.</div>
-                    <div class="card-meta">
-                        <div class="meta-item">
-                            <span class="meta-label">Tipo</span>
-                            <span class="meta-value">2Q</span>
-                        </div>
-                        <div class="meta-item">
-                            <span class="meta-label">Preço</span>
-                            <span class="meta-value">R$ 420k</span>
-                        </div>
-                    </div>
-                    <div class="card-footer">
-                        <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
-                        <button class="btn-small btn-secondary">Mais info</button>
-                    </div>
-                </div>
-            </div>
+            <div style="grid-column:1/-1;text-align:center;padding:40px;color:#7f8c8d">Carregando empreendimentos…</div>
         </div>
         </div>
     </div>
@@ -1593,6 +1523,197 @@
                 closeForm();
             }
         }
+
+        /* ================================================================
+           EMPREENDIMENTOS DISPONÍVEIS — dados reais da planilha
+           "WAL Imóveis — Portfólio" (aba IMOVEISDISPONIVEIS), mesma fonte
+           do admin.html/imoveis.html, lida por GVIZ (sem precisar de CORS).
+           Regra do campo Projeto (pedida pelo Antonio, 20/08/2026):
+           - "Todas as regiões": mostra todos os ativos com Projeto preenchido
+             (quem não pertence a nenhum projeto fica de fora mesmo aqui).
+           - Um projeto específico selecionado: mostra só quem bate exatamente
+             com esse valor.
+        ================================================================ */
+        const PLANILHA_IMOVEIS_ID_EMP = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+        let _empreendimentosBase = [];
+
+        function gvizJsonpEmp(sheetId) {
+            return new Promise(function(resolve, reject) {
+                const cbName = 'emp_' + Date.now();
+                const script = document.createElement('script');
+                const timer  = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 10000);
+                function cleanup() {
+                    clearTimeout(timer); delete window[cbName];
+                    if (script.parentNode) script.parentNode.removeChild(script);
+                }
+                window[cbName] = function(data) { cleanup(); resolve(data); };
+                script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                             '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                             '&sheet=IMOVEISDISPONIVEIS';
+                script.onerror = function() { cleanup(); reject(new Error('error')); };
+                document.head.appendChild(script);
+            });
+        }
+
+        function fixDriveUrlEmp(url) {
+            if (!url || !url.includes('drive.google.com')) return url;
+            const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+            const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            const id = (m1 && m1[1]) || (m2 && m2[1]);
+            return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+        }
+
+        async function carregarEmpreendimentos() {
+            const grid = document.getElementById('gridEmpreendimentos');
+            try {
+                const json  = await gvizJsonpEmp(PLANILHA_IMOVEIS_ID_EMP);
+                const table = json.table;
+                const rows  = (table && table.rows) || [];
+                _empreendimentosBase = rows
+                    .filter(row => row.c && row.c[1] && row.c[1].v === true) // só Ativos
+                    .map(row => {
+                        const g = (i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
+                        return {
+                            id:        g(0),
+                            tipo:      g(2) || 'Novo',
+                            cidade:    g(4),
+                            nome:      g(5),
+                            descricao: g(6),
+                            imagem:    g(7),
+                            valor:     parseFloat(g(9)) || 0,
+                            qtd:       g(10),
+                            uf:        g(15),
+                            bairro:    g(16),
+                            quartos:   g(18),
+                            projeto:   g(23)
+                        };
+                    })
+                    // só entram no seletor quem tem nome e Projeto preenchido —
+                    // sem Projeto = não pertence a nenhum projeto, fica de fora
+                    // mesmo com "Todas as regiões" selecionado.
+                    .filter(im => im.nome && im.projeto && im.projeto.trim() !== '');
+                filtrarEmpreendimentos();
+            } catch (e) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#c0392b">Não foi possível carregar os empreendimentos agora. Recarregue a página em instantes.</div>';
+                console.warn('carregarEmpreendimentos erro:', e.message);
+            }
+        }
+
+        function empBadgeClasse(tipo) {
+            if (tipo === 'Lançamento') return 'lancamento';
+            if (tipo === 'Novo' || tipo === 'Usado') return 'pronta';
+            return ''; // Em Construção
+        }
+        function empEmoji(tipo) {
+            if (tipo === 'Lançamento') return '🏢';
+            if (tipo === 'Novo' || tipo === 'Usado') return '🏘️';
+            return '🏗️'; // Em Construção
+        }
+        function empPrecoTexto(valor) {
+            if (!valor) return 'Consulte-nos';
+            return valor >= 1000
+                ? 'R$ ' + (valor/1000).toLocaleString('pt-BR', {maximumFractionDigits:1}) + 'mi'
+                : 'R$ ' + valor.toLocaleString('pt-BR') + 'k';
+        }
+
+        // "Tipo" (1/2/3 quartos, studio): usa o campo Quartos (lista separada
+        // por vírgula, ex. "2,3" — mesmo campo do Feirão de Imóveis) quando
+        // preenchido; senão cai para busca de texto na Tipologia/Unidades.
+        // Não existe campo estruturado de "Studio" na planilha — usa texto.
+        function empTipoMatch(im, filtro) {
+            if (!filtro) return true;
+            const qtdNorm = (im.qtd || '').toLowerCase();
+            if (filtro === 'studio') {
+                return qtdNorm.includes('studio');
+            }
+            const alvo = { '1q':'1', '2q':'2', '3q':'3' }[filtro];
+            if (im.quartos) {
+                return im.quartos.split(',').map(s => s.trim()).includes(alvo);
+            }
+            const tokens = qtdNorm.split(/[^0-9]+/).filter(Boolean);
+            return tokens.includes(alvo);
+        }
+
+        // "Status": Lançamento e Em Construção batem direto com o campo Tipo
+        // da planilha; "Pronto para Morar" junta Novo + Usado (ambos já
+        // prontos para morar, só muda se é primeiro dono ou não).
+        function empStatusMatch(im, filtro) {
+            if (!filtro) return true;
+            if (filtro === 'lancamento') return im.tipo === 'Lançamento';
+            if (filtro === 'construcao') return im.tipo === 'Em Construção';
+            if (filtro === 'pronto')     return im.tipo === 'Novo' || im.tipo === 'Usado';
+            return true;
+        }
+
+        function empPrecoMatch(valor, filtro) {
+            if (!filtro) return true;
+            if (filtro === 'ate-300')    return valor > 0 && valor <= 300;
+            if (filtro === '300-500')    return valor > 300 && valor <= 500;
+            if (filtro === '500-1000')   return valor > 500 && valor <= 1000;
+            if (filtro === 'acima-1000') return valor > 1000;
+            return true;
+        }
+
+        function empRegiaoMatch(im, filtro) {
+            if (!filtro) return true; // "Todas as regiões" — já filtramos por Projeto preenchido antes
+            return im.projeto === filtro;
+        }
+
+        function renderEmpreendimentos(lista) {
+            const grid = document.getElementById('gridEmpreendimentos');
+            if (!lista.length) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#7f8c8d">Nenhum empreendimento encontrado para os filtros selecionados.</div>';
+                return;
+            }
+            grid.innerHTML = lista.map(im => `
+                <div class="card">
+                    <div class="card-image">
+                        ${im.imagem ? `<img src="${fixDriveUrlEmp(im.imagem)}" alt="${im.nome}" loading="lazy" onerror="this.parentElement.textContent='${empEmoji(im.tipo)}'">` : empEmoji(im.tipo)}
+                    </div>
+                    <div class="card-badge ${empBadgeClasse(im.tipo)}">${im.tipo}</div>
+                    <div class="card-content">
+                        <div class="card-region">${im.projeto}</div>
+                        <div class="card-title">${im.nome}</div>
+                        <div class="card-description">${im.descricao || ''}</div>
+                        <div class="card-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Tipo</span>
+                                <span class="meta-value">${im.qtd || '—'}</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Preço</span>
+                                <span class="meta-value">${empPrecoTexto(im.valor)}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
+                            <a class="btn-small btn-secondary" style="text-decoration:none;display:flex;align-items:center;justify-content:center" href="../imovel.html?id=${im.id}" target="_blank">Mais info</a>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filtrarEmpreendimentos() {
+            const regiao = document.getElementById('filterRegiao').value;
+            const tipo   = document.getElementById('filterTipo').value;
+            const preco  = document.getElementById('filterPreco').value;
+            const status = document.getElementById('filterStatus').value;
+            const filtrado = _empreendimentosBase.filter(im =>
+                empRegiaoMatch(im, regiao) &&
+                empTipoMatch(im, tipo) &&
+                empPrecoMatch(im.valor, preco) &&
+                empStatusMatch(im, status)
+            );
+            renderEmpreendimentos(filtrado);
+        }
+
+        document.getElementById('filterRegiao').addEventListener('change', filtrarEmpreendimentos);
+        document.getElementById('filterTipo').addEventListener('change', filtrarEmpreendimentos);
+        document.getElementById('filterPreco').addEventListener('change', filtrarEmpreendimentos);
+        document.getElementById('filterStatus').addEventListener('change', filtrarEmpreendimentos);
+
+        carregarEmpreendimentos();
     </script>
 </body>
 </html>
