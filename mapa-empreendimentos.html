@@ -319,6 +319,20 @@
 ================================================================ */
 const SHEET_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 const WPP_NUMERO = '5521997263950';
+
+// Mesmo arquivo serve as duas versões (pedido do Antonio, 23/08/2026):
+// pública (botão "Ver no Mapa" no imoveis.html, sem ?admin=1 — Status
+// travado em "Somente Ativos") e a de administração (aba Mapa do
+// admin.html, com ?admin=1 — Status liberado). Recursos exclusivos da
+// administração no futuro entram checando MODO_ADMIN, em vez de
+// duplicar o arquivo inteiro.
+const MODO_ADMIN = new URLSearchParams(location.search).get('admin') === '1';
+if (!MODO_ADMIN) {
+  const statusSel = document.getElementById('f-status');
+  statusSel.innerHTML = '<option value="ativo" selected>Somente Ativos</option>';
+  statusSel.disabled = true;
+  statusSel.title = 'Nesta versão, o mapa sempre mostra só os empreendimentos ativos.';
+}
 const FAV_KEY = 'wal_mapa_favoritos_v1';
 
 // Organizações Militares de referência (coordenadas aproximadas, uso

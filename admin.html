@@ -1870,19 +1870,19 @@ function onEdit(e) {
 <div class="tab-panel" id="panel-mapaempreendimentos">
 <div class="main">
   <div class="alert alert-info">
-    Mapa geral dos empreendimentos ativos, com Latitude/Longitude cadastrada aqui no admin. Ainda em ajuste — versão de trabalho da administração; a versão para o site principal (sem o filtro "Status") virá depois, separada desta.
+    Versão da administração — o campo "Status" aqui permite ver Todos/Ativos/Inativos. A versão pública (link "Ver no Mapa" no imoveis.html) usa o mesmo mapa, mas com Status travado em "Somente Ativos".
   </div>
   <div class="table-wrap">
     <div class="table-head-row"><span>Mapa de Empreendimentos Disponíveis</span></div>
     <div class="table-wrap-inner" style="padding:0">
-      <iframe src="prototipo-mapa-empreendimentos.html"
+      <iframe src="mapa-empreendimentos.html?admin=1"
               title="Mapa de Empreendimentos Disponíveis"
               style="width:100%;height:750px;border:0;display:block"
               allowfullscreen></iframe>
     </div>
   </div>
   <div style="margin-top:12px">
-    <a href="prototipo-mapa-empreendimentos.html" target="_blank" style="color:var(--gold-ink);font-weight:600;text-decoration:none">
+    <a href="mapa-empreendimentos.html?admin=1" target="_blank" style="color:var(--gold-ink);font-weight:600;text-decoration:none">
       Abrir em tela cheia (nova aba) →
     </a>
   </div>
