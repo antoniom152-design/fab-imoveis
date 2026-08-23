@@ -212,6 +212,16 @@
     <span class="lg-item"><span class="dot" style="background:#ff9500"></span> Em Construção</span>
     <span class="lg-item"><span class="dot" style="background:#af52de"></span> Novo</span>
     <span class="lg-item"><span class="dot" style="background:#34c759"></span> Usado</span>
+    <span class="lg-item" style="margin-left:18px;gap:8px">
+      <span class="lg-title" style="margin:0">Distância até:</span>
+      <select id="f-categoria-ref" style="padding:5px 8px;border-radius:5px;border:1px solid rgba(201,168,76,.4);background:#0A1628;color:#fff;font-size:0.85em">
+        <option value="cidade" selected>Centro da Cidade</option>
+        <option value="aeronautica">Bases Aéreas (Aeronáutica)</option>
+        <option value="marinha">Organizações Navais (Marinha)</option>
+        <option value="exercito">Organizações Militares (Exército)</option>
+        <option value="seguranca">Polícia e Bombeiros</option>
+      </select>
+    </span>
   </div>
 </div>
 
@@ -285,7 +295,7 @@
     <h4>🔍 Filtros</h4>
     <p>Combine UF, Cidade, Bairro, Tipo, Construtora e busca por nome/endereço, depois clique em <strong>Filtrar</strong>. O mapa ajusta o zoom automaticamente para mostrar todos os resultados.</p>
     <h4>📍 Detalhes no mapa</h4>
-    <p>Clique em qualquer marcador para ver fotos, descrição, preço, o projeto (quando o empreendimento faz parte de um) e a distância até as principais Organizações Militares da região.</p>
+    <p>Clique em qualquer marcador para ver fotos, descrição, preço, o projeto (quando o empreendimento faz parte de um) e a distância até uma referência à sua escolha — use o seletor <strong>"Distância até"</strong> no topo pra trocar entre Centro da Cidade, Bases Aéreas, Organizações Navais, Organizações do Exército ou Polícia/Bombeiros.</p>
     <h4>⭐ Favoritos</h4>
     <p>Marque os empreendimentos de interesse com a estrela no popup. Eles ficam salvos neste navegador — use o botão <strong>☆ Só Favoritos</strong> na barra de filtros para vê-los de novo quando quiser, mesmo depois de fechar a página.</p>
     <h4>➕ Comparar</h4>
@@ -335,15 +345,68 @@ if (!MODO_ADMIN) {
 }
 const FAV_KEY = 'wal_mapa_favoritos_v1';
 
-// Organizações Militares de referência (coordenadas aproximadas, uso
-// informativo) — usadas só pra calcular a distância em linha reta até
-// o empreendimento. Ajuste/complete esta lista conforme a necessidade.
-const BASES_MILITARES = [
-  { nome: 'Base Aérea do Galeão',        lat: -22.8104, lng: -43.2506 },
-  { nome: 'Base Aérea de Santa Cruz',    lat: -22.9346, lng: -43.7167 },
-  { nome: 'Base Aérea dos Afonsos',      lat: -22.8639, lng: -43.3853 },
-  { nome: 'ITA / CTA (São José dos Campos)', lat: -23.2145, lng: -45.8617 }
-];
+// Categorias de referência pro "Distância até" do popup (pedido do
+// Antonio, 23/08/2026 — o público deixou de ser só FAB e passou a
+// incluir Marinha/Exército, Polícia, Bombeiros e servidor civil em
+// geral). Coordenadas aproximadas, uso informativo — ajuste/complete
+// conforme a necessidade real.
+//
+// "cidade" é a categoria universal (funciona pra qualquer visitante,
+// militar ou não) — distância até o centro da própria cidade do
+// imóvel. As demais são listas curadas por força/corporação, só faz
+// sentido pra quem se identifica com aquele grupo.
+const CENTRO_CIDADE_COORDS = {
+  'RIO DE JANEIRO':        { nome: 'Centro do Rio de Janeiro',      lat: -22.9068, lng: -43.1729 },
+  'NITERÓI':                { nome: 'Centro de Niterói',             lat: -22.8832, lng: -43.1034 },
+  'SÃO PEDRO DA ALDEIA':   { nome: 'Centro de São Pedro da Aldeia', lat: -22.8367, lng: -42.1028 },
+  'SÃO PAULO':              { nome: 'Centro de São Paulo',           lat: -23.5505, lng: -46.6333 },
+  'SÃO JOSÉ DOS CAMPOS':   { nome: 'Centro de São José dos Campos', lat: -23.2237, lng: -45.9009 },
+  'ARARUAMA':               { nome: 'Centro de Araruama',            lat: -22.8722, lng: -42.3436 },
+  'ARMAÇÃO DE BÚZIOS':     { nome: 'Centro de Armação dos Búzios',  lat: -22.7469, lng: -41.8817 },
+  'DUQUE DE CAXIAS':        { nome: 'Centro de Duque de Caxias',     lat: -22.7856, lng: -43.3117 },
+  'NOVA IGUAÇU':            { nome: 'Centro de Nova Iguaçu',         lat: -22.7556, lng: -43.4603 }
+};
+
+const CATEGORIAS_REFERENCIA = {
+  aeronautica: {
+    label: 'Bases Aéreas (Aeronáutica)',
+    pontos: [
+      { nome: 'Base Aérea do Galeão',            lat: -22.8104, lng: -43.2506 },
+      { nome: 'Base Aérea de Santa Cruz',        lat: -22.9346, lng: -43.7167 },
+      { nome: 'Base Aérea dos Afonsos',          lat: -22.8639, lng: -43.3853 },
+      { nome: 'ITA / CTA (São José dos Campos)', lat: -23.2145, lng: -45.8617 }
+    ]
+  },
+  marinha: {
+    label: 'Organizações Navais (Marinha)',
+    pontos: [
+      { nome: 'Base Naval do Rio de Janeiro',        lat: -22.8972, lng: -43.1636 },
+      { nome: 'Escola Naval',                        lat: -22.9495, lng: -43.1636 },
+      { nome: 'Arsenal de Marinha do Rio de Janeiro', lat: -22.8975, lng: -43.1650 }
+    ]
+  },
+  exercito: {
+    label: 'Organizações Militares (Exército)',
+    pontos: [
+      { nome: 'Vila Militar (Deodoro)',       lat: -22.8625, lng: -43.3800 },
+      { nome: 'Comando Militar do Leste',     lat: -22.9060, lng: -43.1810 },
+      { nome: 'Forte de Copacabana',          lat: -22.9880, lng: -43.1790 }
+    ]
+  },
+  seguranca: {
+    label: 'Polícia e Bombeiros',
+    pontos: [
+      { nome: 'QG da Polícia Militar (PMERJ)',              lat: -22.9060, lng: -43.1790 },
+      { nome: 'Delegacia Geral (Polícia Civil)',            lat: -22.9050, lng: -43.1960 },
+      { nome: 'Superintendência da Polícia Federal (RJ)',   lat: -22.8780, lng: -43.2210 },
+      { nome: 'Quartel Central do Corpo de Bombeiros',      lat: -22.9060, lng: -43.1760 }
+    ]
+  }
+};
+
+// Categoria escolhida no seletor do cabeçalho — "cidade" é o padrão
+// (universal, serve pra todo mundo).
+let categoriaRefAtual = 'cidade';
 
 function gvizJsonpProto(sheetId) {
   return new Promise(function(resolve, reject) {
@@ -402,11 +465,19 @@ function distanciaKm(lat1, lon1, lat2, lon2) {
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
 }
-function baseMaisProxima(lat, lng) {
+function referenciaMaisProxima(lat, lng, cidade) {
+  if (categoriaRefAtual === 'cidade') {
+    const chave = (cidade || '').toUpperCase().trim().replace(/\s+/g, ' ');
+    const c = CENTRO_CIDADE_COORDS[chave];
+    if (!c) return null;
+    return { nome: c.nome, dist: distanciaKm(lat, lng, c.lat, c.lng) };
+  }
+  const cat = CATEGORIAS_REFERENCIA[categoriaRefAtual];
+  if (!cat) return null;
   let melhor = null;
-  BASES_MILITARES.forEach(b => {
-    const d = distanciaKm(lat, lng, b.lat, b.lng);
-    if (!melhor || d < melhor.dist) melhor = { nome: b.nome, dist: d };
+  cat.pontos.forEach(p => {
+    const d = distanciaKm(lat, lng, p.lat, p.lng);
+    if (!melhor || d < melhor.dist) melhor = { nome: p.nome, dist: d };
   });
   return melhor;
 }
@@ -642,7 +713,7 @@ function popularSelect(id, valores, label) {
   function montarPopup(im) {
     const foto = im.imagem ? fixDriveUrlProto(im.imagem) : '';
     const descTrunc = truncar(im.descricao, 150);
-    const base = baseMaisProxima(im.lat, im.lng);
+    const ref = referenciaMaisProxima(im.lat, im.lng, im.cidade);
     const wppMsg = encodeURIComponent(`Olá! Tenho interesse no ${im.nome} (${im.bairro ? im.bairro + ', ' : ''}${im.cidade}/${im.uf}).`);
     const fav = ehFavorito(im.id);
     const comp = estaComparando(im.id);
@@ -660,7 +731,7 @@ function popularSelect(id, valores, label) {
           </div>
         </div>
         <h3>${im.nome}</h3>
-        ${base ? `<div class="base-dist">🪖 A ${base.dist.toFixed(1)} km (linha reta) da ${base.nome}</div>` : ''}
+        ${ref ? `<div class="base-dist">📍 A ${ref.dist.toFixed(1)} km (linha reta) até ${ref.nome}</div>` : ''}
         <div class="loc">${im.bairro ? im.bairro + ', ' : ''}${im.cidade}/${im.uf}</div>
         ${im.endereco ? `<div class="endereco">${im.endereco}</div>` : ''}
         ${descTrunc ? `<div class="desc">${descTrunc}</div>` : ''}
@@ -701,7 +772,10 @@ function popularSelect(id, valores, label) {
 
     filtrados.forEach(im => {
       const marker = L.marker([im.lat, im.lng], { icon: criarIcone(corPorStatus(im.tipo), ehFavorito(im.id)) });
-      marker.bindPopup(montarPopup(im), { maxWidth: 300 });
+      // Função em vez de string pronta — assim o popup é remontado toda vez
+      // que abre, e reflete a categoria de "Distância até" escolhida na hora,
+      // mesmo pra marcadores que já estavam no mapa antes da troca.
+      marker.bindPopup(() => montarPopup(im), { maxWidth: 300 });
       clusterGroup.addLayer(marker);
     });
 
@@ -750,6 +824,13 @@ function popularSelect(id, valores, label) {
     this.classList.toggle('ativo', somenteFavoritos);
     this.textContent = somenteFavoritos ? '★ Só Favoritos' : '☆ Só Favoritos';
     filtrarErenderizar();
+  });
+
+  // Só troca o que aparece dentro do popup (não é filtro de marcadores,
+  // por isso não chama filtrarErenderizar) — o popup é remontado na
+  // hora de abrir (ver bindPopup com função, acima).
+  document.getElementById('f-categoria-ref').addEventListener('change', function() {
+    categoriaRefAtual = this.value;
   });
 })();
 </script>
