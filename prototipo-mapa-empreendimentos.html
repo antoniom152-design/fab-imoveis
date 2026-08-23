@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Empreendimentos Disponíveis | WAL Imóveis</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Barlow', Arial, sans-serif; background: #0A1628; color: #1a2332; }
+
+  .proto-banner {
+    background: linear-gradient(135deg, #0A1628 0%, #16233a 100%);
+    color: #fff;
+    padding: 14px 24px;
+    border-bottom: 3px solid #C9A84C;
+  }
+  .proto-banner-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .proto-banner h1 { font-size: 1.25em; color: #C9A84C; margin-bottom: 4px; }
+  .proto-banner p { font-size: 0.85em; color: #b9c2d0; max-width: 780px; line-height: 1.5; }
+  .btn-como-usar {
+    background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
+    font-size: 0.82em; font-weight: 700; padding: 8px 14px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+  }
+  .btn-como-usar:hover { background: rgba(201,168,76,.28); }
+
+  /* legenda — fixa no cabeçalho, sempre visível, não some ao mover o mapa */
+  .legend-strip {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(201,168,76,.25);
+  }
+  .legend-strip .lg-title { font-size: 0.78em; color: #C9A84C; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .legend-strip .lg-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: #e8ecf2; }
+  .legend-strip .dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+
+  .toolbar {
+    background: #fff;
+    padding: 12px 24px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e2e6ec;
+  }
+  .toolbar label {
+    font-size: 0.75em;
+    color: #7f8c9a;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    display: block;
+    margin-bottom: 3px;
+  }
+  .toolbar select, .toolbar input[type="text"] {
+    padding: 7px 10px;
+    border: 1px solid #d5dae2;
+    border-radius: 5px;
+    font-size: 0.9em;
+    min-width: 140px;
+    background: #f7f8fa;
+    color: #1a2332;
+    font-family: inherit;
+  }
+  .btn-filtrar, .btn-limpar, .btn-fav-toggle {
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 0.85em;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+  }
+  .btn-filtrar { background: #0A1628; color: #C9A84C; }
+  .btn-filtrar:hover { background: #16233a; }
+  .btn-limpar { background: #f0f2f5; color: #556; border: 1px solid #d5dae2; }
+  .btn-fav-toggle { background: #fff8e1; color: #7a5c00; border: 1px solid #f0d98a; }
+  .btn-fav-toggle.ativo { background: #C9A84C; color: #fff; border-color: #C9A84C; }
+
+  #map-wrap { position: relative; }
+  #map { width: 100%; height: calc(100vh - 210px); }
+  #map-empty-msg {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    text-align: center; color: #fff; background: rgba(10,22,40,.55); z-index: 500; pointer-events: none;
+  }
+  #map-empty-msg div { background: rgba(10,22,40,.9); padding: 20px 28px; border-radius: 10px; max-width: 380px; font-size: 0.95em; line-height: 1.5; }
+
+  /* contador — na barra de filtros, ao lado do botão "Só Favoritos" */
+  #contador-mapa {
+    background: #0A1628; color: #C9A84C; font-weight: 800; font-size: 0.95em;
+    padding: 9px 18px; border-radius: 30px; border: 2px solid #C9A84C;
+    display: none; white-space: nowrap;
+  }
+
+  /* popup */
+  .pw { font-family: 'Barlow', Arial, sans-serif; min-width: 260px; max-width: 290px; }
+  .pw img { width: 100%; height: 130px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #eee; }
+  .pw-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
+  .pw-badges { flex: 1; }
+  .pw .badge {
+    display: inline-block; font-size: 0.72em; font-weight: 700; color: #fff;
+    padding: 3px 9px; border-radius: 20px; margin-bottom: 4px; margin-right: 4px;
+  }
+  .pw .badge-projeto { background: #0A1628; color: #C9A84C; }
+  .pw-icon-btns { display: flex; gap: 4px; flex-shrink: 0; }
+  .pw-icon-btn {
+    width: 28px; height: 28px; border-radius: 50%; border: 1px solid #d5dae2; background: #fff;
+    cursor: pointer; font-size: 0.95em; display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .pw-icon-btn.ativo { background: #C9A84C; border-color: #C9A84C; }
+  .pw h3 { font-size: 1.05em; color: #0A1628; margin-bottom: 4px; }
+  .pw .loc { font-size: 0.82em; color: #7f8c9a; margin-bottom: 4px; }
+  .pw .endereco { font-size: 0.78em; color: #99a3ad; margin-bottom: 6px; }
+  .pw .desc { font-size: 0.82em; color: #45505c; margin-bottom: 8px; line-height: 1.4; }
+  .pw .base-dist {
+    font-size: 0.85em; font-weight: 700; color: #0A1628; background: #fff3d6;
+    border: 1px solid #C9A84C; border-radius: 5px; padding: 6px 9px; margin-bottom: 8px; line-height: 1.4;
+  }
+  .pw .preco { font-size: 0.95em; font-weight: 700; color: #0A1628; margin-bottom: 8px; }
+  .pw .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pw .actions-grid a, .pw .actions-grid button {
+    text-align: center; text-decoration: none; font-size: 0.76em; font-weight: 700;
+    padding: 7px 4px; border-radius: 5px; letter-spacing: .01em; border: none; cursor: pointer; font-family: inherit;
+  }
+  .pw .a-info   { background: #0A1628; color: #C9A84C; }
+  .pw .a-chat   { background: #06b6d4; color: #fff; }
+  .pw .a-wpp    { background: #25D366; color: #fff; }
+  .pw .a-sim    { background: #C9A84C; color: #0A1628; }
+
+  /* bandeja de comparação */
+  #compare-tray {
+    position: fixed; bottom: 0; left: 0; right: 0; background: #0A1628; color: #fff;
+    padding: 12px 24px; display: none; align-items: center; gap: 14px; z-index: 900;
+    box-shadow: 0 -4px 16px rgba(0,0,0,.4); flex-wrap: wrap;
+  }
+  #compare-tray .ct-item {
+    background: rgba(255,255,255,.08); padding: 6px 12px; border-radius: 20px; font-size: 0.82em; display: flex; align-items: center; gap: 6px;
+  }
+  #compare-tray .ct-item button { background: none; border: none; color: #ff9500; cursor: pointer; font-weight: 700; }
+  #compare-tray .btn-comparar-ver { background: #C9A84C; color: #0A1628; font-weight: 800; padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; margin-left: auto; }
+  #compare-tray .btn-comparar-ver:disabled { opacity: .4; cursor: not-allowed; }
+
+  /* modais genéricos */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(10,22,40,.75); z-index: 2000;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
+  .modal-box.wide { max-width: 960px; }
+  .modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 1.3em; cursor: pointer; color: #7f8c9a; }
+  .modal-box h2 { color: #0A1628; font-size: 1.3em; margin-bottom: 14px; }
+  .modal-box h4 { color: #0A1628; font-size: 1em; margin: 14px 0 4px; }
+  .modal-box p, .modal-box li { color: #45505c; font-size: 0.92em; line-height: 1.6; }
+  .modal-box ul { padding-left: 20px; margin-bottom: 8px; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  .compare-table th, .compare-table td { border: 1px solid #e2e6ec; padding: 8px 10px; text-align: left; vertical-align: top; }
+  .compare-table th { background: #0A1628; color: #C9A84C; }
+  .compare-table img { width: 100%; height: 90px; object-fit: cover; border-radius: 4px; }
+
+  /* marcador customizado — maior, cores vivas, ponto central piscando */
+  .map-pin {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--pin-color);
+    border: 3px solid #fff;
+    box-shadow: 0 3px 10px rgba(0,0,0,.5);
+    position: relative;
+  }
+  .map-pin .pin-pulse {
+    position: absolute; top: 50%; left: 50%; width: 12px; height: 12px;
+    margin: -6px; border-radius: 50%; background: #fff;
+    animation: pinBlink 1.3s ease-in-out infinite;
+  }
+  .map-pin.is-fav::after {
+    content: '★'; position: absolute; top: -9px; right: -9px; font-size: 13px; color: #C9A84C;
+    background: #0A1628; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  }
+  @keyframes pinBlink {
+    0%, 100% { opacity: 1;   transform: scale(1);   }
+    50%      { opacity: .35; transform: scale(1.8); }
+  }
+
+  /* cluster customizado — maior, cores da marca, número piscando */
+  .cluster-pin {
+    border-radius: 50%; background: #0A1628; border: 3px solid #C9A84C;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 14px rgba(0,0,0,.55); width: 100%; height: 100%;
+  }
+  .cluster-pin .cluster-num { color: #C9A84C; font-weight: 800; animation: clusterBlink 1.3s ease-in-out infinite; }
+  @keyframes clusterBlink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+</style>
+</head>
+<body>
+
+<div class="proto-banner">
+  <div class="proto-banner-top">
+    <div>
+      <h1>Mapa de Empreendimentos Disponíveis</h1>
+      <p>
+        Escolha os filtros abaixo (ou deixe como estão para ver tudo) e clique em <strong>🔍 Filtrar</strong>.
+        Clique num ponto do mapa para ver fotos, preço e detalhes do empreendimento — e falar direto com a gente por lá.
+      </p>
+    </div>
+    <button class="btn-como-usar" id="btn-como-usar">❓ O que este mapa oferece</button>
+  </div>
+  <div class="legend-strip">
+    <span class="lg-title">Situação:</span>
+    <span class="lg-item"><span class="dot" style="background:#ff3b30"></span> Lançamento</span>
+    <span class="lg-item"><span class="dot" style="background:#ff9500"></span> Em Construção</span>
+    <span class="lg-item"><span class="dot" style="background:#af52de"></span> Novo</span>
+    <span class="lg-item"><span class="dot" style="background:#34c759"></span> Usado</span>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div>
+    <label>Buscar (nome, bairro ou endereço)</label>
+    <input type="text" id="f-busca" placeholder="Ex: Recreio, Cyrela...">
+  </div>
+  <div>
+    <label>UF</label>
+    <select id="f-uf"><option value="">Todas</option></select>
+  </div>
+  <div>
+    <label>Cidade</label>
+    <select id="f-cidade"><option value="">Todas</option></select>
+  </div>
+  <div>
+    <label>Bairro</label>
+    <select id="f-bairro"><option value="">Todos</option></select>
+  </div>
+  <div>
+    <label>Tipo</label>
+    <select id="f-tipo">
+      <option value="">Todos</option>
+      <option value="Lançamento">Lançamento</option>
+      <option value="Em Construção">Em Construção</option>
+      <option value="Novo">Novo</option>
+      <option value="Usado">Usado</option>
+    </select>
+  </div>
+  <div>
+    <label>Construtora</label>
+    <input type="text" id="f-construtora" placeholder="Buscar...">
+  </div>
+  <div>
+    <label>Status</label>
+    <select id="f-status">
+      <option value="ativo">Somente Ativos</option>
+      <option value="">Todos</option>
+      <option value="inativo">Somente Inativos</option>
+    </select>
+  </div>
+  <div>
+    <label>Tipo de Mapa</label>
+    <select id="f-tipomapa">
+      <option value="roadmap">Mapa</option>
+      <option value="satelite">Satélite</option>
+      <option value="hibrido">Híbrido</option>
+      <option value="terreno">Terreno</option>
+    </select>
+  </div>
+  <button class="btn-filtrar" id="btn-filtrar">🔍 Filtrar</button>
+  <button class="btn-limpar" id="btn-limpar">✕ Limpar</button>
+  <button class="btn-fav-toggle" id="btn-fav-toggle">☆ Só Favoritos</button>
+  <span id="contador-mapa"></span>
+</div>
+
+<div id="map-wrap">
+  <div id="map"></div>
+  <div id="map-empty-msg"><div>Selecione os filtros desejados (ou deixe como está para ver tudo) e clique em <strong>🔍 Filtrar</strong> para carregar os empreendimentos no mapa.</div></div>
+</div>
+
+<div id="compare-tray"></div>
+
+<!-- MODAL: COMO USAR -->
+<div class="modal-overlay" id="modal-como-usar">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModal('modal-como-usar')">✕</button>
+    <h2>O que este mapa oferece</h2>
+    <h4>🔍 Filtros</h4>
+    <p>Combine UF, Cidade, Bairro, Tipo, Construtora e busca por nome/endereço, depois clique em <strong>Filtrar</strong>. O mapa ajusta o zoom automaticamente para mostrar todos os resultados.</p>
+    <h4>📍 Detalhes no mapa</h4>
+    <p>Clique em qualquer marcador para ver fotos, descrição, preço, o projeto (quando o empreendimento faz parte de um) e a distância até as principais Organizações Militares da região.</p>
+    <h4>⭐ Favoritos</h4>
+    <p>Marque os empreendimentos de interesse com a estrela no popup. Eles ficam salvos neste navegador — use o botão <strong>☆ Só Favoritos</strong> na barra de filtros para vê-los de novo quando quiser, mesmo depois de fechar a página.</p>
+    <h4>➕ Comparar</h4>
+    <p>Selecione até 3 empreendimentos (botão ➕ no popup) para comparar lado a lado — preço, tipo, localização e descrição, tudo numa tabela só.</p>
+    <h4>💬 Fale com a gente</h4>
+    <p>Direto no popup: mande uma mensagem no WhatsApp, converse com nosso Chat IA, ou simule o financiamento já com o valor do imóvel preenchido.</p>
+    <h4>🗺️ Tipo de mapa</h4>
+    <p>Troque entre Mapa, Satélite, Híbrido ou Terreno conforme sua preferência.</p>
+  </div>
+</div>
+
+<!-- MODAL: COMPARAÇÃO -->
+<div class="modal-overlay" id="modal-comparar">
+  <div class="modal-box wide">
+    <button class="modal-close" onclick="fecharModal('modal-comparar')">✕</button>
+    <h2>Comparar Empreendimentos</h2>
+    <div id="compare-table-wrap" style="overflow-x:auto"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+/* ================================================================
+   MAPA DE EMPREENDIMENTOS
+   Fonte: planilha "WAL Imóveis — Portfólio" (aba IMOVEISDISPONIVEIS),
+   mesma usada em admin.html/imoveis.html/praca_onze_dashboard.html.
+   Usa a Latitude/Longitude cadastrada manualmente uma vez por
+   empreendimento (endereço exato). Só entram no mapa os imóveis que
+   já têm as duas colunas preenchidas.
+================================================================ */
+const SHEET_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+const WPP_NUMERO = '5521997263950';
+const FAV_KEY = 'wal_mapa_favoritos_v1';
+
+// Organizações Militares de referência (coordenadas aproximadas, uso
+// informativo) — usadas só pra calcular a distância em linha reta até
+// o empreendimento. Ajuste/complete esta lista conforme a necessidade.
+const BASES_MILITARES = [
+  { nome: 'Base Aérea do Galeão',        lat: -22.8104, lng: -43.2506 },
+  { nome: 'Base Aérea de Santa Cruz',    lat: -22.9346, lng: -43.7167 },
+  { nome: 'Base Aérea dos Afonsos',      lat: -22.8639, lng: -43.3853 },
+  { nome: 'ITA / CTA (São José dos Campos)', lat: -23.2145, lng: -45.8617 }
+];
+
+function gvizJsonpProto(sheetId) {
+  return new Promise(function(resolve, reject) {
+    const cbName = 'proto_' + Date.now();
+    const script = document.createElement('script');
+    const timer  = setTimeout(function() { cleanup(); reject(new Error('timeout')); }, 12000);
+    function cleanup() {
+      clearTimeout(timer); delete window[cbName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = function(data) { cleanup(); resolve(data); };
+    script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                 '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                 '&sheet=IMOVEISDISPONIVEIS';
+    script.onerror = function() { cleanup(); reject(new Error('error')); };
+    document.head.appendChild(script);
+  });
+}
+
+function fixDriveUrlProto(url) {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
+
+// Cores vivas — escolhidas pra não se confundir com as cores naturais
+// do mapa (água azul, parques verdes) nem entre si.
+function corPorStatus(tipo) {
+  if (tipo === 'Lançamento')    return '#ff3b30';
+  if (tipo === 'Em Construção') return '#ff9500';
+  if (tipo === 'Usado')         return '#34c759';
+  return '#af52de'; // Novo
+}
+
+function precoTexto(valor) {
+  if (!valor) return 'Consulte-nos';
+  return valor >= 1000
+    ? 'R$ ' + (valor/1000).toLocaleString('pt-BR', {maximumFractionDigits:1}) + ' mi'
+    : 'R$ ' + valor.toLocaleString('pt-BR') + ' mil';
+}
+
+function truncar(texto, max) {
+  if (!texto) return '';
+  const limpo = texto.replace(/\s+/g, ' ').trim();
+  return limpo.length > max ? limpo.slice(0, max).trim() + '…' : limpo;
+}
+
+// Distância em linha reta (fórmula de Haversine) — não é distância de
+// rota/trânsito, é a menor distância possível entre os dois pontos.
+function distanciaKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function baseMaisProxima(lat, lng) {
+  let melhor = null;
+  BASES_MILITARES.forEach(b => {
+    const d = distanciaKm(lat, lng, b.lat, b.lng);
+    if (!melhor || d < melhor.dist) melhor = { nome: b.nome, dist: d };
+  });
+  return melhor;
+}
+
+// Ícone customizado dos empreendimentos — maior que o padrão do
+// Leaflet, cor viva, ponto central piscando, estrela se for favorito.
+function criarIcone(cor, favorito) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="map-pin${favorito ? ' is-fav' : ''}" style="--pin-color:${cor}"><span class="pin-pulse"></span></div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -17]
+  });
+}
+
+// Ícone customizado dos clusters — maior, cores da marca, número piscando.
+function criarIconeCluster(cluster) {
+  const count = cluster.getChildCount();
+  let size = 46;
+  if (count >= 10) size = 58;
+  if (count >= 50) size = 70;
+  return L.divIcon({
+    className: '',
+    html: `<div class="cluster-pin"><span class="cluster-num" style="font-size:${size/2.6}px">${count}</span></div>`,
+    iconSize: [size, size]
+  });
+}
+
+/* ── Favoritos (localStorage) ── */
+function lerFavoritos() {
+  try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); }
+  catch (e) { return []; }
+}
+function salvarFavoritos(arr) {
+  try { localStorage.setItem(FAV_KEY, JSON.stringify(arr)); } catch (e) {}
+}
+function ehFavorito(id) { return lerFavoritos().includes(id); }
+function alternarFavorito(id, btn) {
+  let favs = lerFavoritos();
+  if (favs.includes(id)) {
+    favs = favs.filter(x => x !== id);
+    btn.textContent = '☆'; btn.classList.remove('ativo');
+  } else {
+    favs.push(id);
+    btn.textContent = '★'; btn.classList.add('ativo');
+  }
+  salvarFavoritos(favs);
+}
+
+/* ── Comparação (até 3 imóveis) ── */
+let compareList = [];
+function estaComparando(id) { return compareList.includes(id); }
+function alternarComparar(id, btn) {
+  const idx = compareList.indexOf(id);
+  if (idx >= 0) {
+    compareList.splice(idx, 1);
+    btn.classList.remove('ativo');
+  } else {
+    if (compareList.length >= 3) { alert('Você já selecionou 3 empreendimentos pra comparar (o máximo). Remova um antes de adicionar outro.'); return; }
+    compareList.push(id);
+    btn.classList.add('ativo');
+  }
+  renderCompareTray();
+}
+function removerDaComparacao(id) {
+  compareList = compareList.filter(x => x !== id);
+  renderCompareTray();
+  document.querySelectorAll(`.pw-icon-btn[data-comparar-id="${id}"]`).forEach(b => b.classList.remove('ativo'));
+}
+function renderCompareTray() {
+  const tray = document.getElementById('compare-tray');
+  if (!compareList.length) { tray.style.display = 'none'; tray.innerHTML=''; return; }
+  tray.style.display = 'flex';
+  tray.innerHTML = compareList.map(id => {
+    const im = window._baseImoveis.find(x => x.id === id);
+    return `<div class="ct-item">${im ? im.nome : id} <button onclick="removerDaComparacao('${id}')">✕</button></div>`;
+  }).join('') + `<button class="btn-comparar-ver" ${compareList.length < 2 ? 'disabled' : ''} onclick="abrirComparacao()">Comparar (${compareList.length})</button>`;
+}
+function abrirComparacao() {
+  const itens = compareList.map(id => window._baseImoveis.find(x => x.id === id)).filter(Boolean);
+  const wrap = document.getElementById('compare-table-wrap');
+  wrap.innerHTML = `
+    <table class="compare-table">
+      <tr><th>&nbsp;</th>${itens.map(im => `<th>${im.nome}</th>`).join('')}</tr>
+      <tr><td>Foto</td>${itens.map(im => `<td>${im.imagem ? `<img src="${fixDriveUrlProto(im.imagem)}" onerror="this.style.display='none'">` : '—'}</td>`).join('')}</tr>
+      <tr><td>Tipo</td>${itens.map(im => `<td>${im.tipo || '—'}</td>`).join('')}</tr>
+      <tr><td>Projeto</td>${itens.map(im => `<td>${im.projeto || '—'}</td>`).join('')}</tr>
+      <tr><td>Local</td>${itens.map(im => `<td>${[im.bairro, im.cidade, im.uf].filter(Boolean).join(', ')}</td>`).join('')}</tr>
+      <tr><td>Preço</td>${itens.map(im => `<td>${precoTexto(im.valor)}</td>`).join('')}</tr>
+      <tr><td>Construtora</td>${itens.map(im => `<td>${im.construtora || '—'}</td>`).join('')}</tr>
+      <tr><td>Descrição</td>${itens.map(im => `<td>${truncar(im.descricao, 200) || '—'}</td>`).join('')}</tr>
+      <tr><td>Detalhes</td>${itens.map(im => `<td><a href="imovel.html?id=${im.id}" target="_blank">Ver imóvel →</a></td>`).join('')}</tr>
+    </table>
+  `;
+  abrirModal('modal-comparar');
+}
+
+function abrirModal(id) { document.getElementById(id).classList.add('show'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('show'); }
+document.getElementById('btn-como-usar').addEventListener('click', () => abrirModal('modal-como-usar'));
+
+async function carregarImoveis() {
+  const json  = await gvizJsonpProto(SHEET_IMOVEIS_ID);
+  const table = json.table;
+  const rows  = (table && table.rows) || [];
+
+  const todos = rows.map(row => {
+    const g  = (i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
+    // gv() lê o valor BRUTO da célula — necessário pra Latitude/Longitude
+    // porque o Sheets formata decimais com vírgula (locale pt-BR) e
+    // parseFloat() do JS trunca no primeiro caractere inválido.
+    const gv = (i) => { const c = row.c && row.c[i]; return c && typeof c.v === 'number' ? c.v : null; };
+    return {
+      id: g(0), ativo: row.c && row.c[1] && row.c[1].v === true,
+      tipo: g(2) || 'Novo', construtora: g(3), cidade: g(4), nome: g(5),
+      descricao: g(6), imagem: g(7), valor: parseFloat(g(9)) || 0,
+      uf: g(15), bairro: g(16),
+      projeto: g(23), lat: gv(24), lng: gv(25), endereco: g(26)
+    };
+  }).filter(im => im.nome);
+
+  // Caixa aproximada do território brasileiro — protege o mapa (o
+  // fitBounds soma todos os pontos) contra erro de digitação na
+  // Latitude/Longitude cadastrada no admin.html (ex: esquecer o sinal
+  // de "-" na Longitude, que joga o ponto pro outro lado do globo e
+  // força o mapa inteiro a dar zoom out pra caber ele).
+  function coordValida(lat, lng) {
+    return typeof lat === 'number' && typeof lng === 'number' &&
+           lat >= -34 && lat <= 6 && lng >= -75 && lng <= -30;
+  }
+
+  const comCoordenada  = todos.filter(im => coordValida(im.lat, im.lng));
+  const coordSuspeita  = todos.filter(im => typeof im.lat === 'number' && typeof im.lng === 'number' && !coordValida(im.lat, im.lng));
+  const semCoordenada  = todos.length - comCoordenada.length - coordSuspeita.length;
+
+  if (coordSuspeita.length) {
+    console.warn('Empreendimentos com Latitude/Longitude fora do Brasil (provável erro de digitação, ex: sinal "-" faltando):',
+      coordSuspeita.map(im => `${im.id} — ${im.nome} (${im.lat}, ${im.lng})`));
+  }
+
+  return { base: comCoordenada, totalSemCoordenada: semCoordenada, totalGeral: todos.length, coordSuspeita };
+}
+
+function popularSelect(id, valores, label) {
+  const sel = document.getElementById(id);
+  const atual = sel.value;
+  sel.innerHTML = `<option value="">${label}</option>` +
+    valores.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (valores.includes(atual)) sel.value = atual;
+}
+
+(async function main() {
+  const contador = document.getElementById('contador-mapa');
+  const emptyMsg = document.getElementById('map-empty-msg');
+
+  const map = L.map('map', { center: [-23.1, -44.6], zoom: 7 });
+
+  // Tipos de mapa — todos gratuitos, sem chave de API. "3D" (roadmap/
+  // hybrid 3D) do Google Maps exigiria API paga com cartão cadastrado,
+  // fora do critério "sem depender de serviço externo pago" já definido.
+  const tileLayers = {
+    roadmap: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
+    }),
+    satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri', maxZoom: 19
+    }),
+    hibrido: L.layerGroup([
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 19 }),
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 })
+    ]),
+    terreno: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17
+    })
+  };
+  let tileAtivo = tileLayers.roadmap.addTo(map);
+  document.getElementById('f-tipomapa').addEventListener('change', function() {
+    map.removeLayer(tileAtivo);
+    tileAtivo = tileLayers[this.value].addTo(map);
+  });
+
+  let base = [];
+  try {
+    const resultado = await carregarImoveis();
+    base = resultado.base;
+    window._baseImoveis = base; // usado pela bandeja de comparação
+  } catch (e) {
+    emptyMsg.querySelector('div').textContent = 'Não foi possível carregar os dados agora. Recarregue a página em instantes.';
+    console.warn('carregarImoveis erro:', e.message);
+    return;
+  }
+
+  popularSelect('f-uf', [...new Set(base.map(im => im.uf).filter(Boolean))].sort(), 'Todas');
+  atualizarCidadesFiltro();
+  atualizarBairrosFiltro();
+
+  function atualizarCidadesFiltro() {
+    const uf = document.getElementById('f-uf').value;
+    const cidades = [...new Set(base.filter(im => !uf || im.uf === uf).map(im => im.cidade).filter(Boolean))].sort();
+    popularSelect('f-cidade', cidades, 'Todas');
+  }
+  function atualizarBairrosFiltro() {
+    const uf     = document.getElementById('f-uf').value;
+    const cidade = document.getElementById('f-cidade').value;
+    const bairros = [...new Set(
+      base.filter(im => (!uf || im.uf === uf) && (!cidade || im.cidade === cidade)).map(im => im.bairro).filter(Boolean)
+    )].sort();
+    popularSelect('f-bairro', bairros, 'Todos');
+  }
+  document.getElementById('f-uf').addEventListener('change', () => { atualizarCidadesFiltro(); atualizarBairrosFiltro(); });
+  document.getElementById('f-cidade').addEventListener('change', atualizarBairrosFiltro);
+
+  let clusterGroup = null;
+  let somenteFavoritos = false;
+
+  function montarPopup(im) {
+    const foto = im.imagem ? fixDriveUrlProto(im.imagem) : '';
+    const descTrunc = truncar(im.descricao, 150);
+    const base = baseMaisProxima(im.lat, im.lng);
+    const wppMsg = encodeURIComponent(`Olá! Tenho interesse no ${im.nome} (${im.bairro ? im.bairro + ', ' : ''}${im.cidade}/${im.uf}).`);
+    const fav = ehFavorito(im.id);
+    const comp = estaComparando(im.id);
+    return `
+      <div class="pw">
+        ${foto ? `<img src="${foto}" alt="${im.nome}" onerror="this.style.display='none'">` : ''}
+        <div class="pw-top-row">
+          <div class="pw-badges">
+            <span class="badge" style="background:${corPorStatus(im.tipo)}">${im.tipo}</span>
+            ${im.projeto ? `<span class="badge badge-projeto">${im.projeto}</span>` : ''}
+          </div>
+          <div class="pw-icon-btns">
+            <button class="pw-icon-btn${fav ? ' ativo' : ''}" onclick="alternarFavorito('${im.id}', this)" title="Favoritar">${fav ? '★' : '☆'}</button>
+            <button class="pw-icon-btn${comp ? ' ativo' : ''}" data-comparar-id="${im.id}" onclick="alternarComparar('${im.id}', this)" title="Comparar">➕</button>
+          </div>
+        </div>
+        <h3>${im.nome}</h3>
+        ${base ? `<div class="base-dist">🪖 A ${base.dist.toFixed(1)} km (linha reta) da ${base.nome}</div>` : ''}
+        <div class="loc">${im.bairro ? im.bairro + ', ' : ''}${im.cidade}/${im.uf}</div>
+        ${im.endereco ? `<div class="endereco">${im.endereco}</div>` : ''}
+        ${descTrunc ? `<div class="desc">${descTrunc}</div>` : ''}
+        <div class="preco">${precoTexto(im.valor)}</div>
+        <div class="actions-grid">
+          <a class="a-info" href="imovel.html?id=${im.id}" target="_blank">Ver detalhes</a>
+          <a class="a-chat" href="chat.html?modo=consultor" target="_blank">Chat IA</a>
+          <a class="a-wpp" href="https://wa.me/${WPP_NUMERO}?text=${wppMsg}" target="_blank">WhatsApp</a>
+          <a class="a-sim" href="simulador.html?valor=${Math.round((im.valor||0)*1000)}" target="_blank">Simular</a>
+        </div>
+      </div>
+    `;
+  }
+
+  function filtrarErenderizar() {
+    const busca        = document.getElementById('f-busca').value.trim().toLowerCase();
+    const uf            = document.getElementById('f-uf').value;
+    const cidade         = document.getElementById('f-cidade').value;
+    const bairro         = document.getElementById('f-bairro').value;
+    const tipo           = document.getElementById('f-tipo').value;
+    const construtora    = document.getElementById('f-construtora').value.trim().toLowerCase();
+    const status         = document.getElementById('f-status').value;
+    const favs           = lerFavoritos();
+
+    const filtrados = base.filter(im =>
+      (!uf         || im.uf === uf) &&
+      (!cidade     || im.cidade === cidade) &&
+      (!bairro     || im.bairro === bairro) &&
+      (!tipo       || im.tipo === tipo) &&
+      (!construtora || (im.construtora || '').toLowerCase().includes(construtora)) &&
+      (!busca || [im.nome, im.bairro, im.endereco].filter(Boolean).some(t => t.toLowerCase().includes(busca))) &&
+      (status === 'ativo' ? im.ativo : status === 'inativo' ? !im.ativo : true) &&
+      (!somenteFavoritos || favs.includes(im.id))
+    );
+
+    if (clusterGroup) map.removeLayer(clusterGroup);
+    clusterGroup = L.markerClusterGroup({ iconCreateFunction: criarIconeCluster });
+
+    filtrados.forEach(im => {
+      const marker = L.marker([im.lat, im.lng], { icon: criarIcone(corPorStatus(im.tipo), ehFavorito(im.id)) });
+      marker.bindPopup(montarPopup(im), { maxWidth: 300 });
+      clusterGroup.addLayer(marker);
+    });
+
+    map.addLayer(clusterGroup);
+
+    if (filtrados.length) {
+      emptyMsg.style.display = 'none';
+      map.fitBounds(clusterGroup.getBounds(), { padding: [40, 40], maxZoom: 15 });
+    } else {
+      emptyMsg.style.display = 'flex';
+      emptyMsg.querySelector('div').textContent = 'Nenhum empreendimento encontrado para os filtros selecionados.';
+    }
+
+    contador.style.display = 'block';
+    contador.textContent = `${filtrados.length} empreendimento${filtrados.length === 1 ? '' : 's'} no mapa`;
+  }
+
+  function limparFiltros() {
+    ['f-uf','f-cidade','f-bairro','f-tipo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-busca').value = '';
+    document.getElementById('f-construtora').value = '';
+    document.getElementById('f-status').value = 'ativo';
+    somenteFavoritos = false;
+    document.getElementById('btn-fav-toggle').classList.remove('ativo');
+    document.getElementById('btn-fav-toggle').textContent = '☆ Só Favoritos';
+    atualizarCidadesFiltro();
+    atualizarBairrosFiltro();
+    if (clusterGroup) { map.removeLayer(clusterGroup); clusterGroup = null; }
+    emptyMsg.style.display = 'flex';
+    emptyMsg.querySelector('div').innerHTML = 'Selecione os filtros desejados (ou deixe como está para ver tudo) e clique em <strong>🔍 Filtrar</strong> para carregar os empreendimentos no mapa.';
+    contador.style.display = 'none';
+  }
+
+  document.getElementById('btn-filtrar').addEventListener('click', filtrarErenderizar);
+  document.getElementById('btn-limpar').addEventListener('click', limparFiltros);
+  document.getElementById('btn-fav-toggle').addEventListener('click', function() {
+    somenteFavoritos = !somenteFavoritos;
+    this.classList.toggle('ativo', somenteFavoritos);
+    this.textContent = somenteFavoritos ? '★ Só Favoritos' : '☆ Só Favoritos';
+    filtrarErenderizar();
+  });
+})();
+</script>
+</body>
+</html>

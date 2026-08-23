@@ -1917,6 +1917,20 @@ async function enviarEmailSite() {
     btn.disabled = false; btn.textContent = 'Enviar →';
   }
 }
+
+/* Pré-preenche "Valor de Avaliação do Imóvel" quando o link chega com
+   ?valor=NNNN (em reais) — usado pelo botão "Simular Financiamento" do
+   mapa de empreendimentos e de outras páginas de imóvel. */
+document.addEventListener('DOMContentLoaded', function() {
+  const valorParam = new URLSearchParams(location.search).get('valor');
+  if (!valorParam) return;
+  const num = parseFloat(valorParam);
+  if (isNaN(num) || num <= 0) return;
+  const campo = document.getElementById('valorImovel');
+  if (!campo) return;
+  campo.value = num.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (typeof onCccpmParams === 'function') onCccpmParams();
+});
 </script>
 </body>
 </html>
