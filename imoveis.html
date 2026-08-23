@@ -136,6 +136,17 @@
   }
   .btn-limpar:hover { color: var(--navy); border-color: var(--ink-muted); }
 
+  .btn-vermapa {
+    height: 38px; padding: 0 20px;
+    background: var(--navy); color: var(--gold);
+    border: 1px solid var(--gold); cursor: pointer; text-decoration: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+    transition: background .2s, transform .15s; white-space: nowrap; flex-shrink: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-vermapa:hover { background: #16233a; transform: translateY(-1px); }
+
   /* ─── RESULTADOS ─── */
   .results-wrap {
     max-width: 1280px; margin: 0 auto;
@@ -511,6 +522,7 @@
     </div>
     <button class="btn-filtrar" onclick="filtrar();fecharFiltroMobile()">&#9654;&ensp;Filtrar</button>
     <button class="btn-limpar" onclick="limpar()">✕ Limpar</button>
+    <a class="btn-vermapa" href="mapa-empreendimentos.html" target="_blank" rel="noopener">🗺️&ensp;Ver no Mapa</a>
   </div>
   </div><!-- /filter-inner-wrap -->
 </div>
