@@ -1846,9 +1846,13 @@ function onEdit(e) {
     Painel de Monitoramento 3D do Reviver Centro — visualização tridimensional oficial da Prefeitura do Rio (ArcGIS), com o licenciamento urbanístico, o estoque de edificações existentes e os terrenos vazios com seus parâmetros construtivos. Uso interno da administração, para estudo — não aparece no site público.
   </div>
   <div class="table-wrap">
-    <div class="table-head-row"><span>Painel 3D — Prefeitura do Rio (Reviver Centro)</span></div>
+    <div class="table-head-row">
+      <span>Painel 3D — Prefeitura do Rio (Reviver Centro)</span>
+      <button class="btn-conn-test" data-fs-btn onclick="alternarTelaCheia('iframe-painel3d')"
+              style="height:32px;padding:0 14px;font-size:11px">⛶ Tela Cheia</button>
+    </div>
     <div class="table-wrap-inner" style="padding:0">
-      <iframe src="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0"
+      <iframe id="iframe-painel3d" src="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0"
               title="Painel de Monitoramento 3D do Reviver Centro"
               style="width:100%;height:750px;border:0;display:block"
               allowfullscreen></iframe>
@@ -2526,6 +2530,22 @@ function switchTab(name) {
   if (name === 'crm') { crmCarregar(); crmAtualizarStats(); crmRenderLista(); }
   if (name === 'banners') carregarBanners();
 }
+
+/* Coloca um elemento (ex: o iframe do Painel 3D) em tela cheia — o
+   <ESC> pra voltar ao normal já é nativo da Fullscreen API, sem
+   precisar de código extra. */
+function alternarTelaCheia(elId) {
+  if (!document.fullscreenElement) {
+    document.getElementById(elId).requestFullscreen().catch(() => alert('Não foi possível entrar em tela cheia neste navegador.'));
+  } else {
+    document.exitFullscreen();
+  }
+}
+document.addEventListener('fullscreenchange', () => {
+  document.querySelectorAll('[data-fs-btn]').forEach(btn => {
+    btn.textContent = document.fullscreenElement ? '✕ Sair da Tela Cheia' : '⛶ Tela Cheia';
+  });
+});
 
 /* ── STEPS ── */
 function toggleStep(header) {
