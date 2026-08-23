@@ -201,7 +201,10 @@
         Clique num ponto do mapa para ver fotos, preço e detalhes do empreendimento — e falar direto com a gente por lá.
       </p>
     </div>
-    <button class="btn-como-usar" id="btn-como-usar">❓ O que este mapa oferece</button>
+    <div style="display:flex;gap:8px;flex-shrink:0">
+      <button class="btn-como-usar" id="btn-tela-cheia">⛶ Tela Cheia</button>
+      <button class="btn-como-usar" id="btn-como-usar">❓ O que este mapa oferece</button>
+    </div>
   </div>
   <div class="legend-strip">
     <span class="lg-title">Situação:</span>
@@ -490,6 +493,22 @@ function abrirComparacao() {
 function abrirModal(id) { document.getElementById(id).classList.add('show'); }
 function fecharModal(id) { document.getElementById(id).classList.remove('show'); }
 document.getElementById('btn-como-usar').addEventListener('click', () => abrirModal('modal-como-usar'));
+
+/* Tela cheia — cobre a página inteira (filtros + mapa), facilita
+   navegar no mapa sem a barra de endereço/abas do navegador atrapalhando.
+   O <ESC> pra voltar ao normal já é comportamento nativo do navegador
+   pra Fullscreen API, não precisa de código extra pra isso. */
+const btnTelaCheia = document.getElementById('btn-tela-cheia');
+btnTelaCheia.addEventListener('click', () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen();
+  }
+});
+document.addEventListener('fullscreenchange', () => {
+  btnTelaCheia.textContent = document.fullscreenElement ? '✕ Sair da Tela Cheia' : '⛶ Tela Cheia';
+});
 
 async function carregarImoveis() {
   const json  = await gvizJsonpProto(SHEET_IMOVEIS_ID);
