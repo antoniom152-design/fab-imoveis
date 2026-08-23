@@ -219,6 +219,7 @@
   <div>
     <label>Buscar (nome, bairro ou endereço)</label>
     <input type="text" id="f-busca" placeholder="Ex: Recreio, Cyrela...">
+    <div style="font-size:0.72em;color:#99a3ad;margin-top:3px;max-width:220px">Aperte Enter ou clique em Filtrar. Funciona junto com UF/Cidade/Bairro — limpe-os se a busca não achar nada.</div>
   </div>
   <div>
     <label>UF</label>
@@ -722,6 +723,14 @@ function popularSelect(id, valores, label) {
 
   document.getElementById('btn-filtrar').addEventListener('click', filtrarErenderizar);
   document.getElementById('btn-limpar').addEventListener('click', limparFiltros);
+
+  // Enter dentro dos campos de texto já filtra — sem isso, digitar e
+  // apertar Enter não fazia nada, parecia que a busca "não funcionava".
+  ['f-busca', 'f-construtora'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => {
+      if (e.key === 'Enter') filtrarErenderizar();
+    });
+  });
   document.getElementById('btn-fav-toggle').addEventListener('click', function() {
     somenteFavoritos = !somenteFavoritos;
     this.classList.toggle('ativo', somenteFavoritos);
