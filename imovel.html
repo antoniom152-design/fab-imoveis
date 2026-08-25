@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Empreendimento — WAL Imóveis</title>
+<!-- Open Graph genérico (não dá pra ser por imóvel — esta página é montada
+     no navegador via JS a partir da planilha, e o WhatsApp/Facebook não
+     executam esse JS, só leem o <head> estático). A foto do Drive de cada
+     imóvel NÃO funciona aqui: o Google serve esses arquivos com
+     Cache-Control: private, e o WhatsApp descarta esse tipo de resposta
+     ao gerar a prévia — por isso o link cai numa logo fixa em vez da foto
+     do empreendimento. -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="WAL Imóveis — Especialistas em Imóveis para Servidores Públicos">
+<meta property="og:description" content="Confira este empreendimento e simule seu financiamento com condições especiais para militares e servidores públicos.">
+<meta property="og:image" content="https://www.walservidor.com.br/logo%20novo%20wal.jpeg">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Barlow:wght@300;400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
