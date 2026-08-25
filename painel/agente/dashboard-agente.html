@@ -1310,6 +1310,30 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- MODAL COMPARTILHAR EMPREENDIMENTO -->
+<div class="modal-ov" id="modalCompEmp">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-h">
+      <div class="modal-title">Compartilhar</div>
+      <button class="modal-close" onclick="fecharModal('modalCompEmp')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="compEmpOpcoes" style="display:flex;flex-direction:column;gap:10px">
+        <a id="compEmpWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
+        <button class="btn-full btn" onclick="compEmpMostrarEmail()">✉️ Enviar por E-mail</button>
+        <button class="btn-full btn" id="compEmpBtnCopiar" onclick="compEmpCopiarLink(this)">🔗 Copiar Link</button>
+      </div>
+      <div id="compEmpFormEmail" style="display:none;flex-direction:column;gap:10px">
+        <div class="field-lbl">E-mail do destinatário</div>
+        <input class="field-inp" type="email" id="compEmpEmailInput" placeholder="nome@email.com">
+        <div id="compEmpEmailErr" class="fs11" style="display:none;color:#F87171"></div>
+        <button class="btn-full btn-gold" id="compEmpBtnEnviar" onclick="compEmpEnviarEmail()">Enviar →</button>
+        <button class="btn" style="background:none;border:none;justify-content:center" onclick="compEmpVoltar()">← Voltar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL MATERIAL -->
 <div class="modal-ov" id="modalMat">
   <div class="modal-box" style="max-width:560px">
@@ -1387,7 +1411,7 @@ let _aiHistory = [];
    republicado com "Nova versão" para essa URL funcionar de verdade. */
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
 /* Base absoluta do site (com domínio) — necessária pro link que vai no
-   WhatsApp em compartilharWhats(), já que quem abre esse link não está
+   WhatsApp/e-mail em abrirCompartilharEmp(), já que quem abre esse link não está
    dentro do contexto do dashboard (link relativo não funcionaria fora
    daqui). Mesmo padrão de SITE_BASE_URL já usado em imovel.html/
    reserva.html, ajustado pra profundidade de pasta deste arquivo
@@ -2129,7 +2153,14 @@ function renderPipeline(){
 }
 
 /* ═══ EMPREENDIMENTOS (planilha "WAL Imóveis — Portfólio") ═══ */
-function compartilharWhats(id){
+/* Backend "Leads Landing Page" — reaproveitado só pra ação
+   tipo:'compartilhar_email' (já usada por imovel.html/reserva.html
+   pra mandar um e-mail com assunto+corpo pro destinatário). Não tem
+   relação com CADASTRO_API_URL nem com nenhuma outra função deste
+   arquivo. */
+const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
+let _compEmpDados=null;
+function abrirCompartilharEmp(id){
   const e=_empreendimentos.find(x=>x.id===id);
   if(!e)return;
   // Link com o Id do Agente por parâmetro — imovel.html usa isso pra
@@ -2137,14 +2168,54 @@ function compartilharWhats(id){
   // até uma eventual reserva (ver crm_agente_publico_/
   // crm_indicacao_publica_criar_ no backend).
   const link=`${SITE_BASE_URL}imovel.html?id=${encodeURIComponent(e.id)}&agente=${encodeURIComponent(_user.id)}`;
-  // Sem tentar embutir a foto do Drive como linha solta: o Google serve
-  // esses arquivos com Cache-Control:private, e o WhatsApp descarta esse
-  // tipo de resposta ao montar a prévia — não gera imagem nenhuma, só
-  // cria uma prévia vazia (feio e sem função). A foto aparece de verdade
-  // é na prévia do PRÓPRIO link (imovel.html tem Open Graph configurado).
   const texto=`🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Clique no link abaixo!\n${link}`;
-  window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
-  toast('📲 Abrindo WhatsApp para compartilhar...','green');
+  _compEmpDados={link, texto, assunto:`Empreendimento interessante — ${e.nome}`};
+  document.getElementById('compEmpWpp').href=`https://wa.me/?text=${encodeURIComponent(texto)}`;
+  document.getElementById('compEmpOpcoes').style.display='flex';
+  document.getElementById('compEmpFormEmail').style.display='none';
+  abrirModal('modalCompEmp');
+}
+function compEmpCopiarLink(btn){
+  navigator.clipboard.writeText(_compEmpDados.link).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent='✅ Link copiado!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  });
+}
+function compEmpMostrarEmail(){
+  document.getElementById('compEmpOpcoes').style.display='none';
+  document.getElementById('compEmpFormEmail').style.display='flex';
+  document.getElementById('compEmpEmailErr').style.display='none';
+  const inp=document.getElementById('compEmpEmailInput');
+  inp.value='';inp.focus();
+}
+function compEmpVoltar(){
+  document.getElementById('compEmpFormEmail').style.display='none';
+  document.getElementById('compEmpOpcoes').style.display='flex';
+}
+async function compEmpEnviarEmail(){
+  const inp=document.getElementById('compEmpEmailInput');
+  const destinatario=(inp.value||'').trim();
+  const errEl=document.getElementById('compEmpEmailErr');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(destinatario)){errEl.textContent='Digite um e-mail válido.';errEl.style.display='block';return}
+  errEl.style.display='none';
+  const btn=document.getElementById('compEmpBtnEnviar');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario,assunto:_compEmpDados.assunto,corpo:_compEmpDados.texto})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      toast('✅ E-mail enviado para '+destinatario+'!','green');
+      fecharModal('modalCompEmp');
+    }else{
+      errEl.textContent=data.message||'Não foi possível enviar agora. Tente novamente.';errEl.style.display='block';
+      btn.disabled=false;btn.textContent='Enviar →';
+    }
+  }catch(e){
+    errEl.textContent='Falha na conexão. Tente novamente.';errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Enviar →';
+  }
 }
 
 function getItensDisponiveisAtribuicao(){
@@ -2254,7 +2325,7 @@ function renderEmps(){
         <div style="display:flex;gap:6px;margin-top:12px">
           <!-- Botão "Materiais" removido daqui de propósito (24/08/2026) junto com o
                item do menu, enquanto o Antonio monta a parte de marketing. -->
-          <button class="btn-gold btn btn-sm" style="flex:1" onclick="compartilharWhats('${e.id}')">📲 Compartilhar</button>
+          <button class="btn-gold btn btn-sm" style="flex:1" onclick="abrirCompartilharEmp('${e.id}')">📲 Compartilhar</button>
         </div>
       </div>
     </div>`).join('');
