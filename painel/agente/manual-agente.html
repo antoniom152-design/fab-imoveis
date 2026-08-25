@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual do Agente Parceiro · WAL Consultoria</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--gold:#C9A84C;--gold2:#9C7F2E;
+  --teal:#0E7490;--ink:#1C2733;--muted:#5C6B7A;--line:#E4E1D8;
+  --bg:#FBFAF6;--card:#FFFFFF;
+  --green:#0F7A4C;--amber:#8A5A0A;--red:#B03A2E;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:14px}
+.wrap{max-width:880px;margin:0 auto;padding:0 24px 80px}
+
+/* ── BARRA DE AÇÕES (não imprime) ── */
+.actions-bar{
+  position:sticky;top:0;z-index:50;background:var(--navy);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;gap:12px;flex-wrap:wrap;
+}
+.actions-bar .brand{color:var(--gold);font-family:'Playfair Display',serif;font-weight:700;font-size:15px}
+.actions-bar .acts{display:flex;gap:8px}
+.abtn{
+  display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:7px;
+  font-size:12px;font-weight:600;cursor:pointer;border:1px solid transparent;text-decoration:none;
+}
+.abtn-print{background:linear-gradient(135deg,var(--gold),#E8C96A);color:var(--navy)}
+.abtn-back{background:transparent;color:#C7D3E0;border-color:rgba(255,255,255,.2)}
+
+/* ── CAPA ── */
+.cover{
+  text-align:center;padding:56px 24px 40px;border-bottom:3px solid var(--gold);margin-bottom:36px;
+}
+.cover .tag{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);font-weight:700}
+.cover h1{font-family:'Playfair Display',serif;font-size:34px;color:var(--navy);margin-top:10px}
+.cover p{color:var(--muted);margin-top:10px;font-size:14px}
+
+/* ── SUMÁRIO ── */
+.toc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:20px 24px;margin-bottom:40px}
+.toc h2{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold2);margin-bottom:12px}
+.toc ol{padding-left:20px}
+.toc li{margin-bottom:6px}
+.toc a{color:var(--ink);text-decoration:none}
+.toc a:hover{color:var(--teal)}
+
+/* ── SEÇÕES ── */
+section{margin-bottom:44px;break-inside:avoid-page}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--navy)}
+.sec-ico{font-size:22px}
+.sec-head h2{font-family:'Playfair Display',serif;font-size:21px;color:var(--navy)}
+.sec-sub{color:var(--muted);font-size:12px;margin-top:2px}
+
+h3{font-size:14px;color:var(--navy);margin:18px 0 8px}
+p{margin-bottom:10px}
+ul,ol{padding-left:22px;margin-bottom:12px}
+li{margin-bottom:5px}
+strong{color:var(--navy)}
+
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;margin-bottom:12px}
+.box-tip{background:#FBF6E6;border-color:#EAD9A0}
+.box-tip::before{content:"💡 Dica — ";font-weight:700;color:var(--gold2)}
+.box-warn{background:#FDF2EE;border-color:#F0C7B8}
+.box-warn::before{content:"⚠️ Atenção — ";font-weight:700;color:var(--red)}
+
+table{width:100%;border-collapse:collapse;margin:10px 0 16px;font-size:12.5px}
+th{background:var(--navy);color:var(--gold);text-align:left;padding:8px 10px;font-weight:600}
+td{padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#F6F4EE}
+
+.pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.pill-teal{background:#DCF3F7;color:#0E5E73}
+.pill-gold{background:#F5E9C6;color:#7A5F14}
+.pill-green{background:#DCF3E6;color:var(--green)}
+.pill-amber{background:#FBEBD1;color:var(--amber)}
+.pill-red{background:#FADAD4;color:var(--red)}
+
+.funil{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px}
+.funil .step{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:5px 12px;font-size:11.5px;font-weight:600;color:var(--navy)}
+.funil .arrow{color:var(--muted)}
+
+/* ── ILUSTRAÇÕES DAS TELAS ──
+   Reproduções aproximadas do visual real do dashboard (mesmas cores/
+   fontes), NÃO são screenshots — a legenda em cada uma deixa isso
+   claro. Usa as mesmas cores do dashboard-agente.html (--navy/--gold/
+   --teal etc. daquele arquivo), não as cores claras do resto deste
+   manual, pra parecer de fato com a tela real. */
+.screen-mock{border-radius:10px;overflow:hidden;border:1px solid #05101f;margin:14px 0 22px;box-shadow:0 8px 24px rgba(8,25,46,.18);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.screen-mock .chrome{background:#08192E;padding:8px 12px;display:flex;align-items:center;gap:6px}
+.screen-mock .dot{width:7px;height:7px;border-radius:50%}
+.screen-mock .dot.r{background:#ED6A5E}
+.screen-mock .dot.y{background:#F4BF4F}
+.screen-mock .dot.g{background:#61C454}
+.screen-mock .chrome-title{margin-left:8px;color:#5C7391;font-size:9.5px;letter-spacing:.03em;font-family:'Courier New',monospace}
+.screen-mock .stage{background:#0D1B2E;padding:18px;color:#E8EDF5;font-family:'Inter',sans-serif}
+.screen-mock .cap{background:#fff;border-top:1px solid var(--line);color:var(--muted);font-size:10px;padding:6px 12px;text-align:center;font-style:italic}
+.m-kpi{background:#152540;border:1px solid rgba(255,255,255,.08);border-radius:7px;padding:8px 10px;border-bottom:2px solid transparent}
+.m-kpi.teal{border-bottom-color:#0E7490}.m-kpi.gold{border-bottom-color:#C9A84C}.m-kpi.green{border-bottom-color:#0F7A4C}.m-kpi.amber{border-bottom-color:#D97706}.m-kpi.purple{border-bottom-color:#7C3AED}
+.m-kpi-lbl{font-size:7.5px;text-transform:uppercase;letter-spacing:.05em;color:#7A90A8}
+.m-kpi-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#fff;margin-top:3px}
+.m-card{background:#152540;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:10px 12px}
+.m-card-h{font-size:9.5px;font-weight:700;color:#fff;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.08)}
+.m-row{display:flex;justify-content:space-between;align-items:center;font-size:9.5px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);gap:8px}
+.m-row:last-child{border-bottom:none}
+.m-badge{font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 7px;border-radius:4px;white-space:nowrap}
+.m-badge.teal{background:rgba(14,116,144,.3);color:#5EEAD4}
+.m-badge.gold{background:rgba(201,168,76,.25);color:#E8C96A}
+.m-badge.green{background:rgba(16,185,129,.25);color:#6EE7B7}
+.m-badge.red{background:rgba(239,68,68,.25);color:#FCA5A5}
+.m-badge.purple{background:rgba(139,92,246,.25);color:#C4B5FD}
+.m-badge.amber{background:rgba(217,119,6,.25);color:#FCD34D}
+.m-btn{display:inline-block;font-size:9px;font-weight:700;padding:6px 12px;border-radius:6px}
+.m-btn.gold{background:linear-gradient(135deg,#C9A84C,#E8C96A);color:#08192E}
+.m-btn.ghost{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.15);color:#C7D3E0}
+.m-btn.teal{background:rgba(14,116,144,.3);color:#5EEAD4;border:1px solid rgba(34,211,238,.25)}
+.m-field{background:#0D1B2E;border:1px solid rgba(255,255,255,.12);border-radius:5px;padding:6px 8px;font-size:8.5px;color:#7A90A8}
+
+footer{text-align:center;color:var(--muted);font-size:11px;margin-top:50px;padding-top:16px;border-top:1px solid var(--line)}
+
+@media print{
+  .actions-bar{display:none}
+  body{background:#fff;font-size:12px}
+  .cover{padding-top:0}
+  section{break-inside:avoid-page}
+  a{color:inherit;text-decoration:none}
+  .toc{break-after:page}
+}
+@media (max-width:600px){
+  .cover h1{font-size:26px}
+  table{font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="actions-bar">
+  <span class="brand">WAL Consultoria</span>
+  <div class="acts">
+    <a class="abtn abtn-back" href="dashboard-agente.html">← Voltar ao Dashboard</a>
+    <button class="abtn abtn-print" onclick="window.print()">🖨️ Imprimir / Salvar em PDF</button>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="cover">
+    <div class="tag">Portal do Agente Parceiro</div>
+    <h1>Manual do Agente</h1>
+    <p>Guia completo de como usar o seu Dashboard de Agente Parceiro da WAL Consultoria —<br>
+       o que cada tela faz, o que preencher em cada campo, e como acompanhar suas comissões.</p>
+  </div>
+
+  <div class="toc">
+    <h2>Sumário</h2>
+    <ol>
+      <li><a href="#comecando">Antes de começar — cadastro e aprovação</a></li>
+      <li><a href="#meu-painel">Meu Painel</a></li>
+      <li><a href="#indicacoes">Minhas Indicações</a></li>
+      <li><a href="#pipeline">Pipeline de Vendas</a></li>
+      <li><a href="#empreendimentos">Empreendimentos</a></li>
+      <li><a href="#ia">Assistente IA</a></li>
+      <li><a href="#comissoes">Comissões</a></li>
+      <li><a href="#perfil">Meu Perfil</a></li>
+      <li><a href="#duvidas">Perguntas frequentes</a></li>
+    </ol>
+  </div>
+
+  <!-- ══════════════ 1. COMEÇANDO ══════════════ -->
+  <section id="comecando">
+    <div class="sec-head"><span class="sec-ico">🔑</span><div><h2>Antes de começar — cadastro e aprovação</h2></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">dashboard-agente.html</span></div>
+      <div class="stage" style="display:flex;justify-content:center;padding:30px 16px">
+        <div style="width:260px">
+          <div style="text-align:center;margin-bottom:16px">
+            <div style="font-family:'Playfair Display',serif;color:#C9A84C;font-size:17px;font-weight:700">WAL Consultoria</div>
+            <div style="font-size:7.5px;letter-spacing:2px;text-transform:uppercase;color:#7A90A8;margin-top:3px">Imóveis para quem serve ao Brasil</div>
+          </div>
+          <div style="display:flex;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:14px">
+            <div style="flex:1;text-align:center;padding:8px;font-size:10px;font-weight:700;color:#C9A84C;border-bottom:2px solid #C9A84C">Entrar</div>
+            <div style="flex:1;text-align:center;padding:8px;font-size:10px;font-weight:700;color:#7A90A8">Quero ser Agente</div>
+          </div>
+          <div style="font-size:8px;letter-spacing:.05em;color:#7A90A8;margin-bottom:5px">E-MAIL</div>
+          <div class="m-field" style="margin-bottom:12px">seu@email.com</div>
+          <div class="m-btn gold" style="text-align:center;width:100%">Enviar código de acesso</div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada da tela de login/cadastro, não é um print real.</div>
+    </div>
+
+    <h3>Como entrar</h3>
+    <p>O acesso é feito por <strong>e-mail + código</strong>, sem senha para decorar. Na tela inicial:</p>
+    <ol>
+      <li>Na aba <strong>"Entrar"</strong>, informe o e-mail que você já cadastrou.</li>
+      <li>Você recebe um <strong>código de 6 dígitos</strong> por e-mail, válido por 10 minutos.</li>
+      <li>Digite o código e clique em <strong>"Confirmar e entrar"</strong>.</li>
+    </ol>
+
+    <h3>Se ainda não é cadastrado</h3>
+    <p>Use a aba <strong>"Quero ser Agente"</strong> e preencha:</p>
+    <ul>
+      <li><strong>Dados Pessoais:</strong> nome completo, CPF, e-mail, WhatsApp, data de nascimento e Profissão/Vínculo.</li>
+      <li><strong>Dados Bancários:</strong> banco, agência, conta, tipo de conta e (opcional) chave Pix — é para onde sua comissão será paga.</li>
+      <li><strong>Documentos (obrigatórios):</strong> foto/scan do <strong>RG ou CNH</strong> e de um <strong>comprovante de residência</strong>. Sem os dois, o cadastro não é enviado.</li>
+    </ul>
+    <div class="box box-warn">
+      Depois de enviar, seu e-mail é confirmado por um código de 6 dígitos (igual ao login) antes do cadastro ser gravado de fato.
+    </div>
+
+    <h3>Aguardando aprovação</h3>
+    <p>Todo cadastro novo entra como <strong>pendente</strong>. Você consegue fazer login, mas verá a tela
+       "Cadastro em análise" até a Diretoria da WAL conferir seus dados e documentos e <strong>liberar seu
+       acesso</strong>. Isso costuma levar até 48h. Assim que for aprovado, você recebe acesso normal ao
+       dashboard.</p>
+  </section>
+
+  <!-- ══════════════ 2. MEU PAINEL ══════════════ -->
+  <section id="meu-painel">
+    <div class="sec-head"><span class="sec-ico">🏠</span><div><h2>Meu Painel</h2><div class="sec-sub">A tela inicial — visão geral de tudo</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Meu Painel</span></div>
+      <div class="stage">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+          <div class="m-kpi teal"><div class="m-kpi-lbl">Indicações Ativas</div><div class="m-kpi-val">3</div></div>
+          <div class="m-kpi gold"><div class="m-kpi-lbl">Em Negociação</div><div class="m-kpi-val">2</div></div>
+          <div class="m-kpi green"><div class="m-kpi-lbl">Vendas Convertidas</div><div class="m-kpi-val">1</div></div>
+          <div class="m-kpi amber"><div class="m-kpi-lbl">Comissão a Receber</div><div class="m-kpi-val">R$8k</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="m-card">
+            <div class="m-card-h">👥 Minhas Indicações</div>
+            <div class="m-row"><span>Cap. Henrique</span><span class="m-badge teal">Em contato</span></div>
+            <div class="m-row"><span>Sgt. Paula</span><span class="m-badge gold">Proposta enviada</span></div>
+            <div class="m-row"><span>Cel. Marcos</span><span class="m-badge green">✅ Fechado</span></div>
+          </div>
+          <div class="m-card">
+            <div class="m-card-h">💡 Como funciona sua comissão</div>
+            <div style="font-size:9px;color:#C7D3E0;line-height:1.7">
+              1️⃣ Você indica → 2️⃣ Corretor fecha → 3️⃣ Você recebe <strong style="color:#E8C96A">0,5%</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada de "Meu Painel", não é um print real.</div>
+    </div>
+
+    <p>É a primeira tela que você vê ao entrar. Mostra um resumo rápido do seu trabalho como agente:</p>
+    <ul>
+      <li><strong>4 indicadores no topo:</strong> Indicações Ativas, Em Negociação, Vendas Convertidas e Comissão a Receber.</li>
+      <li><strong>Minhas Indicações:</strong> as últimas pessoas que você indicou e o status de cada uma (atalho para a tela completa).</li>
+      <li><strong>Como funciona sua comissão:</strong> um lembrete rápido do processo em 3 passos (veja a seção <a href="#comissoes">Comissões</a>).</li>
+      <li><strong>Dica do Assistente IA:</strong> uma sugestão de abordagem para uma das suas indicações, com atalhos prontos para conversar com a IA.</li>
+    </ul>
+    <div class="box box-tip">O botão <strong>"+ Nova Indicação"</strong>, no canto superior direito, leva direto para o formulário de cadastro de uma nova indicação.</div>
+  </section>
+
+  <!-- ══════════════ 3. MINHAS INDICAÇÕES ══════════════ -->
+  <section id="indicacoes">
+    <div class="sec-head"><span class="sec-ico">👥</span><div><h2>Minhas Indicações</h2><div class="sec-sub">Cadastre e acompanhe cada pessoa que você indicou</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Minhas Indicações</span></div>
+      <div class="stage">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:10px"><span class="m-btn gold">+ Nova Indicação</span></div>
+        <div class="m-card">
+          <div class="m-row"><span><strong style="color:#fff">Cap. Henrique Souza</strong><br><span style="color:#7A90A8">(21) 99999-0001</span></span><span class="m-badge teal">Em contato</span></div>
+          <div class="m-row"><span><strong style="color:#fff">Sgt. Paula Lima</strong><br><span style="color:#7A90A8">(21) 98888-0002</span></span><span class="m-badge purple">Proposta enviada</span></div>
+          <div class="m-row"><span><strong style="color:#fff">Cel. Marcos Vieira</strong><br><span style="color:#7A90A8">(21) 97777-0003</span></span><span class="m-badge green">✅ Venda fechada</span></div>
+          <div class="m-row"><span><strong style="color:#fff">Sd. Ricardo Alves</strong><br><span style="color:#7A90A8">(21) 96666-0004</span></span><span class="m-badge red">Perdido</span></div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada de "Minhas Indicações", não é um print real.</div>
+    </div>
+
+    <p>Aqui ficam <strong>todas</strong> as pessoas que você já indicou, com filtros por status no topo da lista.
+       Clique em qualquer indicação para ver o histórico completo e editar os dados.</p>
+
+    <h3>Como cadastrar uma nova indicação</h3>
+    <p>Clique em <strong>"+ Nova Indicação"</strong> e preencha:</p>
+    <table>
+      <tr><th>Campo</th><th>O que preencher</th></tr>
+      <tr><td><strong>Nome completo *</strong></td><td>Nome do seu indicado.</td></tr>
+      <tr><td><strong>Telefone / WhatsApp *</strong></td><td>Para o corretor entrar em contato.</td></tr>
+      <tr><td>E-mail</td><td>Opcional, se souber.</td></tr>
+      <tr><td>Posto / Profissão</td><td>Cabo, Sargento, Suboficial, Aspirante/Tenente, Capitão, Major/Tenente-Coronel, Coronel, Servidor Civil, Pensionista ou Outro.</td></tr>
+      <tr><td>Empreendimento de interesse</td><td>Se ele já demonstrou interesse em algum específico — se não, deixe "Em aberto".</td></tr>
+      <tr><td>Orçamento estimado</td><td>Faixa de valor que ele pretende gastar.</td></tr>
+      <tr><td>Residência atual</td><td>Ex: "Aluguel em Bangu, RJ" — ajuda o corretor a entender a urgência.</td></tr>
+      <tr><td>Forma de pagamento pretendida</td><td>À vista, financiamento bancário, FGTS, CFIAe, 35/65, etc.</td></tr>
+      <tr><td><strong>Grau de interesse *</strong></td><td>🔥 Alto, 👍 Médio ou 🤔 Baixo — quão perto ele está de decidir.</td></tr>
+      <tr><td>O que você já apresentou</td><td>Um resumo da conversa que você já teve com ele — o corretor lê isso antes de ligar.</td></tr>
+      <tr><td>Material enviado</td><td>Qual folder/simulação você já mandou pra ele, se algum.</td></tr>
+    </table>
+    <p>Ao enviar, a indicação vai direto para o corretor responsável, marcada como <strong>"via Agente"</strong> — ele já sabe que você fez a apresentação inicial.</p>
+
+    <h3>O funil de status</h3>
+    <p>Cada indicação passa pelas seguintes etapas, sempre atualizadas pelo corretor conforme a negociação avança:</p>
+    <div class="funil">
+      <span class="step">Enviado ao corretor</span><span class="arrow">→</span>
+      <span class="step">Em contato</span><span class="arrow">→</span>
+      <span class="step">Proposta enviada</span><span class="arrow">→</span>
+      <span class="step">Visita agendada</span><span class="arrow">→</span>
+      <span class="step">✅ Venda fechada</span>
+    </div>
+    <p>Uma indicação também pode ser marcada como <span class="pill pill-red">Perdido</span> se o negócio não avançar.</p>
+  </section>
+
+  <!-- ══════════════ 4. PIPELINE ══════════════ -->
+  <section id="pipeline">
+    <div class="sec-head"><span class="sec-ico">📊</span><div><h2>Pipeline de Vendas</h2><div class="sec-sub">Todas as suas indicações organizadas por etapa</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Pipeline de Vendas</span></div>
+      <div class="stage">
+        <div class="m-card">
+          <div style="display:flex;flex-direction:column;gap:9px">
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:110px;font-size:9px;color:#C7D3E0">Em contato</span><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden"><div style="width:70%;height:100%;background:linear-gradient(90deg,#0E7490,#22D3EE)"></div></div><span style="font-size:9px;color:#7A90A8">2</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:110px;font-size:9px;color:#C7D3E0">Proposta enviada</span><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden"><div style="width:40%;height:100%;background:linear-gradient(90deg,#C9A84C,#E8C96A)"></div></div><span style="font-size:9px;color:#7A90A8">1</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:110px;font-size:9px;color:#C7D3E0">Visita agendada</span><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden"><div style="width:20%;height:100%;background:#D97706"></div></div><span style="font-size:9px;color:#7A90A8">1</span></div>
+            <div style="display:flex;align-items:center;gap:10px"><span style="width:110px;font-size:9px;color:#C7D3E0">Venda fechada ✅</span><div style="flex:1;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden"><div style="width:20%;height:100%;background:#0F7A4C"></div></div><span style="font-size:9px;color:#7A90A8">1</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada do Pipeline de Vendas, não é um print real.</div>
+    </div>
+
+    <p>Mesma informação de "Minhas Indicações", mas organizada visualmente <strong>por etapa do funil</strong> —
+       útil para ver de relance quantas indicações estão em cada fase e quais precisam de mais atenção sua
+       (por exemplo, uma indicação parada há muito tempo em "Em contato" pode ser um bom motivo para você
+       reforçar o assunto com o seu conhecido).</p>
+  </section>
+
+  <!-- ══════════════ 5. EMPREENDIMENTOS ══════════════ -->
+  <section id="empreendimentos">
+    <div class="sec-head"><span class="sec-ico">🏗️</span><div><h2>Empreendimentos</h2><div class="sec-sub">O portfólio completo de imóveis disponíveis pra apresentar</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Empreendimentos Disponíveis</span></div>
+      <div class="stage">
+        <div class="m-card" style="margin-bottom:10px">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:8px">
+            <div class="m-field">UF</div><div class="m-field">Tipo de Imóvel</div><div class="m-field">Cidade</div><div class="m-field">Bairro</div><div class="m-field">Faixa de Valor</div>
+          </div>
+          <div style="display:flex;gap:6px"><span class="m-btn gold">▶ Filtrar</span><span class="m-btn ghost">✕ Limpar</span><span class="m-btn teal">🗺️ Ver no Mapa</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="m-card">
+            <div style="height:44px;border-radius:6px;background:linear-gradient(135deg,#16335E,#0F2545);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px">🏗️</div>
+            <div style="font-size:10px;font-weight:700;color:#fff">Orla Recreio Reserva</div>
+            <div style="font-size:8px;color:#7A90A8;margin:2px 0 8px">Recreio · Rio de Janeiro/RJ</div>
+            <span class="m-btn gold" style="font-size:8px;padding:5px 10px">📲 Compartilhar</span>
+          </div>
+          <div class="m-card">
+            <div style="height:44px;border-radius:6px;background:linear-gradient(135deg,#16335E,#0F2545);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px">🏗️</div>
+            <div style="font-size:10px;font-weight:700;color:#fff">Ilha Mar Beach</div>
+            <div style="font-size:8px;color:#7A90A8;margin:2px 0 8px">Barra Olímpica · Rio de Janeiro/RJ</div>
+            <span class="m-btn gold" style="font-size:8px;padding:5px 10px">📲 Compartilhar</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada de "Empreendimentos", não é um print real.</div>
+    </div>
+
+    <p>Lista de todos os empreendimentos ativos no portfólio da WAL, com foto, construtora, faixa de valor,
+       unidades disponíveis e descrição — use para apresentar opções reais aos seus indicados.</p>
+    <h3>Filtros disponíveis</h3>
+    <ul>
+      <li><strong>UF</strong>, <strong>Tipo de Imóvel</strong> (Novo, Usado, Lançamento, Em Construção), <strong>Cidade</strong> e <strong>Bairro</strong> — os filtros de Cidade e Bairro se ajustam automaticamente conforme a UF escolhida.</li>
+      <li><strong>Faixa de Valor</strong> — do mais barato até "Acima de R$ 2.500 mil".</li>
+      <li><strong>Busca por nome</strong> — digite o nome do empreendimento ou do bairro.</li>
+    </ul>
+    <p>Clique em <strong>"Filtrar"</strong> para aplicar ou em <strong>"Limpar"</strong> para voltar a ver todos.</p>
+    <div class="box box-tip">Em cada card, o botão <strong>"📲 Compartilhar"</strong> monta uma mensagem pronta para enviar pelo WhatsApp ao seu indicado.</div>
+  </section>
+
+  <!-- ══════════════ 6. ASSISTENTE IA ══════════════ -->
+  <section id="ia">
+    <div class="sec-head"><span class="sec-ico">🤖</span><div><h2>Assistente IA</h2><div class="sec-sub">Seu apoio para conversar com naturalidade sobre os imóveis</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Assistente IA</span></div>
+      <div class="stage">
+        <div class="m-card" style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:6px"><div style="width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#0E7490,#22D3EE);flex-shrink:0"></div><div style="background:#1A2E50;border-radius:7px;padding:7px 10px;font-size:9px;color:#C7D3E0;max-width:75%">Olá! Sou seu Assistente IA. Como posso te ajudar hoje?</div></div>
+          <div style="display:flex;gap:6px;justify-content:flex-end"><div style="background:rgba(14,116,144,.25);border-radius:7px;padding:7px 10px;font-size:9px;color:#E8EDF5;max-width:75%">Como abordo um amigo sem parecer vendedor?</div></div>
+          <div style="display:flex;gap:6px"><div style="width:18px;height:18px;border-radius:5px;background:linear-gradient(135deg,#0E7490,#22D3EE);flex-shrink:0"></div><div style="background:#1A2E50;border-radius:7px;padding:7px 10px;font-size:9px;color:#C7D3E0;max-width:75%">Fale como amigo, não como vendedor: pergunte se ele já pensou em sair do aluguel...</div></div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:2px">
+            <span class="m-badge teal" style="font-weight:500;text-transform:none">Como abordar sem parecer vendedor</span>
+            <span class="m-badge teal" style="font-weight:500;text-transform:none">Explicar o CFIAe</span>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada do Assistente IA, não é um print real.</div>
+    </div>
+
+    <p>Um chat inteligente treinado para ajudar você — não para vender no seu lugar. Use para:</p>
+    <ul>
+      <li>Tirar dúvidas sobre os empreendimentos e o financiamento CFIAe (militares/servidores).</li>
+      <li>Aprender a responder objeções comuns ("não é hora certa", "está caro", etc.) de forma natural.</li>
+      <li>Gerar mensagens prontas de WhatsApp para enviar aos seus indicados.</li>
+    </ul>
+    <p>Digite sua pergunta na caixa de texto ou clique em um dos <strong>atalhos rápidos</strong> sugeridos
+       no topo do chat. Lembre-se: você é o amigo que indica, não o vendedor — a IA te ajuda a manter esse tom.</p>
+  </section>
+
+  <!-- ══════════════ 7. COMISSÕES ══════════════ -->
+  <section id="comissoes">
+    <div class="sec-head"><span class="sec-ico">💰</span><div><h2>Comissões</h2><div class="sec-sub">Acompanhe seus ganhos em tempo real</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Minhas Comissões</span></div>
+      <div class="stage">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px">
+          <div class="m-kpi green"><div class="m-kpi-lbl">Ganho Total</div><div class="m-kpi-val" style="font-size:13px">R$4.200</div></div>
+          <div class="m-kpi amber"><div class="m-kpi-lbl">A Receber</div><div class="m-kpi-val" style="font-size:13px">R$2.400</div></div>
+          <div class="m-kpi teal"><div class="m-kpi-lbl">Vendas Convertidas</div><div class="m-kpi-val">1</div></div>
+          <div class="m-kpi gold"><div class="m-kpi-lbl">Comissões</div><div class="m-kpi-val">3</div></div>
+        </div>
+        <div class="m-card">
+          <div class="m-card-h">💳 Extrato de Comissões</div>
+          <div class="m-row"><span>Orla Recreio Reserva</span><span style="color:#6EE7B7;font-weight:700">R$2.400</span><span class="m-badge green">Paga</span></div>
+          <div class="m-row"><span>Ilha Mar Beach</span><span style="color:#FCD34D;font-weight:700">R$1.800</span><span class="m-badge amber">A pagar</span></div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada de "Comissões", não é um print real.</div>
+    </div>
+
+    <h3>Como funciona</h3>
+    <ol>
+      <li><strong>Você indica</strong> — cadastra um conhecido interessado e apresenta os empreendimentos.</li>
+      <li><strong>O corretor fecha</strong> — nosso corretor recebe o lead marcado como "via Agente" e cuida da negociação até o fechamento.</li>
+      <li><strong>Você recebe</strong> — depois do contrato assinado, sua comissão de <strong>0,5% sobre o valor do imóvel</strong> é lançada aqui e paga na sua conta bancária cadastrada.</li>
+    </ol>
+    <div class="box">Exemplo: imóvel de <strong>R$480.000</strong> → sua comissão é <strong>R$2.400</strong>. Não há limite de indicações — quanto mais você indica, mais pode ganhar.</div>
+
+    <h3>O que você vê nesta tela</h3>
+    <table>
+      <tr><th>Indicador</th><th>O que significa</th></tr>
+      <tr><td>Ganho Total</td><td>Soma de tudo que já foi pago.</td></tr>
+      <tr><td>A Receber</td><td>Comissões já lançadas mas ainda não pagas.</td></tr>
+      <tr><td>Vendas Convertidas</td><td>Quantas das suas indicações viraram venda fechada.</td></tr>
+      <tr><td>Comissões</td><td>Número total de lançamentos de comissão no seu histórico.</td></tr>
+    </table>
+    <p>O <strong>Extrato de Comissões</strong> lista cada lançamento individualmente, com o empreendimento,
+       valor e status. Seus <strong>dados bancários</strong> cadastrados também aparecem aqui — clique em
+       "Atualizar dados bancários" para corrigi-los, caso precise.</p>
+  </section>
+
+  <!-- ══════════════ 8. MEU PERFIL ══════════════ -->
+  <section id="perfil">
+    <div class="sec-head"><span class="sec-ico">👤</span><div><h2>Meu Perfil</h2><div class="sec-sub">Seus dados pessoais, bancários e documentos</div></div></div>
+
+    <div class="screen-mock">
+      <div class="chrome"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="chrome-title">Meu Perfil de Agente</span></div>
+      <div class="stage">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="m-card">
+            <div class="m-card-h">👤 Dados Pessoais</div>
+            <div style="font-size:8px;letter-spacing:.05em;color:#7A90A8;margin-bottom:4px">NOME COMPLETO</div>
+            <div class="m-field" style="margin-bottom:8px">João Agente da Silva</div>
+            <div style="font-size:8px;letter-spacing:.05em;color:#7A90A8;margin-bottom:4px">PROFISSÃO / VÍNCULO</div>
+            <div class="m-field">Militar da Aeronáutica</div>
+          </div>
+          <div class="m-card">
+            <div class="m-card-h">📄 Documentos</div>
+            <div class="m-row"><span>📄 RG / CNH</span><span class="m-badge green">Enviado</span></div>
+            <div class="m-row"><span>🏠 Comprovante</span><span class="m-badge amber">Pendente</span></div>
+            <div style="margin-top:6px"><span class="m-btn gold" style="font-size:8px;padding:5px 10px">📤 Enviar agora</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">Ilustração — reprodução aproximada de "Meu Perfil", não é um print real.</div>
+    </div>
+
+    <h3>Dados Pessoais</h3>
+    <p>Nome, e-mail, WhatsApp e Profissão/Vínculo. O CPF não pode ser alterado por aqui. No campo
+       <strong>Profissão/Vínculo</strong>, se sua situação não estiver na lista, escolha <strong>"Outro"</strong>
+       e um campo de texto aparece para você descrever.</p>
+
+    <h3>Dados Bancários</h3>
+    <p>Banco, agência, conta, tipo de conta e chave Pix — é para onde suas comissões são pagas. Mantenha
+       sempre atualizado.</p>
+
+    <h3>Documentos</h3>
+    <p>Mostra o RG/CNH e o Comprovante de Residência que você enviou no cadastro:</p>
+    <ul>
+      <li><span class="pill pill-green">Enviado</span> — aparece um botão <strong>"Ver"</strong> (abre o
+        arquivo) e <strong>"Reenviar"</strong> (caso precise trocar por um documento mais atual).</li>
+      <li><span class="pill pill-amber">Pendente</span> — se algum documento ainda não foi enviado, aparece
+        um aviso e o botão <strong>"Enviar agora"</strong>, direto nesta tela.</li>
+    </ul>
+    <div class="box box-warn">Documentos pendentes podem atrasar a aprovação do seu cadastro ou de mudanças no seu perfil — envie assim que possível.</div>
+
+    <h3>Botão "Salvar alterações"</h3>
+    <p>No topo da tela, salva tudo que foi alterado nos Dados Pessoais e Bancários de uma vez.</p>
+  </section>
+
+  <!-- ══════════════ 9. FAQ ══════════════ -->
+  <section id="duvidas">
+    <div class="sec-head"><span class="sec-ico">❓</span><div><h2>Perguntas frequentes</h2></div></div>
+
+    <h3>Meu cadastro está "em análise" há muito tempo. O que fazer?</h3>
+    <p>A aprovação costuma levar até 48h. Se passar muito disso, entre em contato com a WAL Consultoria pelos
+       canais habituais para confirmar se falta algum documento.</p>
+
+    <h3>Posso indicar quantas pessoas eu quiser?</h3>
+    <p>Sim, não há limite de indicações nem de comissões.</p>
+
+    <h3>Quem faz a negociação e o fechamento da venda?</h3>
+    <p>O corretor da WAL. Seu papel é apresentar e indicar — o restante do processo (proposta, visita,
+       assinatura de contrato) é conduzido pela nossa equipe comercial.</p>
+
+    <h3>Como eu sei se minha indicação virou venda?</h3>
+    <p>O status muda para <strong>"✅ Venda fechada"</strong> em "Minhas Indicações" e no Pipeline, e a
+       comissão correspondente aparece no seu extrato em "Comissões".</p>
+
+    <h3>Esqueci de anexar o comprovante de residência no cadastro. E agora?</h3>
+    <p>Você pode enviar depois, direto em <strong>Meu Perfil → Documentos</strong>, assim que seu login
+       estiver liberado.</p>
+  </section>
+
+  <footer>
+    WAL Consultoria — Imóveis para quem serve ao Brasil · Manual do Portal do Agente Parceiro
+  </footer>
+
+</div>
+</body>
+</html>

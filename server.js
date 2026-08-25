@@ -95,7 +95,7 @@ http.createServer((req, res) => {
   }
 
   /* ── Arquivos estáticos ── */
-  const urlPath  = req.url === '/' ? '/index.html' : req.url.split('?')[0];
+  const urlPath  = req.url === '/' ? '/index.html' : decodeURIComponent(req.url.split('?')[0]);
   const filePath = path.join(BASE_DIR, urlPath);
   const ext      = path.extname(filePath).toLowerCase();
   const mime     = MIME[ext] || 'application/octet-stream';
