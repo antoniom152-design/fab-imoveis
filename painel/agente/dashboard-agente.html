@@ -126,7 +126,7 @@ a{text-decoration:none;color:inherit}
    TOAST
 ══════════════════════════ */
 #toast{
-  position:fixed;bottom:24px;right:24px;z-index:5000;
+  position:fixed;bottom:24px;right:24px;z-index:10001;
   background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;
   padding:12px 18px;font-size:12px;color:var(--txt);
   box-shadow:0 8px 32px rgba(0,0,0,.5);
@@ -333,7 +333,7 @@ a{text-decoration:none;color:inherit}
 .fstep-pct{font-size:10px;color:var(--muted);font-family:var(--mono);min-width:30px;text-align:right}
 
 /* ── MODAL ── */
-.modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:1000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.92);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
 .modal-ov.show{display:flex}
 .modal-box{width:100%;max-width:720px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);border-top:2px solid var(--teal2)}
 .modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
@@ -635,7 +635,7 @@ a{text-decoration:none;color:inherit}
         <div class="field-row field-2 mb14">
           <div>
             <div class="field-lbl">RG ou CNH (frente) *</div>
-            <div class="upload-area" onclick="document.getElementById('docRg').click()">
+            <div class="upload-area" id="docRgArea" onclick="document.getElementById('docRg').click()">
               <input type="file" id="docRg" accept="image/*,.pdf" onchange="handleUpload(this,'docRgNome')">
               <div style="font-size:24px">📄</div>
               <div class="upload-lbl">Clique para selecionar</div>
@@ -644,7 +644,7 @@ a{text-decoration:none;color:inherit}
           </div>
           <div>
             <div class="field-lbl">Comprovante de residência *</div>
-            <div class="upload-area" onclick="document.getElementById('docRes').click()">
+            <div class="upload-area" id="docResArea" onclick="document.getElementById('docRes').click()">
               <input type="file" id="docRes" accept="image/*,.pdf" onchange="handleUpload(this,'docResNome')">
               <div style="font-size:24px">🏠</div>
               <div class="upload-lbl">Clique para selecionar</div>
@@ -659,7 +659,7 @@ a{text-decoration:none;color:inherit}
           </div>
         </div>
 
-        <div class="terms-check">
+        <div class="terms-check" id="cadTermosWrap">
           <input type="checkbox" id="cadTermos">
           <label for="cadTermos">Li e aceito os <a href="WAL_Termos_de_Parceria_Agente_v2.0.pdf" target="_blank" rel="noopener">Termos de Parceria</a> e a <a href="WAL_Politica_de_Privacidade_Agente_v2.0.pdf" target="_blank" rel="noopener">Política de Privacidade</a> da WAL Consultoria. Entendo que minha participação depende de aprovação pela direção.</label>
         </div>
@@ -1486,6 +1486,49 @@ async function doLoginConfirmarCodigo(){
 }
 
 let _cadEmailPendente='';
+/* Validação "anti-lixo" campo a campo — mesmo critério já usado em
+   reserva.html (validarCPF/validarNomeCompletoReserva/validarTelefoneReserva),
+   reaproveitado aqui pra que o cadastro de Agente não aceite CPF/telefone/
+   nome inválidos silenciosamente. */
+function validarCPF(cpf){
+  cpf=String(cpf).replace(/\D/g,'');
+  if(cpf.length!==11) return false;
+  if(/^(\d)\1{10}$/.test(cpf)) return false;
+  let soma=0,resto;
+  for(let i=1;i<=9;i++) soma+=parseInt(cpf[i-1])*(11-i);
+  resto=(soma*10)%11; if(resto===10||resto===11) resto=0;
+  if(resto!==parseInt(cpf[9])) return false;
+  soma=0;
+  for(let i=1;i<=10;i++) soma+=parseInt(cpf[i-1])*(12-i);
+  resto=(soma*10)%11; if(resto===10||resto===11) resto=0;
+  return resto===parseInt(cpf[10]);
+}
+function validarNomeCompletoCad_(nome){
+  const limpo=(nome||'').trim();
+  if(!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+  const partes=limpo.split(/\s+/).filter(Boolean);
+  return partes.length>=2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length>=4;
+}
+function validarTelefoneCad_(tel){
+  const digitos=(tel||'').replace(/\D/g,'');
+  if(digitos.length<10||digitos.length>11) return false;
+  const ddd=parseInt(digitos.slice(0,2),10);
+  return ddd>=11&&ddd<=99;
+}
+function validarEmailCad_(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email||'').trim());
+}
+function limparValidacaoCadastro_(){
+  ['cadNome','cadCpf','cadEmail','cadTel'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
+  ['docRgArea','docResArea'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
+  const tw=document.getElementById('cadTermosWrap'); if(tw) tw.style.outline='';
+}
+function marcarCampoInvalidoCad_(id,ehArea){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(ehArea) el.style.outline='2px solid #DC2626'; else { el.style.borderColor='#DC2626'; el.focus(); }
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+}
 function doCadastroValidarEEnviarCodigo(){
   const nome=document.getElementById('cadNome').value.trim();
   const email=document.getElementById('cadEmail').value.trim().toLowerCase();
@@ -1495,9 +1538,28 @@ function doCadastroValidarEEnviarCodigo(){
   const err=document.getElementById('cadErr');
   const ok=document.getElementById('cadOk');
   err.style.display='none';ok.style.display='none';
-  if(!nome||!email||!tel||!cpf||!termos){err.textContent='Preencha todos os campos obrigatórios e aceite os termos.';err.style.display='block';return}
-  if(email.indexOf('@')===-1){err.textContent='Informe um e-mail válido.';err.style.display='block';return}
-  if(!_docFiles.docRg||!_docFiles.docRes){err.textContent='Envie o RG/CNH e o comprovante de residência (documentos obrigatórios).';err.style.display='block';return}
+  limparValidacaoCadastro_();
+
+  const checagens=[
+    {cond:!nome,                              id:'cadNome',    msg:'Informe seu nome completo.'},
+    {cond:nome&&!validarNomeCompletoCad_(nome),id:'cadNome',    msg:'Nome incompleto ou inválido — informe nome e sobrenome, sem números ou símbolos.'},
+    {cond:!cpf,                               id:'cadCpf',     msg:'Informe seu CPF.'},
+    {cond:cpf&&!validarCPF(cpf),              id:'cadCpf',     msg:'CPF inválido — confira os números digitados.'},
+    {cond:!email,                             id:'cadEmail',   msg:'Informe seu e-mail.'},
+    {cond:email&&!validarEmailCad_(email),    id:'cadEmail',   msg:'Informe um e-mail válido.'},
+    {cond:!tel,                               id:'cadTel',     msg:'Informe seu WhatsApp.'},
+    {cond:tel&&!validarTelefoneCad_(tel),     id:'cadTel',     msg:'WhatsApp inválido — informe DDD + número (10 ou 11 dígitos).'},
+    {cond:!_docFiles.docRg,                   id:'docRgArea',  area:true, msg:'Envie o RG ou CNH (frente) — documento obrigatório.'},
+    {cond:!_docFiles.docRes,                  id:'docResArea', area:true, msg:'Envie o comprovante de residência — documento obrigatório.'},
+    {cond:!termos,                            id:'cadTermosWrap', area:true, msg:'Marque a caixa de aceite dos Termos de Parceria e da Política de Privacidade.'}
+  ];
+  for(const c of checagens){
+    if(c.cond){
+      marcarCampoInvalidoCad_(c.id,c.area);
+      err.textContent=c.msg;err.style.display='block';
+      return;
+    }
+  }
   _cadEmailPendente=email;
   document.getElementById('authGateEmailTxt').textContent=email;
   document.getElementById('authGateCodigo').value='';
