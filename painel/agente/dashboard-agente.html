@@ -80,6 +80,7 @@ a{text-decoration:none;color:inherit}
 .field-row{display:grid;gap:12px;margin-bottom:14px}
 .field-2{grid-template-columns:1fr 1fr}
 .field-3{grid-template-columns:1fr 1fr 1fr}
+.field-5{grid-template-columns:repeat(5,1fr)}
 .f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
 .auth-btn{
   width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;
@@ -433,6 +434,7 @@ a{text-decoration:none;color:inherit}
   .topbar{padding-left:58px}
   .g2,.g3{grid-template-columns:1fr}
   .field-2,.field-3{grid-template-columns:1fr}
+  .field-5{grid-template-columns:1fr 1fr}
   .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
   .emp-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
   div[style*="grid-template-columns:1fr 280px"]{grid-template-columns:1fr!important}
@@ -441,6 +443,7 @@ a{text-decoration:none;color:inherit}
 
 @media(max-width:600px){
   .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:1fr!important}
+  .field-5{grid-template-columns:1fr}
   .ph-title{font-size:19px}
   .kpi-val{font-size:20px}
   .content{padding:14px}
@@ -538,7 +541,7 @@ a{text-decoration:none;color:inherit}
   <div class="auth-wrap">
     <div class="auth-logo-area">
       <div class="auth-brand">WAL Consultoria</div>
-      <div class="auth-tagline">Imóveis para quem serve ao Brasil</div>
+      <div class="auth-tagline">Especialistas em imóveis para servidores públicos</div>
       <div class="auth-badge">🤝 Portal do Agente Parceiro</div>
     </div>
     <div class="auth-box">
@@ -574,7 +577,9 @@ a{text-decoration:none;color:inherit}
       <!-- CADASTRO -->
       <div class="auth-panel" id="tabCadastro">
         <div class="auth-title">Quero ser Agente WAL</div>
-        <div class="auth-sub">Indique conhecidos que se encaixam no nosso perfil de cliente e ganhe comissões sobre as vendas realizadas. Preencha seus dados para solicitar acesso.</div>
+        <div class="auth-sub">Indique. Acompanhe. Seja recompensado. Torne-se um Agente Parceiro WAL e indique pessoas interessadas em adquirir um imóvel. 
+		Quando sua indicação resultar em uma venda concluída, você poderá receber uma bonificação pela indicação, conforme as regras do programa. 
+		Todo o atendimento e negociação são realizados pela equipe da WAL Consultoria. Preencha seu cadastro para solicitar sua participação.</div>
 
         <div class="f-sec">Dados Pessoais</div>
         <div class="field-row field-2 mb14">
@@ -590,10 +595,21 @@ a{text-decoration:none;color:inherit}
           <div><div class="field-lbl">Profissão / Vínculo</div>
             <select class="field-sel" id="cadProf">
               <option value="">Selecione...</option>
-              <option>Militar da Aeronáutica (FAB)</option><option>Militar do Exército</option>
-              <option>Militar da Marinha</option><option>Servidor Civil Federal</option>
-              <option>Servidor Estadual / Municipal</option><option>Pensionista Militar</option>
-              <option>Profissional Liberal</option><option>Outro</option>
+              <option>Militar da Aeronáutica</option>
+			  <option>Militar do Exército</option>
+              <option>Militar da Marinha</option>
+			  <option>Bombeiro</option>
+			  <option>Policia Civil / Militar</option>
+			  <option>Servidor Federal</option>
+              <option>Servidor Estadual</option>
+			  <option>Servidor Municipal</option>
+			  <option>Pensionista/Reserva Militar</option>
+              <option>Pensionista Civil</option>
+			  <option>Empresário</option>
+			  <option>Profissional Liberal</option>
+			  <option>Do Lar</option>
+			  <option>Funcionário</option>	  
+			  <option>Outro</option>
             </select>
           </div>
         </div>
@@ -637,13 +653,13 @@ a{text-decoration:none;color:inherit}
 
         <div class="field-row mb14">
           <div><div class="field-lbl">Como pretende indicar clientes?</div>
-            <textarea class="field-ta" id="cadMotivacao" placeholder="Ex: Sou suboficial da FAB e tenho muitos colegas de quartel que buscam imóvel com financiamento CFIAe..."></textarea>
+            <textarea class="field-ta" id="cadMotivacao" placeholder="Ex.: Conheço servidores públicos civis e militares que têm interesse em comprar imóveis e gostaria de indicá-los para serem atendidos pela equipe da WAL..."></textarea>
           </div>
         </div>
 
         <div class="terms-check">
           <input type="checkbox" id="cadTermos">
-          <label for="cadTermos">Li e aceito os <a href="#">Termos de Parceria</a> e a <a href="#">Política de Privacidade</a> da WAL Consultoria. Entendo que minha participação depende de aprovação pela direção.</label>
+          <label for="cadTermos">Li e aceito os <a href="WAL_Termos_de_Parceria_Agente_v2.0.pdf" target="_blank" rel="noopener">Termos de Parceria</a> e a <a href="WAL_Politica_de_Privacidade_Agente_v2.0.pdf" target="_blank" rel="noopener">Política de Privacidade</a> da WAL Consultoria. Entendo que minha participação depende de aprovação pela direção.</label>
         </div>
 
         <button class="auth-btn" id="cadBtn" onclick="doCadastroValidarEEnviarCodigo()">Enviar Solicitação de Cadastro</button>
@@ -729,7 +745,10 @@ a{text-decoration:none;color:inherit}
     <div class="nav-grp">
       <div class="nav-lbl">Ferramentas</div>
       <div class="nav-item" onclick="nav(this,'empreendimentos')"><span class="nav-ico">🏗️</span>Empreendimentos</div>
-      <div class="nav-item" onclick="nav(this,'materiais')">
+      <!-- Escondido de propósito (24/08/2026) — Antonio ainda está montando a parte de
+           marketing. O painel continua funcionando normalmente, só remova este
+           style="display:none" pra reexibir o item no menu. -->
+      <div class="nav-item" onclick="nav(this,'materiais')" style="display:none">
         <span class="nav-ico">📁</span>Materiais de Apoio
         <span class="nav-bdg nb-g">3 novos</span>
       </div>
@@ -761,6 +780,7 @@ a{text-decoration:none;color:inherit}
         <span class="tb-page" id="topbarTitle">Meu Painel</span>
       </div>
       <div class="tb-meta">
+        <a class="tb-notif" href="manual-agente.html" target="_blank" rel="noopener" title="Manual do Agente">📖</a>
         <div class="tb-notif" onclick="nav(document.querySelector('[onclick*=indicacoes]'),'indicacoes')">
           🔔<div class="notif-dot" id="notifDot" style="display:none"></div>
         </div>
@@ -920,12 +940,27 @@ a{text-decoration:none;color:inherit}
         <div>
           <div class="ph-eye">🏗️ Portfólio</div>
           <div class="ph-title">Empreendimentos Disponíveis</div>
-          <div class="ph-sub">Use estes empreendimentos para apresentar aos seus conhecidos</div>
-        </div>
-        <div class="ph-acts">
-          <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Filtrar..." style="width:180px" oninput="renderEmps()">
+          <div class="ph-sub">Filtre por tipo, cidade e faixa de valor para achar o ideal pro seu indicado</div>
         </div>
       </div>
+      <div class="card mb20">
+        <div class="card-b">
+          <div class="field-row field-5">
+            <div><div class="field-lbl">UF</div><select class="field-sel" id="empFUf" onchange="atualizarCidadesEmp();filtrarEmps()"><option value="">Todos</option></select></div>
+            <div><div class="field-lbl">Tipo de Imóvel</div><select class="field-sel" id="empFTipo" onchange="filtrarEmps()"><option value="">Todos os tipos</option></select></div>
+            <div><div class="field-lbl">Cidade</div><select class="field-sel" id="empFCidade" onchange="atualizarBairrosEmp();filtrarEmps()"><option value="">Todas as cidades</option></select></div>
+            <div><div class="field-lbl">Bairro</div><select class="field-sel" id="empFBairro" onchange="filtrarEmps()"><option value="">Todos os bairros</option></select></div>
+            <div><div class="field-lbl">Faixa de Valor</div><select class="field-sel" id="empFFaixa" onchange="filtrarEmps()"><option value="">Qualquer valor</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-gold" onclick="filtrarEmps()">▶ Filtrar</button>
+            <button class="btn" onclick="limparFiltrosEmps()">✕ Limpar</button>
+            <a class="btn btn-teal" href="../../mapa-empreendimentos.html" target="_blank" rel="noopener">🗺️ Ver no Mapa</a>
+            <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Buscar por nome..." style="width:200px;margin-left:auto" oninput="filtrarEmps()">
+          </div>
+        </div>
+      </div>
+      <div class="fs11 c-muted mb14" id="empContagem"></div>
       <div id="empGrid" class="emp-grid mb20"></div>
 
       <div class="card mb20">
@@ -1109,11 +1144,23 @@ a{text-decoration:none;color:inherit}
             </div>
             <div class="field-row mb14">
               <div><div class="field-lbl">Profissão / Vínculo</div>
-                <select class="field-sel" id="perfProf">
-                  <option selected>Militar da Aeronáutica (FAB)</option>
-                  <option>Militar do Exército</option><option>Militar da Marinha</option>
-                  <option>Servidor Civil Federal</option><option>Pensionista Militar</option>
+                <select class="field-sel" id="perfProf" onchange="togglePerfProfOutro()">
+                  <option>Militar da Aeronáutica</option>
+                  <option>Civil da Aeronáutica</option>
+                  <option>Militar da Marinha</option>
+                  <option>Civil da Marinha</option>
+                  <option>Militar do Exército</option>
+                  <option>Civil do Exército</option>
+                  <option>Bombeiro</option>
+                  <option>Policial Civil</option>
+                  <option>Policial Militar</option>
+                  <option>Funcionário Público Federal</option>
+                  <option>Funcionário Público Estadual</option>
+                  <option>Funcionário Público Municipal</option>
+                  <option>Empresa Pública</option>
+                  <option>Outro</option>
                 </select>
+                <input class="field-inp" id="perfProfOutro" placeholder="Digite sua profissão / vínculo" style="display:none;margin-top:8px">
               </div>
             </div>
           </div>
@@ -1140,19 +1187,7 @@ a{text-decoration:none;color:inherit}
           <div class="card">
             <div class="card-h"><div class="card-title">📄 Documentos</div></div>
             <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
-              <div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
-                <div class="flex" style="gap:8px"><span style="font-size:18px">📄</span><div><div class="fs12 fw6">RG / CNH</div><div class="fs10 c-muted">Enviado em Jan/26</div></div></div>
-                <span class="bdg bg">Aprovado</span>
-              </div>
-              <div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px">
-                <div class="flex" style="gap:8px"><span style="font-size:18px">🏠</span><div><div class="fs12 fw6">Comprovante de Residência</div><div class="fs10 c-muted">Enviado em Jan/26</div></div></div>
-                <span class="bdg bg">Aprovado</span>
-              </div>
-              <div style="padding:10px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:7px">
-                <div class="fs11 c-amber fw6">📋 Contrato de Parceria</div>
-                <div class="fs10 c-muted" style="margin-top:2px">Assine digitalmente para habilitar o recebimento de comissões</div>
-                <button class="btn-teal btn btn-sm" style="margin-top:8px" onclick="toast('Link de assinatura enviado para seu e-mail!','green')">✍️ Assinar digitalmente</button>
-              </div>
+              <div id="perfDocsWrap" style="display:flex;flex-direction:column;gap:8px"></div>
             </div>
           </div>
         </div>
@@ -1291,6 +1326,13 @@ a{text-decoration:none;color:inherit}
 <script>
 /* ═══ DATA ═══ */
 const TIPO_PESSOA = 'agente';
+/* Versão dos documentos legais vinculados no checkbox "Li e aceito os
+   Termos..." do cadastro — gravada em Termos_Versao (planilha) sempre
+   que alguém aceita, pra saber quem aceitou qual versão se os PDFs
+   forem atualizados no futuro. Trocar aqui junto quando os arquivos
+   WAL_Termos_de_Parceria_Agente_vX.pdf/WAL_Politica_de_Privacidade_
+   Agente_vX.pdf forem substituídos por uma versão nova. */
+const TERMOS_VERSAO = 'v2.0';
 let _user = null;
 let _editIndId = null;
 let _indicacoes = [];
@@ -1358,6 +1400,19 @@ function cadastroApiJsonp(action, params){
 function chamarCadastroApi(action, payload){
   try{
     fetch(CADASTRO_API_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action}, payload)) }).catch(()=>{});
+  }catch(e){}
+}
+
+/* Projeto Apps Script ISOLADO, numa conta pessoal (não Workspace) —
+   só cuida do upload de documentos (RG/CNH, comprovante de
+   residência) pro Drive. Separado do CADASTRO_API_URL porque a conta
+   Workspace que roda o projeto principal bloqueia DriveApp por
+   política de segurança do domínio, mesmo com autorização concedida.
+   Ver painel/shared/apps-script-upload-documentos-agente.gs. */
+const UPLOAD_DOCUMENTOS_API_URL = 'https://script.google.com/macros/s/AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw/exec';
+function chamarUploadDocumentosApi(action, payload){
+  try{
+    fetch(UPLOAD_DOCUMENTOS_API_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action}, payload)) }).catch(()=>{});
   }catch(e){}
 }
 
@@ -1440,6 +1495,7 @@ function doCadastroValidarEEnviarCodigo(){
   err.style.display='none';ok.style.display='none';
   if(!nome||!email||!tel||!cpf||!termos){err.textContent='Preencha todos os campos obrigatórios e aceite os termos.';err.style.display='block';return}
   if(email.indexOf('@')===-1){err.textContent='Informe um e-mail válido.';err.style.display='block';return}
+  if(!_docFiles.docRg||!_docFiles.docRes){err.textContent='Envie o RG/CNH e o comprovante de residência (documentos obrigatórios).';err.style.display='block';return}
   _cadEmailPendente=email;
   document.getElementById('authGateEmailTxt').textContent=email;
   document.getElementById('authGateCodigo').value='';
@@ -1478,20 +1534,187 @@ async function doAuthGateConfirmar(){
     agencia:document.getElementById('cadAgencia').value,
     conta:document.getElementById('cadConta').value,
     tipoConta:document.getElementById('cadTipoConta').value,
-    pix:document.getElementById('cadPix').value
+    pix:document.getElementById('cadPix').value,
+    termosAceitos:document.getElementById('cadTermos').checked,
+    termosVersao:TERMOS_VERSAO
   });
   btn.disabled=false;btn.textContent='Confirmar código';
   if(!resp||resp.status!=='ok'){err.textContent=(resp&&resp.message)||'Não foi possível concluir o cadastro. Tente novamente.';err.style.display='block';return}
   fecharModal('authGateOverlay');
   document.getElementById('cadOk').style.display='block';
+
+  // Documentos são grandes demais para o GET/JSONP usado no resto do
+  // cadastro — enviados à parte, em POST fire-and-forget (mesmo padrão
+  // do reserva.html). O cadastro em si já está concluído nesse ponto,
+  // então uma falha aqui não impede a solicitação de ir pra análise.
+  try{
+    const documentos=[];
+    if(_docFiles.docRg) documentos.push({descricao:'RG_ou_CNH', nome:_docFiles.docRg.name, tipo:_docFiles.docRg.type||'application/octet-stream', base64:await docParaBase64_(_docFiles.docRg)});
+    if(_docFiles.docRes) documentos.push({descricao:'Comprovante_Residencia', nome:_docFiles.docRes.name, tipo:_docFiles.docRes.type||'application/octet-stream', base64:await docParaBase64_(_docFiles.docRes)});
+    if(documentos.length) chamarUploadDocumentosApi('crm_pessoa_upload_documentos',{
+      email:_cadEmailPendente, sessionToken:respVerif.sessionToken, tipo:TIPO_PESSOA,
+      nome:document.getElementById('cadNome').value.trim(), documentos
+    });
+  }catch(e){ console.warn('Falha ao enviar documentos:',e.message); }
+
   setTimeout(()=>{
     ['cadNome','cadCpf','cadEmail','cadTel','cadBanco','cadAgencia','cadConta','cadPix','cadMotivacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
     document.getElementById('cadTermos').checked=false;
+    ['docRg','docRes'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id+'Nome').textContent='';_docFiles[id]=null});
   },2000);
 }
+const MAX_DOC_MB=5;
+let _docFiles={docRg:null,docRes:null};
 function handleUpload(input,nomeId){
+  const f=input.files[0];
+  const nomeEl=document.getElementById(nomeId);
+  if(!f){ _docFiles[input.id]=null; nomeEl.textContent=''; return }
+  if(f.size>MAX_DOC_MB*1024*1024){
+    alert(`Arquivo muito grande! Limite: ${MAX_DOC_MB} MB.\nUse PDF comprimido ou imagem menor.`);
+    input.value=''; _docFiles[input.id]=null; nomeEl.textContent=''; return;
+  }
+  _docFiles[input.id]=f;
+  nomeEl.textContent='✅ '+f.name;
+}
+function docParaBase64_(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=()=>rej(new Error('Falha ao ler '+file.name));
+    r.readAsDataURL(file);
+  });
+}
+
+/* ═══ DOCUMENTOS NO PERFIL (RG/CNH, Comprovante de Residência,
+   Contrato de Parceria assinado) ═══
+   Mostra o que já foi enviado no cadastro (_user.docRgUrl/
+   docComprovanteUrl/docContratoUrl, vindos de crm_pessoaParaObjeto_) e
+   permite reenviar ou enviar pela primeira vez direto daqui,
+   reaproveitando a mesma ação crm_pessoa_upload_documentos (POST
+   fire-and-forget, sem resposta pra ler — por isso o estado "enviando"
+   abaixo é otimista: não temos como confirmar o link novo sem um novo
+   login). O Contrato NÃO é assinatura digital de verdade (não existe
+   integração tipo DocuSign aqui, pedido 54.7.2) — o agente baixa o
+   modelo, assina como puder (impresso+scan ou app do celular) e sobe o
+   PDF assinado aqui, igual RG/CNH. Fica guardado na MESMA pasta do
+   Drive dos outros documentos (mesmo projeto isolado,
+   apps-script-upload-documentos-agente.gs). */
+const CONTRATO_PARCERIA_PDF = 'Contrato_Parceria_Agente_WAL_v1.0.pdf';
+const PERF_DOCS_CFG=[
+  {key:'docRgUrl',         label:'RG / CNH',                        icon:'📄', inputId:'perfDocRg',       descricao:'RG_ou_CNH'},
+  {key:'docComprovanteUrl',label:'Comprovante de Residência',       icon:'🏠', inputId:'perfDocRes',      descricao:'Comprovante_Residencia'},
+  {key:'docContratoUrl',   label:'Contrato de Parceria (assinado)', icon:'📋', inputId:'perfDocContrato', descricao:'Contrato_Assinado', modeloUrl:CONTRATO_PARCERIA_PDF}
+];
+let _perfDocsEnviando={};
+/* Card dos Termos de Parceria/Política de Privacidade, na mesma
+   subseção Documentos (pedido 54.7) — mesmo raciocínio do aceite no
+   cadastro (54.6): se por algum motivo a pessoa ficou sem aceitar
+   (ex.: cadastro antigo, de antes dessa validação existir), dá pra
+   aceitar por aqui também. Ao contrário do upload de documentos, essa
+   ação (crm_pessoa_aceitar_termos) mora no projeto principal (não no
+   isolado do Drive) e responde de verdade via GET/JSONP — por isso dá
+   pra confirmar o aceite na hora, sem precisar do estado "otimista"
+   usado no upload de arquivo. */
+function termosCardHtml_(){
+  const aceito=_user.termosAceitosEm;
+  const hrefTermos=`WAL_Termos_de_Parceria_Agente_${TERMOS_VERSAO}.pdf`;
+  const hrefPrivacidade=`WAL_Politica_de_Privacidade_Agente_${TERMOS_VERSAO}.pdf`;
+  if(aceito){
+    return `<div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px;flex-wrap:wrap;gap:8px">
+      <div class="flex" style="gap:8px"><span style="font-size:18px">📋</span><div>
+        <div class="fs12 fw6">Termos de Parceria e Política de Privacidade</div>
+        <div class="fs10 c-muted">Aceito em ${fmtDt(aceito)}${_user.termosVersao?' · versão '+_user.termosVersao:''}</div>
+      </div></div>
+      <div class="flex" style="gap:6px">
+        <a class="btn btn-sm" href="${hrefTermos}" target="_blank" rel="noopener">📄 Termos</a>
+        <a class="btn btn-sm" href="${hrefPrivacidade}" target="_blank" rel="noopener">🔒 Privacidade</a>
+      </div>
+    </div>`;
+  }
+  return `<div style="padding:10px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:7px">
+    <div class="flex-bet">
+      <div class="flex" style="gap:8px"><span style="font-size:18px">📋</span><div><div class="fs12 fw6 c-amber">Termos de Parceria e Política de Privacidade</div><div class="fs10 c-muted">Você ainda não aceitou — pode ter ficado pra trás no cadastro</div></div></div>
+      <span class="bdg ba">Pendente</span>
+    </div>
+    <div class="flex" style="gap:6px;margin-top:8px;flex-wrap:wrap">
+      <a class="btn btn-sm" href="${hrefTermos}" target="_blank" rel="noopener">📄 Ler Termos</a>
+      <a class="btn btn-sm" href="${hrefPrivacidade}" target="_blank" rel="noopener">🔒 Ler Política</a>
+    </div>
+    <div class="terms-check" style="margin-top:10px;margin-bottom:0">
+      <input type="checkbox" id="perfTermosCheck">
+      <label for="perfTermosCheck">Li e aceito os <a href="${hrefTermos}" target="_blank" rel="noopener">Termos de Parceria</a> e a <a href="${hrefPrivacidade}" target="_blank" rel="noopener">Política de Privacidade</a> da WAL Consultoria.</label>
+    </div>
+    <button class="btn-teal btn btn-sm" style="margin-top:10px;width:100%" onclick="aceitarTermosPerfil()">✅ Aceitar agora</button>
+  </div>`;
+}
+async function aceitarTermosPerfil(){
+  const chk=document.getElementById('perfTermosCheck');
+  if(chk&&!chk.checked){toast('Marque a caixa confirmando que leu os Termos e a Política antes de aceitar.','');return}
+  const resp=await cadastroApiJsonp('crm_pessoa_aceitar_termos',{
+    email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+    termosAceitos:true, termosVersao:TERMOS_VERSAO
+  });
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível registrar o aceite. Tente novamente.','red');return}
+  _user.termosAceitosEm=resp.aceitoEm||new Date().toISOString();
+  _user.termosVersao=TERMOS_VERSAO;
+  renderDocumentosPerfil();
+  toast('Termos aceitos! Obrigado.','green');
+}
+function renderDocumentosPerfil(){
+  const wrap=document.getElementById('perfDocsWrap');
+  if(!wrap)return;
+  const docsHtml=PERF_DOCS_CFG.map(d=>{
+    const url=_user[d.key];
+    const enviando=_perfDocsEnviando[d.descricao];
+    if(enviando){
+      return `<div style="padding:10px;background:var(--teal-dim);border:1px solid rgba(34,211,238,.25);border-radius:7px">
+        <div class="flex" style="gap:8px"><span style="font-size:18px">⏳</span><div>
+          <div class="fs12 fw6 c-teal">${d.label}</div>
+          <div class="fs10 c-muted">Enviando... pode levar alguns instantes para aparecer aqui</div>
+        </div></div>
+      </div>`;
+    }
+    if(url){
+      return `<div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px;flex-wrap:wrap;gap:8px">
+        <div class="flex" style="gap:8px"><span style="font-size:18px">${d.icon}</span><div><div class="fs12 fw6">${d.label}</div><div class="fs10 c-muted">Documento enviado</div></div></div>
+        <div class="flex" style="gap:6px">
+          <a class="btn btn-sm" href="${url}" target="_blank" rel="noopener">👁️ Ver</a>
+          <button class="btn btn-sm" onclick="document.getElementById('${d.inputId}').click()">🔄 Reenviar</button>
+        </div>
+      </div>
+      <input type="file" id="${d.inputId}" accept="image/*,.pdf" style="display:none" onchange="handleUploadPerfil(this,'${d.descricao}')">`;
+    }
+    return `<div style="padding:10px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:7px">
+      <div class="flex-bet">
+        <div class="flex" style="gap:8px"><span style="font-size:18px">${d.icon}</span><div><div class="fs12 fw6 c-amber">${d.label}</div><div class="fs10 c-muted">Ainda não recebemos este documento</div></div></div>
+        <span class="bdg ba">Pendente</span>
+      </div>
+      <div class="fs10 c-amber" style="margin-top:6px">⚠️ Envie o quanto antes para não atrasar sua aprovação.</div>
+      ${d.modeloUrl?`<a class="btn btn-sm" style="margin-top:8px;width:100%;justify-content:center" href="${d.modeloUrl}" target="_blank" rel="noopener">📥 Baixar contrato para assinar</a>`:''}
+      <button class="btn-teal btn btn-sm" style="margin-top:8px;width:100%" onclick="document.getElementById('${d.inputId}').click()">📤 Enviar agora</button>
+      <input type="file" id="${d.inputId}" accept="image/*,.pdf" style="display:none" onchange="handleUploadPerfil(this,'${d.descricao}')">
+    </div>`;
+  }).join('');
+  wrap.innerHTML=docsHtml+termosCardHtml_();
+}
+async function handleUploadPerfil(input,descricao){
   const f=input.files[0];if(!f)return;
-  document.getElementById(nomeId).textContent='✅ '+f.name;
+  if(f.size>MAX_DOC_MB*1024*1024){
+    alert(`Arquivo muito grande! Limite: ${MAX_DOC_MB} MB.\nUse PDF comprimido ou imagem menor.`);
+    input.value='';return;
+  }
+  try{
+    const base64=await docParaBase64_(f);
+    chamarUploadDocumentosApi('crm_pessoa_upload_documentos',{
+      email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+      nome:_user.nome, documentos:[{descricao, nome:f.name, tipo:f.type||'application/octet-stream', base64}]
+    });
+    _perfDocsEnviando[descricao]=true;
+    renderDocumentosPerfil();
+    toast('Documento enviado!','green');
+  }catch(e){
+    toast('Não foi possível ler o arquivo. Tente novamente.','red');
+  }
 }
 function doLogout(){
   _user=null;
@@ -1525,8 +1748,14 @@ async function iniciarApp(){
   document.getElementById('perfTel').value=_user.whatsapp||'';
   if(_user.profissao){
     const selProf=document.getElementById('perfProf');
-    if([...selProf.options].some(o=>o.value===_user.profissao)) selProf.value=_user.profissao;
+    if([...selProf.options].some(o=>o.value===_user.profissao)){
+      selProf.value=_user.profissao;
+    }else{
+      selProf.value='Outro';
+      document.getElementById('perfProfOutro').value=_user.profissao;
+    }
   }
+  togglePerfProfOutro();
   document.getElementById('perfBancoEdit').value=_user.banco||'';
   document.getElementById('perfAgEdit').value=_user.agencia||'';
   document.getElementById('perfCtEdit').value=_user.conta||'';
@@ -1542,6 +1771,7 @@ async function iniciarApp(){
   tick();setInterval(tick,1000);
   renderItensAtribuicao();
   renderMateriais();
+  renderDocumentosPerfil();
   // IA welcome
   addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Apresentar os imóveis para seus conhecidos de forma natural\n• Responder objeções como amigo, não como vendedor\n• Criar mensagens de WhatsApp prontas para usar\n• Explicar o financiamento CFIAe de forma simples\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
   await carregarDadosIniciais();
@@ -1573,7 +1803,7 @@ async function carregarDadosIniciais(){
   renderHomeInd();atualizarPills();
   renderIndicacoes();indStats();
   renderPipeline();
-  renderEmps();
+  popularFiltrosEmp();filtrarEmps();
   renderComissoes();
   renderComissBadge();
 }
@@ -1851,13 +2081,77 @@ function renderItensAtribuicao(){
     ||`<div class="fs11 c-muted">Nenhum item liberado no momento.</div>`;
 }
 
-function renderEmps(){
+/* ═══ FILTROS DE EMPREENDIMENTOS (mesmo padrão de imoveis.html) ═══ */
+let _empFiltrados=[];
+const EMP_FAIXAS=[
+  {id:'300',  max:300,  label:'Até R$ 300 mil'},
+  {id:'500',  max:500,  label:'Até R$ 500 mil'},
+  {id:'700',  max:700,  label:'Até R$ 700 mil'},
+  {id:'850',  max:850,  label:'Até R$ 850 mil'},
+  {id:'990',  max:990,  label:'Até R$ 990 mil'},
+  {id:'1500', max:1500, label:'Até R$ 1.500 mil'},
+  {id:'2500', max:2500, label:'Até R$ 2.500 mil'},
+  {id:'9999', max:99999,label:'Acima de R$ 2.500 mil'}
+];
+function empFaixaMatch_(valorMil,faixaId){
+  if(!faixaId)return true;
+  const f=EMP_FAIXAS.find(x=>x.id===faixaId);
+  if(!f)return true;
+  if(faixaId==='9999')return valorMil>2500;
+  return valorMil<=f.max;
+}
+function popularFiltrosEmp(){
+  const ufs=[...new Set(_empreendimentos.map(e=>e.uf).filter(Boolean))].sort();
+  document.getElementById('empFUf').innerHTML='<option value="">Todos</option>'+ufs.map(u=>`<option value="${u}">${u}</option>`).join('');
+  const tipos=[...new Set(_empreendimentos.map(e=>e.tipo).filter(Boolean))].sort();
+  document.getElementById('empFTipo').innerHTML='<option value="">Todos os tipos</option>'+tipos.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('empFFaixa').innerHTML='<option value="">Qualquer valor</option>'+EMP_FAIXAS.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  atualizarCidadesEmp();
+}
+function atualizarCidadesEmp(){
+  const uf=document.getElementById('empFUf').value;
+  const cidades=[...new Set(_empreendimentos.filter(e=>!uf||e.uf===uf).map(e=>e.cidade).filter(Boolean))].sort();
+  document.getElementById('empFCidade').innerHTML='<option value="">Todas as cidades</option>'+cidades.map(c=>`<option value="${c}">${c}</option>`).join('');
+  atualizarBairrosEmp();
+}
+function atualizarBairrosEmp(){
+  const uf=document.getElementById('empFUf').value;
+  const cidade=document.getElementById('empFCidade').value;
+  const bairros=[...new Set(_empreendimentos.filter(e=>(!uf||e.uf===uf)&&(!cidade||e.cidade===cidade)).map(e=>e.bairro).filter(Boolean))].sort();
+  document.getElementById('empFBairro').innerHTML='<option value="">Todos os bairros</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
+}
+function filtrarEmps(){
+  const uf=document.getElementById('empFUf').value;
+  const tipo=document.getElementById('empFTipo').value;
+  const cidade=document.getElementById('empFCidade').value;
+  const bairro=document.getElementById('empFBairro').value;
+  const faixa=document.getElementById('empFFaixa').value;
   const busca=(document.getElementById('empBusca')?.value||'').toLowerCase();
-  const list=_empreendimentos.filter(e=>!busca||e.nome.toLowerCase().includes(busca)||e.bairro.toLowerCase().includes(busca));
+  _empFiltrados=_empreendimentos.filter(e=>{
+    if(uf&&e.uf!==uf)return false;
+    if(tipo&&e.tipo!==tipo)return false;
+    if(cidade&&e.cidade!==cidade)return false;
+    if(bairro&&e.bairro!==bairro)return false;
+    if(!empFaixaMatch_(e.valorMil,faixa))return false;
+    if(busca&&!e.nome.toLowerCase().includes(busca)&&!e.bairro.toLowerCase().includes(busca))return false;
+    return true;
+  });
+  renderEmps();
+}
+function limparFiltrosEmps(){
+  ['empFUf','empFTipo','empFCidade','empFBairro','empFFaixa'].forEach(id=>{document.getElementById(id).value=''});
+  const busca=document.getElementById('empBusca');if(busca)busca.value='';
+  atualizarCidadesEmp();
+  filtrarEmps();
+}
+function renderEmps(){
+  const list=_empFiltrados;
+  const cont=document.getElementById('empContagem');
+  if(cont)cont.textContent=`Mostrando ${list.length} empreendimento${list.length===1?'':'s'}`;
   const el=document.getElementById('empGrid');
-  if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum empreendimento disponível no momento.</div>`;return}
+  if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum empreendimento encontrado. Tente ajustar os filtros.</div>`;return}
   el.innerHTML=list.map(e=>`
-    <div class="emp-card" onclick="toast('Peça o material de ${e.nome} em Materiais de Apoio!','')">
+    <div class="emp-card">
       <div class="emp-img">${e.imagem?`<img src="${fixDriveUrl(e.imagem)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:42px;position:relative;z-index:1">🏗️</span>`}</div>
       <div class="emp-body">
         <div class="emp-nome">${e.nome}</div>
@@ -1873,8 +2167,9 @@ function renderEmps(){
         <div class="sec" style="margin-bottom:8px">Sobre o empreendimento</div>
         <div style="font-size:11px;color:var(--txt);line-height:1.6">${e.descricao||'Sem descrição cadastrada.'}</div>
         <div style="display:flex;gap:6px;margin-top:12px">
-          <button class="btn-teal btn btn-sm" style="flex:1" onclick="event.stopPropagation();nav(document.querySelector('[onclick*=materiais]'),'materiais')">📁 Materiais</button>
-          <button class="btn-gold btn btn-sm" style="flex:1" onclick="event.stopPropagation();compartilharWhats('${e.id}')">📲 Compartilhar</button>
+          <!-- Botão "Materiais" removido daqui de propósito (24/08/2026) junto com o
+               item do menu, enquanto o Antonio monta a parte de marketing. -->
+          <button class="btn-gold btn btn-sm" style="flex:1" onclick="compartilharWhats('${e.id}')">📲 Compartilhar</button>
         </div>
       </div>
     </div>`).join('');
@@ -1923,8 +2218,19 @@ function copiarWA(enc){
 }
 
 /* ═══ PERFIL ═══ */
+function togglePerfProfOutro(){
+  const outro=document.getElementById('perfProf').value==='Outro';
+  document.getElementById('perfProfOutro').style.display=outro?'block':'none';
+}
+function perfProfissaoAtual_(){
+  const sel=document.getElementById('perfProf').value;
+  return sel==='Outro' ? document.getElementById('perfProfOutro').value.trim() : sel;
+}
 async function salvarPerfil(){
   if(!_user){toast('Sessão expirada. Faça login novamente.','');return}
+  if(document.getElementById('perfProf').value==='Outro' && !document.getElementById('perfProfOutro').value.trim()){
+    toast('Informe sua Profissão / Vínculo no campo "Outro".','');return
+  }
   const btn=document.querySelector('#panel-perfil .btn-teal');
   if(btn){btn.disabled=true;btn.textContent='Salvando...'}
   const [respPerfil, respBanco] = await Promise.all([
@@ -1932,7 +2238,7 @@ async function salvarPerfil(){
       email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
       nome:document.getElementById('perfNome').value,
       whatsapp:document.getElementById('perfTel').value,
-      profissao:document.getElementById('perfProf').value
+      profissao:perfProfissaoAtual_()
     }),
     cadastroApiJsonp('crm_pessoa_atualizar_bancario', {
       email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
@@ -1949,7 +2255,7 @@ async function salvarPerfil(){
   }
   _user.nome=document.getElementById('perfNome').value;
   _user.whatsapp=document.getElementById('perfTel').value;
-  _user.profissao=document.getElementById('perfProf').value;
+  _user.profissao=perfProfissaoAtual_();
   _user.banco=document.getElementById('perfBancoEdit').value;
   _user.agencia=document.getElementById('perfAgEdit').value;
   _user.conta=document.getElementById('perfCtEdit').value;

@@ -65,6 +65,14 @@ var CRM_PESSOA_ABAS_    = { agente: ABA_AGENTES, corretor: ABA_CORRETOR, atenden
 var CRM_PESSOA_PREFIXO_ = { agente: 'AG', corretor: 'CO', atendente: 'AT' };
 var CRM_PESSOA_ID_COL_  = { agente: 'Agente_Id', corretor: 'Corretor_Id', atendente: 'Atendente_Id' };
 var CRM_PAPEL_CODIGO_   = { agente: 'AG', corretor: 'CO', atendente: 'AT' };
+
+/* O upload de documentos (RG/CNH, comprovante de residência) do
+   autocadastro NÃO fica aqui — foi movido pra um projeto Apps Script
+   isolado, numa conta pessoal (não Workspace), porque o Drive nesta
+   conta ficou bloqueado por política de segurança do Workspace mesmo
+   depois de autorizado (erro "Access denied: DriveApp" mesmo com
+   consentimento dado — ver painel/shared/apps-script-upload-documentos-agente.gs
+   e o UPLOAD_DOCUMENTOS_API_URL em dashboard-agente.html). */
 /* Vocabulário de Status da INDICACOES ('agente'/'corretor'/'atendente' =
    recém-criada, ainda no papel de quem indicou; 'contato'/'proposta'/
    'fechado'/'perdido' = já tocada pelo corretor) traduzido para o
@@ -590,7 +598,15 @@ function crm_pessoaParaObjeto_(p) {
     habilitado: p.Habilitado === true || /^(true|sim)$/i.test(s_(p.Habilitado)),
     uf: s_(p.UF), cidade: s_(p.Cidade), creci: s_(p.CRECI), foto: s_(p.Foto),
     banco: s_(p.Banco), agencia: s_(p.Agencia), conta: s_(p.Conta), tipoConta: s_(p.Tipo_Conta), pix: s_(p.Pix),
-    classificacao: s_(p.Classificacao), criadoEm: dataStr_(p.Criado_em), atualizadoEm: dataStr_(p.Atualizado_em), ultimoAcesso: dataStr_(p.Ultimo_Acesso)
+    classificacao: s_(p.Classificacao), criadoEm: dataStr_(p.Criado_em), atualizadoEm: dataStr_(p.Atualizado_em), ultimoAcesso: dataStr_(p.Ultimo_Acesso),
+    /* Gravados por crm_pessoa_upload_documentos_, no projeto isolado
+       apps-script-upload-documentos-agente.gs (ver comentário lá) —
+       s_() devolve '' de propósito se a coluna ainda não existir na
+       aba (ex.: CORRETOR/ATENDENTES antes do Antonio replicar as
+       colunas de lá). */
+    docRgUrl: s_(p.Doc_RG_URL), docComprovanteUrl: s_(p.Doc_Comprovante_Residencia_URL),
+    docContratoUrl: s_(p.Doc_Contrato_Assinado_URL),
+    termosAceitosEm: dataStr_(p.Termos_Aceitos_Em), termosVersao: s_(p.Termos_Versao)
   };
   // Senha_Hash de propósito fora deste objeto — login é 100% por OTP,
   // a coluna existe na planilha mas não é usada nem exposta aqui.
@@ -656,6 +672,14 @@ function crm_pessoa_cadastrar_(data) {
   if (!ctx) return { status: 'error', message: 'Tipo de pessoa inválido.' };
   var nome = s_(data.nome).trim();
   if (!nome) return { status: 'error', message: 'Nome é obrigatório.' };
+  // Checkbox "Li e aceito os Termos..." já é obrigatório no formulário
+  // (dashboard-agente.html valida antes de deixar enviar), mas isso só
+  // trava a tela — não prova nada. Validar de novo aqui, servidor-side,
+  // e gravar quando/qual versão foi aceita (Termos_Aceitos_Em/
+  // Termos_Versao) é o que vira prova de consentimento de verdade.
+  if (data.termosAceitos !== true && data.termosAceitos !== 'true') {
+    return { status: 'error', message: 'É necessário aceitar os Termos de Parceria e a Política de Privacidade.' };
+  }
 
   return comLock_(function () {
     if (acharLinhaPorChave_(ctx.aba, 'Email', email) !== -1) return { status: 'error', message: 'Já existe um cadastro com esse e-mail.' };
@@ -668,7 +692,8 @@ function crm_pessoa_cadastrar_(data) {
       Status: 'ativo', Habilitado: false, Criado_em: agoraStr, UF: data.uf || '', Cidade: data.cidade || '',
       CRECI: data.creci || '', Foto: '', Banco: data.banco || '', Agencia: data.agencia || '',
       Conta: data.conta || '', Tipo_Conta: data.tipoConta || '', Pix: data.pix || '',
-      Atualizado_em: agoraStr, Classificacao: '', Ultimo_Acesso: agoraStr
+      Atualizado_em: agoraStr, Classificacao: '', Ultimo_Acesso: agoraStr,
+      Termos_Aceitos_Em: agoraStr, Termos_Versao: s_(data.termosVersao) || 'v2.0'
     };
     ctx.aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
     return { status: 'ok', id: id };
@@ -693,6 +718,35 @@ function crm_pessoa_atualizar_perfil_(data) {
     var colAtualizado = headers.indexOf('Atualizado_em');
     if (colAtualizado !== -1) ctx.aba.getRange(linha, colAtualizado + 1).setValue(agora_());
     return { status: 'ok' };
+  });
+}
+
+/* Aceite dos Termos feito DEPOIS do cadastro — ex.: a pessoa esqueceu
+   de marcar a caixa "Li e aceito..." na hora (mesmo raciocínio de
+   crm_pessoa_cadastrar_/Termos_Aceitos_Em/Termos_Versao, ver pedido
+   54.6). Ação separada de crm_pessoa_atualizar_perfil_ de propósito —
+   assim uma edição comum de perfil nunca mexe nesses 2 campos sem
+   querer; só esta ação, chamada só quando a pessoa realmente clica em
+   "Aceitar agora". */
+function crm_pessoa_aceitar_termos_(data) {
+  var email = normalizarEmail_(data.email);
+  if (!_sessaoOtpValida_(email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var ctx = crm_pessoaAba_(data.tipo);
+  if (!ctx) return { status: 'error', message: 'Tipo de pessoa inválido.' };
+  if (data.termosAceitos !== true && data.termosAceitos !== 'true') {
+    return { status: 'error', message: 'É necessário aceitar os Termos de Parceria e a Política de Privacidade.' };
+  }
+
+  return comLock_(function () {
+    var linha = acharLinhaPorChave_(ctx.aba, 'Email', email);
+    if (linha === -1) return { status: 'error', message: 'Cadastro não encontrado.' };
+    var headers = headersDe_(ctx.aba);
+    var agoraStr = agora_();
+    var colAceite = headers.indexOf('Termos_Aceitos_Em');
+    if (colAceite !== -1) ctx.aba.getRange(linha, colAceite + 1).setValue(agoraStr);
+    var colVersao = headers.indexOf('Termos_Versao');
+    if (colVersao !== -1) ctx.aba.getRange(linha, colVersao + 1).setValue(s_(data.termosVersao) || 'v2.0');
+    return { status: 'ok', aceitoEm: agoraStr };
   });
 }
 
@@ -920,6 +974,90 @@ function crm_controle_ler_(p) {
   return { status: 'ok', valores: valores };
 }
 
+/* ══════════════════ ADMIN — Agentes/Corretor/Atendentes/Indicações ══
+   Tela da Diretoria em admin.html pra ver todo mundo cadastrado nas 3
+   abas (mesmo esquema de colunas) e liberar/bloquear o acesso ao
+   dashboard via Habilitado — a peça que faltava desde a criação do
+   Portal do Agente (crm_pessoa_cadastrar_ sempre entra com
+   Habilitado=false até alguém aprovar manualmente). Protegido pelo
+   mesmo PIN_ADMIN_SISTEMA já usado no resto do admin.html
+   (autorizarAdmin_, já existente, usado por cadastro_usuarioCrud_/
+   cadastro_dashboardCrud_ acima). */
+function admin_pessoas_listar_(data) {
+  var auth = autorizarAdmin_(data.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var tipos = data.tipo ? [s_(data.tipo).trim().toLowerCase()] : ['agente', 'corretor', 'atendente'];
+  var itens = [];
+  tipos.forEach(function (t) {
+    var ctx = crm_pessoaAba_(t);
+    if (!ctx) return;
+    lerAbaObjetos_(ctx.aba).forEach(function (p) {
+      var obj = crm_pessoaParaObjeto_(p);
+      obj.tipo = t;
+      itens.push(obj);
+    });
+  });
+  return { status: 'ok', itens: itens };
+}
+
+/* Só mexe em Status/Habilitado (e Atualizado_em) — os outros campos
+   continuam sendo editados pela própria pessoa em
+   crm_pessoa_atualizar_perfil_/crm_pessoa_atualizar_bancario_. */
+function admin_pessoa_atualizar_(data) {
+  var auth = autorizarAdmin_(data.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var ctx = crm_pessoaAba_(data.tipo);
+  if (!ctx) return { status: 'error', message: 'Tipo de pessoa inválido.' };
+  var email = normalizarEmail_(data.email);
+  if (!email) return { status: 'error', message: 'E-mail é obrigatório.' };
+
+  return comLock_(function () {
+    var linha = acharLinhaPorChave_(ctx.aba, 'Email', email);
+    if (linha === -1) return { status: 'error', message: 'Cadastro não encontrado.' };
+    var headers = headersDe_(ctx.aba);
+    if (data.status !== undefined) {
+      var colStatus = headers.indexOf('Status');
+      if (colStatus !== -1) ctx.aba.getRange(linha, colStatus + 1).setValue(data.status);
+    }
+    if (data.habilitado !== undefined) {
+      var colHab = headers.indexOf('Habilitado');
+      if (colHab !== -1) ctx.aba.getRange(linha, colHab + 1).setValue(data.habilitado === true || data.habilitado === 'true');
+    }
+    var colAtualizado = headers.indexOf('Atualizado_em');
+    if (colAtualizado !== -1) ctx.aba.getRange(linha, colAtualizado + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
+/* Todas as indicações das 3 abas (ao contrário de crm_indicacao_listar_,
+   que só devolve as da própria pessoa logada) com o nome/papel de quem
+   indicou já resolvido — a tela do admin não deveria precisar cruzar
+   Agente_Id/Corretor_Id/Atendente_Id na mão. */
+function admin_indicacoes_listar_(data) {
+  var auth = autorizarAdmin_(data.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaInd = ssCrm.getSheetByName(ABA_INDICACOES);
+  if (!abaInd) return { status: 'ok', itens: [] };
+
+  var mapaPessoas = {}; // "tipo:id" -> nome
+  ['agente', 'corretor', 'atendente'].forEach(function (t) {
+    var ctx = crm_pessoaAba_(t);
+    if (!ctx) return;
+    lerAbaObjetos_(ctx.aba).forEach(function (p) { mapaPessoas[t + ':' + s_(p.Id)] = s_(p.Nome); });
+  });
+
+  var itens = lerAbaObjetos_(abaInd).map(function (i) {
+    var obj = crm_indicacaoParaObjeto_(i);
+    var papel = obj.agenteId ? 'agente' : (obj.corretorId ? 'corretor' : (obj.atendenteId ? 'atendente' : ''));
+    var idPessoa = obj.agenteId || obj.corretorId || obj.atendenteId;
+    obj.indicadorTipo = papel;
+    obj.indicadorNome = papel ? (mapaPessoas[papel + ':' + idPessoa] || '—') : '—';
+    return obj;
+  });
+  return { status: 'ok', itens: itens };
+}
+
 /* ══════════════════ doGet / doPost ══════════════════ */
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || '';
@@ -936,6 +1074,7 @@ function doGet(e) {
       case 'crm_pessoa_verificar_codigo':      result = crm_pessoa_verificar_codigo_(p); break;
       case 'crm_pessoa_cadastrar':             result = crm_pessoa_cadastrar_(p); break;
       case 'crm_pessoa_atualizar_perfil':      result = crm_pessoa_atualizar_perfil_(p); break;
+      case 'crm_pessoa_aceitar_termos':        result = crm_pessoa_aceitar_termos_(p); break;
       case 'crm_pessoa_atualizar_bancario':    result = crm_pessoa_atualizar_bancario_(p); break;
       case 'crm_indicacao_listar':             result = crm_indicacao_listar_(p); break;
       case 'crm_indicacao_criar':              result = crm_indicacao_criar_(p); break;
@@ -944,6 +1083,9 @@ function doGet(e) {
       case 'crm_comissoes_listar':             result = crm_comissoes_listar_(p); break;
       case 'crm_empreendimentos_listar':       result = crm_empreendimentos_listar_(p); break;
       case 'crm_controle_ler':                 result = crm_controle_ler_(p); break;
+      case 'admin_pessoas_listar':              result = admin_pessoas_listar_(p); break;
+      case 'admin_pessoa_atualizar':            result = admin_pessoa_atualizar_(p); break;
+      case 'admin_indicacoes_listar':           result = admin_indicacoes_listar_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
@@ -963,10 +1105,12 @@ function doPost(e) {
       case 'cadastro_lead_registrar':         out = cadastro_leadRegistrar_(data); break;
       case 'crm_pessoa_cadastrar':            out = crm_pessoa_cadastrar_(data); break;
       case 'crm_pessoa_atualizar_perfil':     out = crm_pessoa_atualizar_perfil_(data); break;
+      case 'crm_pessoa_aceitar_termos':       out = crm_pessoa_aceitar_termos_(data); break;
       case 'crm_pessoa_atualizar_bancario':   out = crm_pessoa_atualizar_bancario_(data); break;
       case 'crm_indicacao_criar':             out = crm_indicacao_criar_(data); break;
       case 'crm_indicacao_atualizar':         out = crm_indicacao_atualizar_(data); break;
       case 'crm_indicacao_excluir':           out = crm_indicacao_excluir_(data); break;
+      case 'admin_pessoa_atualizar':          out = admin_pessoa_atualizar_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);

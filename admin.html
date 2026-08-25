@@ -548,6 +548,22 @@
   .s-perdido   {background:#2C0A0A;color:#FCA5A5;--dot:#EF4444}
   .crm-badge-dot{background:var(--dot)}
 
+  /* ─── EQUIPE (Agentes/Corretor/Atendentes/Indicações) ─── */
+  .s-agente    {background:#0D2A2A;color:#5EEAD4;--dot:#14B8A6}
+  .s-corretor  {background:#172040;color:#93C5FD;--dot:#3B82F6}
+  .s-atendente {background:#2A1A40;color:#C4B5FD;--dot:#8B5CF6}
+  .s-ativo     {background:#1C2F1C;color:#86EFAC;--dot:#22C55E}
+  .s-inativo   {background:#2C0A0A;color:#FCA5A5;--dot:#EF4444}
+  .equipe-view-toggle{display:flex;gap:8px;margin-bottom:18px}
+  .equipe-view-btn{
+    font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;padding:9px 18px;
+    background:var(--navy-mid);border:1px solid var(--border);color:var(--ink-muted);
+    cursor:pointer;transition:all .2s;
+  }
+  .equipe-view-btn.active{background:rgba(201,168,76,.12);border-color:var(--gold);color:var(--gold-ink)}
+  .equipe-view-btn:hover{color:var(--navy)}
+
   /* Priority badge */
   .p-alta  {color:#b03a2e;font-size:10px;font-weight:700;letter-spacing:.05em}
   .p-media {color:#9a6b0a;font-size:10px;font-weight:700;letter-spacing:.05em}
@@ -1111,6 +1127,11 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h.01M11 8h6M7 12h.01M11 12h4"/></svg>
     CRM
     <span class="tb-count" id="crm-count-badge" style="background:rgba(34,197,94,.2);color:#86EFAC">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('equipe')" id="tab-equipe">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Agentes / Corretores
+    <span class="tb-count" id="equipe-count-badge" style="background:rgba(217,119,6,.2);color:#FCD34D">0</span>
   </button>
   <button class="tab-btn" onclick="switchTab('reservas')" id="tab-reservas">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -2304,6 +2325,175 @@ function jsonOut(obj) {
 </div><!-- .main -->
 </div><!-- panel-crm -->
 
+<!-- ══════════════ TAB: EQUIPE (Agentes/Corretor/Atendentes) ══════════════ -->
+<div class="tab-panel" id="panel-equipe">
+<div class="main">
+
+  <div class="equipe-view-toggle">
+    <button class="equipe-view-btn active" id="equipe-view-btn-pessoas" onclick="equipeSwitchView('pessoas')">👥 Pessoas</button>
+    <button class="equipe-view-btn" id="equipe-view-btn-indicacoes" onclick="equipeSwitchView('indicacoes')">🤝 Indicações</button>
+  </div>
+
+  <!-- CONVIDAR NOVO PARCEIRO -->
+  <div class="conn-card" style="margin-bottom:24px">
+    <div class="conn-status-row" style="margin-bottom:12px">
+      <span class="conn-title" style="color:var(--navy)">📤 Convidar novo parceiro</span>
+      <span class="conn-sub">envie o link de autocadastro pra quem você quer trazer pra equipe</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn-header btn-primary" onclick="equipeCompartilharCadastro('agente')" style="height:38px;padding:0 16px;font-size:11px">
+        🤝 Compartilhar cadastro — Agente
+      </button>
+      <button class="btn-header btn-outline" onclick="equipeCompartilharCadastro('corretor')" style="height:38px;padding:0 16px;font-size:11px;color:var(--navy)">
+        🧑‍💼 Compartilhar cadastro — Corretor <span style="opacity:.6">(em breve)</span>
+      </button>
+      <button class="btn-header btn-outline" onclick="equipeCompartilharCadastro('atendente')" style="height:38px;padding:0 16px;font-size:11px;color:var(--navy)">
+        🎧 Compartilhar cadastro — Atendente <span style="opacity:.6">(em breve)</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ PESSOAS (Agentes/Corretor/Atendentes) ═══ -->
+  <div id="equipe-view-pessoas">
+    <div class="crm-stats-row" id="equipe-stats-row">
+      <div class="crm-stat-pill active" onclick="equipeFiltrarPapel('')" id="equipe-pill-all">
+        <span class="crm-stat-num" id="equipe-n-all" style="color:var(--gold-ink)">0</span>
+        <span class="crm-stat-lbl">Total</span>
+      </div>
+      <div class="crm-stat-pill" onclick="equipeFiltrarPapel('agente')" id="equipe-pill-agente">
+        <span class="crm-stat-num" id="equipe-n-agente" style="color:#5EEAD4">0</span>
+        <span class="crm-stat-lbl">Agentes</span>
+      </div>
+      <div class="crm-stat-pill" onclick="equipeFiltrarPapel('corretor')" id="equipe-pill-corretor">
+        <span class="crm-stat-num" id="equipe-n-corretor" style="color:#93C5FD">0</span>
+        <span class="crm-stat-lbl">Corretores</span>
+      </div>
+      <div class="crm-stat-pill" onclick="equipeFiltrarPapel('atendente')" id="equipe-pill-atendente">
+        <span class="crm-stat-num" id="equipe-n-atendente" style="color:#C4B5FD">0</span>
+        <span class="crm-stat-lbl">Atendentes</span>
+      </div>
+      <div class="crm-stat-pill" onclick="equipeFiltrarHabilitado('pendente')" id="equipe-pill-pendente">
+        <span class="crm-stat-num" id="equipe-n-pendente" style="color:#FCD34D">0</span>
+        <span class="crm-stat-lbl">Pendentes</span>
+      </div>
+      <div class="crm-stat-pill" onclick="equipeFiltrarHabilitado('habilitado')" id="equipe-pill-habilitado">
+        <span class="crm-stat-num" id="equipe-n-habilitado" style="color:#86EFAC">0</span>
+        <span class="crm-stat-lbl">Habilitados</span>
+      </div>
+    </div>
+
+    <div class="crm-toolbar">
+      <div class="crm-filters">
+        <input class="crm-search" type="text" id="eq-busca" placeholder="🔍 Nome, e-mail, telefone ou CPF…" oninput="equipeRenderPessoas()">
+        <select class="crm-sel" id="eq-fil-uf" onchange="equipeAtualizarCidades();equipeRenderPessoas()">
+          <option value="">Todas as UF</option>
+        </select>
+        <select class="crm-sel" id="eq-fil-cidade" onchange="equipeRenderPessoas()">
+          <option value="">Todas as cidades</option>
+        </select>
+        <select class="crm-sel" id="eq-fil-prof" onchange="equipeRenderPessoas()">
+          <option value="">Todas as profissões</option>
+        </select>
+        <select class="crm-sel" id="eq-fil-status" onchange="equipeRenderPessoas()">
+          <option value="">Status: todos</option>
+          <option value="ativo">Ativo</option>
+          <option value="inativo">Inativo</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn-header btn-outline" onclick="equipeLimparFiltros()" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">✕ Limpar</button>
+        <button class="btn-header btn-outline" onclick="equipeExportarPessoas()" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">🖨 Relatório</button>
+        <button class="btn-header btn-primary" onclick="equipeCarregar()" style="height:36px;padding:0 16px;font-size:11px">🔄 Recarregar</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head-row">
+        <span id="eq-pessoas-label">Todas as pessoas</span>
+        <span id="eq-pessoas-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text-muted)"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="crm-lead-table">
+          <thead>
+            <tr>
+              <th>Papel</th>
+              <th>Nome / Contato</th>
+              <th>CPF</th>
+              <th>UF / Cidade</th>
+              <th>Profissão / Vínculo</th>
+              <th>Documentos</th>
+              <th>Status</th>
+              <th>Acesso ao dashboard</th>
+              <th>Cadastro</th>
+              <th style="color:var(--gold-ink)">Ações</th>
+            </tr>
+          </thead>
+          <tbody id="eq-pessoas-tbody">
+            <tr><td colspan="10"><div class="empty-table">Carregando…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ INDICAÇÕES (das 3 abas) ═══ -->
+  <div id="equipe-view-indicacoes" style="display:none">
+    <div class="crm-toolbar">
+      <div class="crm-filters">
+        <input class="crm-search" type="text" id="eq-ind-busca" placeholder="🔍 Nome, telefone ou e-mail do cliente…" oninput="equipeRenderIndicacoes()">
+        <select class="crm-sel" id="eq-ind-fil-papel" onchange="equipeRenderIndicacoes()">
+          <option value="">Todos os papéis</option>
+          <option value="agente">Agente</option>
+          <option value="corretor">Corretor</option>
+          <option value="atendente">Atendente</option>
+        </select>
+        <select class="crm-sel" id="eq-ind-fil-status" onchange="equipeRenderIndicacoes()">
+          <option value="">Todos os status</option>
+          <option value="agente">Recém-indicado (via Agente)</option>
+          <option value="corretor">Recém-indicado (via Corretor)</option>
+          <option value="atendente">Recém-indicado (via Atendente)</option>
+          <option value="contato">Em Contato</option>
+          <option value="proposta">Proposta</option>
+          <option value="fechado">Fechado ✓</option>
+          <option value="perdido">Perdido ✗</option>
+        </select>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn-header btn-outline" onclick="equipeLimparFiltrosIndicacoes()" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">✕ Limpar</button>
+        <button class="btn-header btn-outline" onclick="equipeExportarIndicacoes()" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">🖨 Relatório</button>
+        <button class="btn-header btn-primary" onclick="equipeCarregarIndicacoes()" style="height:36px;padding:0 16px;font-size:11px">🔄 Recarregar</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head-row">
+        <span>Indicações</span>
+        <span id="eq-ind-count" style="font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--text-muted)"></span>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="crm-lead-table">
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Indicado por</th>
+              <th>Orçamento</th>
+              <th>Interesse</th>
+              <th>Status</th>
+              <th>Criado em</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
+          <tbody id="eq-ind-tbody">
+            <tr><td colspan="7"><div class="empty-table">Carregando…</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- .main -->
+</div><!-- panel-equipe -->
+
 <!-- ══════════════ MODAL CRM LEAD ══════════════ -->
 <div class="cad-overlay" id="crm-modal">
   <div class="cad-box" style="max-width:940px;width:100%">
@@ -2529,6 +2719,7 @@ function switchTab(name) {
   if (name === 'visitas') consultarVisitas();
   if (name === 'crm') { crmCarregar(); crmAtualizarStats(); crmRenderLista(); }
   if (name === 'banners') carregarBanners();
+  if (name === 'equipe') equipeCarregar();
 }
 
 /* Coloca um elemento (ex: o iframe do Painel 3D) em tela cheia — o
@@ -4561,6 +4752,425 @@ function crmExportar() {
   setTimeout(() => win.print(), 400);
 }
 
+/* ══════════════ EQUIPE — Agentes/Corretor/Atendentes/Indicações ══════════════
+   Mesmo backend do Portal do Agente (painel/agente/dashboard-agente.html),
+   projeto "Apps Script - Gestão de Usuários & Dashboards" — NÃO é o
+   CRM_SCRIPT_URL_DEFAULT (planilha "WAL — CRM de Leads" acessada por outro
+   projeto Apps Script) nem o APPS_SCRIPT_URL (imóveis/construtoras). As 3
+   abas (AGENTES/CORRETOR/ATENDENTES) têm exatamente o mesmo esquema de
+   colunas, então uma tela só cobre as três, com "Papel" como campo/filtro
+   a mais. As ações admin_* exigem o mesmo ADMIN_PIN já usado no resto
+   deste admin.html — ver autorizarAdmin_ no apps-script-sistema-web-cadastro.gs. */
+const EQUIPE_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+let _eqPessoas = [];
+let _eqPessoasFiltradas = [];
+let _eqIndicacoes = [];
+let _eqIndicacoesFiltradas = [];
+let _eqIndicacoesCarregadas = false;
+let _eqFiltroPapel = '';
+let _eqFiltroHabilitado = '';
+
+function equipeJsonp(action, params) {
+  return new Promise(resolve => {
+    const cb = 'eqCb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const t = setTimeout(() => { cleanup(); resolve(null); }, 15000);
+    function cleanup() { clearTimeout(t); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = data => { cleanup(); resolve(data); };
+    s.onerror = () => { cleanup(); resolve(null); };
+    const qs = new URLSearchParams(Object.assign({ action, callback: cb, authPin: ADMIN_PIN }, params || {}));
+    s.src = EQUIPE_API_URL + '?' + qs.toString();
+    document.body.appendChild(s);
+  });
+}
+
+function equipeSwitchView(view) {
+  document.getElementById('equipe-view-pessoas').style.display = view === 'pessoas' ? 'block' : 'none';
+  document.getElementById('equipe-view-indicacoes').style.display = view === 'indicacoes' ? 'block' : 'none';
+  document.getElementById('equipe-view-btn-pessoas').classList.toggle('active', view === 'pessoas');
+  document.getElementById('equipe-view-btn-indicacoes').classList.toggle('active', view === 'indicacoes');
+  if (view === 'indicacoes' && !_eqIndicacoesCarregadas) equipeCarregarIndicacoes();
+}
+
+async function equipeCarregar() {
+  document.getElementById('eq-pessoas-tbody').innerHTML = '<tr><td colspan="10"><div class="empty-table">Carregando…</div></td></tr>';
+  const resp = await equipeJsonp('admin_pessoas_listar', {});
+  if (!resp || resp.status !== 'ok') {
+    document.getElementById('eq-pessoas-tbody').innerHTML = '<tr><td colspan="10"><div class="empty-table">Não foi possível carregar. Verifique a conexão e tente "Recarregar".</div></td></tr>';
+    return;
+  }
+  _eqPessoas = resp.itens || [];
+  equipePopularFiltros();
+  equipeAtualizarStats();
+  equipeRenderPessoas();
+}
+
+function equipePopularFiltros() {
+  const ufs = [...new Set(_eqPessoas.map(p => p.uf).filter(Boolean))].sort();
+  document.getElementById('eq-fil-uf').innerHTML = '<option value="">Todas as UF</option>' + ufs.map(u => `<option value="${u}">${u}</option>`).join('');
+  const profs = [...new Set(_eqPessoas.map(p => p.profissao).filter(Boolean))].sort();
+  document.getElementById('eq-fil-prof').innerHTML = '<option value="">Todas as profissões</option>' + profs.map(p => `<option value="${esc(p)}">${esc(p)}</option>`).join('');
+  equipeAtualizarCidades();
+}
+
+function equipeAtualizarCidades() {
+  const uf = document.getElementById('eq-fil-uf').value;
+  const cidades = [...new Set(_eqPessoas.filter(p => !uf || p.uf === uf).map(p => p.cidade).filter(Boolean))].sort();
+  document.getElementById('eq-fil-cidade').innerHTML = '<option value="">Todas as cidades</option>' + cidades.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+}
+
+function equipeAtualizarStats() {
+  document.getElementById('equipe-n-all').textContent = _eqPessoas.length;
+  ['agente','corretor','atendente'].forEach(t => {
+    document.getElementById('equipe-n-' + t).textContent = _eqPessoas.filter(p => p.tipo === t).length;
+  });
+  const pendentes = _eqPessoas.filter(p => !p.habilitado).length;
+  document.getElementById('equipe-n-pendente').textContent = pendentes;
+  document.getElementById('equipe-n-habilitado').textContent = _eqPessoas.filter(p => p.habilitado).length;
+  document.getElementById('equipe-count-badge').textContent = pendentes;
+}
+
+function equipeFiltrarPapel(papel) {
+  _eqFiltroPapel = papel;
+  _eqFiltroHabilitado = '';
+  document.querySelectorAll('#equipe-stats-row .crm-stat-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('equipe-pill-' + (papel || 'all')).classList.add('active');
+  equipeRenderPessoas();
+}
+
+function equipeFiltrarHabilitado(v) {
+  _eqFiltroHabilitado = v;
+  _eqFiltroPapel = '';
+  document.querySelectorAll('#equipe-stats-row .crm-stat-pill').forEach(p => p.classList.remove('active'));
+  document.getElementById('equipe-pill-' + v).classList.add('active');
+  equipeRenderPessoas();
+}
+
+function equipeLimparFiltros() {
+  document.getElementById('eq-busca').value = '';
+  document.getElementById('eq-fil-uf').value = '';
+  document.getElementById('eq-fil-cidade').value = '';
+  document.getElementById('eq-fil-prof').value = '';
+  document.getElementById('eq-fil-status').value = '';
+  equipeAtualizarCidades();
+  equipeFiltrarPapel('');
+}
+
+const EQUIPE_PAPEL_LABEL = { agente: 'Agente', corretor: 'Corretor', atendente: 'Atendente' };
+
+/* ── Compartilhar link de autocadastro (aba "Quero ser Agente/Corretor/
+   Atendente" de cada dashboard) ── Mesmo padrão de compartilharSite()
+   em index.html (modal simples: WhatsApp + Copiar Link). Corretor e
+   Atendente ainda não têm dashboard próprio (só painel/agente/ existe
+   até agora) — os valores ficam vazios de propósito; quando esses
+   dashboards forem criados, só preencher a URL aqui que os botões
+   passam a funcionar sozinhos, sem mexer em mais nada. */
+const EQUIPE_LINKS_CADASTRO = {
+  agente: 'https://www.walservidor.com.br/painel/agente/dashboard-agente.html',
+  corretor: '',
+  atendente: ''
+};
+const EQUIPE_LINKS_MSG = {
+  agente: '🤝 Olá! Você foi convidado(a) a se cadastrar como *Agente Parceiro* da WAL Imóveis — indique conhecidos interessados em comprar imóvel e ganhe comissão sobre as vendas realizadas. Cadastre-se aqui:',
+  corretor: '🧑‍💼 Olá! Você foi convidado(a) a se cadastrar como *Corretor* da WAL Imóveis. Cadastre-se aqui:',
+  atendente: '🎧 Olá! Você foi convidado(a) a se cadastrar como *Atendente* da WAL Imóveis. Cadastre-se aqui:'
+};
+let _eqLinkCompartilhar = '';
+
+function equipeCompartilharCadastro(papel) {
+  const link = EQUIPE_LINKS_CADASTRO[papel];
+  if (!link) {
+    mostrarToast(`⏳ O dashboard do ${EQUIPE_PAPEL_LABEL[papel]} ainda não foi criado — assim que estiver pronto, o link de cadastro aparece aqui.`);
+    return;
+  }
+  _eqLinkCompartilhar = link;
+  const texto = EQUIPE_LINKS_MSG[papel] + '\n' + link;
+  const wppHref = 'https://wa.me/?text=' + encodeURIComponent(texto);
+  const btnStyle = 'display:flex;align-items:center;gap:10px;padding:12px 16px;font-family:\'Barlow Condensed\',sans-serif;font-size:13px;font-weight:700;letter-spacing:.1em;text-decoration:none;';
+
+  const modal = document.createElement('div');
+  modal.id = 'equipeCompartilharModal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(10,22,40,.85);z-index:9000;display:flex;align-items:center;justify-content:center';
+  modal.innerHTML =
+    '<div style="background:var(--navy-mid);border:1px solid var(--border);padding:28px 32px;max-width:340px;width:90%;position:relative">' +
+      '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="position:absolute;top:12px;right:14px;background:none;border:none;color:var(--ink-muted);font-size:18px;cursor:pointer">✕</button>' +
+      '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:16px">Compartilhar cadastro — ' + EQUIPE_PAPEL_LABEL[papel] + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:10px">' +
+        '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
+        '<button onclick="equipeCopiarLinkCadastro(this)" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+function equipeCopiarLinkCadastro(btn) {
+  navigator.clipboard.writeText(_eqLinkCompartilhar).then(() => {
+    btn.textContent = '✅ Link copiado!';
+    setTimeout(() => { btn.textContent = '🔗 Copiar Link'; }, 2000);
+  });
+}
+
+function equipeRenderPessoas() {
+  const busca = (document.getElementById('eq-busca')?.value || '').toLowerCase().trim();
+  const uf = document.getElementById('eq-fil-uf')?.value || '';
+  const cidade = document.getElementById('eq-fil-cidade')?.value || '';
+  const prof = document.getElementById('eq-fil-prof')?.value || '';
+  const status = document.getElementById('eq-fil-status')?.value || '';
+
+  let lista = [..._eqPessoas];
+  if (_eqFiltroPapel) lista = lista.filter(p => p.tipo === _eqFiltroPapel);
+  if (_eqFiltroHabilitado === 'pendente') lista = lista.filter(p => !p.habilitado);
+  if (_eqFiltroHabilitado === 'habilitado') lista = lista.filter(p => p.habilitado);
+  if (uf) lista = lista.filter(p => p.uf === uf);
+  if (cidade) lista = lista.filter(p => p.cidade === cidade);
+  if (prof) lista = lista.filter(p => p.profissao === prof);
+  if (status) lista = lista.filter(p => (p.status || '').toLowerCase() === status);
+  if (busca) {
+    // Só compara dígitos de telefone/CPF quando a busca TEM dígitos —
+    // senão "".includes("") sempre bate e o filtro vira um no-op pra
+    // qualquer busca só-com-letras (achado testando "maria").
+    const buscaDigits = busca.replace(/\D/g,'');
+    lista = lista.filter(p =>
+      (p.nome||'').toLowerCase().includes(busca) ||
+      (p.email||'').toLowerCase().includes(busca) ||
+      (buscaDigits && (p.whatsapp||'').replace(/\D/g,'').includes(buscaDigits)) ||
+      (buscaDigits && (p.cpf||'').replace(/\D/g,'').includes(buscaDigits))
+    );
+  }
+  lista.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  _eqPessoasFiltradas = lista;
+
+  document.getElementById('eq-pessoas-count').textContent = lista.length + ' registro(s)';
+  const tbody = document.getElementById('eq-pessoas-tbody');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty-table">Nenhuma pessoa encontrada para os filtros aplicados.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lista.map(p => {
+    const papelHtml = `<span class="crm-badge s-${p.tipo}"><span class="crm-badge-dot"></span>${EQUIPE_PAPEL_LABEL[p.tipo]||p.tipo}</span>`;
+    const contatoHtml = [
+      p.email ? `<span style="font-size:11px;color:var(--ink-muted)">${esc(p.email)}</span>` : '',
+      p.whatsapp ? `<a href="https://wa.me/55${p.whatsapp.replace(/\D/g,'')}" target="_blank" style="color:var(--gold-ink);text-decoration:none;font-size:11px">📱 ${esc(p.whatsapp)}</a>` : ''
+    ].filter(Boolean).join('<br>');
+    const statusAtivo = (p.status||'').toLowerCase() !== 'inativo';
+    const habBadge = p.habilitado
+      ? '<span class="crm-badge s-ativo"><span class="crm-badge-dot"></span>Habilitado</span>'
+      : '<span class="crm-badge s-inativo"><span class="crm-badge-dot"></span>Pendente</span>';
+    const docLink = (url, label, tituloFaltando) => url
+      ? `<a href="${url}" target="_blank" rel="noopener" class="crm-badge s-ativo" style="text-decoration:none" title="Abrir ${label}">📄 ${label}</a>`
+      : `<span class="crm-badge s-inativo" title="${tituloFaltando}">⚠️ ${label}</span>`;
+    const docsHtml = `<div style="display:flex;flex-direction:column;gap:4px">` +
+      docLink(p.docRgUrl, 'RG/CNH', 'RG/CNH ainda não foi enviado') +
+      docLink(p.docComprovanteUrl, 'Comprovante', 'Comprovante de residência ainda não foi enviado') +
+      `</div>`;
+
+    return `<tr>
+      <td>${papelHtml}</td>
+      <td>
+        <div class="crm-nome">${esc(p.nome)||'—'}</div>
+        <div style="margin-top:3px">${contatoHtml}</div>
+      </td>
+      <td style="font-size:11px">${esc(p.cpf)||'—'}</td>
+      <td style="font-size:11px">${esc(p.cidade)||'—'}${p.uf?'/'+esc(p.uf):''}</td>
+      <td style="font-size:11px">${esc(p.profissao)||'—'}</td>
+      <td>${docsHtml}</td>
+      <td onclick="event.stopPropagation()">
+        <select onchange="equipeMudarStatus('${esc(p.email)}','${p.tipo}',this.value)"
+          style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;
+                 background:var(--surf);border:1px solid var(--border);color:var(--navy);padding:3px 6px;
+                 cursor:pointer;outline:none;appearance:none;-webkit-appearance:none">
+          <option value="ativo" ${statusAtivo?'selected':''}>🟢 Ativo</option>
+          <option value="inativo" ${!statusAtivo?'selected':''}>🔴 Inativo</option>
+        </select>
+      </td>
+      <td>${habBadge}</td>
+      <td style="font-size:11px;white-space:nowrap">${fmtData(p.criadoEm)}</td>
+      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+        <button class="btn-tbl ${p.habilitado?'btn-tbl-off':'btn-tbl-on'}" onclick="equipeMudarHabilitado('${esc(p.email)}','${p.tipo}',${!p.habilitado})">
+          ${p.habilitado?'⛔ Revogar':'✅ Habilitar'}
+        </button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function equipeMudarStatus(email, tipo, novoStatus) {
+  const p = _eqPessoas.find(x => x.email === email && x.tipo === tipo);
+  if (!p) return;
+  const anterior = p.status;
+  p.status = novoStatus;
+  equipeRenderPessoas();
+  const resp = await equipeJsonp('admin_pessoa_atualizar', { email, tipo, status: novoStatus });
+  if (!resp || resp.status !== 'ok') {
+    p.status = anterior;
+    equipeRenderPessoas();
+    mostrarToast('❌ Não foi possível alterar o status. Tente novamente.');
+    return;
+  }
+  mostrarToast(`✅ ${p.nome} → ${novoStatus === 'ativo' ? 'Ativo' : 'Inativo'}`);
+}
+
+async function equipeMudarHabilitado(email, tipo, novoValor) {
+  const p = _eqPessoas.find(x => x.email === email && x.tipo === tipo);
+  if (!p) return;
+  const anterior = p.habilitado;
+  p.habilitado = novoValor;
+  equipeAtualizarStats();
+  equipeRenderPessoas();
+  const resp = await equipeJsonp('admin_pessoa_atualizar', { email, tipo, habilitado: novoValor });
+  if (!resp || resp.status !== 'ok') {
+    p.habilitado = anterior;
+    equipeAtualizarStats();
+    equipeRenderPessoas();
+    mostrarToast('❌ Não foi possível alterar o acesso. Tente novamente.');
+    return;
+  }
+  mostrarToast(novoValor ? `✅ ${p.nome} agora pode acessar o dashboard` : `⛔ Acesso de ${p.nome} revogado`);
+}
+
+/* ── Indicações (das 3 abas, sem filtrar por dono — só admin_indicacoes_listar faz isso) ── */
+async function equipeCarregarIndicacoes() {
+  document.getElementById('eq-ind-tbody').innerHTML = '<tr><td colspan="7"><div class="empty-table">Carregando…</div></td></tr>';
+  const resp = await equipeJsonp('admin_indicacoes_listar', {});
+  if (!resp || resp.status !== 'ok') {
+    document.getElementById('eq-ind-tbody').innerHTML = '<tr><td colspan="7"><div class="empty-table">Não foi possível carregar. Tente "Recarregar".</div></td></tr>';
+    return;
+  }
+  _eqIndicacoes = resp.itens || [];
+  _eqIndicacoesCarregadas = true;
+  equipeRenderIndicacoes();
+}
+
+function equipeLimparFiltrosIndicacoes() {
+  document.getElementById('eq-ind-busca').value = '';
+  document.getElementById('eq-ind-fil-papel').value = '';
+  document.getElementById('eq-ind-fil-status').value = '';
+  equipeRenderIndicacoes();
+}
+
+const EQUIPE_IND_STATUS_LABEL = {
+  agente: 'Via Agente', corretor: 'Via Corretor', atendente: 'Via Atendente',
+  contato: 'Em Contato', proposta: 'Proposta', fechado: 'Fechado ✓', perdido: 'Perdido ✗'
+};
+
+function equipeRenderIndicacoes() {
+  const busca = (document.getElementById('eq-ind-busca')?.value || '').toLowerCase().trim();
+  const papel = document.getElementById('eq-ind-fil-papel')?.value || '';
+  const status = document.getElementById('eq-ind-fil-status')?.value || '';
+
+  let lista = [..._eqIndicacoes];
+  if (papel) lista = lista.filter(i => i.indicadorTipo === papel);
+  if (status) lista = lista.filter(i => i.status === status);
+  if (busca) {
+    const buscaDigits = busca.replace(/\D/g,'');
+    lista = lista.filter(i =>
+      (i.nomeCliente||'').toLowerCase().includes(busca) ||
+      (i.email||'').toLowerCase().includes(busca) ||
+      (buscaDigits && (i.telefone||'').replace(/\D/g,'').includes(buscaDigits))
+    );
+  }
+  lista.sort((a,b) => (b.criadoEm||'').localeCompare(a.criadoEm||''));
+  _eqIndicacoesFiltradas = lista;
+
+  document.getElementById('eq-ind-count').textContent = lista.length + ' registro(s)';
+  const tbody = document.getElementById('eq-ind-tbody');
+  if (!lista.length) {
+    tbody.innerHTML = '<tr><td colspan="7"><div class="empty-table">Nenhuma indicação encontrada para os filtros aplicados.</div></td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lista.map(i => {
+    const contatoHtml = [
+      i.telefone ? `<a href="https://wa.me/55${i.telefone.replace(/\D/g,'')}" target="_blank" style="color:var(--gold-ink);text-decoration:none;font-size:11px">📱 ${esc(i.telefone)}</a>` : '',
+      i.email ? `<span style="font-size:11px;color:var(--ink-muted)">${esc(i.email)}</span>` : ''
+    ].filter(Boolean).join('<br>');
+    const indicadorHtml = i.indicadorTipo
+      ? `<span class="crm-badge s-${i.indicadorTipo}"><span class="crm-badge-dot"></span>${EQUIPE_PAPEL_LABEL[i.indicadorTipo]||i.indicadorTipo}</span><div style="margin-top:3px;font-size:11px">${esc(i.indicadorNome)}</div>`
+      : '—';
+    const statusHtml = `<span class="crm-badge s-${i.status}"><span class="crm-badge-dot"></span>${EQUIPE_IND_STATUS_LABEL[i.status]||i.status}</span>`;
+
+    return `<tr>
+      <td>
+        <div class="crm-nome">${esc(i.nomeCliente)||'—'}</div>
+        <div style="margin-top:3px">${contatoHtml}</div>
+      </td>
+      <td>${indicadorHtml}</td>
+      <td style="font-size:11px">${esc(i.orcamento)||'—'}</td>
+      <td style="font-size:11px">${esc(i.interesse)||'—'}</td>
+      <td>${statusHtml}</td>
+      <td style="font-size:11px;white-space:nowrap">${fmtData(i.criadoEm)}</td>
+      <td style="max-width:220px;white-space:normal;font-size:11px;line-height:1.4">${esc((i.obsIndicador||'').substring(0,100))}${i.obsIndicador&&i.obsIndicador.length>100?'…':''}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Relatórios (mesmo padrão de crmExportar(): abre janela nova,
+   monta uma tabela HTML simples e chama window.print(); o usuário
+   escolhe "Salvar como PDF" na caixa de impressão do navegador se
+   quiser um arquivo em vez de imprimir). Exportam a lista JÁ
+   FILTRADA (o que está na tela), não a base inteira — assim um
+   relatório "só Pendentes" ou "só Agentes do RJ" sai fácil, sem
+   precisar limpar os filtros antes. */
+function equipeAbrirRelatorio_(titulo, subtitulo, headers, rows) {
+  if (!rows.length) { alert('Nenhum registro para gerar o relatório com os filtros atuais.'); return; }
+  const win = window.open('', '_blank');
+  const hoje = new Date().toLocaleString('pt-BR');
+  win.document.write(`<!DOCTYPE html><html lang="pt-BR"><head>
+    <meta charset="UTF-8"><title>${titulo} — WAL Imóveis</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;font-size:9pt;color:#000;padding:16px}
+      h1{font-size:14pt;color:#0A1628;border-bottom:3px solid #C9A84C;padding-bottom:8px;margin-bottom:12px}
+      h1 span{color:#C9A84C}
+      table{width:100%;border-collapse:collapse;font-size:8.5pt}
+      thead th{background:#0A1628;color:#C9A84C;padding:7px 8px;text-align:left;white-space:nowrap;font-size:8pt}
+      tbody td{padding:6px 8px;border-bottom:1px solid #e8e8e8;vertical-align:top}
+      tbody tr:nth-child(even){background:#f7f5f0}
+      .meta{font-size:8pt;color:#666;margin-bottom:10px}
+      @media print{@page{size:A4 landscape;margin:8mm}}
+    </style>
+  </head><body>
+    <h1>WAL Imóveis — <span>${titulo}</span></h1>
+    <p class="meta">Exportado em: ${hoje} · ${subtitulo} · Total: ${rows.length} registro(s)</p>
+    <table>
+      <thead><tr>${headers.map(h=>'<th>'+h+'</th>').join('')}</tr></thead>
+      <tbody>${rows.map(r=>'<tr>'+r.map(c=>'<td>'+(c||'—')+'</td>').join('')+'</tr>').join('')}</tbody>
+    </table>
+  </body></html>`);
+  win.document.close();
+  win.focus();
+  setTimeout(() => win.print(), 400);
+}
+
+function equipeExportarPessoas() {
+  const subtitulo = _eqFiltroPapel ? EQUIPE_PAPEL_LABEL[_eqFiltroPapel]
+    : (_eqFiltroHabilitado === 'pendente' ? 'Pendentes de habilitação'
+    : (_eqFiltroHabilitado === 'habilitado' ? 'Habilitados' : 'Todas as pessoas'));
+  const headers = ['Papel','Nome','E-mail','Telefone','CPF','UF','Cidade','Profissão / Vínculo','Status','Habilitado','RG/CNH','Comprovante','Cadastro'];
+  const rows = _eqPessoasFiltradas.map(p => [
+    EQUIPE_PAPEL_LABEL[p.tipo]||p.tipo, esc(p.nome), esc(p.email), esc(p.whatsapp), esc(p.cpf),
+    esc(p.uf), esc(p.cidade), esc(p.profissao),
+    (p.status||'').toLowerCase()==='inativo'?'Inativo':'Ativo',
+    p.habilitado?'Sim':'Não',
+    p.docRgUrl?'Enviado':'Pendente', p.docComprovanteUrl?'Enviado':'Pendente',
+    fmtData(p.criadoEm)
+  ]);
+  equipeAbrirRelatorio_('Relatório de Agentes/Corretor/Atendentes', subtitulo, headers, rows);
+}
+
+function equipeExportarIndicacoes() {
+  const headers = ['Cliente','Telefone','E-mail','Indicado por','Papel','Orçamento','Interesse','Status','Criado em','Observação'];
+  const rows = _eqIndicacoesFiltradas.map(i => [
+    esc(i.nomeCliente), esc(i.telefone), esc(i.email), esc(i.indicadorNome),
+    EQUIPE_PAPEL_LABEL[i.indicadorTipo]||i.indicadorTipo||'—',
+    esc(i.orcamento), esc(i.interesse), EQUIPE_IND_STATUS_LABEL[i.status]||i.status,
+    fmtData(i.criadoEm), esc(i.obsIndicador)
+  ]);
+  equipeAbrirRelatorio_('Relatório de Indicações', 'Filtro atual', headers, rows);
+}
+
 /* ══════════════ CRM AUTO-REFRESH ══════════════ */
 let _crmAutoRefreshInterval = null;
 let _crmUltimaAtualizacao   = null;
@@ -4661,6 +5271,7 @@ function initAdmin() {
   crmCarregar();
   crmAtualizarStats();
   crmIniciarAutoRefresh();
+  equipeCarregar();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
