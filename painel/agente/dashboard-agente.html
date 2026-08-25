@@ -2137,12 +2137,12 @@ function compartilharWhats(id){
   // até uma eventual reserva (ver crm_agente_publico_/
   // crm_indicacao_publica_criar_ no backend).
   const link=`${SITE_BASE_URL}imovel.html?id=${encodeURIComponent(e.id)}&agente=${encodeURIComponent(_user.id)}`;
-  // Imagem como primeira linha (sozinha, antes do nome) — o WhatsApp
-  // gera uma prévia visual quando a mensagem começa com uma URL de
-  // imagem direta. fixDriveUrl() já converte o link do Drive salvo na
-  // planilha pro formato de imagem direta (lh3.googleusercontent.com).
-  const imagemLinha=e.imagem?`${fixDriveUrl(e.imagem)}\n\n`:'';
-  const texto=`${imagemLinha}🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Fala comigo!\n${link}`;
+  // Sem tentar embutir a foto do Drive como linha solta: o Google serve
+  // esses arquivos com Cache-Control:private, e o WhatsApp descarta esse
+  // tipo de resposta ao montar a prévia — não gera imagem nenhuma, só
+  // cria uma prévia vazia (feio e sem função). A foto aparece de verdade
+  // é na prévia do PRÓPRIO link (imovel.html tem Open Graph configurado).
+  const texto=`🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Clique no link abaixo!\n${link}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
   toast('📲 Abrindo WhatsApp para compartilhar...','green');
 }
