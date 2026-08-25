@@ -1386,6 +1386,17 @@ let _aiHistory = [];
    de apps-script-sistema-web-cadastro.gs (com as funções crm_*) e seja
    republicado com "Nova versão" para essa URL funcionar de verdade. */
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+/* Base absoluta do site (com domínio) — necessária pro link que vai no
+   WhatsApp em compartilharWhats(), já que quem abre esse link não está
+   dentro do contexto do dashboard (link relativo não funcionaria fora
+   daqui). Mesmo padrão de SITE_BASE_URL já usado em imovel.html/
+   reserva.html, ajustado pra profundidade de pasta deste arquivo
+   (painel/agente/ → raiz do site). */
+const SITE_BASE_URL = (function(){
+  const o = window.location.origin;
+  if (!o || o === 'null' || o.startsWith('file')) return '';
+  return o + window.location.pathname.replace(/painel\/agente\/.*$/, '');
+})();
 function cadastroApiJsonp(action, params){
   return new Promise((resolve)=>{
     const cb = 'crmAgCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
@@ -2121,7 +2132,17 @@ function renderPipeline(){
 function compartilharWhats(id){
   const e=_empreendimentos.find(x=>x.id===id);
   if(!e)return;
-  const texto=`🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Fala comigo!`;
+  // Link com o Id do Agente por parâmetro — imovel.html usa isso pra
+  // mostrar "indicado por" e manter a indicação atrelada a este Agente
+  // até uma eventual reserva (ver crm_agente_publico_/
+  // crm_indicacao_publica_criar_ no backend).
+  const link=`${SITE_BASE_URL}imovel.html?id=${encodeURIComponent(e.id)}&agente=${encodeURIComponent(_user.id)}`;
+  // Imagem como primeira linha (sozinha, antes do nome) — o WhatsApp
+  // gera uma prévia visual quando a mensagem começa com uma URL de
+  // imagem direta. fixDriveUrl() já converte o link do Drive salvo na
+  // planilha pro formato de imagem direta (lh3.googleusercontent.com).
+  const imagemLinha=e.imagem?`${fixDriveUrl(e.imagem)}\n\n`:'';
+  const texto=`${imagemLinha}🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Fala comigo!\n${link}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`,'_blank');
   toast('📲 Abrindo WhatsApp para compartilhar...','green');
 }

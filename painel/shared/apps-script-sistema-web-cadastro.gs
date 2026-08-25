@@ -817,6 +817,79 @@ function crm_indicacao_criar_(data) {
   });
 }
 
+/* ══════════════════ LINK DE INDICAÇÃO PÚBLICO ══════════════════
+   Suporta o botão "Compartilhar" do Portal do Agente
+   (dashboard-agente.html → Empreendimentos), que gera um link tipo
+   imovel.html?id=IMO-001&agente=AG0002. Quem abre esse link é um
+   visitante anônimo (não logado como Agente), então as 2 ações abaixo
+   não passam por _sessaoOtpValida_ — confiam no Id do Agente vindo do
+   link, mesmo princípio de qualquer código de afiliado/cupom: baixo
+   risco (não expõe nem grava dado sensível de terceiro), e o pior
+   caso é uma indicação de origem duvidosa, que a Diretoria já vê e
+   confere manualmente em admin.html antes de qualquer pagamento de
+   comissão. */
+function crm_agente_publico_(data) {
+  var id = s_(data.id).trim().toUpperCase();
+  if (!id) return { status: 'error', message: 'Id do agente não informado.' };
+  var ss = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ss.getSheetByName(ABA_AGENTES);
+  var pessoa = aba && lerAbaObjetos_(aba).find(function (p) { return s_(p.Id).trim().toUpperCase() === id; });
+  if (!pessoa) return { status: 'error', message: 'Agente não encontrado.' };
+  return { status: 'ok', nome: s_(pessoa.Nome) };
+}
+
+/* Cria a indicação em nome do Agente do link — mesmo destino
+   (INDICACOES + espelho em LEADS) de crm_indicacao_criar_, mas sem
+   sessão, e sem sobrescrever aquela função já em produção. Dedupe por
+   Agente_Id+Telefone pra não duplicar se reserva.html reenviar por
+   engano (timeout, duplo clique). */
+function crm_indicacao_publica_criar_(data) {
+  var agenteId = s_(data.agenteId).trim().toUpperCase();
+  if (!agenteId) return { status: 'error', message: 'Id do agente não informado.' };
+  var nomeCliente = s_(data.nomeCliente).trim();
+  var telefone = s_(data.telefone).trim();
+  if (!nomeCliente || !telefone) return { status: 'error', message: 'Nome e telefone são obrigatórios.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var abaAgentes = ssCrm.getSheetByName(ABA_AGENTES);
+    var agente = abaAgentes && lerAbaObjetos_(abaAgentes).find(function (p) { return s_(p.Id).trim().toUpperCase() === agenteId; });
+    if (!agente) return { status: 'error', message: 'Agente não encontrado.' };
+
+    var abaInd = ssCrm.getSheetByName(ABA_INDICACOES);
+    if (!abaInd) return { status: 'error', message: 'Aba INDICACOES não encontrada.' };
+
+    var telNormalizado = telefone.replace(/\D/g, '');
+    var jaExiste = lerAbaObjetos_(abaInd).some(function (i) {
+      return s_(i.Agente_Id) === s_(agente.Id) && s_(i.Telefone).replace(/\D/g, '') === telNormalizado;
+    });
+    if (jaExiste) return { status: 'ok', duplicado: true };
+
+    var id = gerarId_(abaInd, 'IND');
+    var agoraStr = agora_();
+    var camposInd = {
+      Id: id, Nome_Cliente: nomeCliente, Telefone: telefone, Email: s_(data.emailCliente),
+      Emp_Id: s_(data.empId), Status: 'agente', Criado_em: agoraStr, Ultima_atualizacao: agoraStr,
+      Obs_Do_Indicador: 'Indicação automática via link compartilhado (' + (s_(data.origem) || 'site') + ')',
+      Obs_Gerencia_Comercial: '', Agente_Id: s_(agente.Id)
+    };
+    var headersInd = headersDe_(abaInd);
+    abaInd.appendRow(headersInd.map(function (h) { return camposInd[h] !== undefined ? camposInd[h] : ''; }));
+
+    var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+    if (abaLeads) {
+      var headersLeads = headersDe_(abaLeads);
+      var camposLead = {
+        ID: id, Status: 'novo', Prioridade: 'media', Nome: nomeCliente, Telefone: telefone,
+        Email: s_(data.emailCliente), Origem: 'Indicação · agente (link)', Consultor: s_(agente.Nome),
+        'Criado em': agoraStr, 'Atualizado em': agoraStr
+      };
+      abaLeads.appendRow(headersLeads.map(function (h) { return camposLead[h] !== undefined ? camposLead[h] : ''; }));
+    }
+    return { status: 'ok', id: id };
+  });
+}
+
 function crm_indicacao_listar_(p) {
   var email = normalizarEmail_(p.email);
   if (!_sessaoOtpValida_(email, p.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
@@ -1086,6 +1159,7 @@ function doGet(e) {
       case 'admin_pessoas_listar':              result = admin_pessoas_listar_(p); break;
       case 'admin_pessoa_atualizar':            result = admin_pessoa_atualizar_(p); break;
       case 'admin_indicacoes_listar':           result = admin_indicacoes_listar_(p); break;
+      case 'crm_agente_publico':                result = crm_agente_publico_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
@@ -1111,6 +1185,7 @@ function doPost(e) {
       case 'crm_indicacao_atualizar':         out = crm_indicacao_atualizar_(data); break;
       case 'crm_indicacao_excluir':           out = crm_indicacao_excluir_(data); break;
       case 'admin_pessoa_atualizar':          out = admin_pessoa_atualizar_(data); break;
+      case 'crm_indicacao_publica_criar':     out = crm_indicacao_publica_criar_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);

@@ -624,6 +624,13 @@
   </div>
 </div>
 
+<!-- INDICAÇÃO DE AGENTE PARCEIRO — só aparece quando chega via link com
+     ?agente=, ou quando essa indicação já estava salva de uma visita
+     recente ao site (ver capturarReferenciaAgente_ no script abaixo). -->
+<div id="ref-agente-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(201,168,76,.10);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:11px 24px;font-size:13px;color:var(--navy);text-align:center">
+  🤝 Você está vendo este imóvel pela indicação de <strong id="ref-agente-nome">—</strong>, Agente Parceiro WAL.
+</div>
+
 <!-- MAIN -->
 <div class="main-wrap">
 
@@ -1666,10 +1673,45 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+/* ─── INDICAÇÃO DE AGENTE (link ?agente=) ───
+   Guarda em localStorage (não sessionStorage — precisa sobreviver a
+   fechar a aba e voltar depois) por até REF_AGENTE_DIAS, pra que a
+   indicação não se perca se a pessoa só decidir reservar dias depois
+   de ver o imóvel. reserva.html lê essa mesma chave na hora de
+   confirmar a reserva (ver crm_indicacao_publica_criar_ no backend). */
+const REF_AGENTE_KEY  = 'wal_ref_agente';
+const REF_AGENTE_DIAS = 90;
+function lerReferenciaAgente_() {
+  try {
+    const raw = localStorage.getItem(REF_AGENTE_KEY);
+    if (!raw) return null;
+    const ref = JSON.parse(raw);
+    const dias = (Date.now() - ref.capturadoEm) / 86400000;
+    if (dias > REF_AGENTE_DIAS) { localStorage.removeItem(REF_AGENTE_KEY); return null; }
+    return ref;
+  } catch(e) { return null; }
+}
+async function capturarReferenciaAgente_(agenteIdParam) {
+  if (agenteIdParam) {
+    const resp = await cadastroApiJsonp('crm_agente_publico', { id: agenteIdParam });
+    if (resp && resp.status === 'ok' && resp.nome) {
+      localStorage.setItem(REF_AGENTE_KEY, JSON.stringify({ id: agenteIdParam, nome: resp.nome, capturadoEm: Date.now() }));
+    }
+  }
+  return lerReferenciaAgente_();
+}
+function mostrarBannerAgente_(ref) {
+  if (!ref) return;
+  document.getElementById('ref-agente-nome').textContent = ref.nome;
+  document.getElementById('ref-agente-banner').style.display = 'flex';
+}
+
 /* ─── INIT ─── */
 document.addEventListener('DOMContentLoaded', async function() {
   const params   = new URLSearchParams(window.location.search);
   const imovelId = params.get('id');
+
+  capturarReferenciaAgente_(params.get('agente')).then(mostrarBannerAgente_);
 
   // Botão "voltar" no topo: quem chegou direto do index.html ("Saiba mais")
   // volta pra página principal; quem chegou do imoveis.html continua

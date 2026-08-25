@@ -718,6 +718,32 @@ function registrarNoCRMSim(lead, nota) {
   }).catch(() => {});
 }
 
+/* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
+   — usado só pra manter a indicação de Agente Parceiro (ver imovel.html,
+   que grava wal_ref_agente no localStorage quando o link tem ?agente=).
+   Se essa pessoa se identificar aqui no Simulador dentro da janela de
+   90 dias, a indicação fica atrelada ao Agente — mesma função/payload
+   de reserva.html/chat.html. */
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+function registrarIndicacaoAgente_(nome, telefone, email) {
+  try {
+    const raw = localStorage.getItem('wal_ref_agente');
+    if (!raw) return;
+    const ref = JSON.parse(raw);
+    if (!ref || !ref.id || !ref.capturadoEm) return;
+    if ((Date.now() - ref.capturadoEm) / 86400000 > 90) return;
+    fetch(CADASTRO_API_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'crm_indicacao_publica_criar',
+        agenteId: ref.id, nomeCliente: nome, telefone, emailCliente: email,
+        empId: '', origem: 'simulador.html'
+      })
+    }).catch(() => {});
+  } catch(e) {}
+}
+
 function simpMostrarFormulario() {
   const o = document.getElementById('sim-prechat');
   o.style.display = 'flex';
@@ -744,6 +770,7 @@ function simpConfirmar() {
     { nome, telefone: tel, email, origem: 'Simulador' },
     'Acessou o Simulador de Financiamento'
   );
+  registrarIndicacaoAgente_(nome, tel, email);
 
   document.getElementById('sim-prechat').style.display = 'none';
 }

@@ -1003,6 +1003,32 @@
       body: JSON.stringify(payload)
     }).catch(() => {});
   }
+
+  /* Se essa pessoa chegou até aqui por um link de Agente Parceiro
+     (imovel.html?agente=AG0002 → salvo em localStorage, ver
+     REF_AGENTE_KEY em imovel.html), mantém a indicação atrelada ao
+     Agente na hora em que ela efetivamente reserva — mesma chave de
+     localStorage, mesma janela de validade (90 dias). Fire-and-forget:
+     uma falha aqui nunca deve travar nem atrasar a confirmação da
+     reserva em si. */
+  function registrarIndicacaoAgente_(nome, telefone, email, empreendimento) {
+    try {
+      const raw = localStorage.getItem('wal_ref_agente');
+      if (!raw) return;
+      const ref = JSON.parse(raw);
+      if (!ref || !ref.id || !ref.capturadoEm) return;
+      if ((Date.now() - ref.capturadoEm) / 86400000 > 90) return;
+      fetch(CADASTRO_API_URL, {
+        method: 'POST', mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'crm_indicacao_publica_criar',
+          agenteId: ref.id, nomeCliente: nome, telefone, emailCliente: email,
+          empId: empreendimento || '', origem: 'reserva.html'
+        })
+      }).catch(() => {});
+    } catch(e) {}
+  }
   const WPP_CONS_1  = '5521972443592';
   const WPP_CONS_2  = '5521972443592';
   const MAX_FILE_MB = 5;
@@ -1643,6 +1669,7 @@
 
     if (enviou) {
       registrarNoCRMReserva(payload.nome, payload.telefone, payload.email);
+      registrarIndicacaoAgente_(payload.nome, payload.telefone, payload.email, payload.empreendimento);
       mostrarSucesso(payload.nome, payload.empreendimento, payload.conjuge);
     } else {
       btn.textContent = 'Confirmar Reserva e Enviar Documentos →';
