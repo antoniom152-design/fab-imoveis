@@ -2188,6 +2188,13 @@ function compEmpMostrarEmail(){
   document.getElementById('compEmpEmailErr').style.display='none';
   const inp=document.getElementById('compEmpEmailInput');
   inp.value='';inp.focus();
+  // Modal é estático (não recriado a cada abertura) — sem isto, o botão
+  // ficava travado em "Enviando..." desabilitado pra sempre depois do
+  // 1º envio bem-sucedido, porque o sucesso só fechava o modal sem
+  // reabilitar o botão. Reseta aqui sempre que a tela de e-mail abre,
+  // não só nos casos de erro.
+  const btn=document.getElementById('compEmpBtnEnviar');
+  btn.disabled=false;btn.textContent='Enviar →';
 }
 function compEmpVoltar(){
   document.getElementById('compEmpFormEmail').style.display='none';
@@ -2208,6 +2215,7 @@ async function compEmpEnviarEmail(){
     if(data.status==='ok'){
       toast('✅ E-mail enviado para '+destinatario+'!','green');
       fecharModal('modalCompEmp');
+      btn.disabled=false;btn.textContent='Enviar →';
     }else{
       errEl.textContent=data.message||'Não foi possível enviar agora. Tente novamente.';errEl.style.display='block';
       btn.disabled=false;btn.textContent='Enviar →';
