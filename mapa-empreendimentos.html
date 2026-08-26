@@ -225,6 +225,10 @@
   </div>
 </div>
 
+<div id="ref-agente-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(201,168,76,.12);border-bottom:2px solid #C9A84C;padding:10px 24px;font-size:0.88em;color:#fff;text-align:center">
+  🤝 Você está vendo este mapa pela indicação de <strong id="ref-agente-nome" style="color:#C9A84C">—</strong>, Agente Parceiro WAL.
+</div>
+
 <div class="toolbar">
   <div>
     <label>Buscar (nome, bairro ou endereço)</label>
@@ -277,6 +281,7 @@
   <button class="btn-filtrar" id="btn-filtrar">🔍 Filtrar</button>
   <button class="btn-limpar" id="btn-limpar">✕ Limpar</button>
   <button class="btn-fav-toggle" id="btn-fav-toggle">☆ Só Favoritos</button>
+  <button class="btn-limpar" id="btn-compartilhar-mapa">📲 Compartilhar</button>
   <span id="contador-mapa"></span>
 </div>
 
@@ -316,6 +321,26 @@
   </div>
 </div>
 
+<!-- MODAL: COMPARTILHAR -->
+<div class="modal-overlay" id="modal-compartilhar-mapa">
+  <div class="modal-box" style="max-width:380px">
+    <button class="modal-close" onclick="fecharModal('modal-compartilhar-mapa')">✕</button>
+    <h2>Compartilhar Mapa Filtrado</h2>
+    <div id="compMapaOpcoes" style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
+      <a id="compMapaWpp" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;font-weight:700;text-decoration:none;border-radius:6px;background:#25D366;color:#fff">📱 Enviar por WhatsApp</a>
+      <button onclick="compMapaMostrarEmail()" style="padding:12px 16px;font-weight:700;border-radius:6px;background:#f0f2f5;border:1px solid #d5dae2;color:#0A1628;cursor:pointer">✉️ Enviar por E-mail</button>
+      <button id="compMapaBtnCopiar" onclick="compMapaCopiarLink(this)" style="padding:12px 16px;font-weight:700;border-radius:6px;background:#f0f2f5;border:1px solid #d5dae2;color:#0A1628;cursor:pointer">🔗 Copiar Link</button>
+    </div>
+    <div id="compMapaFormEmail" style="display:none;flex-direction:column;gap:10px;margin-top:10px">
+      <label style="font-size:0.78em;color:#7f8c9a">E-mail do destinatário</label>
+      <input type="email" id="compMapaEmailInput" placeholder="nome@email.com" style="padding:10px 12px;border:1px solid #d5dae2;border-radius:5px;font-size:0.9em;font-family:inherit">
+      <div id="compMapaEmailErr" style="display:none;font-size:0.78em;color:#DC2626"></div>
+      <button id="compMapaBtnEnviar" onclick="compMapaEnviarEmail()" style="padding:12px 16px;font-weight:700;border-radius:6px;background:#C9A84C;color:#0A1628;border:none;cursor:pointer">Enviar →</button>
+      <button onclick="compMapaVoltar()" style="background:none;border:none;color:#7f8c9a;font-size:0.85em;cursor:pointer;text-align:center;padding:4px">← Voltar</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
@@ -329,6 +354,144 @@
 ================================================================ */
 const SHEET_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 const WPP_NUMERO = '5521997263950';
+
+/* ── Indicação de Agente Parceiro (link ?agente=) ──
+   Mesma rotina de imovel.html: verifica o Id do Agente vindo do link
+   (via ação pública crm_agente_publico, sem sessão), mostra o nome
+   dele numa faixa visível e guarda a indicação em localStorage por 90
+   dias — pra não se perder se a pessoa só decidir converter dias
+   depois. reserva.html/chat.html/simulador.html leem essa MESMA chave
+   na hora de confirmar (ver apps-script-sistema-web-cadastro.gs). */
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+function cadastroApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    const cb = 'mapaCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+const REF_AGENTE_KEY  = 'wal_ref_agente';
+const REF_AGENTE_DIAS = 90;
+function lerReferenciaAgente_(){
+  try{
+    const raw = localStorage.getItem(REF_AGENTE_KEY);
+    if(!raw) return null;
+    const ref = JSON.parse(raw);
+    const dias = (Date.now()-ref.capturadoEm)/86400000;
+    if(dias > REF_AGENTE_DIAS){ localStorage.removeItem(REF_AGENTE_KEY); return null; }
+    return ref;
+  }catch(e){ return null; }
+}
+async function capturarReferenciaAgente_(agenteIdParam){
+  if(agenteIdParam){
+    const resp = await cadastroApiJsonp('crm_agente_publico', { id: agenteIdParam });
+    if(resp && resp.status === 'ok' && resp.nome){
+      localStorage.setItem(REF_AGENTE_KEY, JSON.stringify({ id: agenteIdParam, nome: resp.nome, capturadoEm: Date.now() }));
+    }
+  }
+  return lerReferenciaAgente_();
+}
+function mostrarBannerAgente_(ref){
+  if(!ref) return;
+  document.getElementById('ref-agente-nome').textContent = ref.nome;
+  document.getElementById('ref-agente-banner').style.display = 'flex';
+}
+capturarReferenciaAgente_(new URLSearchParams(location.search).get('agente')).then(mostrarBannerAgente_);
+
+/* ── Compartilhar mapa filtrado (WhatsApp / E-mail / Copiar Link) ──
+   Monta o link a partir dos MESMOS campos de filtro atualmente
+   preenchidos na tela (não precisa ter clicado "Filtrar" antes) e
+   preserva o ?agente= atual, se houver, pra quem receber o link
+   também contar como indicação do mesmo Agente. */
+const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
+let _compMapaLink = '';
+function linkMapaAtual_(){
+  const params = new URLSearchParams();
+  const mapa = { uf:'f-uf', cidade:'f-cidade', bairro:'f-bairro', tipo:'f-tipo', construtora:'f-construtora', busca:'f-busca' };
+  Object.keys(mapa).forEach(chave=>{
+    const el = document.getElementById(mapa[chave]);
+    const v = el ? el.value.trim() : '';
+    if(v) params.set(chave, v);
+  });
+  if(MODO_ADMIN){
+    params.set('admin','1');
+    const status = document.getElementById('f-status').value;
+    if(status) params.set('status', status);
+  }
+  const agenteAtual = new URLSearchParams(location.search).get('agente');
+  if(agenteAtual) params.set('agente', agenteAtual);
+  const base = location.origin + location.pathname;
+  const qs = params.toString();
+  return qs ? `${base}?${qs}` : base;
+}
+function abrirCompartilharMapa(){
+  const link = linkMapaAtual_();
+  _compMapaLink = link;
+  const contadorTxt = document.getElementById('contador-mapa').textContent || 'os empreendimentos filtrados';
+  const texto = `🗺️ Veja no mapa: ${contadorTxt}\n${link}`;
+  document.getElementById('compMapaWpp').href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  document.getElementById('compMapaOpcoes').style.display = 'flex';
+  document.getElementById('compMapaFormEmail').style.display = 'none';
+  abrirModal('modal-compartilhar-mapa');
+}
+function compMapaCopiarLink(btn){
+  navigator.clipboard.writeText(_compMapaLink).then(()=>{
+    const orig = btn.textContent;
+    btn.textContent = '✅ Link copiado!';
+    setTimeout(()=>{ btn.textContent = orig; }, 2000);
+  });
+}
+function compMapaMostrarEmail(){
+  document.getElementById('compMapaOpcoes').style.display = 'none';
+  document.getElementById('compMapaFormEmail').style.display = 'flex';
+  document.getElementById('compMapaEmailErr').style.display = 'none';
+  const inp = document.getElementById('compMapaEmailInput');
+  inp.value = ''; inp.focus();
+  // Modal estático, reaproveitado a cada abertura — reseta aqui sempre
+  // que a tela de e-mail abre, senão o botão fica preso em
+  // "Enviando..." depois do 1º envio bem-sucedido (mesmo bug já
+  // corrigido no modal de Compartilhar do dashboard-agente.html).
+  const btn = document.getElementById('compMapaBtnEnviar');
+  btn.disabled = false; btn.textContent = 'Enviar →';
+}
+function compMapaVoltar(){
+  document.getElementById('compMapaFormEmail').style.display = 'none';
+  document.getElementById('compMapaOpcoes').style.display = 'flex';
+}
+async function compMapaEnviarEmail(){
+  const inp = document.getElementById('compMapaEmailInput');
+  const destinatario = (inp.value||'').trim();
+  const errEl = document.getElementById('compMapaEmailErr');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(destinatario)){ errEl.textContent='Digite um e-mail válido.'; errEl.style.display='block'; return }
+  errEl.style.display = 'none';
+  const btn = document.getElementById('compMapaBtnEnviar');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try{
+    const res = await fetch(SCRIPT_URL_LEADS, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ tipo:'compartilhar_email', destinatario, assunto:'Empreendimentos no mapa — WAL Imóveis',
+        corpo:`Olá! Vi este mapa com empreendimentos da WAL Imóveis e achei que poderia te interessar:\n\n${_compMapaLink}` }) });
+    const data = await res.json();
+    if(data.status === 'ok'){
+      // Não substitui o innerHTML do formulário (o modal é estático,
+      // reaproveitado — destruir os elementos aqui quebraria a próxima
+      // abertura). Só troca o texto do botão por um instante e fecha.
+      btn.textContent = '✅ Enviado!';
+      setTimeout(()=>{ fecharModal('modal-compartilhar-mapa'); btn.disabled=false; btn.textContent='Enviar →'; }, 1500);
+    }else{
+      errEl.textContent = data.message || 'Não foi possível enviar agora. Tente novamente.'; errEl.style.display = 'block';
+      btn.disabled = false; btn.textContent = 'Enviar →';
+    }
+  }catch(e){
+    errEl.textContent = 'Falha na conexão. Tente novamente.'; errEl.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Enviar →';
+  }
+}
 
 // Mesmo arquivo serve as duas versões (pedido do Antonio, 23/08/2026):
 // pública (botão "Ver no Mapa" no imoveis.html, sem ?admin=1 — Status
@@ -579,6 +742,7 @@ function abrirComparacao() {
 function abrirModal(id) { document.getElementById(id).classList.add('show'); }
 function fecharModal(id) { document.getElementById(id).classList.remove('show'); }
 document.getElementById('btn-como-usar').addEventListener('click', () => abrirModal('modal-como-usar'));
+document.getElementById('btn-compartilhar-mapa').addEventListener('click', abrirCompartilharMapa);
 
 /* Tela cheia — cobre a página inteira (filtros + mapa), facilita
    navegar no mapa sem a barra de endereço/abas do navegador atrapalhando.
@@ -688,8 +852,23 @@ function popularSelect(id, valores, label) {
   }
 
   popularSelect('f-uf', [...new Set(base.map(im => im.uf).filter(Boolean))].sort(), 'Todas');
+
+  // Pré-preenche os filtros a partir da URL — usado pelo botão
+  // "📲 Compartilhar" deste próprio mapa e pelo "Ver no Mapa" do
+  // Portal do Agente (que já manda os filtros aplicados por lá + o
+  // código do Agente). Precisa popular UF antes de Cidade, e Cidade
+  // antes de Bairro, porque cada select restringe o próximo.
+  const paramsURL = new URLSearchParams(location.search);
+  let temFiltroNaURL = false;
+  if (paramsURL.get('uf')) { document.getElementById('f-uf').value = paramsURL.get('uf'); temFiltroNaURL = true; }
   atualizarCidadesFiltro();
+  if (paramsURL.get('cidade')) { document.getElementById('f-cidade').value = paramsURL.get('cidade'); temFiltroNaURL = true; }
   atualizarBairrosFiltro();
+  if (paramsURL.get('bairro'))      { document.getElementById('f-bairro').value = paramsURL.get('bairro'); temFiltroNaURL = true; }
+  if (paramsURL.get('tipo'))        { document.getElementById('f-tipo').value = paramsURL.get('tipo'); temFiltroNaURL = true; }
+  if (paramsURL.get('construtora')) { document.getElementById('f-construtora').value = paramsURL.get('construtora'); temFiltroNaURL = true; }
+  if (paramsURL.get('busca'))       { document.getElementById('f-busca').value = paramsURL.get('busca'); temFiltroNaURL = true; }
+  if (MODO_ADMIN && paramsURL.get('status') !== null) { document.getElementById('f-status').value = paramsURL.get('status'); temFiltroNaURL = true; }
 
   function atualizarCidadesFiltro() {
     const uf = document.getElementById('f-uf').value;
@@ -709,6 +888,10 @@ function popularSelect(id, valores, label) {
 
   let clusterGroup = null;
   let somenteFavoritos = false;
+
+  // Só agora (depois de clusterGroup/somenteFavoritos existirem) dá pra
+  // chamar filtrarErenderizar() com segurança — ela usa as duas.
+  if (temFiltroNaURL) filtrarErenderizar();
 
   function montarPopup(im) {
     const foto = im.imagem ? fixDriveUrlProto(im.imagem) : '';

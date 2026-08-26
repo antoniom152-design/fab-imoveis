@@ -957,7 +957,7 @@ a{text-decoration:none;color:inherit}
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <button class="btn btn-gold" onclick="filtrarEmps()">▶ Filtrar</button>
             <button class="btn" onclick="limparFiltrosEmps()">✕ Limpar</button>
-            <a class="btn btn-teal" href="../../mapa-empreendimentos.html" target="_blank" rel="noopener">🗺️ Ver no Mapa</a>
+            <button class="btn btn-teal" onclick="abrirMapaFiltrado()">🗺️ Ver no Mapa</button>
             <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Buscar por nome..." style="width:200px;margin-left:auto" oninput="filtrarEmps()">
           </div>
         </div>
@@ -2283,6 +2283,22 @@ function atualizarBairrosEmp(){
   const cidade=document.getElementById('empFCidade').value;
   const bairros=[...new Set(_empreendimentos.filter(e=>(!uf||e.uf===uf)&&(!cidade||e.cidade===cidade)).map(e=>e.bairro).filter(Boolean))].sort();
   document.getElementById('empFBairro').innerHTML='<option value="">Todos os bairros</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
+}
+/* "Ver no Mapa" leva o filtro atual (UF/Tipo/Cidade/Bairro/Busca — o
+   mapa não tem filtro de Faixa de Valor, então esse campo não é
+   transferido) + o Id do Agente por parâmetro, mesma rotina de
+   abrirCompartilharEmp(): mapa-empreendimentos.html verifica o código,
+   mostra o nome do Agente e guarda a indicação por 90 dias. */
+function abrirMapaFiltrado(){
+  const params=new URLSearchParams();
+  const mapa={uf:'empFUf', tipo:'empFTipo', cidade:'empFCidade', bairro:'empFBairro', busca:'empBusca'};
+  Object.keys(mapa).forEach(chave=>{
+    const el=document.getElementById(mapa[chave]);
+    const v=el?el.value.trim():'';
+    if(v)params.set(chave,v);
+  });
+  params.set('agente',_user.id);
+  window.open(`${SITE_BASE_URL}mapa-empreendimentos.html?${params.toString()}`,'_blank');
 }
 function filtrarEmps(){
   const uf=document.getElementById('empFUf').value;
