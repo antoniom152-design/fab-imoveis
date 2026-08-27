@@ -615,6 +615,23 @@ a{text-decoration:none;color:inherit}
             </select>
           </div>
         </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">UF *</div>
+            <select class="field-sel" id="cadUf">
+              <option value="">Selecione...</option>
+              <option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option>
+              <option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option>
+              <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+              <option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option>
+              <option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option>
+              <option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option>
+              <option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option>
+              <option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option>
+              <option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
+            </select>
+          </div>
+          <div><div class="field-lbl">Cidade *</div><input class="field-inp" id="cadCidade" placeholder="Ex: Rio de Janeiro" oninput="filtrarCidadeCad_(this)"></div>
+        </div>
 
         <div class="f-sec">Dados Bancários (para receber comissões)</div>
         <div class="field-row field-3 mb14">
@@ -1553,8 +1570,21 @@ function validarTelefoneCad_(tel){
 function validarEmailCad_(email){
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email||'').trim());
 }
+// Cidade é opcional, mas se preenchida precisa parecer um nome de
+// cidade de verdade — mesmo critério de validarNomeCompletoCad_,
+// só que sem exigir 2+ palavras (cidade pode ser um nome só, ex: "Niterói").
+function filtrarCidadeCad_(el){
+  el.value=el.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'.\s]/g,'');
+}
+function validarCidadeCad_(cidade){
+  const limpo=(cidade||'').trim();
+  if(!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+  if(limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length<2) return false;
+  if(/^(.)\1+$/.test(limpo.replace(/\s/g,''))) return false;
+  return true;
+}
 function limparValidacaoCadastro_(){
-  ['cadNome','cadCpf','cadEmail','cadTel'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
+  ['cadNome','cadCpf','cadEmail','cadTel','cadUf','cadCidade'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
   ['docRgArea','docResArea'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
   const tw=document.getElementById('cadTermosWrap'); if(tw) tw.style.outline='';
 }
@@ -1569,6 +1599,8 @@ function doCadastroValidarEEnviarCodigo(){
   const email=document.getElementById('cadEmail').value.trim().toLowerCase();
   const tel=document.getElementById('cadTel').value.trim();
   const cpf=document.getElementById('cadCpf').value.trim();
+  const uf=document.getElementById('cadUf').value;
+  const cidade=document.getElementById('cadCidade').value.trim();
   const termos=document.getElementById('cadTermos').checked;
   const err=document.getElementById('cadErr');
   const ok=document.getElementById('cadOk');
@@ -1584,6 +1616,9 @@ function doCadastroValidarEEnviarCodigo(){
     {cond:email&&!validarEmailCad_(email),    id:'cadEmail',   msg:'Informe um e-mail válido.'},
     {cond:!tel,                               id:'cadTel',     msg:'Informe seu WhatsApp.'},
     {cond:tel&&!validarTelefoneCad_(tel),     id:'cadTel',     msg:'WhatsApp inválido — informe DDD + número (10 ou 11 dígitos).'},
+    {cond:!uf,                                id:'cadUf',      msg:'Selecione seu estado (UF).'},
+    {cond:!cidade,                             id:'cadCidade',  msg:'Informe sua cidade.'},
+    {cond:cidade&&!validarCidadeCad_(cidade), id:'cadCidade',  msg:'Cidade inválida — use apenas letras, sem números ou símbolos.'},
     {cond:!_docFiles.docRg,                   id:'docRgArea',  area:true, msg:'Envie o RG ou CNH (frente) — documento obrigatório.'},
     {cond:!_docFiles.docRes,                  id:'docResArea', area:true, msg:'Envie o comprovante de residência — documento obrigatório.'},
     {cond:!termos,                            id:'cadTermosWrap', area:true, msg:'Marque a caixa de aceite dos Termos de Parceria e da Política de Privacidade.'}
@@ -1629,6 +1664,8 @@ async function doAuthGateConfirmar(){
     whatsapp:document.getElementById('cadTel').value.trim(),
     nascimento:document.getElementById('cadNasc').value,
     profissao:document.getElementById('cadProf').value,
+    uf:document.getElementById('cadUf').value,
+    cidade:document.getElementById('cadCidade').value.trim(),
     banco:document.getElementById('cadBanco').value,
     agencia:document.getElementById('cadAgencia').value,
     conta:document.getElementById('cadConta').value,
@@ -1657,7 +1694,7 @@ async function doAuthGateConfirmar(){
   }catch(e){ console.warn('Falha ao enviar documentos:',e.message); }
 
   setTimeout(()=>{
-    ['cadNome','cadCpf','cadEmail','cadTel','cadBanco','cadAgencia','cadConta','cadPix','cadMotivacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    ['cadNome','cadCpf','cadEmail','cadTel','cadUf','cadCidade','cadBanco','cadAgencia','cadConta','cadPix','cadMotivacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
     document.getElementById('cadTermos').checked=false;
     ['docRg','docRes'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id+'Nome').textContent='';_docFiles[id]=null});
   },2000);
