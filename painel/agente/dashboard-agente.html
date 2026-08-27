@@ -660,13 +660,14 @@ a{text-decoration:none;color:inherit}
             </div>
           </div>
           <div>
-            <div class="field-lbl">Comprovante de residência *</div>
+            <div class="field-lbl">Comprovante de residência</div>
             <div class="upload-area" id="docResArea" onclick="document.getElementById('docRes').click()">
               <input type="file" id="docRes" accept="image/*,.pdf" onchange="handleUpload(this,'docResNome')">
               <div style="font-size:24px">🏠</div>
               <div class="upload-lbl">Clique para selecionar</div>
               <div class="upload-name" id="docResNome"></div>
             </div>
+            <div class="fs10 c-muted" style="margin-top:4px">Campo não Obrigatório</div>
           </div>
         </div>
 
@@ -1620,7 +1621,6 @@ function doCadastroValidarEEnviarCodigo(){
     {cond:!cidade,                             id:'cadCidade',  msg:'Informe sua cidade.'},
     {cond:cidade&&!validarCidadeCad_(cidade), id:'cadCidade',  msg:'Cidade inválida — use apenas letras, sem números ou símbolos.'},
     {cond:!_docFiles.docRg,                   id:'docRgArea',  area:true, msg:'Envie o RG ou CNH (frente) — documento obrigatório.'},
-    {cond:!_docFiles.docRes,                  id:'docResArea', area:true, msg:'Envie o comprovante de residência — documento obrigatório.'},
     {cond:!termos,                            id:'cadTermosWrap', area:true, msg:'Marque a caixa de aceite dos Termos de Parceria e da Política de Privacidade.'}
   ];
   for(const c of checagens){
@@ -1738,7 +1738,7 @@ function docParaBase64_(file){
 const CONTRATO_PARCERIA_PDF = 'Contrato_Parceria_Agente_WAL_v1.0.pdf';
 const PERF_DOCS_CFG=[
   {key:'docRgUrl',         label:'RG / CNH',                        icon:'📄', inputId:'perfDocRg',       descricao:'RG_ou_CNH'},
-  {key:'docComprovanteUrl',label:'Comprovante de Residência',       icon:'🏠', inputId:'perfDocRes',      descricao:'Comprovante_Residencia'},
+  {key:'docComprovanteUrl',label:'Comprovante de Residência',       icon:'🏠', inputId:'perfDocRes',      descricao:'Comprovante_Residencia', obrigatorio:false},
   {key:'docContratoUrl',   label:'Contrato de Parceria (assinado)', icon:'📋', inputId:'perfDocContrato', descricao:'Contrato_Assinado', modeloUrl:CONTRATO_PARCERIA_PDF}
 ];
 let _perfDocsEnviando={};
@@ -1820,12 +1820,15 @@ function renderDocumentosPerfil(){
       </div>
       <input type="file" id="${d.inputId}" accept="image/*,.pdf" style="display:none" onchange="handleUploadPerfil(this,'${d.descricao}')">`;
     }
-    return `<div style="padding:10px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:7px">
+    const naoObrigatorio=d.obrigatorio===false;
+    return `<div style="padding:10px;background:${naoObrigatorio?'var(--card2)':'var(--amber-dim)'};border:1px solid ${naoObrigatorio?'var(--bdr)':'rgba(217,119,6,.25)'};border-radius:7px">
       <div class="flex-bet">
-        <div class="flex" style="gap:8px"><span style="font-size:18px">${d.icon}</span><div><div class="fs12 fw6 c-amber">${d.label}</div><div class="fs10 c-muted">Ainda não recebemos este documento</div></div></div>
-        <span class="bdg ba">Pendente</span>
+        <div class="flex" style="gap:8px"><span style="font-size:18px">${d.icon}</span><div><div class="fs12 fw6${naoObrigatorio?'':' c-amber'}">${d.label}</div><div class="fs10 c-muted">Ainda não recebemos este documento</div></div></div>
+        ${naoObrigatorio?'':'<span class="bdg ba">Pendente</span>'}
       </div>
-      <div class="fs10 c-amber" style="margin-top:6px">⚠️ Envie o quanto antes para não atrasar sua aprovação.</div>
+      ${naoObrigatorio
+        ?'<div class="fs10 c-muted" style="margin-top:6px">Campo não Obrigatório</div>'
+        :'<div class="fs10 c-amber" style="margin-top:6px">⚠️ Envie o quanto antes para não atrasar sua aprovação.</div>'}
       ${d.modeloUrl?`<a class="btn btn-sm" style="margin-top:8px;width:100%;justify-content:center" href="${d.modeloUrl}" target="_blank" rel="noopener">📥 Baixar contrato para assinar</a>`:''}
       <button class="btn-teal btn btn-sm" style="margin-top:8px;width:100%" onclick="document.getElementById('${d.inputId}').click()">📤 Enviar agora</button>
       <input type="file" id="${d.inputId}" accept="image/*,.pdf" style="display:none" onchange="handleUploadPerfil(this,'${d.descricao}')">
