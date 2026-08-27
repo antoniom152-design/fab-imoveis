@@ -2682,6 +2682,17 @@ function jsonOut(obj) {
   </div>
 </div>
 
+<!-- MODAL: DETALHE DA PESSOA (Equipe — Agentes/Corretor/Atendentes) -->
+<div class="cad-overlay" id="eq-detalhe-modal">
+  <div class="cad-box" style="max-width:680px">
+    <div class="cad-header">
+      <div class="cad-title" id="eq-detalhe-titulo">Detalhes</div>
+      <button type="button" class="cad-close" onclick="eqFecharDetalhePessoa()">✕</button>
+    </div>
+    <div class="cad-body" id="eq-detalhe-body"></div>
+  </div>
+</div>
+
 <script>
 /* ── CONFIGURAÇÕES ── */
 const ADMIN_PIN           = 'FAB2024';
@@ -4871,7 +4882,7 @@ const EQUIPE_LINKS_CADASTRO = {
   atendente: ''
 };
 const EQUIPE_LINKS_MSG = {
-  agente: '🤝 Olá! Você foi convidado(a) a se cadastrar como *Agente Parceiro* da WAL Imóveis — indique conhecidos interessados em comprar imóvel e ganhe comissão sobre as vendas realizadas. Cadastre-se aqui:',
+  agente: '🤝 Olá! Você foi convidado(a) a se cadastrar como *Agente Parceiro* da WAL Imóveis — indique conhecidos interessados em comprar imóvel e ganhe bonificação sobre as vendas concretizadas. Cadastre-se aqui:',
   corretor: '🧑‍💼 Olá! Você foi convidado(a) a se cadastrar como *Corretor* da WAL Imóveis. Cadastre-se aqui:',
   atendente: '🎧 Olá! Você foi convidado(a) a se cadastrar como *Atendente* da WAL Imóveis. Cadastre-se aqui:'
 };
@@ -4969,7 +4980,7 @@ function equipeRenderPessoas() {
     return `<tr>
       <td>${papelHtml}</td>
       <td>
-        <div class="crm-nome">${esc(p.nome)||'—'}</div>
+        <div class="crm-nome" style="cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s" onmouseover="this.style.textDecorationColor='var(--gold)'" onmouseout="this.style.textDecorationColor='transparent'" onclick="eqAbrirDetalhePessoa('${esc(p.email)}','${p.tipo}')" title="Ver todos os dados">${esc(p.nome)||'—'}</div>
         <div style="margin-top:3px">${contatoHtml}</div>
       </td>
       <td style="font-size:11px">${esc(p.cpf)||'—'}</td>
@@ -4994,6 +5005,86 @@ function equipeRenderPessoas() {
       </td>
     </tr>`;
   }).join('');
+}
+
+/* Clique no nome (Equipe → Todas as Pessoas) — mostra TODOS os
+   campos da planilha num modal só de leitura. Não navega nem
+   substitui a tabela por trás (é um overlay, igual ao modal de Lead
+   do CRM), então fechar o modal já "volta" pra Todas as Pessoas
+   naturalmente — não precisa de nenhum código extra pra isso. */
+function eqCampoDetalhe_(label, valor) {
+  return `<div class="cad-field"><div class="cad-label">${label}</div><div style="color:var(--navy);font-size:13px;word-break:break-word">${valor || '—'}</div></div>`;
+}
+function eqAbrirDetalhePessoa(email, tipo) {
+  const p = _eqPessoas.find(x => x.email === email && x.tipo === tipo);
+  if (!p) return;
+  document.getElementById('eq-detalhe-titulo').textContent = p.nome || 'Detalhes da pessoa';
+  const docLink = (url, label) => url
+    ? `<a href="${url}" target="_blank" rel="noopener" style="color:var(--gold-ink);text-decoration:underline">📄 Ver ${label}</a>`
+    : '<span style="color:var(--ink-muted)">Não enviado</span>';
+  document.getElementById('eq-detalhe-body').innerHTML = `
+    <div class="cad-section">
+      <div class="cad-section-title">Dados Pessoais</div>
+      <div class="cad-grid cad-grid-2">
+        ${eqCampoDetalhe_('Papel', EQUIPE_PAPEL_LABEL[p.tipo] || p.tipo)}
+        ${eqCampoDetalhe_('Id', esc(p.id))}
+        ${eqCampoDetalhe_('Nome', esc(p.nome))}
+        ${eqCampoDetalhe_('E-mail', esc(p.email))}
+        ${eqCampoDetalhe_('CPF', esc(p.cpf))}
+        ${eqCampoDetalhe_('WhatsApp', esc(p.whatsapp))}
+        ${eqCampoDetalhe_('Data de Nascimento', fmtData(p.nascimento))}
+        ${eqCampoDetalhe_('Profissão / Vínculo', esc(p.profissao))}
+      </div>
+    </div>
+    <div class="cad-section">
+      <div class="cad-section-title">Localização</div>
+      <div class="cad-grid cad-grid-2">
+        ${eqCampoDetalhe_('UF', esc(p.uf))}
+        ${eqCampoDetalhe_('Cidade', esc(p.cidade))}
+      </div>
+    </div>
+    <div class="cad-section">
+      <div class="cad-section-title">Dados Bancários</div>
+      <div class="cad-grid cad-grid-3">
+        ${eqCampoDetalhe_('Banco', esc(p.banco))}
+        ${eqCampoDetalhe_('Agência', esc(p.agencia))}
+        ${eqCampoDetalhe_('Conta', esc(p.conta))}
+        ${eqCampoDetalhe_('Tipo de Conta', esc(p.tipoConta))}
+        ${eqCampoDetalhe_('Chave Pix', esc(p.pix))}
+        ${eqCampoDetalhe_('CRECI', esc(p.creci))}
+      </div>
+    </div>
+    <div class="cad-section">
+      <div class="cad-section-title">Documentos</div>
+      <div class="cad-grid cad-grid-3">
+        ${eqCampoDetalhe_('RG/CNH', docLink(p.docRgUrl, 'RG/CNH'))}
+        ${eqCampoDetalhe_('Comprovante de Residência', docLink(p.docComprovanteUrl, 'comprovante'))}
+        ${eqCampoDetalhe_('Contrato de Parceria (assinado)', docLink(p.docContratoUrl, 'contrato'))}
+      </div>
+    </div>
+    <div class="cad-section">
+      <div class="cad-section-title">Termos e Status</div>
+      <div class="cad-grid cad-grid-3">
+        ${eqCampoDetalhe_('Termos Aceitos em', fmtDataHora(p.termosAceitosEm))}
+        ${eqCampoDetalhe_('Versão dos Termos', esc(p.termosVersao))}
+        ${eqCampoDetalhe_('Classificação', esc(p.classificacao))}
+        ${eqCampoDetalhe_('Status', esc(p.status))}
+        ${eqCampoDetalhe_('Habilitado', p.habilitado ? '✅ Sim' : '⛔ Não')}
+      </div>
+    </div>
+    <div class="cad-section" style="margin-bottom:0">
+      <div class="cad-section-title">Datas</div>
+      <div class="cad-grid cad-grid-3">
+        ${eqCampoDetalhe_('Criado em', fmtDataHora(p.criadoEm))}
+        ${eqCampoDetalhe_('Atualizado em', fmtDataHora(p.atualizadoEm))}
+        ${eqCampoDetalhe_('Último Acesso', fmtDataHora(p.ultimoAcesso))}
+      </div>
+    </div>
+  `;
+  document.getElementById('eq-detalhe-modal').classList.add('show');
+}
+function eqFecharDetalhePessoa() {
+  document.getElementById('eq-detalhe-modal').classList.remove('show');
 }
 
 async function equipeMudarStatus(email, tipo, novoStatus) {
