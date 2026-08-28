@@ -1161,6 +1161,10 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></svg>
     Painel 3D
   </button>
+  <button class="tab-btn" onclick="switchTab('backup')" id="tab-backup">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+    Backup
+  </button>
 </div>
 
 <!-- ══════════════ TAB: PREVIEW ══════════════ -->
@@ -1883,6 +1887,44 @@ function onEdit(e) {
     <a href="https://pcrj.maps.arcgis.com/apps/instant/3dviewer/index.html?appid=7c7d88107ae64d9f985eb4f0a31773b0" target="_blank" style="color:var(--gold-ink);font-weight:600;text-decoration:none">
       Abrir em tela cheia (nova aba) →
     </a>
+  </div>
+</div>
+</div>
+
+<!-- ══════════════ TAB: BACKUP ══════════════ -->
+<div class="tab-panel" id="panel-backup">
+<div class="main">
+  <div class="alert alert-info">
+    Cópia de segurança diária (todo dia às 3h da manhã, automático) das 4 planilhas do sistema, salva
+    na <a href="https://drive.google.com/drive/folders/1xQw-3yUvkPZ6uMgqrY0Z_fbNqlmXTTWM" target="_blank" style="color:var(--gold-ink);font-weight:600">pasta de backup no Drive</a>.
+    Backups com mais de 30 dias são apagados sozinhos, pra pasta não crescer pra sempre. Quem executa
+    de verdade é o Google (gatilho de tempo) — este painel só liga/desliga e mostra o status.
+  </div>
+
+  <div class="conn-card">
+    <div class="conn-status-row">
+      <span class="conn-dot" id="backup-dot"></span>
+      <span class="conn-title" id="backup-title">Backup automático não configurado</span>
+      <span class="conn-sub" id="backup-sub"></span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+      <button class="btn-conn" id="backup-btn-ativar" onclick="backupAtivar()">▶ Ativar Backup Diário</button>
+      <button class="btn-conn-test" id="backup-btn-desativar" onclick="backupDesativar()" style="display:none">⏸ Desativar</button>
+      <button class="btn-conn-test" onclick="backupRodarAgora()">🔁 Rodar Agora</button>
+    </div>
+    <div id="backup-resultado" style="margin-top:14px"></div>
+  </div>
+
+  <div class="table-wrap" style="margin-top:20px">
+    <div class="table-head-row"><span>Planilhas incluídas no backup</span></div>
+    <div class="table-wrap-inner" style="padding:16px">
+      <ul style="padding-left:20px;line-height:1.9;color:var(--navy)">
+        <li>Leads Landing Page FAB</li>
+        <li>WAL Imóveis — Portfólio</li>
+        <li>Gestão de Usuários e Dashboards</li>
+        <li>WAL — CRM de Leads</li>
+      </ul>
+    </div>
   </div>
 </div>
 </div>
@@ -2731,6 +2773,7 @@ function switchTab(name) {
   if (name === 'crm') { crmCarregar(); crmAtualizarStats(); crmRenderLista(); }
   if (name === 'banners') carregarBanners();
   if (name === 'equipe') equipeCarregar();
+  if (name === 'backup') backupCarregar();
 }
 
 /* Coloca um elemento (ex: o iframe do Painel 3D) em tela cheia — o
@@ -4793,6 +4836,86 @@ function equipeJsonp(action, params) {
     s.src = EQUIPE_API_URL + '?' + qs.toString();
     document.body.appendChild(s);
   });
+}
+
+/* ── BACKUP DIÁRIO DAS PLANILHAS ──
+   Projeto Apps Script ISOLADO (conta pessoal, não Workspace — ver
+   comentário no topo de apps-script-backup-planilhas.gs pro motivo:
+   backup precisa de DriveApp, que a conta Workspace bloqueia). Precisa
+   receber a versão atual desse .gs e ser republicado ("Nova versão")
+   pra esta URL funcionar de verdade. */
+const BACKUP_API_URL = 'https://script.google.com/macros/s/AKfycbwcQn3SOUAujtqhdZqXgNOa3DBp19VQYNUwYgBu3FyEaWu1ePaWS9tXMLL8Oa_Q1y1J/exec';
+function backupJsonp(action, params) {
+  return new Promise(resolve => {
+    const cb = 'bkCb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const t = setTimeout(() => { cleanup(); resolve(null); }, 20000);
+    function cleanup() { clearTimeout(t); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = data => { cleanup(); resolve(data); };
+    s.onerror = () => { cleanup(); resolve(null); };
+    const qs = new URLSearchParams(Object.assign({ action, callback: cb, authPin: ADMIN_PIN }, params || {}));
+    s.src = BACKUP_API_URL + '?' + qs.toString();
+    document.body.appendChild(s);
+  });
+}
+function backupPintarStatus_(resp) {
+  const dot = document.getElementById('backup-dot');
+  const titulo = document.getElementById('backup-title');
+  const sub = document.getElementById('backup-sub');
+  const resultado = document.getElementById('backup-resultado');
+  const btnAtivar = document.getElementById('backup-btn-ativar');
+  const btnDesativar = document.getElementById('backup-btn-desativar');
+
+  if (!resp || resp.status !== 'ok') {
+    dot.className = 'conn-dot';
+    titulo.textContent = 'Backup automático não configurado';
+    sub.textContent = (resp && resp.message) || 'Aguardando implantar/republicar o backend de backup.';
+    resultado.innerHTML = '';
+    return;
+  }
+
+  dot.className = 'conn-dot' + (resp.ativo ? ' ok' : '');
+  titulo.textContent = resp.ativo ? 'Backup diário ATIVO (roda às 3h da manhã)' : 'Backup diário DESATIVADO';
+  btnAtivar.style.display = resp.ativo ? 'none' : '';
+  btnDesativar.style.display = resp.ativo ? '' : 'none';
+
+  if (resp.ultimo) {
+    const ok = resp.ultimo.resultados.filter(r => r.status === 'ok').length;
+    const total = resp.ultimo.resultados.length;
+    sub.textContent = `Último backup: ${fmtDataHora(resp.ultimo.executadoEm)} — ${ok}/${total} planilhas ok`;
+    resultado.innerHTML = resp.ultimo.resultados.map(r =>
+      `<div style="font-size:12px;padding:4px 0;color:${r.status==='ok'?'var(--navy)':'#b03a2e'}">${r.status==='ok'?'✅':'❌'} ${esc(r.planilha)}${r.mensagem?' — '+esc(r.mensagem):''}</div>`
+    ).join('') + (resp.ultimo.apagados ? `<div style="font-size:11px;color:var(--ink-muted);margin-top:4px">🗑 ${resp.ultimo.apagados} backup(s) antigo(s) apagado(s) (retenção: ${resp.retencaoDias} dias)</div>` : '');
+  } else {
+    sub.textContent = 'Ainda não rodou nenhum backup.';
+    resultado.innerHTML = '';
+  }
+}
+async function backupCarregar() {
+  document.getElementById('backup-title').textContent = 'Carregando…';
+  const resp = await backupJsonp('status', {});
+  backupPintarStatus_(resp);
+}
+async function backupAtivar() {
+  document.getElementById('backup-title').textContent = 'Ativando…';
+  const resp = await backupJsonp('ativar', {});
+  if (!resp || resp.status !== 'ok') { mostrarToast('❌ Não foi possível ativar o backup automático.'); backupCarregar(); return; }
+  mostrarToast('✅ Backup diário ativado — vai rodar todo dia às 3h.');
+  backupCarregar();
+}
+async function backupDesativar() {
+  if (!confirm('Desativar o backup automático diário? As planilhas vão parar de ser copiadas sozinhas todo dia.')) return;
+  const resp = await backupJsonp('desativar', {});
+  if (!resp || resp.status !== 'ok') { mostrarToast('❌ Não foi possível desativar.'); backupCarregar(); return; }
+  mostrarToast('⏸ Backup diário desativado.');
+  backupCarregar();
+}
+async function backupRodarAgora() {
+  document.getElementById('backup-sub').textContent = 'Rodando agora... pode levar alguns segundos.';
+  const resp = await backupJsonp('rodar_agora', {});
+  if (!resp || resp.status !== 'ok') { mostrarToast('❌ Não foi possível rodar o backup agora.'); backupCarregar(); return; }
+  mostrarToast('✅ Backup executado agora.');
+  backupCarregar();
 }
 
 function equipeSwitchView(view) {
