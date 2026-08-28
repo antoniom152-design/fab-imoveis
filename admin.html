@@ -3131,7 +3131,7 @@ function renderTable() {
         ? '<span class="pill-ativo"></span> Ativo'
         : '<span class="pill-inativo"></span> Inativo'}</td>
       <td class="td-img"><img src="${d.imagem||''}" onerror="this.style.display='none'" alt=""></td>
-      <td class="td-nome">${d.nome}</td>
+      <td class="td-nome"><a href="imovel.html?id=${encodeURIComponent(d.id)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s" onmouseover="this.style.textDecorationColor='var(--gold-ink)'" onmouseout="this.style.textDecorationColor='transparent'" title="Ver no site (nova aba)">${d.nome}</a></td>
       <td><span class="badge-tipo ${tipoClass(d.tipo)}">${d.tipo}</span></td>
       <td>${d.construtora||'—'}</td>
       <td>${d.cidade}</td>
