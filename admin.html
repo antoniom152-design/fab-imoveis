@@ -4041,6 +4041,18 @@ function esc(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
+/* Pra embutir um valor dentro de onclick="funcao('${valor}')" com
+   segurança — esc() sozinho não basta aqui: se o valor tiver quebra
+   de linha (célula da planilha digitada com Enter dentro, ou colada
+   de outro lugar) ou aspas simples, o onclick vira JavaScript
+   inválido e o clique simplesmente não faz nada, sem erro visível pra
+   quem usa a tela (foi exatamente o caso do AG0005, pedido 57.5.1).
+   Corta quebra de linha, tira espaço nas pontas, escapa barra
+   invertida e aspas simples. */
+function escAttr_(str) {
+  return esc(String(str||'').replace(/[\r\n]+/g,' ').trim()).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+}
+
 function imprimirTabela(titulo, tblWrapId, contagem) {
   const tabela = document.getElementById(tblWrapId);
   if (!tabela || !tabela.querySelector('table')) {
@@ -5103,7 +5115,7 @@ function equipeRenderPessoas() {
     return `<tr>
       <td>${papelHtml}</td>
       <td>
-        <div class="crm-nome" style="cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s" onmouseover="this.style.textDecorationColor='var(--gold)'" onmouseout="this.style.textDecorationColor='transparent'" onclick="eqAbrirDetalhePessoa('${esc(p.email)}','${p.tipo}')" title="Ver todos os dados">${esc(p.nome)||'—'}</div>
+        <div class="crm-nome" style="cursor:pointer;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s" onmouseover="this.style.textDecorationColor='var(--gold)'" onmouseout="this.style.textDecorationColor='transparent'" onclick="eqAbrirDetalhePessoa('${escAttr_(p.id)}','${p.tipo}')" title="Ver todos os dados">${esc(p.nome)||'—'}</div>
         <div style="margin-top:3px">${contatoHtml}</div>
       </td>
       <td style="font-size:11px">${esc(p.cpf)||'—'}</td>
@@ -5111,7 +5123,7 @@ function equipeRenderPessoas() {
       <td style="font-size:11px">${esc(p.profissao)||'—'}</td>
       <td>${docsHtml}</td>
       <td onclick="event.stopPropagation()">
-        <select onchange="equipeMudarStatus('${esc(p.email)}','${p.tipo}',this.value)"
+        <select onchange="equipeMudarStatus('${escAttr_(p.email)}','${p.tipo}',this.value)"
           style="font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.08em;
                  background:var(--surf);border:1px solid var(--border);color:var(--navy);padding:3px 6px;
                  cursor:pointer;outline:none;appearance:none;-webkit-appearance:none">
@@ -5122,7 +5134,7 @@ function equipeRenderPessoas() {
       <td>${habBadge}</td>
       <td style="font-size:11px;white-space:nowrap">${fmtData(p.criadoEm)}</td>
       <td onclick="event.stopPropagation()" style="white-space:nowrap">
-        <button class="btn-tbl ${p.habilitado?'btn-tbl-off':'btn-tbl-on'}" onclick="equipeMudarHabilitado('${esc(p.email)}','${p.tipo}',${!p.habilitado})">
+        <button class="btn-tbl ${p.habilitado?'btn-tbl-off':'btn-tbl-on'}" onclick="equipeMudarHabilitado('${escAttr_(p.email)}','${p.tipo}',${!p.habilitado})">
           ${p.habilitado?'⛔ Revogar':'✅ Habilitar'}
         </button>
       </td>
@@ -5138,8 +5150,13 @@ function equipeRenderPessoas() {
 function eqCampoDetalhe_(label, valor) {
   return `<div class="cad-field"><div class="cad-label">${label}</div><div style="color:var(--navy);font-size:13px;word-break:break-word">${valor || '—'}</div></div>`;
 }
-function eqAbrirDetalhePessoa(email, tipo) {
-  const p = _eqPessoas.find(x => x.email === email && x.tipo === tipo);
+function eqAbrirDetalhePessoa(id, tipo) {
+  // Busca por Id (não e-mail) de propósito — o Id é gerado pelo
+  // backend (AG0001, AG0002...) e nunca vem sujo; o e-mail é digitado
+  // por gente (às vezes numa célula editada manualmente na planilha)
+  // e pode ter quebra de linha/espaço que quebra a comparação — foi
+  // exatamente o que aconteceu com o AG0005 (pedido 57.5.1).
+  const p = _eqPessoas.find(x => x.id === id && x.tipo === tipo);
   if (!p) return;
   document.getElementById('eq-detalhe-titulo').textContent = p.nome || 'Detalhes da pessoa';
   const docLink = (url, label) => url
@@ -5211,7 +5228,11 @@ function eqFecharDetalhePessoa() {
 }
 
 async function equipeMudarStatus(email, tipo, novoStatus) {
-  const p = _eqPessoas.find(x => x.email === email && x.tipo === tipo);
+  // Compara e-mail "limpo" dos dois lados — o e-mail vindo do onclick já
+  // passou por escAttr_ (sem quebra de linha/espaço nas pontas), mas o
+  // valor guardado em _eqPessoas pode ainda ter vindo "sujo" direto da
+  // planilha (célula editada manualmente, ver pedido 57.5.1).
+  const p = _eqPessoas.find(x => (x.email||'').trim() === email.trim() && x.tipo === tipo);
   if (!p) return;
   const anterior = p.status;
   p.status = novoStatus;
@@ -5227,7 +5248,9 @@ async function equipeMudarStatus(email, tipo, novoStatus) {
 }
 
 async function equipeMudarHabilitado(email, tipo, novoValor) {
-  const p = _eqPessoas.find(x => x.email === email && x.tipo === tipo);
+  // Mesmo motivo do comentário em equipeMudarStatus — compara e-mail
+  // "limpo" dos dois lados.
+  const p = _eqPessoas.find(x => (x.email||'').trim() === email.trim() && x.tipo === tipo);
   if (!p) return;
   const anterior = p.habilitado;
   p.habilitado = novoValor;
