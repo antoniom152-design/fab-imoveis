@@ -1812,7 +1812,7 @@ function onEdit(e) {
 
           <div>
             <label class="cad-label">Comissão (%)</label>
-            <input class="cad-input" id="constComissao" type="number" step="0.01" min="0" max="100" placeholder="Ex: 3.5">
+            <input class="cad-input" id="constComissao" type="text" placeholder="Ex: 3.5 ou 3.2 a 4.2">
           </div>
 
           <div>
@@ -3992,7 +3992,7 @@ async function carregarConstrutoras() {
 
     // Mapeia os cabeçalhos reais da planilha para os campos internos
     _construtoras = rows.map(r => ({
-      id:          r['ID']                  || r['id']           || '',
+      id:          r['ID']                  || r['Id']           || r['id']           || '',
       nome:        r['Nome']                || r['nome']         || '',
       telefone:    r['Telefone']            || r['telefone']     || '',
       site:        r['Site']               || r['site']         || '',
