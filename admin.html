@@ -2459,14 +2459,14 @@ function jsonOut(obj) {
           <thead>
             <tr>
               <th>Papel</th>
-              <th>Nome / Contato</th>
+              <th onclick="equipeOrdenar('nome')" style="cursor:pointer;user-select:none" title="Ordenar por nome">Nome / Contato <span id="eq-seta-nome"></span></th>
               <th>CPF</th>
-              <th>UF / Cidade</th>
+              <th onclick="equipeOrdenar('uf')" style="cursor:pointer;user-select:none" title="Ordenar por UF/Cidade">UF / Cidade <span id="eq-seta-uf"></span></th>
               <th>Profissão / Vínculo</th>
               <th>Documentos</th>
               <th>Status</th>
               <th>Acesso ao dashboard</th>
-              <th>Cadastro</th>
+              <th onclick="equipeOrdenar('cadastro')" style="cursor:pointer;user-select:none" title="Ordenar por data de cadastro">Cadastro <span id="eq-seta-cadastro"></span></th>
               <th style="color:var(--gold-ink)">Ações</th>
             </tr>
           </thead>
@@ -4830,6 +4830,7 @@ function crmExportar() {
 const EQUIPE_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
 let _eqPessoas = [];
 let _eqPessoasFiltradas = [];
+let _eqSort = { campo: 'nome', dir: 1 };
 let _eqIndicacoes = [];
 let _eqIndicacoesFiltradas = [];
 let _eqIndicacoesCarregadas = false;
@@ -5057,6 +5058,22 @@ function equipeCopiarLinkCadastro(btn) {
   });
 }
 
+// Ordenação clicável do cabeçalho da tabela "Todas as Pessoas" (pedido
+// 62) — primeiro clique num campo ordena crescente, clicar de novo no
+// mesmo campo inverte pra decrescente (padrão comum de tabela).
+function equipeOrdenar(campo) {
+  if (_eqSort.campo === campo) { _eqSort.dir *= -1; }
+  else { _eqSort.campo = campo; _eqSort.dir = 1; }
+  equipeRenderPessoas();
+}
+function equipeAtualizarSetasCabecalho_() {
+  ['nome','uf','cadastro'].forEach(campo => {
+    const el = document.getElementById('eq-seta-' + campo);
+    if (!el) return;
+    el.textContent = _eqSort.campo === campo ? (_eqSort.dir === 1 ? '▲' : '▼') : '';
+  });
+}
+
 function equipeRenderPessoas() {
   const busca = (document.getElementById('eq-busca')?.value || '').toLowerCase().trim();
   const uf = document.getElementById('eq-fil-uf')?.value || '';
@@ -5084,8 +5101,23 @@ function equipeRenderPessoas() {
       (buscaDigits && (p.cpf||'').replace(/\D/g,'').includes(buscaDigits))
     );
   }
-  lista.sort((a,b) => (a.nome||'').localeCompare(b.nome||''));
+  lista.sort((a,b) => {
+    let va, vb;
+    if (_eqSort.campo === 'uf') {
+      va = ((a.uf||'') + ' ' + (a.cidade||'')).toLowerCase();
+      vb = ((b.uf||'') + ' ' + (b.cidade||'')).toLowerCase();
+    } else if (_eqSort.campo === 'cadastro') {
+      va = a.criadoEm || '';
+      vb = b.criadoEm || '';
+    } else {
+      va = (a.nome||'').toLowerCase();
+      vb = (b.nome||'').toLowerCase();
+    }
+    const cmp = va < vb ? -1 : va > vb ? 1 : 0;
+    return cmp * _eqSort.dir;
+  });
   _eqPessoasFiltradas = lista;
+  equipeAtualizarSetasCabecalho_();
 
   document.getElementById('eq-pessoas-count').textContent = lista.length + ' registro(s)';
   const tbody = document.getElementById('eq-pessoas-tbody');
