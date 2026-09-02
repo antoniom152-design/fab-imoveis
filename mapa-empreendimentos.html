@@ -1412,15 +1412,17 @@ function linkRotaGoogle(destLat, destLng, endereco, cidade, uf) {
   return url;
 }
 function linkStreetView(lat, lng, endereco, cidade, uf) {
-  // 1) Com campo Endereço da planilha: busca o local e tenta Street View (layer=c)
-  // 2) Sem endereço: cbll na coordenada — encaixa no panorama da via mais próxima
-  //    (viewpoint exato costuma abrir tela preta quando o ponto cai no meio do lote)
+  // cbll trava o Street View direto na coordenada — o Google encaixa
+  // sozinho no panorama disponível mais próximo. Prioridade sobre a busca
+  // por endereço (layer=c&q=texto): essa às vezes não acha panorama e abre
+  // tela toda preta em @0,0 (visto no Brisas da Lagoa/São Pedro da Aldeia,
+  // 02/09/2026) — só cai pra busca por texto quando não há lat/lng.
+  if (lat != null && lng != null) {
+    return 'https://www.google.com/maps?layer=c&cbll=' + lat + ',' + lng + '&cbp=12,0,0,0,0';
+  }
   const enderecoTxt = [endereco, cidade, uf].filter(Boolean).join(', ');
   if (enderecoTxt) {
     return 'https://www.google.com/maps?layer=c&q=' + encodeURIComponent(enderecoTxt);
-  }
-  if (lat != null && lng != null) {
-    return 'https://www.google.com/maps?layer=c&cbll=' + lat + ',' + lng + '&cbp=12,0,0,0,0';
   }
   return 'https://www.google.com/maps';
 }
