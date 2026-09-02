@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa de Empreendimentos Disponíveis | WAL Imóveis</title>
+<title>Mapa de Empreendimentos Disponíveis V3.1 | WAL Imóveis</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -14,58 +14,60 @@
   .proto-banner {
     background: linear-gradient(135deg, #0A1628 0%, #16233a 100%);
     color: #fff;
-    padding: 14px 24px;
+    padding: 12px 20px;
     border-bottom: 3px solid #C9A84C;
   }
-  .proto-banner-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-  .proto-banner h1 { font-size: 1.25em; color: #C9A84C; margin-bottom: 4px; }
-  .proto-banner p { font-size: 0.85em; color: #b9c2d0; max-width: 780px; line-height: 1.5; }
+  .proto-banner-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .proto-banner h1 { font-size: 1.2em; color: #C9A84C; margin-bottom: 3px; }
+  .proto-banner p { font-size: 0.82em; color: #b9c2d0; max-width: 720px; line-height: 1.45; }
   .btn-como-usar {
     background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
-    font-size: 0.82em; font-weight: 700; padding: 8px 14px; border-radius: 6px; cursor: pointer; white-space: nowrap;
+    font-size: 0.8em; font-weight: 700; padding: 7px 12px; border-radius: 6px; cursor: pointer; white-space: nowrap;
   }
   .btn-como-usar:hover { background: rgba(201,168,76,.28); }
 
-  /* legenda — fixa no cabeçalho, sempre visível, não some ao mover o mapa */
   .legend-strip {
-    display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(201,168,76,.25);
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(201,168,76,.25);
   }
-  .legend-strip .lg-title { font-size: 0.78em; color: #C9A84C; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
-  .legend-strip .lg-item { display: flex; align-items: center; gap: 8px; font-size: 0.9em; color: #e8ecf2; }
-  .legend-strip .dot { width: 18px; height: 18px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
+  .legend-strip .lg-title { font-size: 0.75em; color: #C9A84C; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+  .legend-strip .lg-item { display: flex; align-items: center; gap: 6px; font-size: 0.85em; color: #e8ecf2; }
+  .legend-strip .dot { width: 16px; height: 16px; border-radius: 50%; display: inline-block; flex-shrink: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.25); }
 
+  /* Toolbar mais compacta e responsiva */
   .toolbar {
     background: #fff;
-    padding: 12px 24px;
+    padding: 10px 16px;
     display: flex;
-    gap: 14px;
+    gap: 10px;
     align-items: flex-end;
     flex-wrap: wrap;
     border-bottom: 1px solid #e2e6ec;
   }
   .toolbar label {
-    font-size: 0.75em;
+    font-size: 0.7em;
     color: #7f8c9a;
     text-transform: uppercase;
-    letter-spacing: .06em;
+    letter-spacing: .05em;
     display: block;
-    margin-bottom: 3px;
+    margin-bottom: 2px;
   }
-  .toolbar select, .toolbar input[type="text"] {
-    padding: 7px 10px;
+  .toolbar select, .toolbar input[type="text"], .toolbar input[type="number"] {
+    padding: 6px 8px;
     border: 1px solid #d5dae2;
     border-radius: 5px;
-    font-size: 0.9em;
-    min-width: 140px;
+    font-size: 0.85em;
+    min-width: 110px;
+    max-width: 160px;
     background: #f7f8fa;
     color: #1a2332;
     font-family: inherit;
   }
-  .btn-filtrar, .btn-limpar, .btn-fav-toggle {
-    padding: 8px 16px;
+  .toolbar input[type="number"] { min-width: 90px; max-width: 110px; }
+  .btn-filtrar, .btn-limpar, .btn-fav-toggle, .btn-geo, .btn-marcar {
+    padding: 7px 12px;
     border-radius: 5px;
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-weight: 700;
     cursor: pointer;
     border: none;
@@ -75,25 +77,134 @@
   .btn-limpar { background: #f0f2f5; color: #556; border: 1px solid #d5dae2; }
   .btn-fav-toggle { background: #fff8e1; color: #7a5c00; border: 1px solid #f0d98a; }
   .btn-fav-toggle.ativo { background: #C9A84C; color: #fff; border-color: #C9A84C; }
+  .btn-geo { background: #e8f4fd; color: #0A4D8C; border: 1px solid #a8d4f0; }
+  .btn-geo.ativo { background: #0A4D8C; color: #fff; }
+  .btn-marcar { background: #f0e8ff; color: #5b21b6; border: 1px solid #c4b5fd; }
+  .btn-marcar.ativo { background: #5b21b6; color: #fff; border-color: #5b21b6; }
+  .btn-marcar.aguardando { background: #7c3aed; color: #fff; border-color: #7c3aed; animation: pulseBtn 1.2s ease-in-out infinite; }
+  @keyframes pulseBtn { 0%, 100% { opacity: 1; } 50% { opacity: .7; } }
 
-  #map-wrap { position: relative; }
-  #map { width: 100%; height: calc(100vh - 210px); }
+  /* Banner de instrução ao marcar posição no mapa */
+  #marcar-hint {
+    display: none; position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+    z-index: 850; background: #5b21b6; color: #fff; padding: 10px 18px; border-radius: 8px;
+    font-size: 0.88em; font-weight: 700; box-shadow: 0 4px 16px rgba(0,0,0,.35); white-space: nowrap;
+    pointer-events: none;
+  }
+  #marcar-hint.show { display: block; }
+
+  #contador-mapa {
+    background: #0A1628; color: #C9A84C; font-weight: 800; font-size: 0.9em;
+    padding: 7px 14px; border-radius: 30px; border: 2px solid #C9A84C;
+    white-space: nowrap;
+  }
+
+  /* Layout principal: mapa + lista lateral */
+  #main-layout {
+    display: flex;
+    height: calc(100vh - 195px);
+    position: relative;
+  }
+  #map-wrap {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+  }
+  #map { width: 100%; height: 100%; }
   #map-empty-msg {
     position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
     text-align: center; color: #fff; background: rgba(10,22,40,.55); z-index: 500; pointer-events: none;
   }
-  #map-empty-msg div { background: rgba(10,22,40,.9); padding: 20px 28px; border-radius: 10px; max-width: 380px; font-size: 0.95em; line-height: 1.5; }
+  #map-empty-msg div { background: rgba(10,22,40,.9); padding: 18px 24px; border-radius: 10px; max-width: 360px; font-size: 0.9em; line-height: 1.5; }
 
-  /* contador — na barra de filtros, ao lado do botão "Só Favoritos" */
-  #contador-mapa {
-    background: #0A1628; color: #C9A84C; font-weight: 800; font-size: 0.95em;
-    padding: 9px 18px; border-radius: 30px; border: 2px solid #C9A84C;
-    display: none; white-space: nowrap;
+  /* Loading overlay */
+  #loading-overlay {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    background: rgba(10,22,40,.7); z-index: 600; color: #C9A84C; font-weight: 700;
+  }
+  #loading-overlay.hidden { display: none; }
+  .spinner {
+    width: 36px; height: 36px; border: 3px solid rgba(201,168,76,.3);
+    border-top-color: #C9A84C; border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin-right: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Sidebar lista */
+  #sidebar {
+    width: 340px;
+    background: #fff;
+    border-left: 1px solid #e2e6ec;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.25s ease, margin 0.25s ease;
+  }
+  #sidebar.collapsed { width: 0; border: none; }
+  #sidebar-header {
+    padding: 10px 12px;
+    background: #0A1628;
+    color: #C9A84C;
+    font-size: 0.85em;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  #sidebar-header select {
+    padding: 4px 6px; border-radius: 4px; border: 1px solid rgba(201,168,76,.4);
+    background: #16233a; color: #fff; font-size: 0.8em; max-width: 140px;
+  }
+  #sidebar-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px;
+  }
+  .side-card {
+    border: 1px solid #e8ecf2;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fafbfc;
+  }
+  .side-card:hover, .side-card.active {
+    border-color: #C9A84C;
+    box-shadow: 0 2px 8px rgba(201,168,76,.25);
+    background: #fff;
+  }
+  .side-card .sc-badges { margin-bottom: 4px; }
+  .side-card .sc-badge {
+    display: inline-block; font-size: 0.68em; font-weight: 700; color: #fff;
+    padding: 2px 7px; border-radius: 12px; margin-right: 3px;
+  }
+  .side-card h4 { font-size: 0.92em; color: #0A1628; margin-bottom: 2px; line-height: 1.3; }
+  .side-card .sc-loc { font-size: 0.75em; color: #7f8c9a; margin-bottom: 3px; }
+  .side-card .sc-dist { font-size: 0.78em; color: #0A1628; font-weight: 600; }
+  .side-card .sc-preco { font-size: 0.9em; font-weight: 700; color: #0A1628; margin-top: 4px; }
+  .side-card .sc-actions { margin-top: 6px; display: flex; gap: 4px; }
+  .side-card .sc-actions button {
+    font-size: 0.72em; padding: 3px 8px; border-radius: 4px; border: 1px solid #d5dae2;
+    background: #fff; cursor: pointer;
+  }
+  .side-card .sc-actions button.ativo { background: #C9A84C; color: #fff; border-color: #C9A84C; }
+
+  #btn-toggle-sidebar {
+    position: absolute; top: 12px; right: 12px; z-index: 800;
+    background: #0A1628; color: #C9A84C; border: 2px solid #C9A84C;
+    width: 36px; height: 36px; border-radius: 8px; cursor: pointer; font-size: 1.1em;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  #sidebar.collapsed ~ #btn-toggle-sidebar, #main-layout:has(#sidebar.collapsed) #btn-toggle-sidebar {
+    right: 12px;
   }
 
-  /* popup */
+  /* popup (mantido + pequenos ajustes) */
   .pw { font-family: 'Barlow', Arial, sans-serif; min-width: 260px; max-width: 290px; }
-  .pw img { width: 100%; height: 130px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #eee; }
+  .pw img { width: 100%; height: 120px; object-fit: cover; border-radius: 6px; margin-bottom: 8px; background: #eee; }
   .pw-top-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; margin-bottom: 6px; }
   .pw-badges { flex: 1; }
   .pw .badge {
@@ -107,58 +218,95 @@
     cursor: pointer; font-size: 0.95em; display: flex; align-items: center; justify-content: center; line-height: 1;
   }
   .pw-icon-btn.ativo { background: #C9A84C; border-color: #C9A84C; }
-  .pw h3 { font-size: 1.05em; color: #0A1628; margin-bottom: 4px; }
-  .pw .loc { font-size: 0.82em; color: #7f8c9a; margin-bottom: 4px; }
-  .pw .endereco { font-size: 0.78em; color: #99a3ad; margin-bottom: 6px; }
-  .pw .desc { font-size: 0.82em; color: #45505c; margin-bottom: 8px; line-height: 1.4; }
+  .pw h3 { font-size: 1.02em; color: #0A1628; margin-bottom: 4px; }
+  .pw .loc { font-size: 0.8em; color: #7f8c9a; margin-bottom: 3px; }
+  .pw .endereco { font-size: 0.76em; color: #99a3ad; margin-bottom: 5px; }
+  .pw .desc { font-size: 0.8em; color: #45505c; margin-bottom: 7px; line-height: 1.4; }
   .pw .base-dist {
-    font-size: 0.85em; font-weight: 700; color: #0A1628; background: #fff3d6;
-    border: 1px solid #C9A84C; border-radius: 5px; padding: 6px 9px; margin-bottom: 8px; line-height: 1.4;
+    font-size: 0.82em; font-weight: 700; color: #0A1628; background: #fff3d6;
+    border: 1px solid #C9A84C; border-radius: 5px; padding: 5px 8px; margin-bottom: 7px; line-height: 1.35;
   }
-  .pw .preco { font-size: 0.95em; font-weight: 700; color: #0A1628; margin-bottom: 8px; }
-  .pw .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .pw .preco { font-size: 0.92em; font-weight: 700; color: #0A1628; margin-bottom: 7px; }
+  .pw .actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
   .pw .actions-grid a, .pw .actions-grid button {
-    text-align: center; text-decoration: none; font-size: 0.76em; font-weight: 700;
-    padding: 7px 4px; border-radius: 5px; letter-spacing: .01em; border: none; cursor: pointer; font-family: inherit;
+    text-align: center; text-decoration: none; font-size: 0.74em; font-weight: 700;
+    padding: 6px 3px; border-radius: 5px; letter-spacing: .01em; border: none; cursor: pointer; font-family: inherit;
   }
   .pw .a-info   { background: #0A1628; color: #C9A84C; }
   .pw .a-chat   { background: #06b6d4; color: #fff; }
   .pw .a-wpp    { background: #25D366; color: #fff; }
   .pw .a-sim    { background: #C9A84C; color: #0A1628; }
+  .pw .a-rota   { background: #1a73e8; color: #fff; }
+  .pw .a-street { background: #5f6368; color: #fff; }
+  .pw .a-entorno { background: #4f46e5; color: #fff; flex: 1; }
+  .pw-entorno-bar {
+    display: flex; gap: 6px; align-items: center; margin-top: 6px; flex-wrap: wrap;
+  }
+  .pw-entorno-bar select {
+    padding: 6px 8px; border-radius: 5px; border: 1px solid #d5dae2;
+    font-size: 0.78em; background: #f7f8fa; color: #1a2332; font-family: inherit;
+  }
+
+  .pw-entorno {
+    margin-top: 8px; border-top: 1px solid #e8ecf2; padding-top: 8px;
+    max-height: 200px; overflow-y: auto; font-size: 0.78em;
+  }
+  .pw-entorno .ent-loading { color: #7f8c9a; padding: 6px 0; }
+  .pw-entorno .ent-cat { font-weight: 700; color: #0A1628; margin: 6px 0 2px; font-size: 0.95em; }
+  .pw-entorno .ent-item { color: #45505c; padding: 2px 0; line-height: 1.35; }
+  .pw-entorno .ent-item span { color: #7f8c9a; }
+  .pw-entorno .ent-vazio { color: #99a3ad; font-style: italic; }
+  .pw-entorno .ent-total { font-size: 0.9em; color: #7f8c9a; margin-bottom: 4px; }
+
+  .poi-pin {
+    width: 26px; height: 26px; border-radius: 50%;
+    background: var(--poi-color, #4f46e5); border: 2px solid #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; line-height: 1;
+  }
+
+  #btn-limpar-entorno {
+    display: none; position: absolute; top: 12px; left: 12px; z-index: 800;
+    background: #4f46e5; color: #fff; border: none;
+    padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8em; font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  }
+  #btn-limpar-entorno.show { display: block; }
+  #btn-limpar-entorno:hover { background: #3730a3; }
 
   /* bandeja de comparação */
   #compare-tray {
     position: fixed; bottom: 0; left: 0; right: 0; background: #0A1628; color: #fff;
-    padding: 12px 24px; display: none; align-items: center; gap: 14px; z-index: 900;
+    padding: 10px 20px; display: none; align-items: center; gap: 12px; z-index: 900;
     box-shadow: 0 -4px 16px rgba(0,0,0,.4); flex-wrap: wrap;
   }
   #compare-tray .ct-item {
-    background: rgba(255,255,255,.08); padding: 6px 12px; border-radius: 20px; font-size: 0.82em; display: flex; align-items: center; gap: 6px;
+    background: rgba(255,255,255,.08); padding: 5px 10px; border-radius: 20px; font-size: 0.8em; display: flex; align-items: center; gap: 5px;
   }
   #compare-tray .ct-item button { background: none; border: none; color: #ff9500; cursor: pointer; font-weight: 700; }
-  #compare-tray .btn-comparar-ver { background: #C9A84C; color: #0A1628; font-weight: 800; padding: 8px 18px; border-radius: 6px; border: none; cursor: pointer; margin-left: auto; }
+  #compare-tray .btn-comparar-ver { background: #C9A84C; color: #0A1628; font-weight: 800; padding: 7px 16px; border-radius: 6px; border: none; cursor: pointer; margin-left: auto; }
   #compare-tray .btn-comparar-ver:disabled { opacity: .4; cursor: not-allowed; }
 
-  /* modais genéricos */
+  /* modais */
   .modal-overlay {
     display: none; position: fixed; inset: 0; background: rgba(10,22,40,.75); z-index: 2000;
-    align-items: center; justify-content: center; padding: 20px;
+    align-items: center; justify-content: center; padding: 16px;
   }
   .modal-overlay.show { display: flex; }
-  .modal-box { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
+  .modal-box { background: #fff; border-radius: 10px; max-width: 640px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px; position: relative; }
   .modal-box.wide { max-width: 960px; }
-  .modal-close { position: absolute; top: 16px; right: 18px; background: none; border: none; font-size: 1.3em; cursor: pointer; color: #7f8c9a; }
-  .modal-box h2 { color: #0A1628; font-size: 1.3em; margin-bottom: 14px; }
-  .modal-box h4 { color: #0A1628; font-size: 1em; margin: 14px 0 4px; }
-  .modal-box p, .modal-box li { color: #45505c; font-size: 0.92em; line-height: 1.6; }
-  .modal-box ul { padding-left: 20px; margin-bottom: 8px; }
+  .modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; font-size: 1.25em; cursor: pointer; color: #7f8c9a; }
+  .modal-box h2 { color: #0A1628; font-size: 1.25em; margin-bottom: 12px; }
+  .modal-box h4 { color: #0A1628; font-size: 0.98em; margin: 12px 0 4px; }
+  .modal-box p, .modal-box li { color: #45505c; font-size: 0.9em; line-height: 1.55; }
+  .modal-box ul { padding-left: 18px; margin-bottom: 6px; }
 
-  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
-  .compare-table th, .compare-table td { border: 1px solid #e2e6ec; padding: 8px 10px; text-align: left; vertical-align: top; }
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  .compare-table th, .compare-table td { border: 1px solid #e2e6ec; padding: 7px 9px; text-align: left; vertical-align: top; }
   .compare-table th { background: #0A1628; color: #C9A84C; }
-  .compare-table img { width: 100%; height: 90px; object-fit: cover; border-radius: 4px; }
+  .compare-table img { width: 100%; height: 80px; object-fit: cover; border-radius: 4px; }
 
-  /* marcador customizado — maior, cores vivas, ponto central piscando */
   .map-pin {
     width: 34px; height: 34px; border-radius: 50%;
     background: var(--pin-color);
@@ -180,7 +328,6 @@
     50%      { opacity: .35; transform: scale(1.8); }
   }
 
-  /* cluster customizado — maior, cores da marca, número piscando */
   .cluster-pin {
     border-radius: 50%; background: #0A1628; border: 3px solid #C9A84C;
     display: flex; align-items: center; justify-content: center;
@@ -188,6 +335,108 @@
   }
   .cluster-pin .cluster-num { color: #C9A84C; font-weight: 800; animation: clusterBlink 1.3s ease-in-out infinite; }
   @keyframes clusterBlink { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+
+  /* Marcador do usuário */
+  .user-pin {
+    width: 22px; height: 22px; border-radius: 50%;
+    background: #2563eb; border: 3px solid #fff;
+    box-shadow: 0 0 0 4px rgba(37,99,235,.35), 0 2px 8px rgba(0,0,0,.4);
+  }
+
+  /* Banner de protótipo */
+  .proto-note {
+    background: #C9A84C; color: #0A1628; text-align: center; padding: 6px 12px;
+    font-size: 0.78em; font-weight: 700; letter-spacing: .02em;
+  }
+
+  /* ── Perfil Ideal / Fit Score ── */
+  .btn-perfil {
+    background: linear-gradient(135deg, #C9A84C 0%, #e8c86a 100%);
+    color: #0A1628; border: none; font-weight: 800; padding: 8px 14px;
+    border-radius: 6px; cursor: pointer; font-size: 0.82em;
+    box-shadow: 0 2px 8px rgba(201,168,76,.4);
+  }
+  .btn-perfil:hover { filter: brightness(1.08); }
+  .btn-perfil.tem-perfil {
+    background: linear-gradient(135deg, #0A1628 0%, #1a2d4a 100%);
+    color: #C9A84C; border: 1px solid #C9A84C; box-shadow: none;
+  }
+
+  #perfil-banner {
+    display: none; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+    background: linear-gradient(90deg, rgba(201,168,76,.18), rgba(10,22,40,.9));
+    border-bottom: 2px solid #C9A84C; padding: 8px 20px; color: #fff; font-size: 0.85em;
+  }
+  #perfil-banner.show { display: flex; }
+  #perfil-banner strong { color: #C9A84C; }
+  #perfil-banner .pb-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  #perfil-banner button {
+    background: transparent; border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
+    padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em; font-weight: 700;
+  }
+  #perfil-banner .btn-crm-lead {
+    background: #C9A84C; color: #0A1628; border: none; font-weight: 800;
+  }
+  #perfil-banner .btn-crm-lead:hover { filter: brightness(1.08); }
+
+  .lead-form label { display: block; font-size: 0.75em; color: #7f8c9a; text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+  .lead-form input, .lead-form textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #d5dae2; border-radius: 6px;
+    font-size: 0.92em; font-family: inherit; margin-bottom: 12px; background: #f7f8fa; color: #1a2332;
+  }
+  .lead-form textarea { min-height: 72px; resize: vertical; }
+  .lead-resumo {
+    background: #fffbf0; border: 1px solid #f0d98a; border-radius: 8px; padding: 12px 14px;
+    font-size: 0.85em; color: #45505c; line-height: 1.5; margin-bottom: 14px;
+  }
+  .lead-resumo strong { color: #0A1628; }
+  .lead-err { display: none; color: #DC2626; font-size: 0.82em; margin-bottom: 8px; }
+  .lead-ok { display: none; color: #065f46; font-size: 0.9em; font-weight: 700; text-align: center; padding: 16px 8px; }
+
+  .fit-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.72em; font-weight: 800; padding: 2px 8px; border-radius: 12px;
+    background: #0A1628; color: #C9A84C;
+  }
+  .fit-badge.alto { background: #065f46; color: #a7f3d0; }
+  .fit-badge.medio { background: #92400e; color: #fde68a; }
+  .fit-badge.baixo { background: #4b5563; color: #d1d5db; }
+
+  .side-card .fit-row { margin-top: 4px; }
+  .pw .fit-row { margin-bottom: 6px; }
+
+  .wizard-steps { display: flex; gap: 6px; margin-bottom: 18px; }
+  .wizard-steps span { flex: 1; height: 4px; border-radius: 2px; background: #e2e6ec; }
+  .wizard-steps span.on { background: #C9A84C; }
+  .wizard-pane { display: none; }
+  .wizard-pane.active { display: block; }
+  .wizard-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+  .wizard-opts label {
+    display: flex; align-items: center; gap: 8px; padding: 10px 12px;
+    border: 1px solid #e2e6ec; border-radius: 8px; cursor: pointer; font-size: 0.88em;
+    background: #fafbfc; transition: border-color .15s, background .15s;
+  }
+  .wizard-opts label:hover, .wizard-opts label.sel { border-color: #C9A84C; background: #fffbf0; }
+  .wizard-opts input { accent-color: #C9A84C; }
+  .wizard-opts.single { grid-template-columns: 1fr; }
+  .wizard-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 18px; }
+  .wizard-nav button {
+    padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; border: none; font-size: 0.9em;
+  }
+  .wiz-prev { background: #f0f2f5; color: #45505c; }
+  .wiz-next { background: #0A1628; color: #C9A84C; }
+  .wiz-finish { background: #C9A84C; color: #0A1628; }
+
+  @media (max-width: 900px) {
+    #sidebar { width: 280px; }
+    #main-layout { height: calc(100vh - 220px); }
+  }
+  @media (max-width: 700px) {
+    #sidebar { position: absolute; right: 0; top: 0; bottom: 0; z-index: 700; width: 85%; max-width: 320px; box-shadow: -4px 0 16px rgba(0,0,0,.25); }
+    #sidebar.collapsed { width: 0; }
+    .toolbar select, .toolbar input[type="text"], .toolbar input[type="number"] { min-width: 90px; max-width: 130px; }
+    .wizard-opts { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
@@ -195,13 +444,13 @@
 <div class="proto-banner">
   <div class="proto-banner-top">
     <div>
-      <h1>Mapa de Empreendimentos Disponíveis</h1>
+      <h1>Mapa de Empreendimentos Disponíveis V3.1</h1>
       <p>
-        Escolha os filtros abaixo (ou deixe como estão para ver tudo) e clique em <strong>🔍 Filtrar</strong>.
-        Clique num ponto do mapa para ver fotos, preço e detalhes do empreendimento — e falar direto com a gente por lá.
+        Comece pelo <strong>✨ Meu imóvel ideal</strong> para personalizar a busca, ou use os filtros e clique em <strong>🔍 Filtrar</strong>.
       </p>
     </div>
-    <div style="display:flex;gap:8px;flex-shrink:0">
+    <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+      <button class="btn-perfil" id="btn-perfil-ideal">✨ Meu imóvel ideal</button>
       <button class="btn-como-usar" id="btn-tela-cheia">⛶ Tela Cheia</button>
       <button class="btn-como-usar" id="btn-como-usar">❓ O que este mapa oferece</button>
     </div>
@@ -212,9 +461,9 @@
     <span class="lg-item"><span class="dot" style="background:#ff9500"></span> Em Construção</span>
     <span class="lg-item"><span class="dot" style="background:#af52de"></span> Novo</span>
     <span class="lg-item"><span class="dot" style="background:#34c759"></span> Usado</span>
-    <span class="lg-item" style="margin-left:18px;gap:8px">
+    <span class="lg-item" style="margin-left:12px;gap:6px">
       <span class="lg-title" style="margin:0">Distância até:</span>
-      <select id="f-categoria-ref" style="padding:5px 8px;border-radius:5px;border:1px solid rgba(201,168,76,.4);background:#0A1628;color:#fff;font-size:0.85em">
+      <select id="f-categoria-ref" style="padding:4px 7px;border-radius:5px;border:1px solid rgba(201,168,76,.4);background:#0A1628;color:#fff;font-size:0.82em">
         <option value="cidade" selected>Centro da Cidade</option>
         <option value="aeronautica">Bases Aéreas (Aeronáutica)</option>
         <option value="marinha">Organizações Navais (Marinha)</option>
@@ -225,15 +474,23 @@
   </div>
 </div>
 
-<div id="ref-agente-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(201,168,76,.12);border-bottom:2px solid #C9A84C;padding:10px 24px;font-size:0.88em;color:#fff;text-align:center">
+<div id="ref-agente-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(201,168,76,.12);border-bottom:2px solid #C9A84C;padding:8px 20px;font-size:0.85em;color:#fff;text-align:center">
   🤝 Você está vendo este mapa pela indicação de <strong id="ref-agente-nome" style="color:#C9A84C">—</strong>, Agente Parceiro WAL.
+</div>
+
+<div id="perfil-banner">
+  <div>✨ Perfil ativo: <strong id="perfil-resumo">—</strong></div>
+  <div class="pb-actions">
+    <button type="button" class="btn-crm-lead" id="btn-crm-lead">🔥 Quero atendimento</button>
+    <button type="button" id="btn-perfil-editar">Editar perfil</button>
+    <button type="button" id="btn-perfil-limpar">Limpar perfil</button>
+  </div>
 </div>
 
 <div class="toolbar">
   <div>
-    <label>Buscar (nome, bairro ou endereço)</label>
-    <input type="text" id="f-busca" placeholder="Ex: Recreio, Cyrela...">
-    <div style="font-size:0.72em;color:#99a3ad;margin-top:3px;max-width:220px">Aperte Enter ou clique em Filtrar. Funciona junto com UF/Cidade/Bairro — limpe-os se a busca não achar nada.</div>
+    <label>Buscar</label>
+    <input type="text" id="f-busca" placeholder="Nome, bairro...">
   </div>
   <div>
     <label>UF</label>
@@ -262,6 +519,14 @@
     <input type="text" id="f-construtora" placeholder="Buscar...">
   </div>
   <div>
+    <label>Preço mín (mil)</label>
+    <input type="number" id="f-preco-min" placeholder="Ex: 300" min="0" step="50">
+  </div>
+  <div>
+    <label>Preço máx (mil)</label>
+    <input type="number" id="f-preco-max" placeholder="Ex: 1500" min="0" step="50">
+  </div>
+  <div>
     <label>Status</label>
     <select id="f-status">
       <option value="ativo">Somente Ativos</option>
@@ -281,34 +546,237 @@
   <button class="btn-filtrar" id="btn-filtrar">🔍 Filtrar</button>
   <button class="btn-limpar" id="btn-limpar">✕ Limpar</button>
   <button class="btn-fav-toggle" id="btn-fav-toggle">☆ Só Favoritos</button>
+  <button class="btn-geo" id="btn-geo" title="Usa a GPS do dispositivo (celular ou notebook com localização ativada)">📍 GPS</button>
+  <button class="btn-marcar" id="btn-marcar" title="Clique no mapa para definir sua posição (funciona em desktop e celular)">📌 Marcar no mapa</button>
+  <button class="btn-limpar" id="btn-limpar-pos" title="Remove a posição definida" style="display:none">✕ Posição</button>
   <button class="btn-limpar" id="btn-compartilhar-mapa">📲 Compartilhar</button>
-  <span id="contador-mapa"></span>
+  <span id="contador-mapa">—</span>
 </div>
 
-<div id="map-wrap">
-  <div id="map"></div>
-  <div id="map-empty-msg"><div>Selecione os filtros desejados (ou deixe como está para ver tudo) e clique em <strong>🔍 Filtrar</strong> para carregar os empreendimentos no mapa.</div></div>
+<div id="main-layout">
+  <div id="map-wrap">
+    <div id="map"></div>
+    <div id="loading-overlay">
+      <div class="spinner"></div>
+      <span>Carregando empreendimentos…</span>
+    </div>
+    <div id="map-empty-msg" style="display:none"><div>Selecione os filtros e clique em <strong>🔍 Filtrar</strong> para carregar os empreendimentos.</div></div>
+    <div id="marcar-hint">Clique em qualquer ponto do mapa para definir sua posição</div>
+    <button id="btn-limpar-entorno" type="button" title="Remove os pontos do entorno do mapa">✕ Limpar entorno</button>
+    <button id="btn-toggle-sidebar" title="Mostrar/ocultar lista">☰</button>
+  </div>
+  <aside id="sidebar">
+    <div id="sidebar-header">
+      <span>Resultados</span>
+      <select id="f-ordenar" title="Ordenar por">
+        <option value="fit">✨ Mais compatível</option>
+        <option value="nome">Nome A–Z</option>
+        <option value="preco_asc">Preço ↑</option>
+        <option value="preco_desc">Preço ↓</option>
+        <option value="dist_ref">Distância à ref.</option>
+        <option value="dist_user">Distância de mim</option>
+      </select>
+    </div>
+    <div id="sidebar-list">
+      <div style="padding:20px;text-align:center;color:#99a3ad;font-size:0.85em">Clique em Filtrar para ver a lista.</div>
+    </div>
+  </aside>
 </div>
 
 <div id="compare-tray"></div>
 
 <!-- MODAL: COMO USAR -->
 <div class="modal-overlay" id="modal-como-usar">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:640px">
     <button class="modal-close" onclick="fecharModal('modal-como-usar')">✕</button>
     <h2>O que este mapa oferece</h2>
-    <h4>🔍 Filtros</h4>
-    <p>Combine UF, Cidade, Bairro, Tipo, Construtora e busca por nome/endereço, depois clique em <strong>Filtrar</strong>. O mapa ajusta o zoom automaticamente para mostrar todos os resultados.</p>
-    <h4>📍 Detalhes no mapa</h4>
-    <p>Clique em qualquer marcador para ver fotos, descrição, preço, o projeto (quando o empreendimento faz parte de um) e a distância até uma referência à sua escolha — use o seletor <strong>"Distância até"</strong> no topo pra trocar entre Centro da Cidade, Bases Aéreas, Organizações Navais, Organizações do Exército ou Polícia/Bombeiros.</p>
+    <p style="margin-bottom:12px;color:#7f8c9a;font-size:0.88em">Guia completo das ferramentas para encontrar o empreendimento certo — pensado para servidores públicos civis e militares e para quem busca moradia ou investimento.</p>
+
+    <h4>✨ Meu imóvel ideal (perfil personalizado)</h4>
+    <p>Clique em <strong>✨ Meu imóvel ideal</strong> e responda 3 passos rápidos:</p>
+    <ul>
+      <li><strong>Quem você é</strong> — Aeronáutica, Marinha, Exército, Polícia/Bombeiros ou servidor civil</li>
+      <li><strong>Momento de vida</strong> — início de carreira, família, estabilidade ou investimento</li>
+      <li><strong>Prioridades e orçamento</strong> — o que mais importa e faixa de preço</li>
+    </ul>
+    <p>Com o perfil ativo, cada empreendimento recebe um <strong>score de compatibilidade (0–100%)</strong> no popup e na lista. A ordenação <strong>Mais compatível</strong> ranqueia o que mais combina com o seu momento. O perfil fica salvo neste navegador; você pode editar ou limpar a qualquer hora.</p>
+    <h4>🔥 Quero atendimento (CRM)</h4>
+    <p>Com o perfil ativo, o botão <strong>🔥 Quero atendimento</strong> envia para a equipe WAL: nome, WhatsApp, e-mail e todo o contexto do mapa (perfil dos 3 passos, orçamento, favoritos, comparação, filtros e indicação de agente). O lead chega aquecido no CRM.</p>
+
+    <h4>🔍 Filtros de busca</h4>
+    <ul>
+      <li>Busca por nome, bairro ou endereço (Enter ou botão Filtrar)</li>
+      <li>UF → Cidade → Bairro (em cascata)</li>
+      <li>Tipo: Lançamento, Em Construção, Novo, Usado</li>
+      <li>Construtora</li>
+      <li>Faixa de preço (mínimo e máximo, em milhares de R$)</li>
+      <li>Status (somente ativos na versão pública)</li>
+    </ul>
+    <p>Depois de escolher, clique em <strong>🔍 Filtrar</strong>. Use <strong>✕ Limpar</strong> para recomeçar. O contador mostra quantos empreendimentos estão no mapa.</p>
+
+    <h4>📋 Lista lateral de resultados</h4>
+    <p>À direita do mapa aparece a lista dos resultados filtrados. Clique em um card para centralizar o mapa e abrir o popup. Use o botão <strong>☰</strong> para mostrar ou ocultar a lista (útil no celular).</p>
+    <p>Ordene por: <strong>Mais compatível</strong>, nome, preço (↑/↓), distância à referência ou distância de você.</p>
+
+    <h4>📍 Distância até bases e organizações</h4>
+    <p>No topo, o seletor <strong>“Distância até”</strong> calcula a distância em linha reta até:</p>
+    <ul>
+      <li>Centro da cidade do imóvel</li>
+      <li>Bases Aéreas (Aeronáutica)</li>
+      <li>Organizações Navais (Marinha)</li>
+      <li>Organizações Militares (Exército)</li>
+      <li>Polícia e Bombeiros</li>
+    </ul>
+    <p>O resultado aparece no popup e na lista (ex.: “A 3,2 km até a Base Aérea do Galeão”).</p>
+
+    <h4>📍 Sua posição (GPS ou marcar no mapa)</h4>
+    <ul>
+      <li><strong>📍 GPS</strong> — usa a localização do dispositivo (ideal no celular; no notebook depende da permissão do navegador)</li>
+      <li><strong>📌 Marcar no mapa</strong> — clique no botão e depois em qualquer ponto do mapa (funciona perfeitamente em desktop e notebook, sem GPS)</li>
+    </ul>
+    <p>O marcador azul pode ser <strong>arrastado</strong> para ajustar. Depois disso, popup e lista mostram “🚶 X km de você” e a ordenação <strong>Distância de mim</strong> passa a funcionar. Use <strong>✕ Posição</strong> para limpar. A tecla <strong>ESC</strong> cancela o modo de marcação.</p>
+
+    <h4>🏫 No entorno do empreendimento</h4>
+    <p>No popup, escolha o <strong>raio</strong> (1 km · 1,5 km · 3 km · 5 km) e clique em <strong>🏫 Ver no entorno</strong>. O mapa consulta o OpenStreetMap e mostra:</p>
+    <ul>
+      <li>🏫 Escolas &nbsp; 🏥 Saúde &nbsp; 💊 Farmácias</li>
+      <li>🌳 Praças e parques &nbsp; 🏋️ Academias</li>
+      <li>🚓 Delegacias &nbsp; 🚇 Metrô / Trem / BRT</li>
+      <li>🚌 Pontos de ônibus &nbsp; 🛒 Supermercados</li>
+    </ul>
+    <p>Lista com distâncias no popup + marcadores coloridos no mapa. Use <strong>✕ Limpar entorno</strong> (canto superior esquerdo do mapa) para remover os pontos.</p>
+
     <h4>⭐ Favoritos</h4>
-    <p>Marque os empreendimentos de interesse com a estrela no popup. Eles ficam salvos neste navegador — use o botão <strong>☆ Só Favoritos</strong> na barra de filtros para vê-los de novo quando quiser, mesmo depois de fechar a página.</p>
-    <h4>➕ Comparar</h4>
-    <p>Selecione até 3 empreendimentos (botão ➕ no popup) para comparar lado a lado — preço, tipo, localização e descrição, tudo numa tabela só.</p>
-    <h4>💬 Fale com a gente</h4>
-    <p>Direto no popup: mande uma mensagem no WhatsApp, converse com nosso Chat IA, ou simule o financiamento já com o valor do imóvel preenchido.</p>
-    <h4>🗺️ Tipo de mapa</h4>
-    <p>Troque entre Mapa, Satélite, Híbrido ou Terreno conforme sua preferência.</p>
+    <p>No popup ou na lista, clique na estrela para salvar o empreendimento neste navegador. O botão <strong>☆ Só Favoritos</strong> filtra o mapa para mostrar apenas os que você marcou — mesmo depois de fechar e reabrir a página.</p>
+
+    <h4>➕ Comparar empreendimentos</h4>
+    <p>Selecione até <strong>3</strong> imóveis com o botão ➕. A bandeja inferior lista os escolhidos; clique em <strong>Comparar</strong> para ver foto, tipo, projeto, local, preço, construtora e descrição lado a lado.</p>
+
+    <h4>📲 Compartilhar mapa filtrado</h4>
+    <p>O botão <strong>Compartilhar</strong> gera um link com os filtros atuais (e a indicação de agente, se houver). Envie por WhatsApp, e-mail ou copie o link — quem abrir vê o mesmo recorte do mapa.</p>
+
+    <h4>🗺️ Tipos de mapa e tela cheia</h4>
+    <ul>
+      <li><strong>Tipo de mapa:</strong> Mapa, Satélite, Híbrido ou Terreno</li>
+      <li><strong>⛶ Tela cheia</strong> — ocupa a tela inteira (ESC ou o botão para sair)</li>
+    </ul>
+    <p>Marcadores coloridos por situação (Lançamento, Em Construção, Novo, Usado), com animação e estrela quando favorito. Clusters agrupam pontos próximos.</p>
+
+    <h4>💬 Fale com a WAL no popup</h4>
+    <ul>
+      <li><strong>Ver detalhes</strong> — página completa do imóvel</li>
+      <li><strong>Chat IA</strong> — conversa com o consultor inteligente</li>
+      <li><strong>WhatsApp</strong> — mensagem já com o nome do empreendimento</li>
+      <li><strong>Simular</strong> — simulador de financiamento com o valor preenchido</li>
+    </ul>
+    <h4>🚗 Como chegar e 🛣 Street View</h4>
+    <p>No popup, <strong>Como chegar</strong> abre o Google Maps com a melhor rota até o empreendimento (se você já usou GPS ou “Marcar no mapa”, a origem é a sua posição). <strong>Street View</strong> abre o panorama na rua do imóvel. São links gratuitos — não exigem API key.</p>
+
+    <h4>🤝 Indicação de agente parceiro</h4>
+    <p>Se você chegou por um link com código de agente, o nome dele aparece no topo. A indicação fica registrada neste navegador por 90 dias e pode acompanhar o restante do atendimento.</p>
+
+    <h4 style="margin-top:16px">Dica de uso rápido</h4>
+    <p>1) <strong>✨ Meu imóvel ideal</strong> → 2) (opcional) <strong>📌 Marcar no mapa</strong> ou GPS → 3) <strong>🔍 Filtrar</strong> → 4) explore a lista e o <strong>entorno</strong> → 5) favoritos / comparar / WhatsApp ou simular.</p>
+  </div>
+</div>
+
+<!-- MODAL: WIZARD MEU IMÓVEL IDEAL -->
+<div class="modal-overlay" id="modal-perfil">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close" onclick="fecharModal('modal-perfil')">✕</button>
+    <h2>✨ Meu imóvel ideal</h2>
+    <p style="margin-bottom:8px;color:#7f8c9a;font-size:0.88em">Em 3 passos criamos um perfil que ranqueia os empreendimentos para o seu momento.</p>
+    <div class="wizard-steps" id="wiz-steps">
+      <span class="on"></span><span></span><span></span>
+    </div>
+
+    <div class="wizard-pane active" id="wiz-1">
+      <h4>1. Quem é você?</h4>
+      <div class="wizard-opts single" id="wiz-forca">
+        <label><input type="radio" name="w-forca" value="aeronautica"> ✈️ Aeronáutica / bases aéreas</label>
+        <label><input type="radio" name="w-forca" value="marinha"> ⚓ Marinha / organizações navais</label>
+        <label><input type="radio" name="w-forca" value="exercito"> 🎖️ Exército / organizações militares</label>
+        <label><input type="radio" name="w-forca" value="seguranca"> 🚓 Polícia / Bombeiros</label>
+        <label><input type="radio" name="w-forca" value="civil"> 🏛️ Servidor civil / outro</label>
+      </div>
+      <h4 style="margin-top:14px">Momento de vida</h4>
+      <div class="wizard-opts" id="wiz-momento">
+        <label><input type="radio" name="w-momento" value="inicio"> Início de carreira</label>
+        <label><input type="radio" name="w-momento" value="familia"> Família / filhos</label>
+        <label><input type="radio" name="w-momento" value="estabilidade"> Estabilidade / consolidação</label>
+        <label><input type="radio" name="w-momento" value="investimento"> Investimento / renda</label>
+      </div>
+      <div class="wizard-nav">
+        <span></span>
+        <button type="button" class="wiz-next" data-next="2">Continuar →</button>
+      </div>
+    </div>
+
+    <div class="wizard-pane" id="wiz-2">
+      <h4>2. O que mais importa agora?</h4>
+      <p style="font-size:0.82em;color:#7f8c9a">Escolha até 2 prioridades (a primeira pesa mais).</p>
+      <div class="wizard-opts single" id="wiz-prioridades">
+        <label><input type="checkbox" name="w-prio" value="proximidade"> 📍 Proximidade da base / local de trabalho</label>
+        <label><input type="checkbox" name="w-prio" value="preco"> 💰 Melhor custo-benefício / preço</label>
+        <label><input type="checkbox" name="w-prio" value="familia"> 👨‍👩‍👧‍👦 Ideal para família (espaço, região)</label>
+        <label><input type="checkbox" name="w-prio" value="valorizacao"> 📈 Potencial de valorização / investimento</label>
+        <label><input type="checkbox" name="w-prio" value="lancamento"> 🆕 Lançamento ou obra nova</label>
+      </div>
+      <div class="wizard-nav">
+        <button type="button" class="wiz-prev" data-prev="1">← Voltar</button>
+        <button type="button" class="wiz-next" data-next="3">Continuar →</button>
+      </div>
+    </div>
+
+    <div class="wizard-pane" id="wiz-3">
+      <h4>3. Orçamento e tipo</h4>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;margin:10px 0">
+        <div>
+          <label style="font-size:0.75em;color:#7f8c9a">Preço máx. (mil R$)</label>
+          <input type="number" id="w-orcamento" placeholder="Ex: 800" min="100" step="50"
+            style="display:block;padding:8px 10px;border:1px solid #d5dae2;border-radius:5px;width:140px;margin-top:3px">
+        </div>
+        <div>
+          <label style="font-size:0.75em;color:#7f8c9a">Tipo preferido</label>
+          <select id="w-tipo" style="display:block;padding:8px 10px;border:1px solid #d5dae2;border-radius:5px;margin-top:3px">
+            <option value="">Qualquer</option>
+            <option value="Lançamento">Lançamento</option>
+            <option value="Em Construção">Em Construção</option>
+            <option value="Novo">Novo</option>
+            <option value="Usado">Usado</option>
+          </select>
+        </div>
+      </div>
+      <p style="font-size:0.82em;color:#7f8c9a;margin-top:8px">Opcional: defina também sua posição no mapa depois (GPS ou “Marcar no mapa”) para melhorar o score de proximidade.</p>
+      <div class="wizard-nav">
+        <button type="button" class="wiz-prev" data-prev="2">← Voltar</button>
+        <button type="button" class="wiz-finish" id="wiz-salvar">Ver imóveis para mim →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LEAD CRM — Meu Imóvel Ideal aquecido -->
+<div class="modal-overlay" id="modal-crm-lead">
+  <div class="modal-box" style="max-width:440px">
+    <button class="modal-close" onclick="fecharModal('modal-crm-lead')">✕</button>
+    <h2>🔥 Atendimento personalizado</h2>
+    <p style="font-size:0.88em;color:#7f8c9a;margin-bottom:12px">Seu perfil já está pronto. Deixe seu contato e a equipe WAL entra em contato com opções alinhadas ao que você buscou no mapa.</p>
+    <div class="lead-resumo" id="lead-resumo-perfil"></div>
+    <div id="lead-form-wrap" class="lead-form">
+      <label>Nome completo *</label>
+      <input type="text" id="lead-nome" placeholder="Seu nome" autocomplete="name">
+      <label>WhatsApp / Telefone *</label>
+      <input type="tel" id="lead-telefone" placeholder="(21) 99999-9999" autocomplete="tel">
+      <label>E-mail</label>
+      <input type="email" id="lead-email" placeholder="nome@email.com" autocomplete="email">
+      <label>Observação (opcional)</label>
+      <textarea id="lead-obs" placeholder="Ex.: prefiro região sul, 2 quartos..."></textarea>
+      <div class="lead-err" id="lead-err"></div>
+      <button type="button" id="btn-lead-enviar" style="width:100%;padding:12px;font-weight:800;border:none;border-radius:6px;background:#C9A84C;color:#0A1628;cursor:pointer;font-size:0.95em">Enviar para a equipe WAL →</button>
+      <p style="font-size:0.75em;color:#99a3ad;margin-top:10px;text-align:center">Ou fale agora pelo <a id="lead-wpp-direto" href="#" target="_blank" rel="noopener" style="color:#25D366;font-weight:700">WhatsApp</a></p>
+    </div>
+    <div class="lead-ok" id="lead-ok">✅ Recebemos seu pedido! Em breve a equipe WAL entra em contato.</div>
   </div>
 </div>
 
@@ -345,23 +813,18 @@
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
 <script>
 /* ================================================================
-   MAPA DE EMPREENDIMENTOS
-   Fonte: planilha "WAL Imóveis — Portfólio" (aba IMOVEISDISPONIVEIS),
-   mesma usada em admin.html/imoveis.html/praca_onze_dashboard.html.
-   Usa a Latitude/Longitude cadastrada manualmente uma vez por
-   empreendimento (endereço exato). Só entram no mapa os imóveis que
-   já têm as duas colunas preenchidas.
+   MAPA DE EMPREENDIMENTOS — PROTÓTIPO MELHORADO
+   Baseado no mapa original. Mantém a mesma fonte de dados
+   (planilha IMOVEISDISPONIVEIS) e adiciona:
+   - Lista lateral sincronizada
+   - Filtro de faixa de preço
+   - Ordenação (nome / preço / distância)
+   - Geolocalização do usuário
+   - Loading indicator
 ================================================================ */
 const SHEET_IMOVEIS_ID = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 const WPP_NUMERO = '5521997263950';
 
-/* ── Indicação de Agente Parceiro (link ?agente=) ──
-   Mesma rotina de imovel.html: verifica o Id do Agente vindo do link
-   (via ação pública crm_agente_publico, sem sessão), mostra o nome
-   dele numa faixa visível e guarda a indicação em localStorage por 90
-   dias — pra não se perder se a pessoa só decidir converter dias
-   depois. reserva.html/chat.html/simulador.html leem essa MESMA chave
-   na hora de confirmar (ver apps-script-sistema-web-cadastro.gs). */
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
 function cadastroApiJsonp(action, params){
   return new Promise((resolve)=>{
@@ -404,12 +867,19 @@ function mostrarBannerAgente_(ref){
 }
 capturarReferenciaAgente_(new URLSearchParams(location.search).get('agente')).then(mostrarBannerAgente_);
 
-/* ── Compartilhar mapa filtrado (WhatsApp / E-mail / Copiar Link) ──
-   Monta o link a partir dos MESMOS campos de filtro atualmente
-   preenchidos na tela (não precisa ter clicado "Filtrar" antes) e
-   preserva o ?agente= atual, se houver, pra quem receber o link
-   também contar como indicação do mesmo Agente. */
+/* Endpoint do "Leads Landing Page" — usado só para compartilhar o mapa
+   por e-mail (tipo:"compartilhar_email"). NÃO é o CRM de Leads: esse
+   projeto grava numa outra planilha, aba "Leads" (não "LEADS"). */
 const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
+
+/* CRM LEADS — botão "🔥 Quero atendimento". Mesmo Apps Script que o
+   admin.html já usa (CRM_SCRIPT_URL_DEFAULT), vinculado à planilha
+   "WAL — CRM de Leads", aba LEADS. Ação "criar" espera
+   { lead: { nome, telefone, email, origem, prioridade, consultor,
+   status, solicitacao, orcamento, area, obs, proxacao, proxdata,
+   historico:[...] } } — mesmos nomes de campo usados em crmSalvarLead()
+   no admin.html, não mude sem checar lá também. */
+const CRM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 let _compMapaLink = '';
 function linkMapaAtual_(){
   const params = new URLSearchParams();
@@ -419,6 +889,10 @@ function linkMapaAtual_(){
     const v = el ? el.value.trim() : '';
     if(v) params.set(chave, v);
   });
+  const pMin = document.getElementById('f-preco-min').value;
+  const pMax = document.getElementById('f-preco-max').value;
+  if(pMin) params.set('preco_min', pMin);
+  if(pMax) params.set('preco_max', pMax);
   if(MODO_ADMIN){
     params.set('admin','1');
     const status = document.getElementById('f-status').value;
@@ -453,10 +927,6 @@ function compMapaMostrarEmail(){
   document.getElementById('compMapaEmailErr').style.display = 'none';
   const inp = document.getElementById('compMapaEmailInput');
   inp.value = ''; inp.focus();
-  // Modal estático, reaproveitado a cada abertura — reseta aqui sempre
-  // que a tela de e-mail abre, senão o botão fica preso em
-  // "Enviando..." depois do 1º envio bem-sucedido (mesmo bug já
-  // corrigido no modal de Compartilhar do dashboard-agente.html).
   const btn = document.getElementById('compMapaBtnEnviar');
   btn.disabled = false; btn.textContent = 'Enviar →';
 }
@@ -478,9 +948,6 @@ async function compMapaEnviarEmail(){
         corpo:`Olá! Vi este mapa com empreendimentos da WAL Imóveis e achei que poderia te interessar:\n\n${_compMapaLink}` }) });
     const data = await res.json();
     if(data.status === 'ok'){
-      // Não substitui o innerHTML do formulário (o modal é estático,
-      // reaproveitado — destruir os elementos aqui quebraria a próxima
-      // abertura). Só troca o texto do botão por um instante e fecha.
       btn.textContent = '✅ Enviado!';
       setTimeout(()=>{ fecharModal('modal-compartilhar-mapa'); btn.disabled=false; btn.textContent='Enviar →'; }, 1500);
     }else{
@@ -493,12 +960,6 @@ async function compMapaEnviarEmail(){
   }
 }
 
-// Mesmo arquivo serve as duas versões (pedido do Antonio, 23/08/2026):
-// pública (botão "Ver no Mapa" no imoveis.html, sem ?admin=1 — Status
-// travado em "Somente Ativos") e a de administração (aba Mapa do
-// admin.html, com ?admin=1 — Status liberado). Recursos exclusivos da
-// administração no futuro entram checando MODO_ADMIN, em vez de
-// duplicar o arquivo inteiro.
 const MODO_ADMIN = new URLSearchParams(location.search).get('admin') === '1';
 if (!MODO_ADMIN) {
   const statusSel = document.getElementById('f-status');
@@ -507,17 +968,113 @@ if (!MODO_ADMIN) {
   statusSel.title = 'Nesta versão, o mapa sempre mostra só os empreendimentos ativos.';
 }
 const FAV_KEY = 'wal_mapa_favoritos_v1';
+const PERFIL_KEY = 'wal_mapa_perfil_ideal_v1';
 
-// Categorias de referência pro "Distância até" do popup (pedido do
-// Antonio, 23/08/2026 — o público deixou de ser só FAB e passou a
-// incluir Marinha/Exército, Polícia, Bombeiros e servidor civil em
-// geral). Coordenadas aproximadas, uso informativo — ajuste/complete
-// conforme a necessidade real.
-//
-// "cidade" é a categoria universal (funciona pra qualquer visitante,
-// militar ou não) — distância até o centro da própria cidade do
-// imóvel. As demais são listas curadas por força/corporação, só faz
-// sentido pra quem se identifica com aquele grupo.
+function lerPerfil() {
+  try { return JSON.parse(localStorage.getItem(PERFIL_KEY) || 'null'); }
+  catch (e) { return null; }
+}
+function salvarPerfil(p) {
+  try { localStorage.setItem(PERFIL_KEY, JSON.stringify(p)); } catch (e) {}
+}
+function limparPerfilStorage() {
+  try { localStorage.removeItem(PERFIL_KEY); } catch (e) {}
+}
+
+/** Score 0–100 de compatibilidade com o perfil do usuário */
+function calcularFitScore(im, perfil) {
+  if (!perfil) return null;
+  let score = 40; // base neutra
+  const pesos = { proximidade: 28, preco: 22, familia: 12, valorizacao: 10, lancamento: 12 };
+
+  // 1) Proximidade (à força escolhida ou à posição do usuário)
+  let dist = null;
+  if (userLat != null && userLng != null) {
+    dist = distanciaKm(userLat, userLng, im.lat, im.lng);
+  } else if (perfil.forca && perfil.forca !== 'civil') {
+    const cat = CATEGORIAS_REFERENCIA[perfil.forca];
+    if (cat) {
+      let melhor = Infinity;
+      cat.pontos.forEach(p => {
+        const d = distanciaKm(im.lat, im.lng, p.lat, p.lng);
+        if (d < melhor) melhor = d;
+      });
+      dist = melhor;
+    }
+  } else {
+    const ref = referenciaMaisProxima(im.lat, im.lng, im.cidade);
+    if (ref) dist = ref.dist;
+  }
+  if (dist != null) {
+    // 0 km → +peso cheio; 25 km+ → ~0
+    const proxPts = Math.max(0, pesos.proximidade * (1 - Math.min(dist, 25) / 25));
+    score += proxPts;
+  }
+
+  // 2) Preço dentro do orçamento
+  if (perfil.orcamento && im.valor > 0) {
+    if (im.valor <= perfil.orcamento) {
+      // quanto mais perto do teto (sem estourar), um pouco menos pontos; muito abaixo ainda é bom
+      const razao = im.valor / perfil.orcamento;
+      score += pesos.preco * (razao >= 0.5 ? 1 : 0.75 + razao * 0.5);
+    } else if (im.valor <= perfil.orcamento * 1.15) {
+      score += pesos.preco * 0.35; // pouco acima
+    }
+    // muito acima: zero pontos de preço
+  } else {
+    score += pesos.preco * 0.5;
+  }
+
+  // 3) Tipo preferido
+  if (perfil.tipo && im.tipo === perfil.tipo) score += 10;
+  else if (!perfil.tipo) score += 4;
+
+  // 4) Prioridades extras
+  const prios = perfil.prioridades || [];
+  if (prios.includes('lancamento') && (im.tipo === 'Lançamento' || im.tipo === 'Em Construção' || im.tipo === 'Novo')) {
+    score += pesos.lancamento;
+  }
+  if (prios.includes('valorizacao') && (im.tipo === 'Lançamento' || im.tipo === 'Em Construção')) {
+    score += pesos.valorizacao;
+  }
+  if (prios.includes('familia')) {
+    // leve boost se tiver descrição sugerindo família / se for Novo/Usado em bairro (heurística simples)
+    score += pesos.familia * 0.6;
+  }
+  // prioridade de proximidade já coberta no bloco 1; se foi escolhida, o peso de proximidade já é alto
+
+  // Momento de vida (ajuste fino)
+  if (perfil.momento === 'investimento' && (im.tipo === 'Lançamento' || im.tipo === 'Em Construção')) score += 4;
+  if (perfil.momento === 'inicio' && im.valor > 0 && perfil.orcamento && im.valor <= perfil.orcamento * 0.7) score += 3;
+  if (perfil.momento === 'familia') score += 2;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function classeFit(score) {
+  if (score == null) return '';
+  if (score >= 75) return 'alto';
+  if (score >= 55) return 'medio';
+  return 'baixo';
+}
+
+function textoPerfilResumo(p) {
+  if (!p) return '—';
+  const forcaMap = {
+    aeronautica: 'Aeronáutica', marinha: 'Marinha', exercito: 'Exército',
+    seguranca: 'Polícia/Bombeiros', civil: 'Servidor civil'
+  };
+  const momMap = {
+    inicio: 'início de carreira', familia: 'família',
+    estabilidade: 'estabilidade', investimento: 'investimento'
+  };
+  const partes = [];
+  if (p.forca) partes.push(forcaMap[p.forca] || p.forca);
+  if (p.momento) partes.push(momMap[p.momento] || p.momento);
+  if (p.orcamento) partes.push('até R$ ' + p.orcamento + ' mil');
+  return partes.join(' · ') || 'Perfil definido';
+}
+
 const CENTRO_CIDADE_COORDS = {
   'RIO DE JANEIRO':        { nome: 'Centro do Rio de Janeiro',      lat: -22.9068, lng: -43.1729 },
   'NITERÓI':                { nome: 'Centro de Niterói',             lat: -22.8832, lng: -43.1034 },
@@ -567,9 +1124,227 @@ const CATEGORIAS_REFERENCIA = {
   }
 };
 
-// Categoria escolhida no seletor do cabeçalho — "cidade" é o padrão
-// (universal, serve pra todo mundo).
 let categoriaRefAtual = 'cidade';
+let userLat = null;
+let userLng = null;
+let userMarker = null;
+let modoMarcarPosicao = false;
+let poiLayer = null;
+let poiCache = {};
+let poiRaioAtualM = 1500;
+
+const POI_CATEGORIAS = [
+  { key: 'escola',     label: 'Escolas',            emoji: '🏫', color: '#2563eb' },
+  { key: 'saude',      label: 'Saúde',              emoji: '🏥', color: '#dc2626' },
+  { key: 'farmacia',   label: 'Farmácias',          emoji: '💊', color: '#e11d48' },
+  { key: 'praca',      label: 'Praças e parques',   emoji: '🌳', color: '#16a34a' },
+  { key: 'academia',   label: 'Academias',          emoji: '🏋️', color: '#ea580c' },
+  { key: 'seguranca',  label: 'Delegacias',         emoji: '🚓', color: '#1e3a8a' },
+  { key: 'transporte', label: 'Metrô / Trem / BRT', emoji: '🚇', color: '#0f766e' },
+  { key: 'onibus',     label: 'Pontos de ônibus',   emoji: '🚌', color: '#ca8a04' },
+  { key: 'comercio',   label: 'Supermercados',      emoji: '🛒', color: '#7c3aed' }
+];
+
+// Mirrors públicos do Overpass (OpenStreetMap) — NÃO é Google Maps / não exige API key
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://lz4.overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.osm.jp/api/interpreter'
+];
+
+let entornoBuscando = false; // evita cliques repetidos enquanto carrega
+
+function limparPOIs() {
+  if (poiLayer) {
+    try { mapRef && mapRef.removeLayer(poiLayer); } catch (e) {}
+    poiLayer = null;
+  }
+  const btn = document.getElementById('btn-limpar-entorno');
+  if (btn) btn.classList.remove('show');
+}
+
+function mostrarBtnLimparEntorno() {
+  const btn = document.getElementById('btn-limpar-entorno');
+  if (btn) btn.classList.add('show');
+}
+
+function classificarPOI(tags) {
+  if (!tags) return null;
+  if (tags.amenity === 'school' || tags.amenity === 'kindergarten') return 'escola';
+  if (tags.amenity === 'hospital' || tags.amenity === 'clinic' || tags.amenity === 'doctors') return 'saude';
+  if (tags.amenity === 'pharmacy') return 'farmacia';
+  if (tags.leisure === 'park' || tags.leisure === 'playground') return 'praca';
+  if (tags.leisure === 'fitness_centre' || tags.amenity === 'gym') return 'academia';
+  if (tags.amenity === 'police') return 'seguranca';
+  if (tags.railway === 'station' || tags.railway === 'subway_entrance' || tags.station === 'subway') return 'transporte';
+  if (tags.highway === 'bus_stop') return 'onibus';
+  if (tags.shop === 'supermarket' || tags.shop === 'convenience') return 'comercio';
+  return null;
+}
+
+/** Três consultas leves em paralelo (mais confiáveis que uma única query enorme) */
+function montarQueriesLeves(lat, lng, raioM) {
+  const a = `(around:${raioM},${lat},${lng})`;
+  return [
+    // Educação + saúde + farmácia
+    `[out:json][timeout:20];(` +
+      `node["amenity"="school"]${a};way["amenity"="school"]${a};` +
+      `node["amenity"="kindergarten"]${a};` +
+      `node["amenity"="hospital"]${a};way["amenity"="hospital"]${a};` +
+      `node["amenity"="clinic"]${a};` +
+      `node["amenity"="pharmacy"]${a};way["amenity"="pharmacy"]${a};` +
+    `);out center 30;`,
+    // Lazer + segurança
+    `[out:json][timeout:20];(` +
+      `node["leisure"="park"]${a};way["leisure"="park"]${a};` +
+      `node["leisure"="playground"]${a};` +
+      `node["leisure"="fitness_centre"]${a};` +
+      `node["amenity"="police"]${a};` +
+    `);out center 25;`,
+    // Transporte + comércio
+    `[out:json][timeout:20];(` +
+      `node["railway"="station"]${a};way["railway"="station"]${a};` +
+      `node["railway"="subway_entrance"]${a};` +
+      `node["highway"="bus_stop"]${a};` +
+      `node["shop"="supermarket"]${a};way["shop"="supermarket"]${a};` +
+      `node["shop"="convenience"]${a};` +
+    `);out center 35;`
+  ];
+}
+
+async function fetchOverpassUma(query, endpoint) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 22000);
+  try {
+    // GET costuma ter menos problema de CORS em alguns ambientes
+    const url = endpoint + '?data=' + encodeURIComponent(query);
+    let res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) {
+      // fallback POST no mesmo endpoint
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(query),
+        signal: controller.signal
+      });
+    }
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchOverpass(query) {
+  let lastErr = null;
+  for (const endpoint of OVERPASS_ENDPOINTS) {
+    try {
+      return await fetchOverpassUma(query, endpoint);
+    } catch (e) {
+      lastErr = e;
+      console.warn('Overpass falhou:', endpoint, e.message || e.name || e);
+    }
+  }
+  throw lastErr || new Error('Servidores indisponíveis');
+}
+
+function processarElementos(elementos, lat, lng, raioM, porCat, vistos) {
+  (elementos || []).forEach(el => {
+    const tags = el.tags || {};
+    const elLat = el.lat != null ? el.lat : (el.center && el.center.lat);
+    const elLon = el.lon != null ? el.lon : (el.center && el.center.lon);
+    if (elLat == null || elLon == null) return;
+    const key = classificarPOI(tags);
+    if (!key || !porCat[key]) return;
+    const nome = tags.name || tags.operator || tags.ref || 'Sem nome';
+    const dedupe = key + '|' + nome + '|' + elLat.toFixed(4) + '|' + elLon.toFixed(4);
+    if (vistos.has(dedupe)) return;
+    vistos.add(dedupe);
+    const dist = distanciaKm(lat, lng, elLat, elLon);
+    if (dist * 1000 > raioM + 80) return;
+    const cat = POI_CATEGORIAS.find(c => c.key === key);
+    porCat[key].push({ nome, lat: elLat, lng: elLon, dist, emoji: cat.emoji, color: cat.color });
+  });
+}
+
+async function buscarEntorno(lat, lng, raioM) {
+  const queries = montarQueriesLeves(lat, lng, raioM);
+  // Executa as 3 consultas em paralelo; usa o que vier (mesmo se uma falhar)
+  const resultados = await Promise.allSettled(queries.map(q => fetchOverpass(q)));
+
+  const porCat = {};
+  POI_CATEGORIAS.forEach(c => { porCat[c.key] = []; });
+  const vistos = new Set();
+  let algumaOk = false;
+
+  resultados.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      algumaOk = true;
+      processarElementos(r.value.elements, lat, lng, raioM, porCat, vistos);
+    } else {
+      console.warn('Grupo de entorno', i, 'falhou:', r.reason && (r.reason.message || r.reason.name));
+    }
+  });
+
+  if (!algumaOk) {
+    throw new Error('Não foi possível contatar os servidores do OpenStreetMap. Aguarde ~20s e tente de novo (cliques repetidos podem bloquear temporariamente).');
+  }
+
+  const porCatLimite = raioM >= 3000 ? 8 : 6;
+  Object.keys(porCat).forEach(k => {
+    porCat[k].sort((a, b) => a.dist - b.dist);
+    porCat[k] = porCat[k].slice(0, porCatLimite);
+  });
+  return porCat;
+}
+
+function plotarPOIsNoMapa(porCat, map) {
+  limparPOIs();
+  poiLayer = L.layerGroup();
+  let count = 0;
+  Object.keys(porCat).forEach(k => {
+    porCat[k].forEach(p => {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="poi-pin" style="--poi-color:${p.color}">${p.emoji}</div>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13]
+      });
+      const distTxt = p.dist < 1 ? Math.round(p.dist * 1000) + ' m' : p.dist.toFixed(1) + ' km';
+      L.marker([p.lat, p.lng], { icon, zIndexOffset: 400 })
+        .bindPopup(`<strong>${p.emoji} ${p.nome}</strong><br>${distTxt}`)
+        .addTo(poiLayer);
+      count++;
+    });
+  });
+  if (count) {
+    poiLayer.addTo(map);
+    mostrarBtnLimparEntorno();
+  }
+}
+
+function htmlEntorno(porCat, raioM) {
+  let html = '';
+  let total = 0;
+  const raioTxt = raioM >= 1000 ? (raioM / 1000) + ' km' : raioM + ' m';
+  POI_CATEGORIAS.forEach(c => {
+    const lista = porCat[c.key] || [];
+    if (!lista.length) return;
+    total += lista.length;
+    html += `<div class="ent-cat">${c.emoji} ${c.label}</div>`;
+    lista.forEach(p => {
+      const metros = p.dist < 1 ? Math.round(p.dist * 1000) + ' m' : p.dist.toFixed(1) + ' km';
+      html += `<div class="ent-item">${p.nome} <span>· ${metros}</span></div>`;
+    });
+  });
+  if (!total) {
+    return `<div class="ent-vazio">Nenhum ponto encontrado em ${raioTxt} (dados OSM podem ser incompletos nesta região).</div>`;
+  }
+  return `<div class="ent-total">${total} ponto${total > 1 ? 's' : ''} em até ${raioTxt}</div>` + html;
+}
+
+let mapRef = null;
 
 function gvizJsonpProto(sheetId) {
   return new Promise(function(resolve, reject) {
@@ -597,13 +1372,11 @@ function fixDriveUrlProto(url) {
   return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
 }
 
-// Cores vivas — escolhidas pra não se confundir com as cores naturais
-// do mapa (água azul, parques verdes) nem entre si.
 function corPorStatus(tipo) {
   if (tipo === 'Lançamento')    return '#ff3b30';
   if (tipo === 'Em Construção') return '#ff9500';
   if (tipo === 'Usado')         return '#34c759';
-  return '#af52de'; // Novo
+  return '#af52de';
 }
 
 function precoTexto(valor) {
@@ -619,14 +1392,37 @@ function truncar(texto, max) {
   return limpo.length > max ? limpo.slice(0, max).trim() + '…' : limpo;
 }
 
-// Distância em linha reta (fórmula de Haversine) — não é distância de
-// rota/trânsito, é a menor distância possível entre os dois pontos.
 function distanciaKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+/** Links gratuitos do Google Maps (sem API key) — abrem em nova aba */
+function linkRotaGoogle(destLat, destLng, endereco, cidade, uf) {
+  // Prefere endereço da planilha (rota mais estável); senão lat/lng
+  const destinoTxt = [endereco, cidade, uf].filter(Boolean).join(', ');
+  const destino = destinoTxt ? encodeURIComponent(destinoTxt) : (destLat + ',' + destLng);
+  let url = 'https://www.google.com/maps/dir/?api=1&destination=' + destino + '&travelmode=driving';
+  if (typeof userLat === 'number' && typeof userLng === 'number') {
+    url += '&origin=' + userLat + ',' + userLng;
+  }
+  return url;
+}
+function linkStreetView(lat, lng, endereco, cidade, uf) {
+  // 1) Com campo Endereço da planilha: busca o local e tenta Street View (layer=c)
+  // 2) Sem endereço: cbll na coordenada — encaixa no panorama da via mais próxima
+  //    (viewpoint exato costuma abrir tela preta quando o ponto cai no meio do lote)
+  const enderecoTxt = [endereco, cidade, uf].filter(Boolean).join(', ');
+  if (enderecoTxt) {
+    return 'https://www.google.com/maps?layer=c&q=' + encodeURIComponent(enderecoTxt);
+  }
+  if (lat != null && lng != null) {
+    return 'https://www.google.com/maps?layer=c&cbll=' + lat + ',' + lng + '&cbp=12,0,0,0,0';
+  }
+  return 'https://www.google.com/maps';
 }
 function referenciaMaisProxima(lat, lng, cidade) {
   if (categoriaRefAtual === 'cidade') {
@@ -645,8 +1441,6 @@ function referenciaMaisProxima(lat, lng, cidade) {
   return melhor;
 }
 
-// Ícone customizado dos empreendimentos — maior que o padrão do
-// Leaflet, cor viva, ponto central piscando, estrela se for favorito.
 function criarIcone(cor, favorito) {
   return L.divIcon({
     className: '',
@@ -657,7 +1451,6 @@ function criarIcone(cor, favorito) {
   });
 }
 
-// Ícone customizado dos clusters — maior, cores da marca, número piscando.
 function criarIconeCluster(cluster) {
   const count = cluster.getChildCount();
   let size = 46;
@@ -670,7 +1463,6 @@ function criarIconeCluster(cluster) {
   });
 }
 
-/* ── Favoritos (localStorage) ── */
 function lerFavoritos() {
   try { return JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); }
   catch (e) { return []; }
@@ -683,33 +1475,41 @@ function alternarFavorito(id, btn) {
   let favs = lerFavoritos();
   if (favs.includes(id)) {
     favs = favs.filter(x => x !== id);
-    btn.textContent = '☆'; btn.classList.remove('ativo');
+    if (btn) { btn.textContent = '☆'; btn.classList.remove('ativo'); }
   } else {
     favs.push(id);
-    btn.textContent = '★'; btn.classList.add('ativo');
+    if (btn) { btn.textContent = '★'; btn.classList.add('ativo'); }
   }
   salvarFavoritos(favs);
+  // Atualiza ícones da lista lateral se existir
+  document.querySelectorAll(`.side-card[data-id="${id}"] .sc-fav`).forEach(b => {
+    b.textContent = ehFavorito(id) ? '★' : '☆';
+    b.classList.toggle('ativo', ehFavorito(id));
+  });
 }
 
-/* ── Comparação (até 3 imóveis) ── */
 let compareList = [];
 function estaComparando(id) { return compareList.includes(id); }
 function alternarComparar(id, btn) {
   const idx = compareList.indexOf(id);
   if (idx >= 0) {
     compareList.splice(idx, 1);
-    btn.classList.remove('ativo');
+    if (btn) btn.classList.remove('ativo');
   } else {
     if (compareList.length >= 3) { alert('Você já selecionou 3 empreendimentos pra comparar (o máximo). Remova um antes de adicionar outro.'); return; }
     compareList.push(id);
-    btn.classList.add('ativo');
+    if (btn) btn.classList.add('ativo');
   }
   renderCompareTray();
+  document.querySelectorAll(`.side-card[data-id="${id}"] .sc-comp`).forEach(b => {
+    b.classList.toggle('ativo', estaComparando(id));
+  });
 }
 function removerDaComparacao(id) {
   compareList = compareList.filter(x => x !== id);
   renderCompareTray();
   document.querySelectorAll(`.pw-icon-btn[data-comparar-id="${id}"]`).forEach(b => b.classList.remove('ativo'));
+  document.querySelectorAll(`.side-card[data-id="${id}"] .sc-comp`).forEach(b => b.classList.remove('ativo'));
 }
 function renderCompareTray() {
   const tray = document.getElementById('compare-tray');
@@ -744,10 +1544,6 @@ function fecharModal(id) { document.getElementById(id).classList.remove('show');
 document.getElementById('btn-como-usar').addEventListener('click', () => abrirModal('modal-como-usar'));
 document.getElementById('btn-compartilhar-mapa').addEventListener('click', abrirCompartilharMapa);
 
-/* Tela cheia — cobre a página inteira (filtros + mapa), facilita
-   navegar no mapa sem a barra de endereço/abas do navegador atrapalhando.
-   O <ESC> pra voltar ao normal já é comportamento nativo do navegador
-   pra Fullscreen API, não precisa de código extra pra isso. */
 const btnTelaCheia = document.getElementById('btn-tela-cheia');
 btnTelaCheia.addEventListener('click', () => {
   if (!document.fullscreenElement) {
@@ -767,9 +1563,6 @@ async function carregarImoveis() {
 
   const todos = rows.map(row => {
     const g  = (i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
-    // gv() lê o valor BRUTO da célula — necessário pra Latitude/Longitude
-    // porque o Sheets formata decimais com vírgula (locale pt-BR) e
-    // parseFloat() do JS trunca no primeiro caractere inválido.
     const gv = (i) => { const c = row.c && row.c[i]; return c && typeof c.v === 'number' ? c.v : null; };
     return {
       id: g(0), ativo: row.c && row.c[1] && row.c[1].v === true,
@@ -780,11 +1573,6 @@ async function carregarImoveis() {
     };
   }).filter(im => im.nome);
 
-  // Caixa aproximada do território brasileiro — protege o mapa (o
-  // fitBounds soma todos os pontos) contra erro de digitação na
-  // Latitude/Longitude cadastrada no admin.html (ex: esquecer o sinal
-  // de "-" na Longitude, que joga o ponto pro outro lado do globo e
-  // força o mapa inteiro a dar zoom out pra caber ele).
   function coordValida(lat, lng) {
     return typeof lat === 'number' && typeof lng === 'number' &&
            lat >= -34 && lat <= 6 && lng >= -75 && lng <= -30;
@@ -795,7 +1583,7 @@ async function carregarImoveis() {
   const semCoordenada  = todos.length - comCoordenada.length - coordSuspeita.length;
 
   if (coordSuspeita.length) {
-    console.warn('Empreendimentos com Latitude/Longitude fora do Brasil (provável erro de digitação, ex: sinal "-" faltando):',
+    console.warn('Empreendimentos com Latitude/Longitude fora do Brasil:',
       coordSuspeita.map(im => `${im.id} — ${im.nome} (${im.lat}, ${im.lng})`));
   }
 
@@ -813,12 +1601,12 @@ function popularSelect(id, valores, label) {
 (async function main() {
   const contador = document.getElementById('contador-mapa');
   const emptyMsg = document.getElementById('map-empty-msg');
+  const loading = document.getElementById('loading-overlay');
+  const sidebarList = document.getElementById('sidebar-list');
 
   const map = L.map('map', { center: [-23.1, -44.6], zoom: 7 });
+  mapRef = map;
 
-  // Tipos de mapa — todos gratuitos, sem chave de API. "3D" (roadmap/
-  // hybrid 3D) do Google Maps exigiria API paga com cartão cadastrado,
-  // fora do critério "sem depender de serviço externo pago" já definido.
   const tileLayers = {
     roadmap: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
@@ -841,23 +1629,23 @@ function popularSelect(id, valores, label) {
   });
 
   let base = [];
+  let markersById = {}; // para abrir popup a partir da lista
+
   try {
     const resultado = await carregarImoveis();
     base = resultado.base;
-    window._baseImoveis = base; // usado pela bandeja de comparação
+    window._baseImoveis = base;
   } catch (e) {
+    loading.classList.add('hidden');
+    emptyMsg.style.display = 'flex';
     emptyMsg.querySelector('div').textContent = 'Não foi possível carregar os dados agora. Recarregue a página em instantes.';
     console.warn('carregarImoveis erro:', e.message);
     return;
   }
+  loading.classList.add('hidden');
 
   popularSelect('f-uf', [...new Set(base.map(im => im.uf).filter(Boolean))].sort(), 'Todas');
 
-  // Pré-preenche os filtros a partir da URL — usado pelo botão
-  // "📲 Compartilhar" deste próprio mapa e pelo "Ver no Mapa" do
-  // Portal do Agente (que já manda os filtros aplicados por lá + o
-  // código do Agente). Precisa popular UF antes de Cidade, e Cidade
-  // antes de Bairro, porque cada select restringe o próximo.
   const paramsURL = new URLSearchParams(location.search);
   let temFiltroNaURL = false;
   if (paramsURL.get('uf')) { document.getElementById('f-uf').value = paramsURL.get('uf'); temFiltroNaURL = true; }
@@ -868,6 +1656,8 @@ function popularSelect(id, valores, label) {
   if (paramsURL.get('tipo'))        { document.getElementById('f-tipo').value = paramsURL.get('tipo'); temFiltroNaURL = true; }
   if (paramsURL.get('construtora')) { document.getElementById('f-construtora').value = paramsURL.get('construtora'); temFiltroNaURL = true; }
   if (paramsURL.get('busca'))       { document.getElementById('f-busca').value = paramsURL.get('busca'); temFiltroNaURL = true; }
+  if (paramsURL.get('preco_min'))   { document.getElementById('f-preco-min').value = paramsURL.get('preco_min'); temFiltroNaURL = true; }
+  if (paramsURL.get('preco_max'))   { document.getElementById('f-preco-max').value = paramsURL.get('preco_max'); temFiltroNaURL = true; }
   if (MODO_ADMIN && paramsURL.get('status') !== null) { document.getElementById('f-status').value = paramsURL.get('status'); temFiltroNaURL = true; }
 
   function atualizarCidadesFiltro() {
@@ -888,18 +1678,30 @@ function popularSelect(id, valores, label) {
 
   let clusterGroup = null;
   let somenteFavoritos = false;
+  let lastFiltrados = [];
 
-  // Só agora (depois de clusterGroup/somenteFavoritos existirem) dá pra
-  // chamar filtrarErenderizar() com segurança — ela usa as duas.
   if (temFiltroNaURL) filtrarErenderizar();
+  else {
+    emptyMsg.style.display = 'flex';
+    contador.textContent = `${base.length} com coordenadas`;
+  }
 
   function montarPopup(im) {
     const foto = im.imagem ? fixDriveUrlProto(im.imagem) : '';
     const descTrunc = truncar(im.descricao, 150);
     const ref = referenciaMaisProxima(im.lat, im.lng, im.cidade);
+    const distUser = (userLat != null && userLng != null) ? distanciaKm(userLat, userLng, im.lat, im.lng) : null;
+    const perfil = lerPerfil();
+    const fit = calcularFitScore(im, perfil);
     const wppMsg = encodeURIComponent(`Olá! Tenho interesse no ${im.nome} (${im.bairro ? im.bairro + ', ' : ''}${im.cidade}/${im.uf}).`);
     const fav = ehFavorito(im.id);
     const comp = estaComparando(im.id);
+    let distHtml = '';
+    if (ref) distHtml += `<div class="base-dist">📍 A ${ref.dist.toFixed(1)} km (linha reta) até ${ref.nome}</div>`;
+    if (distUser != null) distHtml += `<div class="base-dist" style="background:#e8f4fd;border-color:#2563eb">🚶 A ${distUser.toFixed(1)} km de você</div>`;
+    const fitHtml = fit != null
+      ? `<div class="fit-row"><span class="fit-badge ${classeFit(fit)}">✨ ${fit}% compatível com seu perfil</span></div>`
+      : '';
     return `
       <div class="pw">
         ${foto ? `<img src="${foto}" alt="${im.nome}" onerror="this.style.display='none'">` : ''}
@@ -914,7 +1716,8 @@ function popularSelect(id, valores, label) {
           </div>
         </div>
         <h3>${im.nome}</h3>
-        ${ref ? `<div class="base-dist">📍 A ${ref.dist.toFixed(1)} km (linha reta) até ${ref.nome}</div>` : ''}
+        ${fitHtml}
+        ${distHtml}
         <div class="loc">${im.bairro ? im.bairro + ', ' : ''}${im.cidade}/${im.uf}</div>
         ${im.endereco ? `<div class="endereco">${im.endereco}</div>` : ''}
         ${descTrunc ? `<div class="desc">${descTrunc}</div>` : ''}
@@ -924,9 +1727,146 @@ function popularSelect(id, valores, label) {
           <a class="a-chat" href="chat.html?modo=consultor" target="_blank">Chat IA</a>
           <a class="a-wpp" href="https://wa.me/${WPP_NUMERO}?text=${wppMsg}" target="_blank">WhatsApp</a>
           <a class="a-sim" href="simulador.html?valor=${Math.round((im.valor||0)*1000)}" target="_blank">Simular</a>
+          <a class="a-rota" href="${linkRotaGoogle(im.lat, im.lng, im.endereco, im.cidade, im.uf)}" target="_blank" rel="noopener">🚗 Como chegar</a>
+          <a class="a-street" href="${linkStreetView(im.lat, im.lng, im.endereco, im.cidade, im.uf)}" target="_blank" rel="noopener">🛣 Street View</a>
         </div>
+        <div class="pw-entorno-bar">
+          <select id="raio-entorno-${im.id}" title="Raio de busca" onchange="event.stopPropagation()">
+            <option value="1000">1 km</option>
+            <option value="1500" selected>1,5 km</option>
+            <option value="3000">3 km</option>
+            <option value="5000">5 km</option>
+          </select>
+          <button type="button" class="a-entorno" onclick="carregarEntorno('${im.id}', ${im.lat}, ${im.lng}, this)">🏫 Ver no entorno</button>
+        </div>
+        <div class="pw-entorno" id="entorno-${im.id}" style="display:none"></div>
       </div>
     `;
+  }
+
+  window.carregarEntorno = async function(imId, lat, lng, btn) {
+    const box = document.getElementById('entorno-' + imId);
+    const sel = document.getElementById('raio-entorno-' + imId);
+    if (!box) return;
+    if (entornoBuscando) {
+      box.style.display = 'block';
+      box.innerHTML = '<div class="ent-loading">Aguarde: já existe uma busca de entorno em andamento…</div>';
+      return;
+    }
+    const raioM = parseInt(sel ? sel.value : '1500', 10) || 1500;
+    poiRaioAtualM = raioM;
+    const cacheKey = imId + '_' + raioM;
+    box.style.display = 'block';
+    if (poiCache[cacheKey]) {
+      box.innerHTML = htmlEntorno(poiCache[cacheKey], raioM);
+      if (mapRef) plotarPOIsNoMapa(poiCache[cacheKey], mapRef);
+      return;
+    }
+    const raioTxt = raioM >= 1000 ? (raioM / 1000) + ' km' : raioM + ' m';
+    box.innerHTML = `<div class="ent-loading">Buscando entorno em ${raioTxt} (OpenStreetMap)…<br><small>Pode levar 5–15 segundos. Evite clicar várias vezes.</small></div>`;
+    btn.disabled = true;
+    btn.textContent = '⏳ Buscando…';
+    entornoBuscando = true;
+    try {
+      const porCat = await buscarEntorno(lat, lng, raioM);
+      poiCache[cacheKey] = porCat;
+      box.innerHTML = htmlEntorno(porCat, raioM);
+      if (mapRef) plotarPOIsNoMapa(porCat, mapRef);
+      btn.textContent = '🏫 Atualizar entorno';
+    } catch (e) {
+      console.warn('Entorno erro:', e);
+      let msg = 'Não foi possível carregar o entorno agora.';
+      if (e && e.name === 'AbortError') {
+        msg = 'A busca demorou demais. Tente o raio de <strong>1 km</strong> e aguarde ~20 segundos antes de tentar de novo.';
+      } else if (e && e.message) {
+        msg = e.message;
+      } else {
+        msg += ' Os servidores públicos do OpenStreetMap podem estar sobrecarregados. Aguarde cerca de 20 segundos e tente <strong>uma vez</strong>.';
+      }
+      box.innerHTML = '<div class="ent-vazio">' + msg + '</div>';
+      btn.textContent = '🏫 Tentar de novo';
+    }
+    entornoBuscando = false;
+    btn.disabled = false;
+  };
+
+  function renderSidebar(filtrados) {
+    if (!filtrados.length) {
+      sidebarList.innerHTML = '<div style="padding:24px;text-align:center;color:#99a3ad;font-size:0.85em">Nenhum empreendimento encontrado.</div>';
+      return;
+    }
+    const perfil = lerPerfil();
+    sidebarList.innerHTML = filtrados.map(im => {
+      const ref = referenciaMaisProxima(im.lat, im.lng, im.cidade);
+      const distUser = (userLat != null && userLng != null) ? distanciaKm(userLat, userLng, im.lat, im.lng) : null;
+      const fit = calcularFitScore(im, perfil);
+      const fav = ehFavorito(im.id);
+      const comp = estaComparando(im.id);
+      let distTxt = '';
+      if (ref) distTxt += `📍 ${ref.dist.toFixed(1)} km`;
+      if (distUser != null) distTxt += (distTxt ? ' · ' : '') + `🚶 ${distUser.toFixed(1)} km`;
+      const fitHtml = fit != null
+        ? `<div class="fit-row"><span class="fit-badge ${classeFit(fit)}">✨ ${fit}%</span></div>`
+        : '';
+      return `
+        <div class="side-card" data-id="${im.id}">
+          <div class="sc-badges">
+            <span class="sc-badge" style="background:${corPorStatus(im.tipo)}">${im.tipo}</span>
+            ${im.projeto ? `<span class="sc-badge" style="background:#0A1628;color:#C9A84C">${im.projeto}</span>` : ''}
+          </div>
+          <h4>${im.nome}</h4>
+          <div class="sc-loc">${[im.bairro, im.cidade, im.uf].filter(Boolean).join(', ')}</div>
+          ${fitHtml}
+          ${distTxt ? `<div class="sc-dist">${distTxt}</div>` : ''}
+          <div class="sc-preco">${precoTexto(im.valor)}</div>
+          <div class="sc-actions">
+            <button class="sc-fav${fav ? ' ativo' : ''}" onclick="event.stopPropagation();alternarFavorito('${im.id}', this)">${fav ? '★' : '☆'}</button>
+            <button class="sc-comp${comp ? ' ativo' : ''}" onclick="event.stopPropagation();alternarComparar('${im.id}', this)">➕</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    sidebarList.querySelectorAll('.side-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const id = card.dataset.id;
+        const im = base.find(x => x.id === id);
+        if (!im) return;
+        document.querySelectorAll('.side-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        map.setView([im.lat, im.lng], Math.max(map.getZoom(), 14));
+        const marker = markersById[id];
+        if (marker) {
+          if (clusterGroup) {
+            clusterGroup.zoomToShowLayer(marker, () => marker.openPopup());
+          } else {
+            marker.openPopup();
+          }
+        }
+      });
+    });
+  }
+
+  function ordenarFiltrados(lista) {
+    const crit = document.getElementById('f-ordenar').value;
+    const copy = lista.slice();
+    const perfil = lerPerfil();
+    if (crit === 'fit' && perfil) {
+      copy.sort((a, b) => (calcularFitScore(b, perfil) || 0) - (calcularFitScore(a, perfil) || 0));
+    } else if (crit === 'preco_asc') copy.sort((a,b) => (a.valor||0) - (b.valor||0));
+    else if (crit === 'preco_desc') copy.sort((a,b) => (b.valor||0) - (a.valor||0));
+    else if (crit === 'dist_ref') {
+      copy.sort((a,b) => {
+        const ra = referenciaMaisProxima(a.lat, a.lng, a.cidade);
+        const rb = referenciaMaisProxima(b.lat, b.lng, b.cidade);
+        return (ra ? ra.dist : 9999) - (rb ? rb.dist : 9999);
+      });
+    } else if (crit === 'dist_user' && userLat != null) {
+      copy.sort((a,b) => distanciaKm(userLat, userLng, a.lat, a.lng) - distanciaKm(userLat, userLng, b.lat, b.lng));
+    } else {
+      copy.sort((a,b) => (a.nome||'').localeCompare(b.nome||'', 'pt-BR'));
+    }
+    return copy;
   }
 
   function filtrarErenderizar() {
@@ -937,9 +1877,11 @@ function popularSelect(id, valores, label) {
     const tipo           = document.getElementById('f-tipo').value;
     const construtora    = document.getElementById('f-construtora').value.trim().toLowerCase();
     const status         = document.getElementById('f-status').value;
+    const precoMin       = parseFloat(document.getElementById('f-preco-min').value) || 0;
+    const precoMax       = parseFloat(document.getElementById('f-preco-max').value) || Infinity;
     const favs           = lerFavoritos();
 
-    const filtrados = base.filter(im =>
+    let filtrados = base.filter(im =>
       (!uf         || im.uf === uf) &&
       (!cidade     || im.cidade === cidade) &&
       (!bairro     || im.bairro === bairro) &&
@@ -947,19 +1889,24 @@ function popularSelect(id, valores, label) {
       (!construtora || (im.construtora || '').toLowerCase().includes(construtora)) &&
       (!busca || [im.nome, im.bairro, im.endereco].filter(Boolean).some(t => t.toLowerCase().includes(busca))) &&
       (status === 'ativo' ? im.ativo : status === 'inativo' ? !im.ativo : true) &&
-      (!somenteFavoritos || favs.includes(im.id))
+      (!somenteFavoritos || favs.includes(im.id)) &&
+      (im.valor >= precoMin) &&
+      (im.valor <= precoMax)
     );
 
+    filtrados = ordenarFiltrados(filtrados);
+    lastFiltrados = filtrados;
+
     if (clusterGroup) map.removeLayer(clusterGroup);
+    limparPOIs();
     clusterGroup = L.markerClusterGroup({ iconCreateFunction: criarIconeCluster });
+    markersById = {};
 
     filtrados.forEach(im => {
       const marker = L.marker([im.lat, im.lng], { icon: criarIcone(corPorStatus(im.tipo), ehFavorito(im.id)) });
-      // Função em vez de string pronta — assim o popup é remontado toda vez
-      // que abre, e reflete a categoria de "Distância até" escolhida na hora,
-      // mesmo pra marcadores que já estavam no mapa antes da troca.
       marker.bindPopup(() => montarPopup(im), { maxWidth: 300 });
       clusterGroup.addLayer(marker);
+      markersById[im.id] = marker;
     });
 
     map.addLayer(clusterGroup);
@@ -974,12 +1921,15 @@ function popularSelect(id, valores, label) {
 
     contador.style.display = 'block';
     contador.textContent = `${filtrados.length} empreendimento${filtrados.length === 1 ? '' : 's'} no mapa`;
+    renderSidebar(filtrados);
   }
 
   function limparFiltros() {
     ['f-uf','f-cidade','f-bairro','f-tipo'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-busca').value = '';
     document.getElementById('f-construtora').value = '';
+    document.getElementById('f-preco-min').value = '';
+    document.getElementById('f-preco-max').value = '';
     document.getElementById('f-status').value = 'ativo';
     somenteFavoritos = false;
     document.getElementById('btn-fav-toggle').classList.remove('ativo');
@@ -987,17 +1937,23 @@ function popularSelect(id, valores, label) {
     atualizarCidadesFiltro();
     atualizarBairrosFiltro();
     if (clusterGroup) { map.removeLayer(clusterGroup); clusterGroup = null; }
+    limparPOIs();
     emptyMsg.style.display = 'flex';
     emptyMsg.querySelector('div').innerHTML = 'Selecione os filtros desejados (ou deixe como está para ver tudo) e clique em <strong>🔍 Filtrar</strong> para carregar os empreendimentos no mapa.';
-    contador.style.display = 'none';
+    contador.textContent = `${base.length} com coordenadas`;
+    sidebarList.innerHTML = '<div style="padding:20px;text-align:center;color:#99a3ad;font-size:0.85em">Clique em Filtrar para ver a lista.</div>';
   }
 
   document.getElementById('btn-filtrar').addEventListener('click', filtrarErenderizar);
   document.getElementById('btn-limpar').addEventListener('click', limparFiltros);
+  document.getElementById('f-ordenar').addEventListener('change', () => {
+    if (lastFiltrados.length) {
+      lastFiltrados = ordenarFiltrados(lastFiltrados);
+      renderSidebar(lastFiltrados);
+    }
+  });
 
-  // Enter dentro dos campos de texto já filtra — sem isso, digitar e
-  // apertar Enter não fazia nada, parecia que a busca "não funcionava".
-  ['f-busca', 'f-construtora'].forEach(id => {
+  ['f-busca', 'f-construtora', 'f-preco-min', 'f-preco-max'].forEach(id => {
     document.getElementById(id).addEventListener('keydown', e => {
       if (e.key === 'Enter') filtrarErenderizar();
     });
@@ -1009,12 +1965,471 @@ function popularSelect(id, valores, label) {
     filtrarErenderizar();
   });
 
-  // Só troca o que aparece dentro do popup (não é filtro de marcadores,
-  // por isso não chama filtrarErenderizar) — o popup é remontado na
-  // hora de abrir (ver bindPopup com função, acima).
   document.getElementById('f-categoria-ref').addEventListener('change', function() {
     categoriaRefAtual = this.value;
+    if (lastFiltrados.length) {
+      lastFiltrados = ordenarFiltrados(lastFiltrados);
+      renderSidebar(lastFiltrados);
+    }
   });
+
+  /* ── Posição do usuário (GPS ou clique no mapa) ── */
+  function aplicarPosicaoUsuario(lat, lng, origem) {
+    userLat = lat;
+    userLng = lng;
+    if (userMarker) map.removeLayer(userMarker);
+    userMarker = L.marker([userLat, userLng], {
+      icon: L.divIcon({
+        className: '',
+        html: '<div class="user-pin"></div>',
+        iconSize: [22, 22],
+        iconAnchor: [11, 11]
+      }),
+      zIndexOffset: 1000,
+      draggable: true
+    }).addTo(map);
+    const rotulo = origem === 'gps' ? 'Você está aqui (GPS)' : 'Sua posição marcada';
+    userMarker.bindPopup(rotulo + '<br><small>Arraste o ponto para ajustar</small>');
+    userMarker.on('dragend', function() {
+      const p = userMarker.getLatLng();
+      userLat = p.lat;
+      userLng = p.lng;
+      if (lastFiltrados.length) {
+        lastFiltrados = ordenarFiltrados(lastFiltrados);
+        renderSidebar(lastFiltrados);
+      }
+    });
+    map.setView([userLat, userLng], Math.max(map.getZoom(), 12));
+    document.getElementById('btn-geo').classList.toggle('ativo', origem === 'gps');
+    document.getElementById('btn-marcar').classList.toggle('ativo', origem === 'mapa');
+    document.getElementById('btn-limpar-pos').style.display = 'inline-block';
+    if (lastFiltrados.length) {
+      lastFiltrados = ordenarFiltrados(lastFiltrados);
+      renderSidebar(lastFiltrados);
+    }
+  }
+
+  function limparPosicaoUsuario() {
+    userLat = null;
+    userLng = null;
+    if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
+    document.getElementById('btn-geo').classList.remove('ativo');
+    document.getElementById('btn-marcar').classList.remove('ativo');
+    document.getElementById('btn-limpar-pos').style.display = 'none';
+    sairModoMarcar();
+    if (lastFiltrados.length) {
+      lastFiltrados = ordenarFiltrados(lastFiltrados);
+      renderSidebar(lastFiltrados);
+    }
+  }
+
+  function entrarModoMarcar() {
+    modoMarcarPosicao = true;
+    document.getElementById('btn-marcar').classList.add('aguardando');
+    document.getElementById('btn-marcar').textContent = '📌 Clique no mapa…';
+    document.getElementById('marcar-hint').classList.add('show');
+    map.getContainer().style.cursor = 'crosshair';
+  }
+
+  function sairModoMarcar() {
+    modoMarcarPosicao = false;
+    const btn = document.getElementById('btn-marcar');
+    btn.classList.remove('aguardando');
+    btn.textContent = '📌 Marcar no mapa';
+    document.getElementById('marcar-hint').classList.remove('show');
+    map.getContainer().style.cursor = '';
+  }
+
+  // GPS do dispositivo
+  document.getElementById('btn-geo').addEventListener('click', function() {
+    if (!navigator.geolocation) {
+      alert('Seu navegador não oferece geolocalização.\n\nUse o botão “📌 Marcar no mapa”: clique nele e depois clique em qualquer ponto do mapa para definir sua posição.');
+      return;
+    }
+    this.textContent = '📍 Localizando…';
+    this.disabled = true;
+    sairModoMarcar();
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        this.disabled = false;
+        this.textContent = '📍 GPS';
+        aplicarPosicaoUsuario(pos.coords.latitude, pos.coords.longitude, 'gps');
+      },
+      (err) => {
+        this.disabled = false;
+        this.textContent = '📍 GPS';
+        const msg = err.code === 1
+          ? 'Permissão de localização negada pelo navegador.'
+          : 'Não foi possível obter a localização (GPS indisponível ou timeout).';
+        alert(msg + '\n\nAlternativa para desktop/notebook:\nUse o botão “📌 Marcar no mapa” → clique no botão e depois clique em qualquer ponto do mapa para definir sua posição de referência.');
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  });
+
+  // Marcar posição com clique no mapa (ideal para desktop)
+  document.getElementById('btn-marcar').addEventListener('click', function() {
+    if (modoMarcarPosicao) {
+      sairModoMarcar();
+      return;
+    }
+    entrarModoMarcar();
+  });
+
+  map.on('click', function(e) {
+    if (!modoMarcarPosicao) return;
+    sairModoMarcar();
+    aplicarPosicaoUsuario(e.latlng.lat, e.latlng.lng, 'mapa');
+  });
+
+  // ESC cancela o modo de marcação
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && modoMarcarPosicao) sairModoMarcar();
+  });
+
+  document.getElementById('btn-limpar-pos').addEventListener('click', limparPosicaoUsuario);
+
+  document.getElementById('btn-limpar-entorno').addEventListener('click', () => {
+    limparPOIs();
+  });
+
+  // Toggle sidebar
+  document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
+    document.getElementById('sidebar').classList.toggle('collapsed');
+    setTimeout(() => map.invalidateSize(), 280);
+  });
+
+  /* ── Lead CRM: perfil aquecido do mapa ── */
+  function montarContextoLeadCRM() {
+    const perfil = lerPerfil();
+    const forcaMap = {
+      aeronautica: 'Aeronáutica', marinha: 'Marinha', exercito: 'Exército',
+      seguranca: 'Polícia/Bombeiros', civil: 'Servidor civil'
+    };
+    const momMap = {
+      inicio: 'Início de carreira', familia: 'Família / filhos',
+      estabilidade: 'Estabilidade', investimento: 'Investimento'
+    };
+    const prioMap = {
+      proximidade: 'Proximidade da base/trabalho', preco: 'Custo-benefício',
+      familia: 'Ideal para família', valorizacao: 'Valorização', lancamento: 'Lançamento/obra nova'
+    };
+    const favIds = lerFavoritos();
+    const favNomes = favIds.map(id => {
+      const im = (window._baseImoveis || []).find(x => x.id === id);
+      return im ? im.nome : id;
+    });
+    const filtros = {
+      uf: document.getElementById('f-uf').value || '',
+      cidade: document.getElementById('f-cidade').value || '',
+      bairro: document.getElementById('f-bairro').value || '',
+      tipo: document.getElementById('f-tipo').value || '',
+      busca: document.getElementById('f-busca').value || '',
+      preco_min: document.getElementById('f-preco-min').value || '',
+      preco_max: document.getElementById('f-preco-max').value || ''
+    };
+    const agente = lerReferenciaAgente_();
+    const linhas = [];
+    if (perfil) {
+      linhas.push('Perfil Meu Imóvel Ideal:');
+      if (perfil.forca) linhas.push('• Público: ' + (forcaMap[perfil.forca] || perfil.forca));
+      if (perfil.momento) linhas.push('• Momento: ' + (momMap[perfil.momento] || perfil.momento));
+      if (perfil.prioridades && perfil.prioridades.length) {
+        linhas.push('• Prioridades: ' + perfil.prioridades.map(p => prioMap[p] || p).join('; '));
+      }
+      if (perfil.orcamento) linhas.push('• Orçamento máx.: R$ ' + perfil.orcamento + ' mil');
+      if (perfil.tipo) linhas.push('• Tipo preferido: ' + perfil.tipo);
+    }
+    if (favNomes.length) linhas.push('• Favoritos no mapa: ' + favNomes.join(', '));
+    if (compareList.length) {
+      const comps = compareList.map(id => {
+        const im = (window._baseImoveis || []).find(x => x.id === id);
+        return im ? im.nome : id;
+      });
+      linhas.push('• Comparando: ' + comps.join(', '));
+    }
+    const filtroTxt = [filtros.uf, filtros.cidade, filtros.bairro, filtros.tipo, filtros.busca].filter(Boolean).join(' / ');
+    if (filtroTxt) linhas.push('• Filtros ativos: ' + filtroTxt);
+    if (agente) linhas.push('• Indicação agente: ' + agente.nome + ' (' + agente.id + ')');
+    if (userLat != null) linhas.push('• Posição marcada no mapa: ' + userLat.toFixed(5) + ', ' + userLng.toFixed(5));
+    linhas.push('• Página: ' + location.href);
+
+    const solicitacao = perfil
+      ? ('Mapa Ideal — ' + (forcaMap[perfil.forca] || '') + (perfil.momento ? ' · ' + (momMap[perfil.momento] || '') : ''))
+      : 'Lead pelo Mapa de Empreendimentos';
+
+    return {
+      perfil,
+      favoritos: favIds,
+      favoritos_nomes: favNomes,
+      comparando: compareList.slice(),
+      filtros,
+      agente: agente ? { id: agente.id, nome: agente.nome } : null,
+      solicitacao: solicitacao.trim(),
+      observacoes: linhas.join('\n'),
+      orcamento: perfil && perfil.orcamento ? perfil.orcamento : null,
+      area: [filtros.cidade, filtros.uf].filter(Boolean).join('/') || (perfil && perfil.forca) || '',
+      resumoHtml: linhas.slice(0, 8).map(l => l.replace(/^• /, '').replace(/^Perfil.*/, '<strong>Perfil Meu Imóvel Ideal</strong>')).join('<br>')
+    };
+  }
+
+  function abrirModalLeadCRM() {
+    const p = lerPerfil();
+    if (!p) {
+      alert('Primeiro complete o ✨ Meu imóvel ideal — assim a equipe já recebe seu perfil qualificado.');
+      document.getElementById('btn-perfil-ideal').click();
+      return;
+    }
+    const ctx = montarContextoLeadCRM();
+    document.getElementById('lead-resumo-perfil').innerHTML = ctx.resumoHtml || textoPerfilResumo(p);
+    document.getElementById('lead-form-wrap').style.display = 'block';
+    document.getElementById('lead-ok').style.display = 'none';
+    document.getElementById('lead-err').style.display = 'none';
+    document.getElementById('lead-nome').value = '';
+    document.getElementById('lead-telefone').value = '';
+    document.getElementById('lead-email').value = '';
+    document.getElementById('lead-obs').value = '';
+    const btnEnviar = document.getElementById('btn-lead-enviar');
+    btnEnviar.disabled = false;
+    btnEnviar.textContent = 'Enviar para a equipe WAL →';
+
+    // WhatsApp direto com texto pré-montado
+    const wppTxt = encodeURIComponent(
+      'Olá! Vim pelo Mapa de Empreendimentos e completei o Meu Imóvel Ideal.\n\n' + ctx.observacoes
+    );
+    document.getElementById('lead-wpp-direto').href = 'https://wa.me/' + WPP_NUMERO + '?text=' + wppTxt;
+    abrirModal('modal-crm-lead');
+  }
+
+  async function enviarLeadCRM() {
+    const nome = (document.getElementById('lead-nome').value || '').trim();
+    const telefone = (document.getElementById('lead-telefone').value || '').trim();
+    const email = (document.getElementById('lead-email').value || '').trim();
+    const obsUser = (document.getElementById('lead-obs').value || '').trim();
+    const errEl = document.getElementById('lead-err');
+    errEl.style.display = 'none';
+
+    if (nome.length < 2) {
+      errEl.textContent = 'Informe seu nome.'; errEl.style.display = 'block'; return;
+    }
+    if (telefone.replace(/\D/g, '').length < 10) {
+      errEl.textContent = 'Informe um WhatsApp/telefone válido com DDD.'; errEl.style.display = 'block'; return;
+    }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      errEl.textContent = 'E-mail inválido.'; errEl.style.display = 'block'; return;
+    }
+
+    const ctx = montarContextoLeadCRM();
+    const observacoes = (obsUser ? obsUser + '\n\n' : '') + ctx.observacoes;
+
+    const agora = new Date();
+    const amanha = new Date(Date.now() + 24 * 3600 * 1000);
+    const dataProxAcao = amanha.getFullYear() + '-' +
+      String(amanha.getMonth() + 1).padStart(2, '0') + '-' +
+      String(amanha.getDate()).padStart(2, '0');
+
+    // Uma entrada no histórico de interações do lead (mesmo formato que
+    // crmAdicionarInteracao() grava em admin.html: tipo/nota/data/hora/
+    // consultor) — carrega o contexto rico do mapa (perfil, favoritos,
+    // filtros, agente) dentro de "nota".
+    const interacaoMapa = {
+      tipo: '🗺️ Mapa · Meu Imóvel Ideal',
+      nota: ctx.observacoes,
+      data: agora.toISOString().split('T')[0],
+      hora: agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      consultor: (ctx.agente && ctx.agente.nome) ? ctx.agente.nome : ''
+    };
+
+    // Payload no formato da ação "criar" do CRM_SCRIPT_URL (mesmo Apps
+    // Script/aba LEADS que o admin.html usa em crmSalvarLead()).
+    const leadData = {
+      status: 'novo',
+      prioridade: 'alta',
+      nome: nome,
+      telefone: telefone,
+      email: email || '',
+      origem: 'Mapa V3.1 — Meu Imóvel Ideal',
+      consultor: (ctx.agente && ctx.agente.nome) ? ctx.agente.nome : '',
+      solicitacao: ctx.solicitacao,
+      orcamento: ctx.orcamento != null ? String(ctx.orcamento) : '',
+      area: ctx.area || '',
+      obs: observacoes,
+      proxacao: 'Contatar lead aquecido do mapa',
+      proxdata: dataProxAcao,
+      historico: [interacaoMapa]
+    };
+
+    const btn = document.getElementById('btn-lead-enviar');
+    btn.disabled = true;
+    btn.textContent = 'Enviando…';
+
+    try {
+      const res = await fetch(CRM_SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: 'criar', lead: leadData })
+      });
+      let data = null;
+      const raw = await res.text();
+      try { data = JSON.parse(raw); } catch (e) { data = null; }
+
+      if ((data && (data.status === 'ok' || data.ok === true || data.success === true)) ||
+          (res.ok && data === null && raw && raw.length < 20)) {
+        document.getElementById('lead-form-wrap').style.display = 'none';
+        document.getElementById('lead-ok').style.display = 'block';
+        try {
+          localStorage.setItem('wal_mapa_lead_enviado', agora.toISOString());
+          localStorage.setItem('wal_mapa_lead_id', (data && (data.id || data.lead_id)) || '');
+        } catch (e) {}
+      } else {
+        const msg = (data && (data.message || data.erro || data.error)) ||
+          'Não foi possível registrar no CRM agora. Use o WhatsApp abaixo ou tente de novo.';
+        errEl.textContent = msg;
+        errEl.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Enviar para a equipe WAL →';
+      }
+    } catch (e) {
+      console.warn('Lead CRM erro:', e);
+      errEl.textContent = 'Falha de conexão. Você pode enviar o mesmo resumo pelo WhatsApp (link abaixo).';
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Enviar para a equipe WAL →';
+    }
+  }
+
+  /* ── Wizard Meu Imóvel Ideal ── */
+  function atualizarUIPerfil() {
+    const p = lerPerfil();
+    const banner = document.getElementById('perfil-banner');
+    const btn = document.getElementById('btn-perfil-ideal');
+    if (p) {
+      banner.classList.add('show');
+      document.getElementById('perfil-resumo').textContent = textoPerfilResumo(p);
+      btn.classList.add('tem-perfil');
+      btn.textContent = '✨ Perfil ativo';
+      // Ajusta seletor de distância conforme a força
+      if (p.forca && p.forca !== 'civil' && CATEGORIAS_REFERENCIA[p.forca]) {
+        document.getElementById('f-categoria-ref').value = p.forca;
+        categoriaRefAtual = p.forca;
+      }
+      // Pré-preenche orçamento no filtro de preço se vazio
+      if (p.orcamento && !document.getElementById('f-preco-max').value) {
+        document.getElementById('f-preco-max').value = p.orcamento;
+      }
+      if (p.tipo && !document.getElementById('f-tipo').value) {
+        document.getElementById('f-tipo').value = p.tipo;
+      }
+      document.getElementById('f-ordenar').value = 'fit';
+    } else {
+      banner.classList.remove('show');
+      btn.classList.remove('tem-perfil');
+      btn.textContent = '✨ Meu imóvel ideal';
+    }
+  }
+
+  function irParaWizard(passo) {
+    document.querySelectorAll('.wizard-pane').forEach(el => el.classList.remove('active'));
+    const pane = document.getElementById('wiz-' + passo);
+    if (pane) pane.classList.add('active');
+    document.querySelectorAll('#wiz-steps span').forEach((s, i) => {
+      s.classList.toggle('on', i < passo);
+    });
+  }
+
+  document.getElementById('btn-perfil-ideal').addEventListener('click', () => {
+    irParaWizard(1);
+    // Pré-seleciona se já houver perfil
+    const p = lerPerfil();
+    if (p) {
+      if (p.forca) {
+        const r = document.querySelector(`input[name="w-forca"][value="${p.forca}"]`);
+        if (r) r.checked = true;
+      }
+      if (p.momento) {
+        const r = document.querySelector(`input[name="w-momento"][value="${p.momento}"]`);
+        if (r) r.checked = true;
+      }
+      (p.prioridades || []).forEach(v => {
+        const c = document.querySelector(`input[name="w-prio"][value="${v}"]`);
+        if (c) c.checked = true;
+      });
+      if (p.orcamento) document.getElementById('w-orcamento').value = p.orcamento;
+      if (p.tipo) document.getElementById('w-tipo').value = p.tipo;
+    }
+    abrirModal('modal-perfil');
+  });
+  document.getElementById('btn-perfil-editar').addEventListener('click', () => {
+    document.getElementById('btn-perfil-ideal').click();
+  });
+  document.getElementById('btn-perfil-limpar').addEventListener('click', () => {
+    limparPerfilStorage();
+    atualizarUIPerfil();
+    if (lastFiltrados.length) {
+      lastFiltrados = ordenarFiltrados(lastFiltrados);
+      renderSidebar(lastFiltrados);
+    }
+  });
+  document.getElementById('btn-crm-lead').addEventListener('click', abrirModalLeadCRM);
+  document.getElementById('btn-lead-enviar').addEventListener('click', enviarLeadCRM);
+
+  document.querySelectorAll('.wiz-next').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const next = parseInt(btn.dataset.next, 10);
+      if (next === 2) {
+        const forca = document.querySelector('input[name="w-forca"]:checked');
+        if (!forca) { alert('Selecione quem você é (força ou servidor civil).'); return; }
+      }
+      if (next === 3) {
+        const checked = document.querySelectorAll('input[name="w-prio"]:checked');
+        if (checked.length > 2) { alert('Escolha no máximo 2 prioridades.'); return; }
+      }
+      irParaWizard(next);
+    });
+  });
+  document.querySelectorAll('.wiz-prev').forEach(btn => {
+    btn.addEventListener('click', () => irParaWizard(parseInt(btn.dataset.prev, 10)));
+  });
+
+  // Destaque visual nas opções do wizard
+  document.querySelectorAll('.wizard-opts input').forEach(inp => {
+    inp.addEventListener('change', function() {
+      const group = this.closest('.wizard-opts');
+      if (this.type === 'radio') {
+        group.querySelectorAll('label').forEach(l => l.classList.remove('sel'));
+      }
+      if (this.checked) this.closest('label').classList.add('sel');
+      else this.closest('label').classList.remove('sel');
+    });
+  });
+
+  document.getElementById('wiz-salvar').addEventListener('click', () => {
+    const forcaEl = document.querySelector('input[name="w-forca"]:checked');
+    const momentoEl = document.querySelector('input[name="w-momento"]:checked');
+    const prios = [...document.querySelectorAll('input[name="w-prio"]:checked')].map(c => c.value).slice(0, 2);
+    const orcamento = parseFloat(document.getElementById('w-orcamento').value) || null;
+    const tipo = document.getElementById('w-tipo').value || '';
+    if (!forcaEl) { alert('Selecione quem você é.'); irParaWizard(1); return; }
+    const perfil = {
+      forca: forcaEl.value,
+      momento: momentoEl ? momentoEl.value : '',
+      prioridades: prios,
+      orcamento,
+      tipo,
+      criadoEm: Date.now()
+    };
+    salvarPerfil(perfil);
+    fecharModal('modal-perfil');
+    atualizarUIPerfil();
+    // Aplica filtros sugeridos e renderiza
+    if (orcamento) document.getElementById('f-preco-max').value = orcamento;
+    if (tipo) document.getElementById('f-tipo').value = tipo;
+    document.getElementById('f-ordenar').value = 'fit';
+    filtrarErenderizar();
+  });
+
+  // Restaura perfil ao carregar
+  atualizarUIPerfil();
 })();
 </script>
 </body>
