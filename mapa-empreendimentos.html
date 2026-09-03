@@ -1591,6 +1591,13 @@ const toolbarEl = document.querySelector('.toolbar');
 btnToggleFiltros.addEventListener('click', () => {
   const recolhida = toolbarEl.classList.toggle('recolhida');
   btnToggleFiltros.textContent = recolhida ? '🔍 Filtros ▾' : '🔍 Filtros ▴';
+  // Recolher/expandir os filtros muda na hora (sem transição CSS) a
+  // altura que sobra pro #main-layout — e o Leaflet só descobre isso
+  // se a gente avisar. Sem isso o mapa guardava o tamanho antigo
+  // (bem menor) internamente, e qualquer cálculo que dependesse dele
+  // (autoPan do popup, por ex.) saía errado — provável causa real do
+  // popup "abrir e sumir" no celular (02/09/2026).
+  if (mapRef) mapRef.invalidateSize();
 });
 
 async function carregarImoveis() {
@@ -2140,6 +2147,46 @@ function popularSelect(id, valores, label) {
   document.getElementById('btn-toggle-sidebar').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('collapsed');
     setTimeout(() => map.invalidateSize(), 280);
+  });
+
+  // No celular a #sidebar vira uma janela flutuante por cima do mapa
+  // (position:absolute, z-index acima do mapa, ver CSS @media 700px) —
+  // como ela fica aberta por padrão, cobria a maior parte da tela.
+  // Recolhe a lista sozinha quando um popup abre no celular, liberando
+  // o mapa inteiro (o usuário reabre a lista pelo botão ☰ quando quiser).
+  //
+  // Causa real do popup "aparecer e sumir" (02/09/2026): o conteúdo do
+  // popup (foto+texto+botões, ~350-480px) costuma ser mais alto do que
+  // a área do mapa sobra no celular. O autoPan do Leaflet tenta abrir
+  // espaço acima do marcador pro popup inteiro caber e, quando não cabe
+  // de jeito nenhum, empurra o marcador (e o popup) pra fora da área
+  // visível do mapa — que tem overflow:hidden, então ele só some.
+  // Confirmado navegando o mapa via JS (marker.getLatLng() convertido
+  // pra ponto de tela ficava fora dos limites do container logo após
+  // o clique). limitarAlturaPopup() trava a altura do popup no que
+  // realmente cabe (com rolagem interna), pra o autoPan sempre achar
+  // espaço de verdade.
+  function limitarAlturaPopup(popup) {
+    // 150px de folga: moldura do popup (seta + preenchimento, ~50px) +
+    // espaço de verdade acima do marcador pro autoPan conseguir
+    // encaixar tudo sem "empurrar" o marcador pra fora da área visível
+    // (é exatamente isso que acontecia com uma folga pequena — o
+    // cálculo de autoPan não fecha quando popup+moldura > altura do
+    // mapa, e ele vai empurrando o marcador cada vez mais pra fora).
+    const disponivel = Math.round(map.getSize().y - 150);
+    const maxH = Math.max(140, disponivel);
+    if (popup.options.maxHeight !== maxH) {
+      popup.options.maxHeight = maxH;
+      popup.update();
+    }
+  }
+  map.on('popupopen', (e) => {
+    limitarAlturaPopup(e.popup);
+    const sidebarEl = document.getElementById('sidebar');
+    if (window.innerWidth <= 700 && !sidebarEl.classList.contains('collapsed')) {
+      sidebarEl.classList.add('collapsed');
+      setTimeout(() => map.invalidateSize(), 280);
+    }
   });
 
   /* ── Lead CRM: perfil aquecido do mapa ── */
