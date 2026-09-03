@@ -1641,7 +1641,13 @@ function popularSelect(id, valores, label) {
   const loading = document.getElementById('loading-overlay');
   const sidebarList = document.getElementById('sidebar-list');
 
-  const map = L.map('map', { center: [-23.1, -44.6], zoom: 7 });
+  // tap:false — desliga o simulador de clique por toque do próprio Leaflet
+  // (herança de iOS Safari antigo). Em celular, ele às vezes dispara um
+  // clique "fantasma" no MAPA logo depois do clique real no marcador, e
+  // clique no mapa fecha qualquer popup aberto — o popup aparecia e
+  // sumia na hora. Sem essa opção o toque usa o clique nativo do
+  // navegador, sem duplicar. Não afeta desktop (mouse não usa tap).
+  const map = L.map('map', { center: [-23.1, -44.6], zoom: 7, tap: false });
   mapRef = map;
 
   const tileLayers = {
