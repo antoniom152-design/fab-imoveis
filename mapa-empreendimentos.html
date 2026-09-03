@@ -9,7 +9,18 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Barlow', Arial, sans-serif; background: #0A1628; color: #1a2332; }
+  /* body em coluna, altura travada na viewport (100dvh conta a barra de
+     endereço do navegador no celular, 100vh é o fallback) — o mapa
+     preenche o que sobra depois do cabeçalho/filtros, em vez de uma
+     conta fixa em px que erra feio quando os filtros quebram em várias
+     linhas no celular (ver #main-layout mais abaixo). */
+  html, body { height: 100%; }
+  body {
+    font-family: 'Barlow', Arial, sans-serif; background: #0A1628; color: #1a2332;
+    display: flex; flex-direction: column; overflow: hidden;
+    height: 100vh; height: 100dvh;
+  }
+  .proto-banner, #ref-agente-banner, #perfil-banner, .toolbar { flex-shrink: 0; }
 
   .proto-banner {
     background: linear-gradient(135deg, #0A1628 0%, #16233a 100%);
@@ -102,7 +113,8 @@
   /* Layout principal: mapa + lista lateral */
   #main-layout {
     display: flex;
-    height: calc(100vh - 195px);
+    flex: 1 1 auto;
+    min-height: 0;
     position: relative;
   }
   #map-wrap {
@@ -429,13 +441,25 @@
 
   @media (max-width: 900px) {
     #sidebar { width: 280px; }
-    #main-layout { height: calc(100vh - 220px); }
   }
+  /* Recolher filtros (só no celular) — some por padrão; ao recolher
+     esconde tudo na .toolbar menos o próprio botão e o contador,
+     devolvendo pro mapa a altura que os filtros tomavam quando
+     quebram em várias linhas numa tela estreita. */
+  #btn-toggle-filtros { display: none; }
   @media (max-width: 700px) {
     #sidebar { position: absolute; right: 0; top: 0; bottom: 0; z-index: 700; width: 85%; max-width: 320px; box-shadow: -4px 0 16px rgba(0,0,0,.25); }
     #sidebar.collapsed { width: 0; }
     .toolbar select, .toolbar input[type="text"], .toolbar input[type="number"] { min-width: 90px; max-width: 130px; }
     .wizard-opts { grid-template-columns: 1fr; }
+    .toolbar { position: relative; }
+    #btn-toggle-filtros {
+      display: block; width: 100%; order: -1;
+      background: #0A1628; color: #C9A84C; border: none;
+      padding: 8px 12px; border-radius: 5px; font-size: 0.82em; font-weight: 700; cursor: pointer;
+    }
+    .toolbar.recolhida { gap: 8px; }
+    .toolbar.recolhida > *:not(#btn-toggle-filtros) { display: none; }
   }
 </style>
 </head>
@@ -488,6 +512,7 @@
 </div>
 
 <div class="toolbar">
+  <button type="button" id="btn-toggle-filtros">🔍 Filtros ▴</button>
   <div>
     <label>Buscar</label>
     <input type="text" id="f-busca" placeholder="Nome, bairro...">
@@ -1556,6 +1581,16 @@ btnTelaCheia.addEventListener('click', () => {
 });
 document.addEventListener('fullscreenchange', () => {
   btnTelaCheia.textContent = document.fullscreenElement ? '✕ Sair da Tela Cheia' : '⛶ Tela Cheia';
+});
+
+// Recolher filtros (só aparece no celular, ver CSS) — devolve altura
+// pro mapa numa tela pequena, onde os filtros empilhados tomam boa
+// parte da viewport (pedido do Antonio, 02/09/2026).
+const btnToggleFiltros = document.getElementById('btn-toggle-filtros');
+const toolbarEl = document.querySelector('.toolbar');
+btnToggleFiltros.addEventListener('click', () => {
+  const recolhida = toolbarEl.classList.toggle('recolhida');
+  btnToggleFiltros.textContent = recolhida ? '🔍 Filtros ▾' : '🔍 Filtros ▴';
 });
 
 async function carregarImoveis() {
