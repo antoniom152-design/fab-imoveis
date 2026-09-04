@@ -976,6 +976,7 @@ a{text-decoration:none;color:inherit}
             <button class="btn btn-gold" onclick="filtrarEmps()">▶ Filtrar</button>
             <button class="btn" onclick="limparFiltrosEmps()">✕ Limpar</button>
             <button class="btn btn-teal" onclick="abrirMapaFiltrado()">🗺️ Ver no Mapa</button>
+            <button class="btn" onclick="abrirCompartilhamentoSeguroMapaDash()">🔒 Compartilhamento seguro</button>
             <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Buscar por nome..." style="width:200px;margin-left:auto" oninput="filtrarEmps()">
           </div>
         </div>
@@ -1338,6 +1339,7 @@ a{text-decoration:none;color:inherit}
     <div class="modal-body">
       <div id="compEmpOpcoes" style="display:flex;flex-direction:column;gap:10px">
         <a id="compEmpWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
+        <button class="btn-full btn-gold" onclick="abrirCompartilhamentoSeguroEmp()">🔒 Compartilhamento seguro</button>
         <button class="btn-full btn" onclick="compEmpMostrarEmail()">✉️ Enviar por E-mail</button>
         <button class="btn-full btn" id="compEmpBtnCopiar" onclick="compEmpCopiarLink(this)">🔗 Copiar Link</button>
       </div>
@@ -2209,7 +2211,7 @@ function abrirCompartilharEmp(id){
   // crm_indicacao_publica_criar_ no backend).
   const link=`${SITE_BASE_URL}imovel.html?id=${encodeURIComponent(e.id)}&agente=${encodeURIComponent(_user.id)}`;
   const texto=`🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Clique no link abaixo!\n${link}`;
-  _compEmpDados={link, texto, assunto:`Empreendimento interessante — ${e.nome}`};
+  _compEmpDados={id:e.id, link, texto, assunto:`Empreendimento interessante — ${e.nome}`};
   document.getElementById('compEmpWpp').href=`https://wa.me/?text=${encodeURIComponent(texto)}`;
   document.getElementById('compEmpOpcoes').style.display='flex';
   document.getElementById('compEmpFormEmail').style.display='none';
@@ -2339,6 +2341,50 @@ function abrirMapaFiltrado(){
   });
   params.set('agente',_user.id);
   window.open(`${SITE_BASE_URL}mapa-empreendimentos.html?${params.toString()}`,'_blank');
+}
+function _paramsMapaFiltradoDash_(){
+  const params=new URLSearchParams();
+  const mapa={uf:'empFUf', tipo:'empFTipo', cidade:'empFCidade', bairro:'empFBairro', busca:'empBusca'};
+  Object.keys(mapa).forEach(chave=>{
+    const el=document.getElementById(mapa[chave]);
+    const v=el?el.value.trim():'';
+    if(v)params.set(chave,v);
+  });
+  params.set('agente',_user.id);
+  return params;
+}
+function abrirCompartilhamentoSeguroEmp(){
+  if(!_compEmpDados)return;
+  if(!_user.nome||!_user.whatsapp){
+    alert('Não foi possível gerar o compartilhamento porque seu cadastro está incompleto. Atualize seu nome e WhatsApp para continuar.');
+    return;
+  }
+  const e=_empreendimentos.find(x=>x.id===_compEmpDados.id);
+  if(!e)return;
+  fecharModal('modalCompEmp');
+  window.abrirCompartilhamentoSeguro({
+    tipo:'empreendimento',
+    agente:{ id:_user.id, nome:_user.nome, whatsapp:_user.whatsapp },
+    empreendimento:{
+      nome:e.nome, construtora:e.construtora, tipo:e.tipo,
+      bairro:e.bairro, cidade:e.cidade, uf:e.uf,
+      quartos:e.quartos, precoMin:e.precoMin, precoMax:e.precoMax,
+      valor:e.valorMil, faixa:e.faixa, descricao:e.descricao
+    },
+    caminho:`imovel.html?id=${encodeURIComponent(e.id)}&agente=${encodeURIComponent(_user.id)}`
+  });
+}
+function abrirCompartilhamentoSeguroMapaDash(){
+  if(!_user.nome||!_user.whatsapp){
+    alert('Não foi possível gerar o compartilhamento porque seu cadastro está incompleto. Atualize seu nome e WhatsApp para continuar.');
+    return;
+  }
+  const qs=_paramsMapaFiltradoDash_().toString();
+  window.abrirCompartilhamentoSeguro({
+    tipo:'mapa',
+    agente:{ id:_user.id, nome:_user.nome, whatsapp:_user.whatsapp },
+    caminho: qs ? `mapa-empreendimentos.html?${qs}` : 'mapa-empreendimentos.html'
+  });
 }
 function filtrarEmps(){
   const uf=document.getElementById('empFUf').value;
@@ -2531,5 +2577,6 @@ function limparChat(){
   addAiMsg('ai','Chat reiniciado! Como posso ajudar?');
 }
 </script>
+<script src="../shared/compartilhamento-seguro.js"></script>
 </body>
 </html>

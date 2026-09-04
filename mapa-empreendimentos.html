@@ -821,6 +821,7 @@
     <h2>Compartilhar Mapa Filtrado</h2>
     <div id="compMapaOpcoes" style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
       <a id="compMapaWpp" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;font-weight:700;text-decoration:none;border-radius:6px;background:#25D366;color:#fff">📱 Enviar por WhatsApp</a>
+      <button id="compMapaBtnSeguro" onclick="abrirCompartilhamentoSeguroMapa()" style="display:none;padding:12px 16px;font-weight:700;border-radius:6px;background:#0A1628;border:1px solid #C9A84C;color:#C9A84C;cursor:pointer">🔒 Compartilhamento seguro</button>
       <button onclick="compMapaMostrarEmail()" style="padding:12px 16px;font-weight:700;border-radius:6px;background:#f0f2f5;border:1px solid #d5dae2;color:#0A1628;cursor:pointer">✉️ Enviar por E-mail</button>
       <button id="compMapaBtnCopiar" onclick="compMapaCopiarLink(this)" style="padding:12px 16px;font-weight:700;border-radius:6px;background:#f0f2f5;border:1px solid #d5dae2;color:#0A1628;cursor:pointer">🔗 Copiar Link</button>
     </div>
@@ -906,7 +907,7 @@ const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakS
    no admin.html, não mude sem checar lá também. */
 const CRM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 let _compMapaLink = '';
-function linkMapaAtual_(){
+function _paramsMapaAtual(){
   const params = new URLSearchParams();
   const mapa = { uf:'f-uf', cidade:'f-cidade', bairro:'f-bairro', tipo:'f-tipo', construtora:'f-construtora', busca:'f-busca' };
   Object.keys(mapa).forEach(chave=>{
@@ -925,9 +926,20 @@ function linkMapaAtual_(){
   }
   const agenteAtual = new URLSearchParams(location.search).get('agente');
   if(agenteAtual) params.set('agente', agenteAtual);
+  return params;
+}
+function linkMapaAtual_(){
   const base = location.origin + location.pathname;
-  const qs = params.toString();
+  const qs = _paramsMapaAtual().toString();
   return qs ? `${base}?${qs}` : base;
+}
+// Igual a linkMapaAtual_(), mas só path+query (sem origin) — usado pelo
+// "Compartilhamento seguro", que nunca aceita domínio vindo do
+// frontend: ele sempre monta o link final como
+// WAL_DOMINIO_OFICIAL + este caminho (ver compartilhamento-seguro.js).
+function linkMapaCaminho_(){
+  const qs = _paramsMapaAtual().toString();
+  return qs ? `${location.pathname}?${qs}` : location.pathname;
 }
 function abrirCompartilharMapa(){
   const link = linkMapaAtual_();
@@ -937,7 +949,29 @@ function abrirCompartilharMapa(){
   document.getElementById('compMapaWpp').href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
   document.getElementById('compMapaOpcoes').style.display = 'flex';
   document.getElementById('compMapaFormEmail').style.display = 'none';
+  // Só mostra a opção "segura" quando há um Agente identificado (mesmo
+  // parâmetro que já mostra a faixa "indicado por" no topo) — sem
+  // agente não tem quem assinar a mensagem nem link pra atribuir.
+  const agenteAtual = new URLSearchParams(location.search).get('agente');
+  document.getElementById('compMapaBtnSeguro').style.display = agenteAtual ? 'flex' : 'none';
   abrirModal('modal-compartilhar-mapa');
+}
+async function abrirCompartilhamentoSeguroMapa(){
+  const agenteId = new URLSearchParams(location.search).get('agente');
+  if(!agenteId) return;
+  const resp = await cadastroApiJsonp('crm_agente_publico', { id: agenteId });
+  if(!resp || resp.status !== 'ok' || !resp.nome || !resp.whatsapp || resp.habilitado === false){
+    alert('Não foi possível gerar o compartilhamento porque o cadastro do agente está incompleto. Atualize seu nome e WhatsApp para continuar.');
+    return;
+  }
+  fecharModal('modal-compartilhar-mapa');
+  const contadorTxt = document.getElementById('contador-mapa').textContent || '';
+  window.abrirCompartilhamentoSeguro({
+    tipo: 'mapa',
+    agente: { id: agenteId, nome: resp.nome, whatsapp: resp.whatsapp },
+    caminho: linkMapaCaminho_(),
+    contadorTexto: contadorTxt
+  });
 }
 function compMapaCopiarLink(btn){
   navigator.clipboard.writeText(_compMapaLink).then(()=>{
@@ -2522,5 +2556,6 @@ function popularSelect(id, valores, label) {
   atualizarUIPerfil();
 })();
 </script>
+<script src="painel/shared/compartilhamento-seguro.js"></script>
 </body>
 </html>
