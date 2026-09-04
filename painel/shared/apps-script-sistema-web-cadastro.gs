@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════════
    WAL Imóveis — Sistema Web · Cadastro Único (USUARIOS / DASHBOARDS)
-   Data: 17-08-2026 as 22:22hs
+   Data: 04-09-2026 as 13hs
    ═══════════════════════════════════════════════════════════════════
    Backend NOVO e ISOLADO, criado só para este recurso. Não compartilha
    planilha nem implantação com nenhum dos backends já em produção do
