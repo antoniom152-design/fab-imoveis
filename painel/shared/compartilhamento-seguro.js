@@ -288,33 +288,47 @@
     document.getElementById('wcs-btn-enviar-wpp').href = 'https://wa.me/?text=' + encodeURIComponent(msg.texto);
   }
 
-  async function compartilharCartao_() {
-    var btn = document.getElementById('wcs-btn-compartilhar-cartao');
-    var textoOriginal = btn.textContent;
-    try {
-      btn.disabled = true; btn.textContent = 'Preparando…';
-      var blob = await fetch(CARTAO_IMG_URL).then(function (r) { return r.blob(); });
-      var file = new File([blob], 'cartao-wal-imoveis.png', { type: blob.type || 'image/png' });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: TEXTO_INSTITUCIONAL });
-        logEvento_('share_institutional_card', _estado, 'web_share');
-      } else if (navigator.share) {
-        // Alguns navegadores compartilham texto mas não arquivo — ainda
-        // assim manda o texto (com o link do domínio oficial dentro),
-        // não deixa o botão sem fazer nada.
-        await navigator.share({ text: TEXTO_INSTITUCIONAL });
-        logEvento_('share_institutional_card', _estado, 'web_share_texto');
-      } else {
-        document.getElementById('wcs-btn-baixar-cartao').click();
-        logEvento_('share_institutional_card', _estado, 'download');
-      }
-    } catch (e) {
-      // Usuário cancelou o compartilhamento nativo, ou o navegador não
-      // confirma o resultado — não bloqueia o fluxo por causa disso
-      // (o navegador normalmente não informa se o envio foi concluído).
-    } finally {
-      btn.disabled = false; btn.textContent = textoOriginal;
+  // Precisa estar pronto ANTES do clique: iOS Safari (e vários
+  // navegadores móveis) só deixa navigator.share() abrir se ele for
+  // chamado sem nenhum "await" no meio do gesto de clique — um
+  // `await fetch(...)` ali no meio (por menor que seja) já é o
+  // suficiente pro navegador não considerar mais "ação direta do
+  // usuário" e rejeitar o compartilhamento sem avisar nada (o clique
+  // parecia não fazer nada — bug real reportado pelo Antonio,
+  // 04/09/2026). Por isso a imagem é buscada assim que o modal abre
+  // (ver abrirCompartilhamentoSeguro), não no clique do botão.
+  var _cartaoFile = null;
+  function precarregarCartaoArquivo_() {
+    if (_cartaoFile !== null) return;
+    fetch(CARTAO_IMG_URL).then(function (r) { return r.blob(); }).then(function (blob) {
+      _cartaoFile = new File([blob], 'cartao-wal-imoveis.png', { type: blob.type || 'image/png' });
+    }).catch(function () {});
+  }
+
+  function compartilharCartao_() {
+    if (_cartaoFile && navigator.canShare && navigator.canShare({ files: [_cartaoFile] })) {
+      navigator.share({ files: [_cartaoFile], text: TEXTO_INSTITUCIONAL })
+        .then(function () { logEvento_('share_institutional_card', _estado, 'web_share'); })
+        .catch(function () {
+          // Usuário cancelou o compartilhamento nativo, ou o navegador
+          // não confirma o resultado — não bloqueia o fluxo por causa
+          // disso (o navegador normalmente não informa se o envio foi
+          // concluído).
+        });
+      return;
     }
+    if (navigator.share) {
+      // Ainda sem a imagem pronta (raro — usuário clicou muito rápido)
+      // ou o navegador compartilha texto mas não arquivo: manda o
+      // texto mesmo assim (com o link do domínio oficial dentro), não
+      // deixa o botão sem fazer nada.
+      navigator.share({ text: TEXTO_INSTITUCIONAL })
+        .then(function () { logEvento_('share_institutional_card', _estado, 'web_share_texto'); })
+        .catch(function () {});
+      return;
+    }
+    document.getElementById('wcs-btn-baixar-cartao').click();
+    logEvento_('share_institutional_card', _estado, 'download');
   }
 
   var _estado = null;
@@ -334,6 +348,7 @@
     document.getElementById('wcs-cartao-img').src = CARTAO_IMG_URL;
     document.getElementById('wcs-texto-institucional').textContent = TEXTO_INSTITUCIONAL;
     document.getElementById('wcs-btn-baixar-cartao').href = CARTAO_IMG_URL;
+    precarregarCartaoArquivo_();
     var temShareArquivo = !!(navigator.canShare && (function () { try { return navigator.canShare({ files: [new File([], 'x.png', { type: 'image/png' })] }); } catch (e) { return false; } })());
     document.getElementById('wcs-btn-compartilhar-cartao').style.display = (navigator.share) ? 'flex' : 'none';
     document.getElementById('wcs-btn-baixar-cartao').style.display = temShareArquivo ? 'none' : 'flex';
