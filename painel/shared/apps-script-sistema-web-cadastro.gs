@@ -61,6 +61,7 @@ var ABA_ATENDENTES = 'ATENDENTES';
 var ABA_COMISSOES  = 'COMISSOES';
 var ABA_INDICACOES = 'INDICACOES';
 var ABA_CONTROLE   = 'CONTROLE';
+var ABA_COMPARTILHAMENTOS = 'COMPARTILHAMENTOS';
 var CRM_PESSOA_ABAS_    = { agente: ABA_AGENTES, corretor: ABA_CORRETOR, atendente: ABA_ATENDENTES };
 var CRM_PESSOA_PREFIXO_ = { agente: 'AG', corretor: 'CO', atendente: 'AT' };
 var CRM_PESSOA_ID_COL_  = { agente: 'Agente_Id', corretor: 'Corretor_Id', atendente: 'Atendente_Id' };
@@ -835,7 +836,41 @@ function crm_agente_publico_(data) {
   var aba = ss.getSheetByName(ABA_AGENTES);
   var pessoa = aba && lerAbaObjetos_(aba).find(function (p) { return s_(p.Id).trim().toUpperCase() === id; });
   if (!pessoa) return { status: 'error', message: 'Agente não encontrado.' };
-  return { status: 'ok', nome: s_(pessoa.Nome) };
+  // whatsapp/habilitado adicionados pro "Compartilhamento seguro"
+  // (dashboard-agente.html/imovel.html/mapa-empreendimentos.html) —
+  // aditivo, quem já lia só `nome` continua funcionando igual.
+  var habilitado = pessoa.Habilitado === true || /^(true|sim)$/i.test(s_(pessoa.Habilitado));
+  return { status: 'ok', nome: s_(pessoa.Nome), whatsapp: s_(pessoa.WhatsApp), habilitado: habilitado };
+}
+
+/* ══════════════════ COMPARTILHAMENTO SEGURO — registro de eventos ══
+   Log leve do fluxo de "Compartilhamento seguro" (dashboard-agente.html/
+   imovel.html/mapa-empreendimentos.html) — NÃO grava conteúdo de
+   mensagem, destinatário nem qualquer dado do cliente, só o essencial
+   pra acompanhar uso: agente, o que foi compartilhado, quando, e qual
+   ação. Cria a aba na primeira vez que alguém compartilha. Sem
+   autenticação de propósito (mesmo motivo de
+   crm_indicacao_publica_criar_): evento de baixo risco, pior caso é
+   uma linha de log com Id de agente inválido — não grava nem lê nada
+   sensível. */
+function crm_share_evento_registrar_(data) {
+  var evento = s_(data.evento).trim();
+  if (!evento) return { status: 'error', message: 'Evento não informado.' };
+  return comLock_(function () {
+    var ss = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ss.getSheetByName(ABA_COMPARTILHAMENTOS);
+    if (!aba) {
+      aba = ss.insertSheet(ABA_COMPARTILHAMENTOS);
+      aba.appendRow(['Data/Hora', 'Evento', 'Agente_Id', 'Tipo', 'Referencia', 'Canal']);
+      aba.getRange(1, 1, 1, 6).setBackground('#0A1628').setFontColor('#C9A84C').setFontWeight('bold');
+      aba.setFrozenRows(1);
+    }
+    aba.appendRow([
+      agora_(), evento, s_(data.agenteId).trim().toUpperCase(),
+      s_(data.tipo), s_(data.referencia), s_(data.canal)
+    ]);
+    return { status: 'ok' };
+  });
 }
 
 /* Cria a indicação em nome do Agente do link — mesmo destino
@@ -1021,7 +1056,15 @@ function crm_empreendimentoParaObjeto_(i) {
     qtdUnidades: Number(i['Qtd Unidades']) || 0,
     uf: s_(i.UF),
     bairro: s_(i.Bairro),
-    destaque: i['Destaque — Página Principal'] === true || /^(true|sim)$/i.test(s_(i['Destaque — Página Principal']))
+    destaque: i['Destaque — Página Principal'] === true || /^(true|sim)$/i.test(s_(i['Destaque — Página Principal'])),
+    // Colunas que já existem na planilha (mesmas usadas pelo mapa de
+    // empreendimentos) mas que esta função ainda não expunha —
+    // adicionadas pro "Compartilhamento seguro" montar as
+    // características do imóvel (quartos, faixa de preço, endereço).
+    quartos: s_(i.Quartos),
+    precoMin: Number(i['Preço Mín (R$)']) || 0,
+    precoMax: Number(i['Preço Máx (R$)']) || 0,
+    endereco: s_(i['Endereço'])
   };
 }
 function crm_empreendimentos_listar_(p) {
@@ -1186,6 +1229,7 @@ function doPost(e) {
       case 'crm_indicacao_excluir':           out = crm_indicacao_excluir_(data); break;
       case 'admin_pessoa_atualizar':          out = admin_pessoa_atualizar_(data); break;
       case 'crm_indicacao_publica_criar':     out = crm_indicacao_publica_criar_(data); break;
+      case 'crm_share_evento_registrar':      out = crm_share_evento_registrar_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);

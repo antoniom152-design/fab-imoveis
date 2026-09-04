@@ -986,7 +986,15 @@ function parseRow(row) {
     blogUrl:     g(11),
     uf:          g(15),
     bairro:      g(16),
-    linkDrive:   g(17)
+    linkDrive:   g(17),
+    // Colunas que já existem na planilha (mesmas lidas pelo mapa de
+    // empreendimentos) mas que este parse ainda não usava — adicionadas
+    // pro "Compartilhamento seguro" montar as características do imóvel.
+    quartos:     g(18),
+    precoMin:    parseFloat(g(19)) || 0,
+    precoMax:    parseFloat(g(20)) || 0,
+    entrega:     g(21),
+    endereco:    g(26)
   };
 }
 
@@ -1212,7 +1220,12 @@ let _compartilharEmailDadosImovel = null;
 function compartilharImovel() {
   if (!imovelAtual) return;
   const im      = imovelAtual;
-  const link    = SITE_BASE_URL ? SITE_BASE_URL + 'imovel.html?id=' + im.id : 'imovel.html?id=' + im.id;
+  // Preserva a indicação do Agente (mesmo parâmetro que já mostra a
+  // faixa "indicado por" no topo) — antes esse link genérico perdia a
+  // atribuição quando o próprio visitante repassava adiante.
+  const ref     = lerReferenciaAgente_();
+  const caminho = 'imovel.html?id=' + encodeURIComponent(im.id) + (ref ? '&agente=' + encodeURIComponent(ref.id) : '');
+  const link    = SITE_BASE_URL ? SITE_BASE_URL + caminho : caminho;
   _linkCompartilhadoImovel = link;
   const preco   = im.valor > 0 ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
   const local   = [im.bairro, im.cidade + (im.uf ? '/' + im.uf : '')].filter(Boolean).join(' — ');
@@ -1236,6 +1249,7 @@ function compartilharImovel() {
       '<div style="font-family:\'Barlow Condensed\',sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-ink);margin-bottom:16px">Compartilhar Imóvel</div>' +
       '<div id="compartilharOpcoesImovel" style="display:flex;flex-direction:column;gap:10px">' +
         '<a href="' + wppHref + '" target="_blank" rel="noopener" style="' + btnStyle + 'background:#25D366;color:white;">📱 Enviar pelo WhatsApp</a>' +
+        (ref ? '<button onclick="abrirCompartilhamentoSeguroImovel()" style="' + btnStyle + 'justify-content:center;background:var(--navy);border:1px solid var(--gold);color:var(--gold-ink);cursor:pointer;width:100%;">🔒 Compartilhamento seguro</button>' : '') +
         '<button onclick="mostrarFormEmailImovel()" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);cursor:pointer;width:100%;">✉️ Enviar por E-mail</button>' +
         '<button onclick="copiarLinkImovel(this)" style="' + btnStyle + 'background:rgba(10,22,40,.05);border:1px solid var(--border);color:var(--navy);cursor:pointer;width:100%;">🔗 Copiar Link</button>' +
       '</div>' +
@@ -1250,6 +1264,30 @@ function compartilharImovel() {
 
   document.body.appendChild(modal);
   modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+
+async function abrirCompartilhamentoSeguroImovel(){
+  if (!imovelAtual) return;
+  const ref = lerReferenciaAgente_();
+  if (!ref) return;
+  const resp = await cadastroApiJsonp('crm_agente_publico', { id: ref.id });
+  if (!resp || resp.status !== 'ok' || !resp.nome || !resp.whatsapp || resp.habilitado === false) {
+    alert('Não foi possível gerar o compartilhamento porque o cadastro do agente está incompleto. Atualize seu nome e WhatsApp para continuar.');
+    return;
+  }
+  document.getElementById('compartilharModalImovel')?.remove();
+  const im = imovelAtual;
+  window.abrirCompartilhamentoSeguro({
+    tipo: 'empreendimento',
+    agente: { id: ref.id, nome: resp.nome, whatsapp: resp.whatsapp },
+    empreendimento: {
+      nome: im.nome, construtora: im.construtora, tipo: im.tipo,
+      bairro: im.bairro, cidade: im.cidade, uf: im.uf,
+      quartos: im.quartos, precoMin: im.precoMin, precoMax: im.precoMax,
+      valor: im.valor, faixa: im.faixa, descricao: im.descricao
+    },
+    caminho: 'imovel.html?id=' + encodeURIComponent(im.id) + '&agente=' + encodeURIComponent(ref.id)
+  });
 }
 
 function mostrarFormEmailImovel() {
@@ -1765,5 +1803,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
 });
 </script>
+<script src="painel/shared/compartilhamento-seguro.js"></script>
 </body>
 </html>
