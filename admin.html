@@ -1296,9 +1296,9 @@
     </div>
     <div class="tbl-filter-grp">
       <span class="tbl-filter-lbl">Construtora</span>
-      <input class="tbl-filter-sel" type="text" id="tf-construtora"
-             placeholder="Buscar..." oninput="renderTable()"
-             style="height:32px;padding:6px 10px;font-size:12px">
+      <select class="tbl-filter-sel" id="tf-construtora" onchange="renderTable()">
+        <option value="">Todas</option>
+      </select>
     </div>
     <div class="tbl-filter-grp">
       <span class="tbl-filter-lbl">Status</span>
@@ -3095,15 +3095,27 @@ function atualizarBairrosFiltroTabela() {
   if (bairros.includes(atual)) selEl.value = atual;
 }
 
+// Pré-preenchido com os nomes de Construtora que já existem na
+// planilha (mesmo padrão do atualizarBairrosFiltroTabela acima),
+// substituindo o antigo campo de texto com busca por substring.
+function atualizarConstrutorasFiltroTabela() {
+  const selEl = document.getElementById('tf-construtora');
+  const atual = selEl.value;
+  const construtoras = [...new Set(sheetData.filter(d => d.construtora).map(d => d.construtora))].sort();
+  selEl.innerHTML = '<option value="">Todas</option>' +
+    construtoras.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (construtoras.includes(atual)) selEl.value = atual;
+}
+
 function renderTable() {
   atualizarBairrosFiltroTabela();
+  atualizarConstrutorasFiltroTabela();
 
   const uf         = document.getElementById('tf-uf').value;
   const tipo       = document.getElementById('tf-tipo').value;
   const cidade     = document.getElementById('tf-cidade').value;
   const bairro     = document.getElementById('tf-bairro').value;
-  const construtEl = document.getElementById('tf-construtora');
-  const construtora = construtEl ? construtEl.value.trim().toLowerCase() : '';
+  const construtora = document.getElementById('tf-construtora').value;
   const ativo      = document.getElementById('tf-ativo').value;
 
   let data = sheetData.filter(d => {
@@ -3111,7 +3123,7 @@ function renderTable() {
     if (tipo   && d.tipo   !== tipo)   return false;
     if (cidade && d.cidade !== cidade) return false;
     if (bairro && d.bairro !== bairro) return false;
-    if (construtora && !(d.construtora||'').toLowerCase().includes(construtora)) return false;
+    if (construtora && d.construtora !== construtora) return false;
     if (ativo === '1' && !d.ativo)     return false;
     if (ativo === '0' && d.ativo)      return false;
     return true;
