@@ -541,7 +541,7 @@
   </div>
   <div>
     <label>Construtora</label>
-    <input type="text" id="f-construtora" placeholder="Buscar...">
+    <select id="f-construtora"><option value="">Todas</option></select>
   </div>
   <div>
     <label>Preço mín (mil)</label>
@@ -1729,6 +1729,7 @@ function popularSelect(id, valores, label) {
   loading.classList.add('hidden');
 
   popularSelect('f-uf', [...new Set(base.map(im => im.uf).filter(Boolean))].sort(), 'Todas');
+  popularSelect('f-construtora', [...new Set(base.map(im => im.construtora).filter(Boolean))].sort(), 'Todas');
 
   const paramsURL = new URLSearchParams(location.search);
   let temFiltroNaURL = false;
@@ -1959,7 +1960,7 @@ function popularSelect(id, valores, label) {
     const cidade         = document.getElementById('f-cidade').value;
     const bairro         = document.getElementById('f-bairro').value;
     const tipo           = document.getElementById('f-tipo').value;
-    const construtora    = document.getElementById('f-construtora').value.trim().toLowerCase();
+    const construtora    = document.getElementById('f-construtora').value;
     const status         = document.getElementById('f-status').value;
     const precoMin       = parseFloat(document.getElementById('f-preco-min').value) || 0;
     const precoMax       = parseFloat(document.getElementById('f-preco-max').value) || Infinity;
@@ -1970,7 +1971,7 @@ function popularSelect(id, valores, label) {
       (!cidade     || im.cidade === cidade) &&
       (!bairro     || im.bairro === bairro) &&
       (!tipo       || im.tipo === tipo) &&
-      (!construtora || (im.construtora || '').toLowerCase().includes(construtora)) &&
+      (!construtora || im.construtora === construtora) &&
       (!busca || [im.nome, im.bairro, im.endereco].filter(Boolean).some(t => t.toLowerCase().includes(busca))) &&
       (status === 'ativo' ? im.ativo : status === 'inativo' ? !im.ativo : true) &&
       (!somenteFavoritos || favs.includes(im.id)) &&
