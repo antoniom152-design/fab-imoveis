@@ -2310,7 +2310,8 @@ function jsonOut(obj) {
         <option value="baixa">Baixa</option>
       </select>
       <select class="crm-sel" id="crm-fil-ord" onchange="crmRenderLista()">
-        <option value="recent">Mais recentes</option>
+        <option value="recent">Criado em — mais recentes primeiro</option>
+        <option value="oldest">Criado em — mais antigos primeiro</option>
         <option value="prox">Próxima ação</option>
         <option value="nome">Nome A→Z</option>
       </select>
@@ -2323,6 +2324,9 @@ function jsonOut(obj) {
       <input type="date" id="crm-fil-dt-fim" title="Data final (Criado em)" onchange="crmRenderLista()"
         style="height:36px;padding:0 8px;background:var(--navy-light);border:1px solid var(--border);border-radius:6px;color:var(--off-white);font-size:12px;font-family:'Barlow',sans-serif;cursor:pointer">
       <button class="btn-header btn-outline" onclick="crmLimparDatas()" title="Limpar período" style="height:36px;padding:0 10px;font-size:13px;line-height:1;color:var(--navy)">✕</button>
+      <button class="btn-header btn-outline" id="crm-btn-atualizar" onclick="crmAtualizarManual()" title="Recarregar os leads agora (o CRM também atualiza sozinho a cada 2 minutos)" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">
+        🔄 Atualizar Dados
+      </button>
       <button class="btn-header btn-outline" onclick="crmExportar()" style="height:36px;padding:0 14px;font-size:11px;color:var(--navy)">
         🖨 Exportar
       </button>
@@ -4366,6 +4370,22 @@ async function crmPostScript(payload) {
   } catch {}
 }
 
+// Botão "🔄 Atualizar Dados" da toolbar — recarrega na hora, sem
+// esperar o auto-refresh de 2 em 2 minutos (que continua rodando
+// normalmente, ver crmIniciarAutoRefresh()).
+async function crmAtualizarManual() {
+  const btn = document.getElementById('crm-btn-atualizar');
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '⏳ Atualizando…';
+  try {
+    await crmCarregar();
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+  }
+}
+
 async function crmCarregar() {
   // Preenche input de config se já salvo
   const savedScript = localStorage.getItem(CRM_SCRIPT_KEY) || '';
@@ -4461,6 +4481,7 @@ function crmRenderLista() {
     if (!b.proxdata) return -1;
     return a.proxdata.localeCompare(b.proxdata);
   });
+  else if (ord === 'oldest') lista.sort((a,b) => (a.criado_em||'').localeCompare(b.criado_em||''));
   else lista.sort((a,b) => (b.criado_em||'').localeCompare(a.criado_em||''));
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
