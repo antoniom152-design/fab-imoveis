@@ -2356,7 +2356,7 @@ function jsonOut(obj) {
           <tr>
             <th>Prioridade</th>
             <th>Nome / Contato</th>
-            <th>Criado em</th>
+            <th onclick="crmToggleOrdCriadoEm()" style="cursor:pointer;user-select:none" title="Clique para alternar entre mais recentes/mais antigos primeiro">Criado em <span id="crm-th-criado-seta">▼</span></th>
             <th>Origem</th>
             <th>Status</th>
             <th>Solicitação</th>
@@ -4453,6 +4453,15 @@ function crmFiltrarStatus(status) {
   crmRenderLista();
 }
 
+// Clique no cabeçalho "Criado em" da tabela alterna entre mais
+// recentes/mais antigos primeiro — mesmo efeito do select "Criado em"
+// da toolbar, só que direto na coluna (pedido do Antonio, 09/09/2026).
+function crmToggleOrdCriadoEm() {
+  const sel = document.getElementById('crm-fil-ord');
+  sel.value = (sel.value === 'oldest') ? 'recent' : 'oldest';
+  crmRenderLista();
+}
+
 function crmRenderLista() {
   const busca   = (document.getElementById('crm-busca')?.value || '').toLowerCase().trim();
   const origem  = document.getElementById('crm-fil-origem')?.value || '';
@@ -4488,6 +4497,9 @@ function crmRenderLista() {
   });
   else if (ord === 'oldest') lista.sort((a,b) => (a.criado_em||'').localeCompare(b.criado_em||''));
   else lista.sort((a,b) => (b.criado_em||'').localeCompare(a.criado_em||''));
+
+  const setaCriadoEm = document.getElementById('crm-th-criado-seta');
+  if (setaCriadoEm) setaCriadoEm.textContent = (ord === 'oldest') ? '▲' : '▼';
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const amanha = new Date(hoje); amanha.setDate(amanha.getDate()+1);
