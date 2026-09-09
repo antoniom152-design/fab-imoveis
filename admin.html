@@ -572,12 +572,17 @@
   /* CRM Modal layout */
   .crm-modal-body{display:grid;grid-template-columns:1fr 380px;gap:0;min-height:500px}
   .crm-modal-left{padding:28px;border-right:1px solid var(--border);overflow-y:auto}
-  .crm-modal-right{padding:24px;display:flex;flex-direction:column;gap:0;background:rgba(10,22,40,.4)}
+  /* Fundo branco/letras pretas (pedido do Antonio, 09/09/2026) — este
+     painel ainda tinha as cores do tema escuro original do admin.html
+     (fundo semitransparente navy + texto claro), que ficou ilegível
+     depois que o resto da tela virou tema claro. */
+  .crm-modal-right{padding:24px;display:flex;flex-direction:column;gap:0;background:#fff;color:#000}
   .crm-modal-section-title{
     font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--gold-dim);
     margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);
   }
+  .crm-modal-right .crm-modal-section-title{color:#000}
 
   /* Timeline */
   .crm-timeline{flex:1;overflow-y:auto;max-height:420px;margin-bottom:14px;padding-right:4px}
@@ -598,22 +603,22 @@
   }
   .crm-tl-content{flex:1;min-width:0}
   .crm-tl-meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:3px}
-  .crm-tl-tipo{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-dim)}
-  .crm-tl-data{font-size:10px;color:var(--text-muted);white-space:nowrap}
-  .crm-tl-nota{font-size:12px;color:var(--off-white);line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .crm-tl-tipo{font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#000}
+  .crm-tl-data{font-size:10px;color:#000;white-space:nowrap}
+  .crm-tl-nota{font-size:12px;color:#000;line-height:1.5;white-space:pre-wrap;word-break:break-word}
   .crm-add-int{border-top:1px solid var(--border);padding-top:14px;margin-top:auto}
   .crm-add-int select,.crm-add-int textarea{
-    width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(201,168,76,.15);
-    color:var(--off-white);padding:8px 10px;font-family:'Barlow',sans-serif;font-size:12px;
+    width:100%;background:#fff;border:1px solid #ccc;
+    color:#000;padding:8px 10px;font-family:'Barlow',sans-serif;font-size:12px;
     outline:none;transition:border-color .2s;margin-bottom:8px;resize:none;line-height:1.5;
   }
   .crm-add-int select{appearance:none;-webkit-appearance:none;cursor:pointer;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C'/%3E%3C/svg%3E");
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23000'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 9px center;padding-right:28px;
   }
-  .crm-add-int select option{background:#112240}
+  .crm-add-int select option{background:#fff;color:#000}
   .crm-add-int select:focus,.crm-add-int textarea:focus{border-color:var(--gold)}
-  .crm-add-int textarea::placeholder{color:rgba(255,255,255,.2)}
+  .crm-add-int textarea::placeholder{color:#888}
   .btn-crm-int{
     width:100%;height:36px;background:var(--gold);color:var(--navy);border:none;
     font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
@@ -2676,14 +2681,14 @@ function jsonOut(obj) {
 
         <!-- Timeline -->
         <div class="crm-timeline" id="crm-timeline">
-          <div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">
+          <div style="text-align:center;color:#000;font-size:12px;padding:20px 0">
             Nenhuma interação registrada ainda.
           </div>
         </div>
 
         <!-- Adicionar interação -->
         <div class="crm-add-int">
-          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:10px">Registrar Interação</div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:#000;margin-bottom:10px">Registrar Interação</div>
           <select id="crm-int-tipo">
             <option value="📞 Ligação">📞 Ligação</option>
             <option value="💬 WhatsApp">💬 WhatsApp</option>
@@ -4623,9 +4628,9 @@ function crmAbrirNovoLead() {
    'crm-area','crm-obs','crm-proxacao','crm-proxdata'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
   });
-  document.getElementById('crm-origem').value = '';
+  crmSetSelectComValorLivre_('crm-origem', '');
   document.getElementById('crm-prioridade').value = 'media';
-  document.getElementById('crm-orcamento').value = '';
+  crmSetSelectComValorLivre_('crm-orcamento', '');
   const hoje = new Date().toISOString().split('T')[0];
   document.getElementById('crm-proxdata').value = hoje;
   crmRenderTimeline([]);
@@ -4633,6 +4638,30 @@ function crmAbrirNovoLead() {
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Lead';
   document.getElementById('crm-modal').classList.add('show');
   setTimeout(() => document.getElementById('crm-nome').focus(), 100);
+}
+
+// crm-origem e crm-orcamento são selects com uma lista fixa de opções
+// (pensada pra cadastro manual), mas leads que chegam de outros canais
+// (ex: Mapa V3.1 — Meu Imóvel Ideal grava origem="Mapa V3.1 — Meu
+// Imóvel Ideal" e orcamento="700", um número cru em vez de uma faixa)
+// não batem com nenhuma opção — o select ficava em branco mesmo com o
+// valor certinho gravado na planilha. Se o valor não existe entre as
+// opções, cria uma opção extra com ele (preserva o dado original ao
+// salvar sem mexer no campo, em vez de zerá-lo).
+function crmSetSelectComValorLivre_(selId, valor) {
+  const sel = document.getElementById(selId);
+  const val = valor || '';
+  // Remove a opção extra da abertura anterior (o select é reaproveitado
+  // pra cada lead) antes de decidir se precisa de uma nova.
+  sel.querySelectorAll('option[data-extra="1"]').forEach(o => o.remove());
+  if (val && !Array.from(sel.options).some(o => o.value === val)) {
+    const opt = document.createElement('option');
+    opt.value = val;
+    opt.textContent = /^\d+(\.\d+)?$/.test(val) ? ('R$ ' + val + ' mil (informado)') : val;
+    opt.dataset.extra = '1';
+    sel.appendChild(opt);
+  }
+  sel.value = val;
 }
 
 function crmAbrirLead(id) {
@@ -4652,11 +4681,11 @@ function crmAbrirLead(id) {
   document.getElementById('crm-nome').value       = lead.nome || '';
   document.getElementById('crm-telefone').value   = lead.telefone || '';
   document.getElementById('crm-email').value      = lead.email || '';
-  document.getElementById('crm-origem').value     = lead.origem || '';
+  crmSetSelectComValorLivre_('crm-origem', lead.origem);
   document.getElementById('crm-prioridade').value = lead.prioridade || 'media';
   document.getElementById('crm-consultor').value  = lead.consultor || '';
   document.getElementById('crm-solicitacao').value= lead.solicitacao || '';
-  document.getElementById('crm-orcamento').value  = lead.orcamento || '';
+  crmSetSelectComValorLivre_('crm-orcamento', lead.orcamento);
   document.getElementById('crm-area').value       = lead.area || '';
   document.getElementById('crm-obs').value        = lead.obs || '';
   document.getElementById('crm-proxacao').value   = lead.proxacao || '';
@@ -4680,7 +4709,7 @@ function crmOnStatusChange() {
 function crmRenderTimeline(historico) {
   const el = document.getElementById('crm-timeline');
   if (!historico || !historico.length) {
-    el.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:12px;padding:20px 0">Nenhuma interação registrada ainda.</div>';
+    el.innerHTML = '<div style="text-align:center;color:#000;font-size:12px;padding:20px 0">Nenhuma interação registrada ainda.</div>';
     return;
   }
   const icons = {'📞 Ligação':'📞','💬 WhatsApp':'💬','📧 E-mail':'📧','🏠 Visita ao imóvel':'🏠','📋 Proposta enviada':'📋','📄 Documentação':'📄','💡 Outros':'💡'};
@@ -4693,7 +4722,7 @@ function crmRenderTimeline(historico) {
           <span class="crm-tl-data">${fmtData(h.data?.split('T')[0])} ${h.hora||''}</span>
         </div>
         ${h.nota ? `<div class="crm-tl-nota">${esc(h.nota)}</div>` : ''}
-        ${h.consultor ? `<div style="font-size:10px;color:var(--text-muted);margin-top:3px">👤 ${esc(h.consultor)}</div>` : ''}
+        ${h.consultor ? `<div style="font-size:10px;color:#000;margin-top:3px">👤 ${esc(h.consultor)}</div>` : ''}
       </div>
     </div>`).join('');
   el.scrollTop = 0;
