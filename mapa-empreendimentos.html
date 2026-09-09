@@ -2345,7 +2345,11 @@ function popularSelect(id, valores, label) {
     }
 
     const ctx = montarContextoLeadCRM();
-    const observacoes = (obsUser ? obsUser + '\n\n' : '') + ctx.observacoes;
+    // O que o cliente está procurando de fato (perfil, favoritos,
+    // filtros, comparação) vai pra Solicitação — não pra Observações
+    // (pedido do Antonio, 09/09/2026). Observações fica só com a nota
+    // livre que o próprio cliente escreveu no campo opcional do form.
+    const solicitacaoCompleta = [ctx.solicitacao, ctx.observacoes].filter(Boolean).join('\n\n');
 
     const agora = new Date();
     const amanha = new Date(Date.now() + 24 * 3600 * 1000);
@@ -2375,10 +2379,10 @@ function popularSelect(id, valores, label) {
       email: email || '',
       origem: 'Mapa V3.1 — Meu Imóvel Ideal',
       consultor: (ctx.agente && ctx.agente.nome) ? ctx.agente.nome : '',
-      solicitacao: ctx.solicitacao,
+      solicitacao: solicitacaoCompleta,
       orcamento: ctx.orcamento != null ? String(ctx.orcamento) : '',
       area: ctx.area || '',
-      obs: observacoes,
+      obs: obsUser,
       proxacao: 'Contatar lead aquecido do mapa',
       proxdata: dataProxAcao,
       historico: [interacaoMapa]
