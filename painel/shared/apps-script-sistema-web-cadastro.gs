@@ -98,7 +98,7 @@ var BREVO_SENDER_NOME  = 'WAL Imóveis';
 var DASHBOARDS_SEED_ = [
   { id: 'CLIENTE',           nome: 'Cliente',           descricao: 'Comprador/lead com simulação, reserva e chat',   icone: '🏠', rota: 'painel/cliente/dashboard-cliente.html',                      ordem: 1 },
   { id: 'AGENTE',            nome: 'Agente Parceiro',   descricao: 'Indicador externo — comissão por indicação',     icone: '🤝', rota: 'painel/agente/dashboard-agente.html',                        ordem: 2 },
-  { id: 'ATENDENTE',         nome: 'Atendente',         descricao: 'Triagem interna — recebe leads do Gerente',      icone: '🎧', rota: 'painel/atendente/dashboard-atendente.html',                  ordem: 3 },
+  { id: 'ATENDENTE',         nome: 'Atendente',         descricao: 'Triagem interna — recebe leads do Gerente',      icone: '🎧', rota: 'painel/atendente/dashboard_atendente.html',                  ordem: 3 },
   { id: 'GERENTE_COMERCIAL', nome: 'Gerente Comercial', descricao: 'Distribui leads, acompanha a equipe',            icone: '👥', rota: 'painel/gerente-comercial/dashboard-gerente-comercial.html', ordem: 4 },
   { id: 'CORRETOR_AUTONOMO', nome: 'Corretor Autônomo', descricao: 'Venda completa — do interesse ao contrato',      icone: '🧑‍💼', rota: 'painel/corretor/dashboard-corretor.html',                  ordem: 5 },
   { id: 'MARKETING',         nome: 'Marketing',         descricao: 'Origem de leads, campanhas, conteúdo',           icone: '📣', rota: 'painel/marketing/dashboard-marketing.html',                  ordem: 6 },
@@ -221,6 +221,7 @@ function enviarEmailBrevo_(destinatario, assunto, corpo) {
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('WAL · Cadastro')
     .addItem('Configurar planilha (1ª vez)', 'setupCadastroUnico')
+    .addItem('Configurar Portal do Atendente (leads)', 'setupAtendenteCrmLeads')
     .addToUi();
 }
 
@@ -1174,6 +1175,398 @@ function admin_indicacoes_listar_(data) {
   return { status: 'ok', itens: itens };
 }
 
+/* ══════════════════ PORTAL DO ATENDENTE — Minha Fila ══════════════
+   Etapa de migração do dashboard-feirao-atendente.html (papel Atendente,
+   NAV_ATENDENTE) para o Sistema Web. Diferente do Portal Agente/Corretor
+   acima (que gira em torno de INDICACOES), o Atendente trabalha os leads
+   que já estão no funil de vendas — aba LEADS da mesma planilha "WAL —
+   CRM de Leads" (mesma aba que o gate de e-mail/OTP do index.html
+   alimenta via cadastro_leadRegistrar_ e que as indicações de Agente/
+   Corretor espelham). Acrescenta só a coluna Atendente_Id no fim (nunca
+   mexe nas colunas existentes, que também são escritas pelo script do
+   admin.html — CRM_SCRIPT_URL_DEFAULT — cujo código-fonte não temos
+   aqui) e duas abas novas (HISTORICO_ATENDIMENTO_LEAD, AGENDAMENTOS_
+   VISITA_LEAD), mesmo padrão já usado no Feirão
+   (HISTORICO_ATENDIMENTO/AGENDAMENTOS_VISITA). */
+var ABA_HISTORICO_ATENDIMENTO_LEAD = 'HISTORICO_ATENDIMENTO_LEAD';
+var ABA_AGENDAMENTOS_VISITA_LEAD   = 'AGENDAMENTOS_VISITA_LEAD';
+
+/* SEM "_" no final de propósito (diferente do resto do arquivo) — é a
+   única forma de uma função aparecer no menu "Selecionar função" do
+   editor do Apps Script pra rodar manualmente, igual setupCadastroUnico(). */
+function setupAtendenteCrmLeads() {
+  var relatorio = [];
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) throw new Error('Aba ' + ABA_LEADS + ' não encontrada em PLANILHA_CRM_LEADS_ID.');
+  var headers = headersDe_(abaLeads);
+  if (headers.indexOf('Atendente_Id') === -1) {
+    abaLeads.getRange(1, headers.length + 1).setValue('Atendente_Id');
+    relatorio.push('Coluna Atendente_Id acrescentada em ' + ABA_LEADS + ' (coluna ' + (headers.length + 1) + ').');
+  } else {
+    relatorio.push('Coluna Atendente_Id já existia em ' + ABA_LEADS + '.');
+  }
+  criarAbaSeNaoExiste_(ssCrm, ABA_HISTORICO_ATENDIMENTO_LEAD, ['Lead_Id', 'Email', 'Tipo', 'Texto', 'Autor', 'Timestamp']);
+  relatorio.push('Aba ' + ABA_HISTORICO_ATENDIMENTO_LEAD + ' verificada/criada.');
+  criarAbaSeNaoExiste_(ssCrm, ABA_AGENDAMENTOS_VISITA_LEAD, ['Id', 'Lead_Id', 'Atendente_Id', 'Nome', 'Telefone', 'Email', 'Emp_Id', 'Data', 'Hora', 'Status', 'Obs', 'Criado_em']);
+  relatorio.push('Aba ' + ABA_AGENDAMENTOS_VISITA_LEAD + ' verificada/criada.');
+  var msg = '✅ Portal do Atendente (leads) configurado!\n\n' + relatorio.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
+/* Confere sessão OTP + acha a pessoa na aba ATENDENTES pelo e-mail —
+   repetido em toda ação abaixo (mesmo padrão de crm_indicacao_listar_
+   etc.), devolve null se qualquer uma das duas falhar. */
+function crm_atendenteContexto_(email, sessionToken) {
+  var emailN = normalizarEmail_(email);
+  if (!_sessaoOtpValida_(emailN, sessionToken)) return null;
+  var ctx = crm_pessoaAba_('atendente');
+  if (!ctx) return null;
+  var pessoa = lerAbaObjetos_(ctx.aba).find(function (p) { return normalizarEmail_(p.Email) === emailN; });
+  if (!pessoa) return null;
+  return pessoa;
+}
+function crm_leadParaObjeto_(l) {
+  return {
+    id: s_(l.ID), status: s_(l.Status) || 'novo', prioridade: s_(l.Prioridade) || 'media',
+    nome: s_(l.Nome), telefone: s_(l.Telefone), email: s_(l.Email), origem: s_(l.Origem),
+    consultor: s_(l.Consultor), atendenteId: s_(l.Atendente_Id),
+    criadoEm: dataStr_(l['Criado em']), atualizadoEm: dataStr_(l['Atualizado em'])
+  };
+}
+
+/* p.escopo: 'minha' (padrão) = só os leads já atribuídos a este atendente;
+   'disponiveis' = leads ainda sem atendente e não fechados/perdidos, pra
+   ele poder "pegar". */
+function crm_atendente_leads_listar_(p) {
+  var pessoa = crm_atendenteContexto_(p.email, p.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) return { status: 'ok', itens: [] };
+  var todos = lerAbaObjetos_(abaLeads);
+  var escopo = s_(p.escopo).trim().toLowerCase() || 'minha';
+  var itens;
+  if (escopo === 'disponiveis') {
+    itens = todos.filter(function (l) { return !s_(l.Atendente_Id) && ['fechado', 'perdido'].indexOf(s_(l.Status).toLowerCase()) === -1; });
+  } else {
+    itens = todos.filter(function (l) { return s_(l.Atendente_Id) === s_(pessoa.Id); });
+  }
+  return { status: 'ok', itens: itens.map(crm_leadParaObjeto_) };
+}
+
+/* "Pegar" um lead disponível — só deixa se ainda não tiver dono ou se já
+   for o próprio atendente pedindo de novo (idempotente); nunca deixa
+   tomar um lead que já é de outro atendente. */
+function crm_atendente_lead_atribuir_(data) {
+  var pessoa = crm_atendenteContexto_(data.email, data.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+  var idLead = s_(data.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+    if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+    var linha = acharLinhaPorChave_(abaLeads, 'ID', idLead);
+    if (linha === -1) return { status: 'error', message: 'Lead não encontrado.' };
+    var headers = headersDe_(abaLeads);
+    var colAtendente = headers.indexOf('Atendente_Id');
+    if (colAtendente === -1) return { status: 'error', message: 'Coluna Atendente_Id não configurada — rode setupAtendenteCrmLeads().' };
+    var atual = s_(abaLeads.getRange(linha, colAtendente + 1).getValue());
+    if (atual && atual !== s_(pessoa.Id)) return { status: 'error', message: 'Este lead já está com outro atendente.' };
+    abaLeads.getRange(linha, colAtendente + 1).setValue(pessoa.Id);
+    var colAtualizado = headers.indexOf('Atualizado em');
+    if (colAtualizado !== -1) abaLeads.getRange(linha, colAtualizado + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
+/* Só deixa mudar status/prioridade de um lead que já pertence a este
+   atendente (mesma checagem de dono usada em crm_indicacao_atualizar_). */
+function crm_atendente_lead_status_(data) {
+  var pessoa = crm_atendenteContexto_(data.email, data.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+  var idLead = s_(data.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+    if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+    var linha = acharLinhaPorChave_(abaLeads, 'ID', idLead);
+    if (linha === -1) return { status: 'error', message: 'Lead não encontrado.' };
+    var headers = headersDe_(abaLeads);
+    var dono = s_(abaLeads.getRange(linha, headers.indexOf('Atendente_Id') + 1).getValue());
+    if (dono !== s_(pessoa.Id)) return { status: 'error', message: 'Este lead não pertence a este atendente.' };
+    if (data.status !== undefined) abaLeads.getRange(linha, headers.indexOf('Status') + 1).setValue(data.status);
+    if (data.prioridade !== undefined) abaLeads.getRange(linha, headers.indexOf('Prioridade') + 1).setValue(data.prioridade);
+    var colAtualizado = headers.indexOf('Atualizado em');
+    if (colAtualizado !== -1) abaLeads.getRange(linha, colAtualizado + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
+/* Linha do tempo do lead (contato, nota, mudança de status etc.) — mesmo
+   desenho do HISTORICO_ATENDIMENTO do Feirão, mas chaveado por Lead_Id
+   (Id da aba LEADS) em vez de e-mail, porque um lead pode não ter e-mail
+   preenchido ainda. */
+function crm_atendente_historico_evento_(data) {
+  var pessoa = crm_atendenteContexto_(data.email, data.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+  var idLead = s_(data.leadId).trim();
+  var texto = s_(data.texto).trim();
+  if (!idLead || !texto) return { status: 'error', message: 'Lead e texto são obrigatórios.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_HISTORICO_ATENDIMENTO_LEAD + ' não encontrada — rode setupAtendenteCrmLeads().' };
+    var timestamp = s_(data.timestamp) || agora_();
+    aba.appendRow([idLead, s_(data.email_lead), s_(data.tipo) || 'nota', texto, pessoa.Nome, timestamp]);
+    return { status: 'ok' };
+  });
+}
+function crm_atendente_listar_historico_(p) {
+  var pessoa = crm_atendenteContexto_(p.email, p.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+  var idLead = s_(p.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (h) { return s_(h.Lead_Id) === idLead; })
+    .map(function (h) { return { tipo: s_(h.Tipo), texto: s_(h.Texto), autor: s_(h.Autor), timestamp: dataStr_(h.Timestamp) }; });
+  itens.sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+  return { status: 'ok', itens: itens };
+}
+
+/* ═══ Histórico do lead — pontes admin.html (PIN) e formulários públicos
+   (sem sessão) pra cima da MESMA aba HISTORICO_ATENDIMENTO_LEAD usada pelo
+   Atendente acima — decisão de 10/09/2026: admin.html deixa de gravar/ler
+   a coluna Q (Histórico JSON) da aba LEADS (que só o projeto Apps Script
+   separado — CRM_SCRIPT_URL_DEFAULT, sem fonte aqui — ainda escreve, só
+   pra criar/achar o lead) e passa a usar essas ações; as 4 telas públicas
+   que hoje mandam a 1ª interação direto pra coluna Q (index.html,
+   reserva.html, simulador.html, mapa-empreendimentos.html) passam a
+   mandar TAMBÉM, em paralelo, pra crm_lead_evento_publico. */
+/* Devolve no MESMO formato {tipo,nota,data,hora,consultor} que o
+   admin.html já usa há tempos pra guardar isso na coluna Q — assim
+   crmRenderTimeline()/"última interação" da lista/exportação em
+   admin.html continuam funcionando sem precisar mudar, só troca de onde
+   os dados vêm. */
+function crm_historicoParaFormatoAdmin_(h) {
+  var ts = dataStr_(h.Timestamp);
+  var partes = ts.split('T');
+  return { tipo: s_(h.Tipo), nota: s_(h.Texto), data: partes[0] || '', hora: (partes[1] || '').slice(0, 5), consultor: s_(h.Autor) };
+}
+function crm_admin_historico_evento_(data) {
+  var auth = autorizarAdmin_(data.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var idLead = s_(data.leadId).trim();
+  var nota = s_(data.nota).trim();
+  if (!idLead || !nota) return { status: 'error', message: 'Lead e nota são obrigatórios.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_HISTORICO_ATENDIMENTO_LEAD + ' não encontrada — rode setupAtendenteCrmLeads().' };
+    var timestamp = (s_(data.data) && s_(data.hora)) ? (s_(data.data) + 'T' + s_(data.hora) + ':00') : agora_();
+    aba.appendRow([idLead, s_(data.emailLead), s_(data.tipo) || 'nota', nota, s_(data.consultor) || 'Admin', timestamp]);
+    return { status: 'ok' };
+  });
+}
+function crm_admin_listar_historico_(p) {
+  var auth = autorizarAdmin_(p.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var idLead = s_(p.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (h) { return s_(h.Lead_Id) === idLead; })
+    .map(crm_historicoParaFormatoAdmin_);
+  itens.sort(function (a, b) { return new Date(a.data + 'T' + (a.hora || '00:00')) - new Date(b.data + 'T' + (b.hora || '00:00')); });
+  return { status: 'ok', itens: itens };
+}
+/* Todas as interações de todos os leads, agrupadas por Lead_Id — usada
+   uma vez no carregamento da lista inteira do CRM (crmCarregar), pra
+   alimentar a coluna "última interação" da tabela e o total exportado em
+   crmExportar() sem precisar de uma chamada por lead. */
+function crm_admin_listar_historico_todos_(p) {
+  var auth = autorizarAdmin_(p.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+  if (!aba) return { status: 'ok', porLead: {} };
+  var porLead = {};
+  lerAbaObjetos_(aba).forEach(function (h) {
+    var idLead = s_(h.Lead_Id);
+    if (!idLead) return;
+    if (!porLead[idLead]) porLead[idLead] = [];
+    porLead[idLead].push(crm_historicoParaFormatoAdmin_(h));
+  });
+  Object.keys(porLead).forEach(function (id) {
+    porLead[id].sort(function (a, b) { return new Date(a.data + 'T' + (a.hora || '00:00')) - new Date(b.data + 'T' + (b.hora || '00:00')); });
+  });
+  return { status: 'ok', porLead: porLead };
+}
+
+/* Sem PIN/sessão de propósito — mesmo nível de confiança que a coluna Q já
+   tinha (addInteracao do CRM_SCRIPT_URL_DEFAULT também não pede nada).
+   Chamada em paralelo pelas telas públicas de captura de lead, logo depois
+   de criar/achar o lead no outro projeto. Não recebe o Id do lead (esses
+   fetches são no-cors, cegos) — acha pelo telefone/e-mail; se ainda não
+   achar (corrida com o create, que roda em paralelo em outro projeto),
+   espera 1.5s fora de qualquer lock e tenta mais uma vez antes de desistir. */
+function crm_lead_evento_publico_(data) {
+  var texto = s_(data.texto).trim();
+  var telefone = String(data.telefone || '').replace(/\D/g, '');
+  var email = normalizarEmail_(data.email);
+  if (!texto || (!telefone && !email)) return { status: 'error', message: 'Texto e telefone/e-mail são obrigatórios.' };
+
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+
+  var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
+  if (!idLead) {
+    Utilities.sleep(1500);
+    idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
+  }
+  if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
+
+  return comLock_(function () {
+    var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_HISTORICO_ATENDIMENTO_LEAD + ' não encontrada — rode setupAtendenteCrmLeads().' };
+    aba.appendRow([idLead, email, s_(data.tipo) || 'nota', texto, s_(data.origem) || 'Site', agora_()]);
+    return { status: 'ok', leadId: idLead };
+  });
+}
+function crm_acharLeadPorContato_(abaLeads, telefone, email) {
+  var vals = abaLeads.getDataRange().getValues();
+  if (vals.length < 2) return '';
+  var headers = vals[0].map(function (h) { return String(h).trim(); });
+  var colId = headers.indexOf('ID');
+  var colTel = headers.indexOf('Telefone');
+  var colEmail = headers.indexOf('Email');
+  if (colId === -1) return '';
+  for (var i = vals.length - 1; i >= 1; i--) {
+    var rowTel = colTel === -1 ? '' : String(vals[i][colTel] || '').replace(/\D/g, '');
+    var rowEmail = colEmail === -1 ? '' : normalizarEmail_(vals[i][colEmail]);
+    if ((telefone && rowTel === telefone) || (email && rowEmail === email)) return s_(vals[i][colId]);
+  }
+  return '';
+}
+
+/* Migração única (rodar 1x, pelo admin.html, depois de publicar): copia pra
+   HISTORICO_ATENDIMENTO_LEAD tudo que já estava gravado na coluna Q
+   (Histórico (JSON)) da aba LEADS até agora. Idempotente — dedupe por
+   Lead_Id+Tipo+Texto, então rodar de novo (por engano) não duplica nada. */
+function crm_admin_migrar_historico_q_(data) {
+  var auth = autorizarAdmin_(data.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+    if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+    var aba = criarAbaSeNaoExiste_(ssCrm, ABA_HISTORICO_ATENDIMENTO_LEAD, ['Lead_Id', 'Email', 'Tipo', 'Texto', 'Autor', 'Timestamp']);
+
+    var headersLeads = headersDe_(abaLeads);
+    var colHist = headersLeads.indexOf('Histórico (JSON)');
+    if (colHist === -1) return { status: 'error', message: 'Coluna "Histórico (JSON)" não encontrada em LEADS.' };
+    var colId = headersLeads.indexOf('ID');
+    var colEmail = headersLeads.indexOf('Email');
+
+    var jaExiste = {};
+    lerAbaObjetos_(aba).forEach(function (h) {
+      jaExiste[s_(h.Lead_Id) + '|' + s_(h.Tipo) + '|' + s_(h.Texto)] = true;
+    });
+
+    var vals = abaLeads.getDataRange().getValues();
+    var leadsComHistorico = 0, eventosMigrados = 0;
+    for (var i = 1; i < vals.length; i++) {
+      var idLead = s_(vals[i][colId]);
+      if (!idLead) continue;
+      var hist = [];
+      try { hist = JSON.parse(String(vals[i][colHist] || '[]')); } catch (e) { continue; }
+      if (!hist.length) continue;
+      leadsComHistorico++;
+      var email = s_(vals[i][colEmail]);
+      hist.forEach(function (h) {
+        var tipo = s_(h.tipo) || 'nota';
+        var texto = s_(h.nota);
+        if (!texto) return;
+        var chave = idLead + '|' + tipo + '|' + texto;
+        if (jaExiste[chave]) return;
+        jaExiste[chave] = true;
+        var timestamp = (s_(h.data) && s_(h.hora)) ? (s_(h.data) + 'T' + s_(h.hora) + ':00') : (s_(h.data) || agora_());
+        aba.appendRow([idLead, email, tipo, texto, s_(h.consultor) || 'Migração Q', timestamp]);
+        eventosMigrados++;
+      });
+    }
+    return { status: 'ok', leadsComHistorico: leadsComHistorico, eventosMigrados: eventosMigrados };
+  });
+}
+
+/* Agenda de visita do próprio atendente — cria nova (sem id) ou atualiza
+   status (com id). */
+function crm_atendente_agendamento_(data) {
+  var pessoa = crm_atendenteContexto_(data.email, data.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_AGENDAMENTOS_VISITA_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_AGENDAMENTOS_VISITA_LEAD + ' não encontrada — rode setupAtendenteCrmLeads().' };
+    var headers = headersDe_(aba);
+
+    if (data.id) {
+      var linha = acharLinhaPorChave_(aba, 'Id', s_(data.id).trim());
+      if (linha === -1) return { status: 'error', message: 'Agendamento não encontrado.' };
+      var dono = s_(aba.getRange(linha, headers.indexOf('Atendente_Id') + 1).getValue());
+      if (dono !== s_(pessoa.Id)) return { status: 'error', message: 'Este agendamento não pertence a este atendente.' };
+      ['Data', 'Hora', 'Status', 'Obs'].forEach(function (campo) {
+        var chave = campo.toLowerCase();
+        if (data[chave] !== undefined) aba.getRange(linha, headers.indexOf(campo) + 1).setValue(data[chave]);
+      });
+      return { status: 'ok', id: s_(data.id) };
+    }
+
+    var idLead = s_(data.leadId).trim();
+    if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+    var id = gerarId_(aba, 'VIS');
+    var campos = {
+      Id: id, Lead_Id: idLead, Atendente_Id: pessoa.Id, Nome: s_(data.nome), Telefone: s_(data.telefone),
+      Email: s_(data.email_lead), Emp_Id: s_(data.empId), Data: s_(data.data), Hora: s_(data.hora),
+      Status: 'agendado', Obs: s_(data.obs), Criado_em: agora_()
+    };
+    aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
+    return { status: 'ok', id: id };
+  });
+}
+function crm_atendente_listar_agendamentos_(p) {
+  var pessoa = crm_atendenteContexto_(p.email, p.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_AGENDAMENTOS_VISITA_LEAD);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (a) { return s_(a.Atendente_Id) === s_(pessoa.Id); })
+    .map(function (a) {
+      return {
+        id: s_(a.Id), leadId: s_(a.Lead_Id), nome: s_(a.Nome), telefone: s_(a.Telefone), email: s_(a.Email),
+        empId: s_(a.Emp_Id), data: s_(a.Data), hora: s_(a.Hora), status: s_(a.Status) || 'agendado',
+        obs: s_(a.Obs), criadoEm: dataStr_(a.Criado_em)
+      };
+    });
+  return { status: 'ok', itens: itens };
+}
+
 /* ══════════════════ doGet / doPost ══════════════════ */
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || '';
@@ -1203,6 +1596,17 @@ function doGet(e) {
       case 'admin_pessoa_atualizar':            result = admin_pessoa_atualizar_(p); break;
       case 'admin_indicacoes_listar':           result = admin_indicacoes_listar_(p); break;
       case 'crm_agente_publico':                result = crm_agente_publico_(p); break;
+      case 'crm_atendente_leads_listar':        result = crm_atendente_leads_listar_(p); break;
+      case 'crm_atendente_listar_historico':    result = crm_atendente_listar_historico_(p); break;
+      case 'crm_atendente_listar_agendamentos': result = crm_atendente_listar_agendamentos_(p); break;
+      case 'crm_atendente_lead_atribuir':       result = crm_atendente_lead_atribuir_(p); break;
+      case 'crm_atendente_lead_status':         result = crm_atendente_lead_status_(p); break;
+      case 'crm_atendente_historico_evento':    result = crm_atendente_historico_evento_(p); break;
+      case 'crm_atendente_agendamento':         result = crm_atendente_agendamento_(p); break;
+      case 'crm_admin_historico_evento':        result = crm_admin_historico_evento_(p); break;
+      case 'crm_admin_listar_historico':        result = crm_admin_listar_historico_(p); break;
+      case 'crm_admin_listar_historico_todos':  result = crm_admin_listar_historico_todos_(p); break;
+      case 'crm_admin_migrar_historico_q':      result = crm_admin_migrar_historico_q_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
@@ -1230,6 +1634,11 @@ function doPost(e) {
       case 'admin_pessoa_atualizar':          out = admin_pessoa_atualizar_(data); break;
       case 'crm_indicacao_publica_criar':     out = crm_indicacao_publica_criar_(data); break;
       case 'crm_share_evento_registrar':      out = crm_share_evento_registrar_(data); break;
+      case 'crm_atendente_lead_atribuir':     out = crm_atendente_lead_atribuir_(data); break;
+      case 'crm_atendente_lead_status':       out = crm_atendente_lead_status_(data); break;
+      case 'crm_atendente_historico_evento':  out = crm_atendente_historico_evento_(data); break;
+      case 'crm_atendente_agendamento':       out = crm_atendente_agendamento_(data); break;
+      case 'crm_lead_evento_publico':         out = crm_lead_evento_publico_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);

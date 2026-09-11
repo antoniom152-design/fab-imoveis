@@ -2230,6 +2230,19 @@
         interacao
       })
     }).catch(() => {});
+
+    // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
+    // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
+    // não trava o cadastro do lead.
+    fetch(CADASTRO_API_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'crm_lead_evento_publico',
+        telefone: lead.telefone, email: lead.email,
+        tipo: lead.origem, texto: notaHistorico, origem: lead.origem
+      })
+    }).catch(() => {});
   }
 
   // ─── CONTADOR DE VISITAS ───

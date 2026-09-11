@@ -716,6 +716,19 @@ function registrarNoCRMSim(lead, nota) {
       interacao: { tipo: lead.origem, data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'), nota }
     })
   }).catch(() => {});
+
+  // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
+  // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
+  // não trava o simulador.
+  fetch(CADASTRO_API_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'crm_lead_evento_publico',
+      telefone: lead.telefone, email: lead.email,
+      tipo: lead.origem, texto: nota, origem: lead.origem
+    })
+  }).catch(() => {});
 }
 
 /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
