@@ -928,11 +928,11 @@ a{text-decoration:none;color:inherit}
             <button class="btn btn-gold" onclick="filtrarEmps()">▶ Filtrar</button>
             <button class="btn" onclick="limparFiltrosEmps()">✕ Limpar</button>
             <button class="btn btn-teal" onclick="abrirMapaFiltrado()">🗺️ Ver no Mapa</button>
+            <span class="fs11 c-muted" id="empContagem"></span>
             <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Buscar por nome..." style="width:200px;margin-left:auto" oninput="filtrarEmps()">
           </div>
         </div>
       </div>
-      <div class="fs11 c-muted mb14" id="empContagem"></div>
       <div id="empGrid" class="emp-grid mb20"></div>
     </div>
 
@@ -1671,6 +1671,17 @@ async function carregarDadosIniciais(){
   popularFiltrosEmp();filtrarEmps();
 }
 function nomeEmp_(empId){ const e=_empreendimentos.find(x=>x.id===empId); return e?e.nome:(empId?'—':'—'); }
+function escAttr_(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+/* Campo "Empreendimento" do agendamento de visita virou texto+datalist
+   (digita e filtra, lista em ordem alfabética) em vez de <select> — o
+   datalist só guarda o nome (não dá pra carregar o id junto), então
+   acha o empreendimento pelo nome digitado na hora de salvar. */
+function empIdPorNomeDigitado_(nomeDigitado){
+  const alvo=String(nomeDigitado||'').trim().toLowerCase();
+  if(!alvo)return'';
+  const e=_empreendimentos.find(x=>(x.nome||'').trim().toLowerCase()===alvo);
+  return e?e.id:'';
+}
 /* Copiado de imovel.html — a coluna "URL da Imagem" do Portfólio guarda
    link de "view" do Drive (.../d/ID/view), que não renderiza em <img>
    direto; precisa converter pro formato lh3.googleusercontent.com. */
@@ -1719,6 +1730,16 @@ function atualizarPills(){
   const nd=document.getElementById('notifDot');
   if(nd) nd.style.display=urgentes?'':'none';
 }
+let _filaSort={campo:'atualizadoEm',dir:-1};
+function filaOrdenar(campo){
+  if(_filaSort.campo===campo){_filaSort.dir*=-1;}else{_filaSort={campo,dir:campo==='atualizadoEm'?-1:1};}
+  renderFila();
+}
+function fmtDtHora_(iso){
+  if(!iso)return'—';
+  const[data,hora]=String(iso).split('T');
+  return fmtDt(data)+(hora?' '+hora.slice(0,5):'');
+}
 function renderFila(){
   atualizarPills();
   const busca=(document.getElementById('filaBusca')?.value||'').toLowerCase();
@@ -1728,15 +1749,17 @@ function renderFila(){
     if(busca&&!(l.nome||'').toLowerCase().includes(busca))return false;
     return true;
   });
-  list.sort((a,b)=>(b.atualizadoEm||'').localeCompare(a.atualizadoEm||''));
+  const campo=_filaSort.campo;
+  list.sort((a,b)=>String(a[campo]||'').localeCompare(String(b[campo]||''))*_filaSort.dir);
+  const seta=_filaSort.campo==='atualizadoEm'?(_filaSort.dir===1?' ▲':' ▼'):'';
   const el=document.getElementById('filaLista');
   if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum lead encontrado.</div>`;return}
-  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Origem</th><th>Status</th><th>Prioridade</th><th>Atualizado</th><th>Progresso</th><th></th></tr></thead><tbody>${list.map(l=>`<tr class="clk" onclick="abrirLead('${l.id}')">
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Origem</th><th>Status</th><th>Prioridade</th><th class="clk" onclick="filaOrdenar('atualizadoEm')" style="cursor:pointer;white-space:nowrap">Atualizado${seta}</th><th>Progresso</th><th></th></tr></thead><tbody>${list.map(l=>`<tr class="clk" onclick="abrirLead('${l.id}')">
     <td><div class="fw6">${l.nome||'—'}</div><div class="fs10 c-muted">${l.telefone||l.email||''}</div></td>
     <td class="fs11">${l.origem||'—'}</td>
     <td><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></td>
     <td><span class="bdg bz fs10">${l.prioridade||'média'}</span></td>
-    <td class="mono fs10 c-muted">${fmtDt((l.atualizadoEm||'').split('T')[0])}</td>
+    <td class="mono fs10 c-muted" style="white-space:nowrap">${fmtDtHora_(l.atualizadoEm)}</td>
     <td style="min-width:100px"><div class="prog-bar"><div class="pf pf-teal" style="width:${statusLeadPct(l.status)}%"></div></div></td>
     <td><button class="btn btn-sm btn-teal" onclick="event.stopPropagation();abrirLead('${l.id}')">Ver ›</button></td>
   </tr>`).join('')}</tbody></table></div>`;
@@ -1782,7 +1805,7 @@ function renderLeadModal(l,historico){
         <div class="flex-bet mb14"><div><div class="fs14 fw6">${l.nome||'—'}</div><div class="fs11 c-muted">${l.telefone||''}${l.email?' · '+l.email:''}</div></div><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
           <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Origem</div><div class="fs12 fw6">${l.origem||'—'}</div></div>
-          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Consultor</div><div class="fs12 fw6">${l.consultor||'—'}</div></div>
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Consultor / Agente</div><div class="fs12 fw6">${l.consultor||'—'}</div></div>
         </div>
         <div class="f-sec mb14">Atualizar status</div>
         <div class="field-row field-2 mb14">
@@ -1799,7 +1822,7 @@ function renderLeadModal(l,historico){
           <div><div class="field-lbl">Hora</div><input class="field-inp" type="time" id="leadVisitaHora"></div>
         </div>
         <div class="field-row mb14">
-          <div><div class="field-lbl">Empreendimento</div><select class="field-sel" id="leadVisitaEmp"><option value="">Selecione...</option>${_empreendimentos.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('')}</select></div>
+          <div><div class="field-lbl">Empreendimento</div><input class="field-inp" type="text" id="leadVisitaEmp" list="leadVisitaEmpList" placeholder="Digite para buscar..." autocomplete="off"><datalist id="leadVisitaEmpList">${[..._empreendimentos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(e=>`<option value="${escAttr_(e.nome)}">`).join('')}</datalist></div>
         </div>
         <button class="btn btn-gold btn-sm" onclick="salvarAgendamentoLead()">📅 Agendar visita</button>
       </div>
@@ -1835,7 +1858,9 @@ async function salvarAgendamentoLead(){
   const hora=document.getElementById('leadVisitaHora').value;
   if(!data||!hora){toast('Informe data e hora da visita.','');return}
   const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
-  const empId=document.getElementById('leadVisitaEmp').value;
+  const empNomeDigitado=document.getElementById('leadVisitaEmp').value;
+  const empId=empIdPorNomeDigitado_(empNomeDigitado);
+  if(empNomeDigitado.trim()&&!empId){toast('Empreendimento não encontrado — selecione um da lista.','');return}
   const resp=await cadastroApiJsonp('crm_atendente_agendamento',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,nome:l.nome,telefone:l.telefone,email_lead:l.email,empId,data,hora});
   if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível agendar.','');return}
   await cadastroApiJsonp('crm_atendente_historico_evento',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,email_lead:l.email,tipo:'visita',texto:`Visita agendada para ${fmtDt(data)} às ${hora}${empId?' — '+nomeEmp_(empId):''}.`});
@@ -1992,25 +2017,40 @@ function empFaixaMatch_(valorMil,faixaId){
   if(faixaId==='9999')return valorMil>2500;
   return valorMil<=f.max;
 }
+/* Recarrega os leads/empreendimentos a cada 30s (ver carregarDadosIniciais)
+   e reconstruía essas <select> do zero toda vez — o que limpava o
+   filtro que o atendente tinha escolhido sozinho, sem ele mexer em
+   nada. Agora guarda o valor selecionado antes de reconstruir e
+   devolve depois (se a opção ainda existir). */
 function popularFiltrosEmp(){
+  const prevUf=document.getElementById('empFUf').value;
+  const prevTipo=document.getElementById('empFTipo').value;
+  const prevFaixa=document.getElementById('empFFaixa').value;
   const ufs=[...new Set(_empreendimentos.map(e=>e.uf).filter(Boolean))].sort();
   document.getElementById('empFUf').innerHTML='<option value="">Todos</option>'+ufs.map(u=>`<option value="${u}">${u}</option>`).join('');
+  document.getElementById('empFUf').value=prevUf;
   const tipos=[...new Set(_empreendimentos.map(e=>e.tipo).filter(Boolean))].sort();
   document.getElementById('empFTipo').innerHTML='<option value="">Todos os tipos</option>'+tipos.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('empFTipo').value=prevTipo;
   document.getElementById('empFFaixa').innerHTML='<option value="">Qualquer valor</option>'+EMP_FAIXAS.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  document.getElementById('empFFaixa').value=prevFaixa;
   atualizarCidadesEmp();
 }
 function atualizarCidadesEmp(){
   const uf=document.getElementById('empFUf').value;
+  const prevCidade=document.getElementById('empFCidade').value;
   const cidades=[...new Set(_empreendimentos.filter(e=>!uf||e.uf===uf).map(e=>e.cidade).filter(Boolean))].sort();
   document.getElementById('empFCidade').innerHTML='<option value="">Todas as cidades</option>'+cidades.map(c=>`<option value="${c}">${c}</option>`).join('');
+  document.getElementById('empFCidade').value=prevCidade;
   atualizarBairrosEmp();
 }
 function atualizarBairrosEmp(){
   const uf=document.getElementById('empFUf').value;
   const cidade=document.getElementById('empFCidade').value;
+  const prevBairro=document.getElementById('empFBairro').value;
   const bairros=[...new Set(_empreendimentos.filter(e=>(!uf||e.uf===uf)&&(!cidade||e.cidade===cidade)).map(e=>e.bairro).filter(Boolean))].sort();
   document.getElementById('empFBairro').innerHTML='<option value="">Todos os bairros</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
+  document.getElementById('empFBairro').value=prevBairro;
 }
 /* "Ver no Mapa" leva o filtro atual (UF/Tipo/Cidade/Bairro/Busca — o
    mapa não tem filtro de Faixa de Valor, então esse campo não é
