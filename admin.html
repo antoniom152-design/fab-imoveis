@@ -2401,8 +2401,8 @@ function jsonOut(obj) {
       <button class="btn-header btn-outline" onclick="equipeCompartilharCadastro('corretor')" style="height:38px;padding:0 16px;font-size:11px;color:var(--navy)">
         🧑‍💼 Compartilhar cadastro — Corretor <span style="opacity:.6">(em breve)</span>
       </button>
-      <button class="btn-header btn-outline" onclick="equipeCompartilharCadastro('atendente')" style="height:38px;padding:0 16px;font-size:11px;color:var(--navy)">
-        🎧 Compartilhar cadastro — Atendente <span style="opacity:.6">(em breve)</span>
+      <button class="btn-header btn-primary" onclick="equipeCompartilharCadastro('atendente')" style="height:38px;padding:0 16px;font-size:11px">
+        🎧 Compartilhar cadastro — Atendente
       </button>
     </div>
   </div>
@@ -5135,15 +5135,15 @@ const EQUIPE_PAPEL_LABEL = { agente: 'Agente', corretor: 'Corretor', atendente: 
 
 /* ── Compartilhar link de autocadastro (aba "Quero ser Agente/Corretor/
    Atendente" de cada dashboard) ── Mesmo padrão de compartilharSite()
-   em index.html (modal simples: WhatsApp + Copiar Link). Corretor e
-   Atendente ainda não têm dashboard próprio (só painel/agente/ existe
-   até agora) — os valores ficam vazios de propósito; quando esses
-   dashboards forem criados, só preencher a URL aqui que os botões
-   passam a funcionar sozinhos, sem mexer em mais nada. */
+   em index.html (modal simples: WhatsApp + Copiar Link). Corretor ainda
+   não tem dashboard próprio — valor fica vazio de propósito; quando
+   esse dashboard for criado, só preencher a URL aqui que o botão passa
+   a funcionar sozinho, sem mexer em mais nada (mesmo esquema usado pra
+   ativar o de Atendente em 11/09/2026). */
 const EQUIPE_LINKS_CADASTRO = {
   agente: 'https://www.walservidor.com.br/painel/agente/dashboard-agente.html',
   corretor: '',
-  atendente: ''
+  atendente: 'https://www.walservidor.com.br/painel/atendente/dashboard_atendente.html'
 };
 const EQUIPE_LINKS_MSG = {
   agente: '🤝 Olá! Você foi convidado(a) a se cadastrar como *Agente Parceiro* da WAL Imóveis — indique conhecidos interessados em comprar imóvel e ganhe bonificação sobre as vendas concretizadas. Cadastre-se aqui:',
