@@ -115,6 +115,14 @@ function s_(v) { return (v === null || v === undefined) ? '' : String(v); }
    Usar esta função (não s_) em todo campo que guarda datas/timestamps
    gravados por agora_(). */
 function dataStr_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, "yyyy-MM-dd'T'HH:mm:ss") : s_(v); }
+/* Mesma ideia de dataStr_(), mas pra colunas "Data" e "Hora" separadas
+   (ex.: AGENDAMENTOS_VISITA_LEAD) — o Sheets também converte sozinho
+   "2026-09-15" (só data) e "14:00" (só hora) pra objeto Date ao gravar;
+   sem isso, s_() devolve o Date.toString() inteiro ("Tue Sep 15 2026
+   00:00:00 GMT-0300 ..." / "Sat Dec 30 1899 14:00:00 ..." — 30/12/1899
+   é a data-zero interna do Sheets pra células só de hora). */
+function dataSomenteStr_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'yyyy-MM-dd') : s_(v); }
+function horaSomenteStr_(v) { return (v instanceof Date) ? Utilities.formatDate(v, TZ, 'HH:mm') : s_(v); }
 function normalizarEmail_(v) { return s_(v).trim().toLowerCase(); }
 /* Cabeçalhos lidos SEMPRE aqui (nunca .getRange(1,1,1,n).getValues()[0]
    direto) — trim() evita que um espaço a mais digitado na planilha
@@ -1560,7 +1568,7 @@ function crm_atendente_listar_agendamentos_(p) {
     .map(function (a) {
       return {
         id: s_(a.Id), leadId: s_(a.Lead_Id), nome: s_(a.Nome), telefone: s_(a.Telefone), email: s_(a.Email),
-        empId: s_(a.Emp_Id), data: s_(a.Data), hora: s_(a.Hora), status: s_(a.Status) || 'agendado',
+        empId: s_(a.Emp_Id), data: dataSomenteStr_(a.Data), hora: horaSomenteStr_(a.Hora), status: s_(a.Status) || 'agendado',
         obs: s_(a.Obs), criadoEm: dataStr_(a.Criado_em)
       };
     });
