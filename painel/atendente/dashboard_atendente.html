@@ -901,9 +901,22 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
       <div class="card">
-        <iframe id="simuladorFrame" src="../../simulador.html" style="width:100%;height:75vh;border:0;display:block;background:#fff"></iframe>
+        <iframe id="simuladorFrame" style="width:100%;height:75vh;border:0;display:block;background:#fff"></iframe>
       </div>
     </div>
+    <script>
+      /* Atendente já está autenticado neste dashboard — não faz sentido
+         pedir nome/whatsapp/e-mail de novo toda vez que ele abre o
+         simulador pra ajudar um lead. simulador.html já tem esse
+         bypass pronto (sessionStorage 'sim_identificado', usado hoje
+         quando o visitante vem do index.html) — só precisa ser setado
+         ANTES do iframe carregar, por isso esse <script> roda aqui,
+         logo depois do iframe, sem esperar login nem nada assíncrono.
+         Mesma sessionStorage vale pro link "Abrir em nova aba" (mesma
+         origem, aba auxiliar aberta a partir daqui herda a sessão). */
+      try { sessionStorage.setItem('sim_identificado', '1'); } catch (e) {}
+      document.getElementById('simuladorFrame').src = '../../simulador.html';
+    </script>
 
 
     <!-- ══ UNIDADES DISPONÍVEIS ══ -->
