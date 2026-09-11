@@ -994,6 +994,7 @@ a{text-decoration:none;color:inherit}
             <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Script de primeiro contato para um lead que acabou de chegar, sem informação de interesse ainda')">🆕 Lead novo, sem contato</div>
             <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como conduzir a conversa com um lead que já demonstrou interesse e está avaliando propostas?')">📋 Lead em proposta</div>
             <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como preparar a confirmação de uma visita agendada para amanhã?')">📅 Antes da visita agendada</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Me dê de 3 a 5 perguntas de qualificação pra entender melhor esse lead e ser mais persuasivo na abordagem')">❓ Perguntas de qualificação</div>
           </div>
         </div>
         <div class="card">
@@ -1160,17 +1161,52 @@ let _agendamentos = [];
 let _empreendimentos = [];
 let _historicoCache = {};
 
+/* Base de conhecimento condensada do e-book oficial da WAL
+   (ebook-financiamento-servidor-publico.html) — não manda o e-book
+   inteiro (é pesado e a maior parte é texto de capa/estilo), só os
+   números e programas que o atendente realmente usa numa conversa.
+   Atualizar aqui se o e-book mudar (taxas, tetos, programas novos). */
 const AI_SYSTEM_ATENDENTE = `Você é o Assistente IA da WAL Consultoria Imobiliária, ajudando ATENDENTES — a equipe interna que faz a triagem dos leads recebidos pelo site antes de encaminhar para o corretor.
+
+PÚBLICO-ALVO (sempre no centro de toda resposta): nossos clientes são servidores públicos civis e militares — das Forças Armadas (FAB, Marinha, Exército), de segurança pública (PM, PC, PF, PRF, Bombeiros) e servidores federais/estaduais/municipais — na ativa ou já aposentados/na reserva/pensionistas. Toda orientação, argumento e exemplo deve considerar esse perfil: estabilidade profissional, contracheque padronizado e acesso a linhas de crédito exclusivas que o público em geral não tem.
 
 Seu papel é ajudar o atendente a:
 1. Fazer o primeiro contato e a triagem de leads de forma natural, sem soar como script decorado
-2. Responder dúvidas sobre os empreendimentos e financiamento CFIAe
-3. Superar objeções de forma profissional e empática
+2. Responder dúvidas sobre os empreendimentos e sobre as linhas de financiamento (dados abaixo)
+3. Superar objeções de forma profissional e empática, com argumentos concretos
 4. Criar mensagens de WhatsApp e confirmações de visita prontas para usar
+5. Guiar o atendente com perguntas de qualificação que tornam a abordagem mais persuasiva (ver QUESTIONÁRIO DE QUALIFICAÇÃO)
 
-CFIAe FAB: 8,5%a.a.+TR, até 35 anos, até 90% financiado, FGTS aceito.
+═══ LINHAS DE FINANCIAMENTO PARA SERVIDOR PÚBLICO/MILITAR ═══
+• CFIAe (Aeronáutica/FAB) — exclusivo família FAB (ativos, veteranos, inativos, pensionistas), taxas abaixo do mercado, até R$150 mil por beneficiário, pago por consignação em folha.
+• CCCPM (Marinha) — militares/civis da MB, comprometimento até 35% da remuneração/provento/pensão, consultoria imobiliária 100% GRATUITA (consultoria@marinha.mil.br).
+• POUPEX (Forças Armadas) — até 90% financiado; taxa TR a partir de 6,6% a.a. ou IPCA a partir de 2,6% a.a.; Procap Faixa Especial 3,5% a.a. p/ militares até Capitão/Capitão-Tenente (imóveis até R$600 mil); limite geral até R$10 milhões; prazo até 35 anos; exige ser poupador POUPEX.
+• Caixa (Convênio Servidor) — servidores federais/estaduais/municipais + militares, até 90%, imóveis até R$500 mil, taxas a partir de 8,4% a.a.+TR, até 35 anos.
+• Caixa (Habite Seguro) — 100% financiado SEM ENTRADA p/ segurança pública (PM/PC/PF/PRF/Bombeiros/Peritos/Guardas), até R$300 mil, subsídio até R$13 mil, renda familiar até R$7 mil brutos.
+• Cooperativas (Sicoob Coopmil p/ militares, Cooperforte p/ federais/estaduais, Sicredi) — taxas a partir de 1,42% a.m., cooperado participa dos lucros, consignação.
+• Minha Casa Minha Vida 2026 — Faixa 4 NOVA: renda até R$13 mil, imóveis até R$600 mil, juros fixos 10% a.a., até 35 anos, SEM sorteio/inscrição (contrato direto no banco); Faixas 1-3 têm subsídio decrescente pra quem ganha menos.
+• FGTS: usa pra entrada, amortização do saldo ou redução do saldo a cada 2 anos (SFH); exige 3+ anos sob regime FGTS e não ter financiamento ativo no SFH na mesma cidade/UF.
+• Composição de renda: pode somar cônjuge/família pra aumentar a capacidade de financiamento.
+• SAC vs Price: SAC = parcela decrescente, menos juros no total (melhor pra quem aguenta a parcela inicial maior e tem carreira com renda crescente); Price = parcela fixa, mais previsível mas paga mais juros no total.
+• CET (Custo Efetivo Total): sempre comparar o CET, não só a taxa de juros — inclui TR, seguro MIP/DFI, taxa de administração, ITBI (2-4% à parte) e cartório (~1% à parte).
 
-Seja natural, empático, direto. Dê respostas práticas que o atendente possa usar imediatamente no atendimento do lead.`;
+═══ OBJEÇÕES MAIS COMUNS E COMO RESPONDER ═══
+• "Não tenho entrada" → FGTS cobre parte/toda a entrada; Habite Seguro e Faixa 1 do MCMV chegam a 100% financiado; CFIAe cobre até R$100 mil pra entrada/ITBI/cartório em empreendimentos parceiros.
+• "Vou esperar os preços caírem" → imóvel na planta valoriza em média 15-40% até a entrega; esperar geralmente sai mais caro que financiar agora com taxa travada.
+• "Vai pesar no orçamento" → regra dos ~30% da renda líquida; no SAC a parcela cai com o tempo e tende a acompanhar a evolução salarial da carreira.
+• "Preciso pensar mais" → não empurrar; oferecer mandar uma simulação personalizada e ficar à disposição — reforçar que simular não compromete nada.
+
+═══ QUESTIONÁRIO DE QUALIFICAÇÃO (use pra guiar o atendente a entender o lead e ser mais persuasivo) ═══
+Quando o atendente pedir ajuda pra qualificar/entender um lead, sugira 3 a 5 perguntas destas categorias (as mais relevantes pro momento da conversa — não despeje todas de uma vez):
+
+Perfil e vínculo: "Você é militar, servidor civil ou já está na reserva/aposentado(a)? De qual força/órgão?" · "Já tem conta ou é poupador em alguma instituição como POUPEX, CFIAe ou cooperativa (Sicoob, Cooperforte)?"
+Momento de vida: "Está comprando pra morar ou como investimento?" · "Já tem imóvel próprio hoje, ou seria o primeiro?" · "Vai comprar sozinho(a) ou compor renda com cônjuge/família?"
+Situação financeira: "Já tem ideia de quanto consegue guardar pra entrada, ou pretende usar o FGTS?" · "Sabe seu score hoje, ou já verificou se o nome está limpo?" · "A parcela ideal ficaria em qual faixa de valor por mês?"
+Urgência e critério de decisão: "Tem prazo pra decidir (mudança de cidade, casamento, fim de contrato de aluguel)?" · "O que mais pesa na decisão: localização, preço, prazo de entrega ou taxa?" · "Já fez simulação em algum banco, ou seria a primeira?"
+
+Depois de coletar isso, oriente o atendente a indicar a linha de crédito mais adequada ao perfil (ex: CFIAe pra família FAB, Habite Seguro pra segurança pública sem entrada, Faixa 4 do MCMV pra quem ganha até R$13 mil) — isso torna a conversa consultiva em vez de genérica, o que é muito mais persuasivo do que um script decorado.
+
+Seja natural, empático, direto. Dê respostas práticas que o atendente possa usar imediatamente no atendimento do lead. Cite números/condições específicas dos blocos acima quando fizerem sentido, mas sem virar uma aula — o atendente precisa de algo pronto pra usar, não de uma explicação longa.`;
 
 let _aiHistory = [];
 
@@ -2192,15 +2228,24 @@ async function sendAiMsg(){
   const btn=document.getElementById('aiSendBtn');
   if(btn){btn.textContent='⏳';btn.disabled=true;btn.classList.add('loading')}
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+    // Nunca chamar api.anthropic.com direto do navegador — exigiria
+    // colocar a chave da API no HTML/JS, visível pra qualquer um que
+    // abra o código-fonte da página. O proxy (crm_atendente_ia_chat_ em
+    // apps-script-sistema-web-cadastro.gs) guarda a chave só nas
+    // Propriedades do Script e confere a sessão do atendente antes de
+    // gastar a chave.
+    const resp=await fetch(CADASTRO_API_URL,{
       method:'POST',
-      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYSTEM_ATENDENTE,messages:_aiHistory})
+      headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({action:'crm_atendente_ia_chat',email:_user.email,sessionToken:_user.sessionToken,system:AI_SYSTEM_ATENDENTE,messages:JSON.stringify(_aiHistory)})
     });
     const data=await resp.json();
-    const reply=data.content?.[0]?.text||'Desculpe, não consegui responder agora.';
-    _aiHistory.push({role:'assistant',content:reply});
-    addAiMsg('ai',reply);
+    if(data.status!=='ok'||!data.reply){
+      addAiMsg('ai','⚠️ '+(data.message||'Desculpe, não consegui responder agora.'));
+    }else{
+      _aiHistory.push({role:'assistant',content:data.reply});
+      addAiMsg('ai',data.reply);
+    }
   }catch(e){addAiMsg('ai','⚠️ Erro de conexão. Verifique sua internet e tente novamente.')}
   if(btn){btn.textContent='➤';btn.disabled=false;btn.classList.remove('loading')}
 }

@@ -195,6 +195,9 @@ function gerarToken_() {
 function brevoApiKey_() {
   return PropertiesService.getScriptProperties().getProperty('BREVO_API_KEY');
 }
+function anthropicApiKey_() {
+  return PropertiesService.getScriptProperties().getProperty('ANTHROPIC_API_KEY');
+}
 /* Envio síncrono (não enfileirado) — usado só pelo código de acesso,
    que precisa chegar rápido. Diferente do padrão de fila do Feirão
    (vários tipos de notificação, processados 1x/minuto); aqui é uma
@@ -1575,6 +1578,55 @@ function crm_atendente_listar_agendamentos_(p) {
   return { status: 'ok', itens: itens };
 }
 
+/* Proxy do "Assistente IA" do dashboard_atendente.html pra API da
+   Anthropic — o front-end chamava fetch direto pra api.anthropic.com
+   sem nenhuma x-api-key (por isso SEMPRE caía no fallback "Desculpe,
+   não consegui responder agora": sem chave, a API responde erro de
+   autenticação e a tela mostra só o texto genérico). NUNCA colocar a
+   chave real no HTML/JS do atendente — qualquer visitante consegue ler
+   o código-fonte da página e roubar a chave. Aqui a chave fica só nas
+   Propriedades do Script (anthropicApiKey_(), mesmo padrão de
+   brevoApiKey_()), e o atendente só fala com este endpoint, que já
+   confere a sessão OTP dele antes de gastar a chave. */
+function crm_atendente_ia_chat_(data) {
+  var pessoa = crm_atendenteContexto_(data.email, data.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de atendente não encontrado.' };
+
+  var apiKey = anthropicApiKey_();
+  if (!apiKey) return { status: 'error', message: 'Assistente IA não configurado — falta ANTHROPIC_API_KEY nas Propriedades do Script.' };
+
+  var mensagens;
+  try { mensagens = JSON.parse(s_(data.messages) || '[]'); } catch (e) { return { status: 'error', message: 'Histórico de mensagens inválido.' }; }
+  if (!mensagens.length) return { status: 'error', message: 'Nenhuma mensagem enviada.' };
+
+  try {
+    var resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      contentType: 'application/json',
+      muteHttpExceptions: true,
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1000,
+        system: s_(data.system),
+        messages: mensagens
+      })
+    });
+    var codigo = resp.getResponseCode();
+    var corpo = JSON.parse(resp.getContentText());
+    if (codigo < 200 || codigo >= 300) {
+      Logger.log('crm_atendente_ia_chat_ erro: ' + codigo + ' — ' + resp.getContentText());
+      return { status: 'error', message: (corpo.error && corpo.error.message) || ('Erro ' + codigo + ' na API da IA.') };
+    }
+    var texto = corpo.content && corpo.content[0] && corpo.content[0].text;
+    if (!texto) return { status: 'error', message: 'Resposta vazia da IA.' };
+    return { status: 'ok', reply: texto };
+  } catch (e) {
+    Logger.log('crm_atendente_ia_chat_ erro: ' + e.message);
+    return { status: 'error', message: 'Falha de conexão com a IA.' };
+  }
+}
+
 /* ══════════════════ doGet / doPost ══════════════════ */
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || '';
@@ -1647,6 +1699,7 @@ function doPost(e) {
       case 'crm_atendente_historico_evento':  out = crm_atendente_historico_evento_(data); break;
       case 'crm_atendente_agendamento':       out = crm_atendente_agendamento_(data); break;
       case 'crm_lead_evento_publico':         out = crm_lead_evento_publico_(data); break;
+      case 'crm_atendente_ia_chat':           out = crm_atendente_ia_chat_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);
