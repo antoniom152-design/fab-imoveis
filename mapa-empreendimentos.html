@@ -2370,7 +2370,10 @@ function popularSelect(id, valores, label) {
     };
 
     // Payload no formato da ação "criar" do CRM_SCRIPT_URL (mesmo Apps
-    // Script/aba LEADS que o admin.html usa em crmSalvarLead()).
+    // Script/aba LEADS que o admin.html usa em crmSalvarLead()). Não manda
+    // mais "historico" — a 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD
+    // via crm_lead_evento_publico logo abaixo (mesma aba que o admin.html
+    // e o dashboard_atendente.html leem/gravam), não mais na coluna Q.
     const leadData = {
       status: 'novo',
       prioridade: 'alta',
@@ -2384,8 +2387,7 @@ function popularSelect(id, valores, label) {
       area: ctx.area || '',
       obs: obsUser,
       proxacao: 'Contatar lead aquecido do mapa',
-      proxdata: dataProxAcao,
-      historico: [interacaoMapa]
+      proxdata: dataProxAcao
     };
 
     const btn = document.getElementById('btn-lead-enviar');
@@ -2410,6 +2412,18 @@ function popularSelect(id, valores, label) {
           localStorage.setItem('wal_mapa_lead_enviado', agora.toISOString());
           localStorage.setItem('wal_mapa_lead_id', (data && (data.id || data.lead_id)) || '');
         } catch (e) {}
+        // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD — fire-and-forget,
+        // não atrasa nem trava a confirmação pro visitante.
+        fetch(CADASTRO_API_URL, {
+          method: 'POST', mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({
+            action: 'crm_lead_evento_publico',
+            telefone, email,
+            tipo: interacaoMapa.tipo, texto: interacaoMapa.nota,
+            origem: leadData.origem
+          })
+        }).catch(() => {});
       } else {
         const msg = (data && (data.message || data.erro || data.error)) ||
           'Não foi possível registrar no CRM agora. Use o WhatsApp abaixo ou tente de novo.';

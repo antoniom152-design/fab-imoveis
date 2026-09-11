@@ -992,15 +992,28 @@
 
   function registrarNoCRMReserva(nome, telefone, email) {
     const now = new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T');
+    const notaHistorico = 'Enviou formulário de reserva de imóvel';
     const payload = {
       action: 'criarOuAtualizar',
       lead: { nome, telefone, email, origem: 'Reserva', prioridade: 'alta', status: 'novo' },
-      interacao: { tipo: 'Reserva', data: now, nota: 'Enviou formulário de reserva de imóvel' }
+      interacao: { tipo: 'Reserva', data: now, nota: notaHistorico }
     };
     fetch(CRM_URL_RES, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify(payload)
+    }).catch(() => {});
+
+    // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
+    // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
+    // não trava a confirmação da reserva.
+    fetch(CADASTRO_API_URL, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'crm_lead_evento_publico',
+        telefone, email, tipo: 'Reserva', texto: notaHistorico, origem: 'Reserva'
+      })
     }).catch(() => {});
   }
 

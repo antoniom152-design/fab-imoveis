@@ -2024,6 +2024,9 @@ function onEdit(e) {
       <button class="btn-conn-test" onclick="toggleStep(document.getElementById('crm-setup-step'))">
         📋 Ver guia de configuração
       </button>
+      <button class="btn-conn-test" onclick="crmMigrarHistoricoQ()" title="Copia pra HISTORICO_ATENDIMENTO_LEAD tudo que já estava na coluna Q — rodar 1 vez só, é seguro rodar de novo por engano (não duplica)">
+        ⚙️ Migrar histórico da coluna Q (1x)
+      </button>
     </div>
   </div>
 
@@ -4410,6 +4413,17 @@ async function crmCarregar() {
     const data = await crmJsonp(scriptUrl);
     if (data.error) throw new Error(data.error);
     _crmLeads = (data.leads || []);
+    // Histórico não vem mais na coluna Q (data.leads já chega sem isso, na
+    // prática) — busca à parte na aba HISTORICO_ATENDIMENTO_LEAD (mesma
+    // usada pelo dashboard_atendente.html) e anexa em cada lead, mantendo
+    // o mesmo formato lead.historico=[{tipo,nota,data,hora,consultor}]
+    // de sempre, pra não mudar nada do resto do código (tabela, timeline,
+    // exportação).
+    try {
+      const histResp = await equipeJsonp('crm_admin_listar_historico_todos', {});
+      const porLead = (histResp && histResp.status === 'ok') ? histResp.porLead : {};
+      _crmLeads.forEach(l => { l.historico = porLead[l.id] || []; });
+    } catch { /* lista principal continua útil mesmo sem histórico */ }
     localStorage.setItem(CRM_KEY, JSON.stringify(_crmLeads));
     _crmUltimaAtualizacao = new Date();
     crmSetConnStatus('ok', `CRM conectado — ${_crmLeads.length} lead(s) carregado(s)`, new Date().toLocaleTimeString('pt-BR'));
@@ -4424,6 +4438,22 @@ async function crmCarregar() {
 
 function crmSalvarStorage() {
   localStorage.setItem(CRM_KEY, JSON.stringify(_crmLeads));
+}
+
+// Migração única: copia pra HISTORICO_ATENDIMENTO_LEAD tudo que já estava
+// gravado na coluna Q (Histórico JSON) da aba LEADS. Idempotente (dedupe
+// por Lead_Id+Tipo+Texto no backend) — rodar de novo por engano não
+// duplica nada, mas não precisa rodar mais de uma vez.
+async function crmMigrarHistoricoQ() {
+  if (!confirm('Copiar pra HISTORICO_ATENDIMENTO_LEAD tudo que já está gravado na coluna Q de LEADS?\n\nÉ seguro rodar mais de uma vez (não duplica), mas só precisa rodar 1 vez.')) return;
+  mostrarToast('⏳ Migrando histórico…');
+  const resp = await equipeJsonp('crm_admin_migrar_historico_q', {});
+  if (!resp || resp.status !== 'ok') {
+    alert('Erro na migração: ' + ((resp && resp.message) || 'sem resposta do servidor.'));
+    return;
+  }
+  alert(`✅ Migração concluída!\n\nLeads com histórico na coluna Q: ${resp.leadsComHistorico}\nEventos migrados (novos): ${resp.eventosMigrados}`);
+  crmCarregar();
 }
 
 function copiarCodigoCRM(btn) {
@@ -4707,6 +4737,15 @@ function crmAbrirLead(id) {
   document.getElementById('crm-int-nota').value = '';
   document.getElementById('crm-modal').classList.add('show');
   document.getElementById('crm-modal').scrollTop = 0;
+
+  // Atualiza a timeline com o dado mais fresco (pode ter interação nova
+  // registrada pelo Atendente desde o último carregamento da lista) —
+  // silencioso: se falhar, fica valendo o que já veio no carregamento.
+  equipeJsonp('crm_admin_listar_historico', { leadId: id }).then(resp => {
+    if (_crmEditId !== id || !resp || resp.status !== 'ok') return;
+    lead.historico = resp.itens || [];
+    crmRenderTimeline(lead.historico);
+  }).catch(() => {});
 }
 
 function crmFecharModal() {
@@ -4763,9 +4802,16 @@ async function crmAdicionarInteracao() {
       crmSalvarStorage();
       crmRenderTimeline(lead.historico);
       document.getElementById('crm-int-nota').value = '';
-      // Grava na planilha (no-cors, assume ok)
-      await crmPostScript({ action: 'addInteracao', id: _crmEditId, interacao });
-      mostrarToast('✅ Interação registrada!');
+      // Grava na aba HISTORICO_ATENDIMENTO_LEAD (mesma que o
+      // dashboard_atendente.html usa) — PIN-gated, GET/JSONP.
+      const resp = await equipeJsonp('crm_admin_historico_evento', {
+        leadId: _crmEditId, ...interacao, emailLead: lead.email || ''
+      });
+      if (!resp || resp.status !== 'ok') {
+        mostrarToast('⚠️ Interação salva localmente, mas houve erro ao gravar no servidor.');
+      } else {
+        mostrarToast('✅ Interação registrada!');
+      }
     }
   } else {
     if (!window._crmIntTemp) window._crmIntTemp = [];
@@ -4809,10 +4855,18 @@ async function crmSalvarLead() {
   } else {
     leadData.id = 'CRM_' + Date.now();
     leadData.criado_em = agora;
-    leadData.historico = window._crmIntTemp || [];
+    const interacoesIniciais = window._crmIntTemp || [];
+    leadData.historico = interacoesIniciais;
     window._crmIntTemp = [];
     _crmLeads.unshift(leadData);
-    await crmPostScript({ action: 'criar', lead: leadData });
+    // Cria o lead na planilha (aba LEADS, sem gravar mais nada na coluna
+    // Q — o histórico vai pra HISTORICO_ATENDIMENTO_LEAD logo abaixo).
+    await crmPostScript({ action: 'criar', lead: { ...leadData, historico: [] } });
+    for (const interacao of interacoesIniciais) {
+      await equipeJsonp('crm_admin_historico_evento', {
+        leadId: leadData.id, ...interacao, emailLead: leadData.email || ''
+      });
+    }
   }
 
   crmSalvarStorage();
