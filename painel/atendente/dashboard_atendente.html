@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAL · Portal do Atendente</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#08192E;--navy2:#0F2545;--navy3:#16335E;
+  /* Paleta do Atendente proposital e diferente da do Agente (dourada,
+     100% escura): tema claro + AZUL como cor de destaque — mais fácil
+     de ler em uso prolongado (fila de leads, tabelas, formulários).
+     Nomes de variável --gold* mantidos de propósito (evita reescrever
+     ~30 usos espalhados pelo arquivo) — mas o valor agora é azul, não
+     dourado. --gold é a tinta escura (texto/borda em fundo claro);
+     --gold2 é o tom médio (fim de gradiente em botões). */
+  --gold:#1D4ED8;--gold2:#3B82F6;--gold-dim:rgba(37,99,235,.08);--gold-b:rgba(37,99,235,.25);
+  --teal:#0E7490;--teal2:#22D3EE;--teal-dim:rgba(14,116,144,.10);
+  --green:#059669;--green2:#34D399;--green-dim:rgba(5,150,105,.08);--green-ink:#1F7A52;
+  --red:#DC2626;--red-dim:rgba(220,38,38,.08);--red-ink:#B03A2E;
+  --amber:#D97706;--amber-dim:rgba(217,119,6,.08);--amber-ink:#9A6B0A;
+  --purple:#7C3AED;--purple-dim:rgba(124,58,237,.08);--purple-ink:#6D28D9;
+  --coral:#EA4C89;--coral-dim:rgba(234,76,137,.08);--coral-ink:#A3316B;
+  --surf:#EEF2F7;--surf2:#F8FAFC;--surf3:#E7ECF3;
+  --card:#FFFFFF;--card2:#F1F5F9;
+  --bdr:rgba(15,23,42,.09);--bdr2:rgba(15,23,42,.16);
+  --txt:#1E293B;--muted:#64748B;--light:#475569;
+  --r:10px;--mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--surf);color:var(--txt);font-size:13px;line-height:1.5;min-height:100vh}
+button,input,select,textarea{font-family:'Inter',sans-serif}
+a{text-decoration:none;color:inherit}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bdr2);border-radius:4px}
+
+/* ══════════════════════════
+   TELA DE CADASTRO / LOGIN
+══════════════════════════ */
+#authScreen{
+  position:fixed;inset:0;z-index:9999;
+  background:linear-gradient(135deg,var(--navy) 0%,#0a1f3e 100%);
+  display:flex;align-items:flex-start;justify-content:center;
+  padding:20px;overflow-y:auto;
+}
+/* align-items:flex-start (não center) de propósito — com overflow-y:auto,
+   "center" trava o topo do conteúdo fora da área visível quando a aba
+   "Quero ser Agente" (mais alta) não cabe na tela: o scrollTop não
+   consegue ir negativo, então a logo/abas ficam inalcançáveis. */
+.auth-wrap{width:100%;max-width:480px}
+.auth-logo-area{text-align:center;margin-bottom:28px}
+/* auth-brand/auth-tagline ficam direto sobre o fundo escuro do
+   #authScreen (sem card por baixo) — não usam --gold/--muted (agora
+   valores de tema claro) de propósito, precisam continuar claro-sobre-escuro. */
+.auth-brand{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;color:#fff}
+.auth-tagline{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.45);margin-top:4px}
+.auth-badge{
+  display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+  background:var(--teal-dim);border:1px solid rgba(34,211,238,.2);
+  color:var(--teal2);font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;
+}
+.auth-box{
+  background:var(--card);border:1px solid var(--gold-b);border-radius:14px;
+  overflow:hidden;
+}
+.auth-tabs{display:flex;border-bottom:1px solid var(--bdr)}
+.auth-tab{
+  flex:1;padding:14px;text-align:center;font-size:12px;font-weight:600;
+  color:var(--muted);cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;
+}
+.auth-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(37,99,235,.05)}
+.auth-panel{display:none;padding:28px}
+.auth-panel.active{display:block}
+.auth-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:4px}
+.auth-sub{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.5}
+.field-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.field-inp,.field-sel,.field-ta{
+  width:100%;padding:10px 13px;background:var(--surf2);border:1px solid var(--bdr2);
+  color:var(--txt);border-radius:8px;font-size:13px;outline:none;transition:border-color .2s;
+}
+.field-inp:focus,.field-sel:focus,.field-ta:focus{border-color:var(--gold)}
+.field-inp::placeholder,.field-ta::placeholder{color:rgba(15,23,42,.32)}
+.field-sel{appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231D4ED8'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.field-sel option{background:#fff;color:var(--txt)}
+.field-ta{resize:vertical;min-height:60px;line-height:1.5}
+.field-row{display:grid;gap:12px;margin-bottom:14px}
+.field-2{grid-template-columns:1fr 1fr}
+.field-3{grid-template-columns:1fr 1fr 1fr}
+.field-5{grid-template-columns:repeat(5,1fr)}
+.f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
+.auth-btn{
+  width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;
+  background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;margin-top:6px;
+  transition:opacity .2s,transform .2s;
+}
+.auth-btn:hover{opacity:.9;transform:translateY(-1px)}
+.auth-err{color:var(--red-ink);font-size:11px;margin-top:8px;display:none;text-align:center}
+.auth-ok{color:var(--green-ink);font-size:12px;margin-top:10px;display:none;text-align:center;background:rgba(5,150,105,.08);border:1px solid rgba(5,150,105,.22);border-radius:7px;padding:10px}
+.upload-area{
+  border:2px dashed var(--bdr2);border-radius:8px;padding:20px;text-align:center;
+  cursor:pointer;transition:border-color .2s;margin-bottom:4px;
+}
+.upload-area:hover{border-color:var(--gold)}
+.upload-area input[type=file]{display:none}
+.upload-lbl{font-size:11px;color:var(--muted);margin-top:6px}
+.upload-name{font-size:11px;color:var(--gold);margin-top:4px}
+.terms-check{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.terms-check input{accent-color:var(--gold);margin-top:2px;flex-shrink:0}
+.terms-check label{font-size:11px;color:var(--muted);line-height:1.5}
+.terms-check label a{color:var(--gold);text-decoration:underline}
+
+/* ── STATUS PENDENTE ── */
+#pendScreen{
+  position:fixed;inset:0;z-index:9998;
+  background:var(--navy);display:none;align-items:center;justify-content:center;
+}
+.pend-box{
+  width:440px;padding:48px 40px;text-align:center;
+  background:var(--card);border:1px solid var(--gold-b);border-radius:14px;
+}
+.pend-icon{font-size:48px;margin-bottom:16px}
+.pend-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.pend-sub{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.pend-steps{text-align:left;display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.pend-step{display:flex;align-items:center;gap:10px;font-size:12px;padding:10px 12px;border-radius:8px;background:var(--card2);border:1px solid var(--bdr)}
+.pend-step-ico{font-size:16px;flex-shrink:0}
+.pend-step.done{border-color:rgba(52,211,153,.2)}
+.pend-step.curr{border-color:rgba(252,211,77,.3);background:rgba(217,119,6,.08)}
+.pend-step.next{opacity:.45}
+
+/* ══════════════════════════
+   TOAST
+══════════════════════════ */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:10001;
+  background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;
+  padding:12px 18px;font-size:12px;color:var(--txt);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  transform:translateY(80px);opacity:0;transition:all .3s;pointer-events:none;
+  border-left:3px solid var(--gold);max-width:320px;
+}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.t-green{border-left-color:var(--green2)}
+#toast.t-red{border-left-color:#F87171}
+#toast.t-amber{border-left-color:#FCD34D}
+
+/* ══════════════════════════
+   APP LAYOUT
+══════════════════════════ */
+.app{display:flex;min-height:100vh;display:none}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:224px;min-height:100vh;background:var(--navy);
+  display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
+  border-right:1px solid rgba(255,255,255,.08);
+}
+.sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
+.sb-brand{color:#fff;font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
+.sb-mode{
+  display:inline-flex;align-items:center;gap:5px;margin-top:8px;
+  background:var(--teal-dim);border:1px solid rgba(34,211,238,.25);
+  color:var(--teal2);font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;
+  padding:3px 9px;border-radius:20px;
+}
+.sb-mode-dot{width:5px;height:5px;background:var(--teal2);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.sb-agente{
+  margin:14px 12px 0;padding:12px;
+  background:var(--teal-dim);border:1px solid rgba(34,211,238,.2);border-radius:9px;
+}
+.sba-av{
+  width:36px;height:36px;border-radius:9px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--teal),var(--teal2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;
+}
+.sba-name{color:#fff;font-size:13px;font-weight:600}
+.sba-role{color:rgba(255,255,255,.35);font-size:10px;margin-top:1px}
+.sba-pills{display:flex;gap:6px;margin-top:10px}
+/* Fundo/borda/texto do pill hardcoded (não usam --surf2/--bdr/--muted,
+   agora valores de tema claro) — o pill fica dentro do card escuro
+   .sb-agente, precisa continuar um "chip" translúcido claro-sobre-escuro. */
+.sba-pill{flex:1;background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.14);border-radius:6px;padding:5px 6px;text-align:center}
+.sba-pill-val{font-size:12px;font-weight:700;color:#fff;font-family:'Playfair Display',serif}
+.sba-pill-lbl{font-size:8px;color:rgba(255,255,255,.55);margin-top:1px}
+
+.nav-grp{padding:12px 8px 2px}
+.nav-lbl{color:rgba(255,255,255,.2);font-size:9px;text-transform:uppercase;letter-spacing:1.5px;padding:0 9px 5px;font-weight:600}
+.nav-item{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 10px;border-radius:7px;color:rgba(255,255,255,.5);
+  font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;
+  margin-bottom:1px;border:1px solid transparent;
+}
+.nav-item:hover{background:rgba(255,255,255,.04);color:rgba(255,255,255,.85)}
+.nav-item.active{background:var(--teal-dim);color:var(--teal2);border-color:rgba(34,211,238,.2)}
+.nav-ico{font-size:15px;width:20px;text-align:center;flex-shrink:0}
+.nav-bdg{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:8px}
+.nb-t{background:rgba(14,116,144,.25);color:var(--teal2)}
+.nb-g{background:rgba(5,150,105,.2);color:#34D399}
+.nb-a{background:rgba(217,119,6,.2);color:#FCD34D}
+.nb-r{background:rgba(220,38,38,.2);color:#F87171}
+
+.sb-footer{
+  margin-top:auto;padding:14px 12px;border-top:1px solid var(--bdr);
+  display:flex;align-items:center;gap:8px;
+}
+.sf-av2{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:#fff;flex-shrink:0}
+.sf-out{margin-left:auto;width:28px;height:28px;border-radius:6px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--muted);transition:all .15s}
+.sf-out:hover{color:var(--txt);border-color:var(--bdr2)}
+
+/* ── MAIN ── */
+.main{margin-left:224px;flex:1;display:flex;flex-direction:column}
+.topbar{
+  background:var(--navy2);border-bottom:1px solid rgba(255,255,255,.08);
+  padding:0 24px;height:54px;display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:50;
+}
+.tb-bread{display:flex;align-items:center;gap:6px;flex:1}
+.tb-sec{color:rgba(255,255,255,.3);font-size:11px;font-weight:500}
+.tb-sep{color:rgba(255,255,255,.15)}
+.tb-page{color:var(--teal2);font-size:12px;font-weight:600}
+.tb-meta{display:flex;align-items:center;gap:12px}
+.tb-notif{position:relative;width:32px;height:32px;border-radius:7px;background:var(--surf2);border:1px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer}
+.notif-dot{position:absolute;top:5px;right:5px;width:7px;height:7px;background:#FCD34D;border-radius:50%;border:2px solid var(--navy2)}
+.tb-clock{color:rgba(255,255,255,.3);font-size:10px;font-family:var(--mono)}
+
+.content{padding:24px;flex:1}
+.panel{display:none}.panel.active{display:block}
+
+/* ── PAGE HEADER ── */
+.ph{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:22px}
+.ph-eye{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--teal);margin-bottom:5px}
+.ph-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--navy);line-height:1.2}
+.ph-sub{color:var(--muted);margin-top:3px;font-size:12px}
+.ph-acts{display:flex;gap:8px;align-items:center;flex-shrink:0}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:11px;font-weight:600;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .15s}
+.btn:hover{color:var(--txt);border-color:rgba(15,23,42,.28)}
+.btn-sm{padding:5px 10px;font-size:10px}
+.btn-teal{background:var(--teal-dim);border-color:rgba(14,116,144,.25);color:var(--teal);font-weight:700}
+.btn-teal:hover{opacity:.85;transform:translateY(-1px)}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;border-color:transparent;font-weight:700}
+.btn-gold:hover{opacity:.9;transform:translateY(-1px)}
+.btn-green{background:rgba(5,150,105,.10);border-color:rgba(5,150,105,.25);color:var(--green-ink)}
+.btn-red{background:rgba(220,38,38,.10);border-color:rgba(220,38,38,.22);color:var(--red-ink)}
+.btn-full{width:100%;justify-content:center;padding:11px}
+
+/* ── KPIs ── */
+.kpi-strip{display:grid;gap:10px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:14px 16px;position:relative;overflow:hidden;transition:transform .15s,border-color .15s;cursor:default}
+.kpi:hover{transform:translateY(-2px);border-color:var(--bdr2)}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px}
+.kpi.gold::after{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.kpi.teal::after{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.kpi.green::after{background:var(--green)}
+.kpi.red::after{background:var(--red)}
+.kpi.purple::after{background:var(--purple)}
+.kpi.amber::after{background:var(--amber)}
+.kpi-lbl{font-size:10px;font-weight:600;color:var(--light);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.kpi-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:700;color:var(--navy);line-height:1}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.kpi-dlt{display:inline-flex;align-items:center;font-size:10px;font-weight:600;margin-top:4px;padding:1px 6px;border-radius:4px}
+.up{background:rgba(5,150,105,.12);color:var(--green-ink)}
+.fl{background:rgba(100,116,139,.12);color:var(--muted)}
+.dn{background:rgba(220,38,38,.12);color:var(--red-ink)}
+
+/* ── SECTION HEADER ── */
+.sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec::after{content:'';flex:1;height:1px;background:var(--bdr)}
+
+/* ── GRIDS / CARDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px}
+.cs2{grid-column:span 2}
+.mb14{margin-bottom:14px}.mb20{margin-bottom:20px}
+.card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.card-h{padding:13px 16px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.card-title{font-size:12px;font-weight:700;color:var(--navy);display:flex;align-items:center;gap:7px}
+.card-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.card-b{padding:16px}
+.card-link{font-size:10px;color:var(--teal);font-weight:600;cursor:pointer}
+.card-link:hover{opacity:.8}
+
+/* ── BADGES ── */
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:4px}
+.bg{background:rgba(5,150,105,.12);color:var(--green-ink);border:1px solid rgba(5,150,105,.25)}
+.br{background:rgba(220,38,38,.10);color:var(--red-ink);border:1px solid rgba(220,38,38,.22)}
+.ba{background:rgba(217,119,6,.10);color:var(--amber-ink);border:1px solid rgba(217,119,6,.22)}
+.bo{background:rgba(37,99,235,.10);color:var(--gold);border:1px solid var(--gold-b)}
+.bt{background:rgba(14,116,144,.12);color:var(--teal);border:1px solid rgba(14,116,144,.25)}
+.bp{background:rgba(124,58,237,.10);color:var(--purple-ink);border:1px solid rgba(124,58,237,.22)}
+.bz{background:rgba(15,23,42,.05);color:var(--muted);border:1px solid var(--bdr)}
+.bc{background:rgba(234,76,137,.10);color:var(--coral-ink);border:1px solid rgba(234,76,137,.22)}
+
+/* status funil do lead */
+.sl-agente{background:#0D2A2A;color:#5EEAD4;border:1px solid rgba(94,234,212,.2)}
+.sl-contato{background:#172040;color:#93C5FD;border:1px solid rgba(147,197,253,.2)}
+.sl-proposta{background:#2A1A40;color:#C4B5FD;border:1px solid rgba(196,181,253,.2)}
+.sl-visita{background:#1A2A10;color:#86EFAC;border:1px solid rgba(134,239,172,.2)}
+.sl-fechado{background:#0A2414;color:#6EE7B7;border:1px solid rgba(110,231,183,.2)}
+.sl-perdido{background:#2C0A0A;color:#FCA5A5;border:1px solid rgba(252,165,165,.2)}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse}
+.tbl th{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--light);padding:8px 12px;border-bottom:1px solid var(--bdr);text-align:left;white-space:nowrap;background:rgba(15,23,42,.04)}
+.tbl td{padding:9px 12px;border-bottom:1px solid var(--bdr);font-size:12px;color:var(--txt)}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(15,23,42,.025)}
+.tbl tr.clk{cursor:pointer}
+
+/* ── PROGRESS ── */
+.prog-w{margin-bottom:9px}
+.prog-m{display:flex;justify-content:space-between;margin-bottom:3px;font-size:11px}
+.prog-bar{height:5px;background:rgba(15,23,42,.08);border-radius:3px;overflow:hidden}
+.pf{height:100%;border-radius:3px;transition:width .4s ease}
+.pf-teal{background:linear-gradient(90deg,var(--teal),var(--teal2))}
+.pf-gold{background:linear-gradient(90deg,var(--gold),var(--gold2))}
+.pf-green{background:var(--green)}
+.pf-purple{background:var(--purple)}
+.pf-amber{background:var(--amber)}
+
+/* ── LEAD CARD ── */
+.lead-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:14px;cursor:pointer;transition:all .15s;margin-bottom:8px}
+.lead-card:hover{border-color:var(--gold-b);background:var(--gold-dim)}
+.lc-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.lc-name{font-size:13px;font-weight:600;color:var(--navy)}
+.lc-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.lc-meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lc-prog{margin-top:10px}
+.lc-prog-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:4px}
+
+/* ── FUNIL STEPS ── */
+.fstep{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:6px;background:var(--card2);border:1px solid var(--bdr);transition:border-color .15s;cursor:default}
+.fstep:hover{border-color:var(--bdr2)}
+.fstep-n{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--navy);min-width:34px}
+.fstep-bar{flex:2;height:5px;background:rgba(15,23,42,.08);border-radius:3px;overflow:hidden}
+.fstep-fill{height:100%;border-radius:3px}
+.fstep-pct{font-size:10px;color:var(--muted);font-family:var(--mono);min-width:30px;text-align:right}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(8,25,46,.72);z-index:10000;display:none;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto}
+.modal-ov.show{display:flex}
+.modal-box{width:100%;max-width:720px;background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);border-top:2px solid var(--gold)}
+.modal-h{padding:20px 24px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--navy)}
+.modal-close{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px}
+.modal-close:hover{color:var(--txt)}
+.modal-body{padding:24px;max-height:70vh;overflow-y:auto}
+.modal-f{padding:16px 24px;border-top:1px solid var(--bdr);display:flex;gap:10px;justify-content:flex-end}
+
+/* ── TIMELINE ── */
+.tl-wrap{position:relative;padding-left:24px}
+.tl-line{position:absolute;left:9px;top:0;bottom:0;width:1px;background:var(--bdr)}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-dot{position:absolute;left:-24px;top:3px;width:18px;height:18px;border-radius:50%;border:1px solid var(--bdr2);background:var(--card);display:flex;align-items:center;justify-content:center;font-size:9px}
+.tl-tipo{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--teal);margin-bottom:2px}
+.tl-data{font-size:10px;color:var(--muted);font-family:var(--mono);margin-bottom:3px}
+.tl-nota{font-size:12px;color:var(--txt);line-height:1.5}
+
+/* ── MATERIAL CARD ── */
+.mat-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+.mat-card:hover{border-color:rgba(34,211,238,.2)}
+.mat-thumb{height:90px;display:flex;align-items:center;justify-content:center;font-size:36px;background:linear-gradient(135deg,var(--navy3),var(--navy2))}
+.mat-body{padding:12px}
+.mat-nome{font-size:12px;font-weight:700;color:#fff;margin-bottom:4px}
+.mat-meta{font-size:10px;color:var(--muted)}
+.mat-tipo{font-size:9px;margin-top:6px}
+
+/* ── EMP CARD ── */
+.emp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.emp-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;overflow:hidden;transition:border-color .15s;cursor:pointer}
+.emp-card:hover{border-color:var(--gold-b)}
+.emp-img{height:100px;display:flex;align-items:center;justify-content:center;font-size:38px;background:linear-gradient(135deg,var(--navy3),var(--navy2));position:relative}
+.emp-body{padding:12px}
+.emp-nome{font-size:12px;font-weight:700;color:var(--navy);margin-bottom:2px}
+.emp-const{font-size:10px;color:var(--muted);margin-bottom:8px}
+.emp-stat-g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.emp-stat-lbl{font-size:9px;color:var(--muted)}
+.emp-stat-val{font-size:12px;font-weight:700;color:var(--txt);font-family:var(--mono)}
+
+/* ── AI CHAT ── */
+.ai-wrap{display:flex;flex-direction:column;height:480px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
+.ai-msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{display:flex;gap:8px;align-items:flex-start}
+.ai-av{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+.av-ai{background:linear-gradient(135deg,var(--teal),var(--teal2));color:#fff}
+.av-u{background:var(--card2);color:var(--muted);border:1px solid var(--bdr)}
+.ai-bubble{flex:1;padding:9px 12px;border-radius:8px;font-size:12px;line-height:1.6}
+.ai-bubble-ai{background:var(--card2);border:1px solid var(--bdr)}
+.ai-bubble-u{background:var(--teal-dim);border:1px solid rgba(14,116,144,.25)}
+.ai-chips{padding:8px 10px 0;display:flex;flex-wrap:wrap;gap:5px}
+.ai-chip{font-size:10px;padding:4px 9px;border-radius:5px;cursor:pointer;background:var(--card2);border:1px solid var(--bdr2);color:var(--muted);transition:all .15s}
+.ai-chip:hover{border-color:var(--teal);color:var(--teal)}
+.ai-inp-row{padding:10px;border-top:1px solid var(--bdr);display:flex;gap:8px}
+.ai-inp{flex:1;background:var(--surf2);border:1px solid var(--bdr2);color:var(--txt);border-radius:7px;padding:8px 12px;font-size:12px;outline:none;transition:border-color .2s;resize:none;min-height:36px;max-height:80px;overflow:auto}
+.ai-inp:focus{border-color:var(--teal)}
+.ai-send{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--teal2));border:none;border-radius:7px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:#fff;font-weight:700;transition:opacity .2s}
+.ai-send:hover{opacity:.85}
+.ai-send.loading{animation:pulse 1s infinite}
+
+/* ── COMISSÃO CARD ── */
+.comis-card{background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:14px;margin-bottom:8px}
+.comis-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.comis-nome{font-size:12px;font-weight:600;color:#fff}
+.comis-emp{font-size:10px;color:var(--muted);margin-top:2px}
+.comis-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:#34D399}
+.comis-status{font-size:10px;color:var(--muted);margin-top:2px;text-align:right}
+
+/* ── MISC ── */
+.mono{font-family:var(--mono)}
+.fs10{font-size:10px}.fs11{font-size:11px}.fs12{font-size:12px}
+.c-muted{color:var(--muted)}.c-teal{color:var(--teal)}.c-gold{color:var(--gold)}
+.c-green{color:var(--green-ink)}.c-red{color:var(--red-ink)}.c-amber{color:var(--amber-ink)}
+.fw6{font-weight:600}.fw7{font-weight:700}
+.flex-bet{display:flex;align-items:center;justify-content:space-between}
+.flex{display:flex;align-items:center}
+.sp{display:flex;flex-wrap:wrap;gap:6px}
+.alert-box{padding:12px 14px;border-radius:8px;border:1px solid;font-size:12px;line-height:1.5;margin-bottom:12px}
+.alert-amber{background:var(--amber-dim);border-color:rgba(217,119,6,.3);color:var(--amber-ink)}
+.alert-green{background:var(--green-dim);border-color:rgba(5,150,105,.25);color:var(--green-ink)}
+.alert-teal{background:var(--teal-dim);border-color:rgba(14,116,144,.3);color:var(--teal)}
+
+/* ══════════════════════════
+   RESPONSIVO — desktop, notebook, iPad/tablet, celular
+   A sidebar (224px fixa) e o .main com margin-left:224px espremiam o
+   conteúdo em telas estreitas. A partir de 900px a sidebar vira uma
+   gaveta deslizante, com botão de abrir/fechar e fundo escurecido.
+   Nenhum painel, dado ou função existente foi alterado.
+══════════════════════════ */
+#mobileNavToggle{display:none;position:fixed;top:12px;left:12px;z-index:610;width:36px;height:36px;background:var(--card2);border:1px solid var(--bdr2);border-radius:8px;align-items:center;justify-content:center;color:var(--gold);font-size:16px;cursor:pointer}
+#sidebarBackdrop{display:none;position:fixed;inset:0;background:rgba(4,10,20,.6);z-index:590}
+#sidebarBackdrop.show{display:block}
+
+@media(max-width:900px){
+  #mobileNavToggle{display:flex}
+  .sidebar{position:fixed;left:-224px;top:0;transition:left .22s ease;z-index:600;box-shadow:8px 0 30px rgba(0,0,0,.4)}
+  .sidebar.open{left:0}
+  .main{margin-left:0}
+  .topbar{padding-left:58px}
+  .g2,.g3{grid-template-columns:1fr}
+  .field-2,.field-3{grid-template-columns:1fr}
+  .field-5{grid-template-columns:1fr 1fr}
+  .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
+  .emp-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  div[style*="grid-template-columns:1fr 280px"]{grid-template-columns:1fr!important}
+  .content{padding:18px}
+}
+
+@media(max-width:600px){
+  .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:1fr!important}
+  .field-5{grid-template-columns:1fr}
+  .ph-title{font-size:19px}
+  .kpi-val{font-size:20px}
+  .content{padding:14px}
+  .topbar{padding-left:54px;padding-right:14px}
+  .tb-sec{display:none}
+  .modal-ov{padding:20px 12px}
+  div[style*="grid-template-columns:1fr 1fr;gap:8px"]{grid-template-columns:1fr!important}
+  #filaBusca,#empBusca{width:100%!important}
+  div:has(>#filaBusca){flex-wrap:wrap}
+}
+
+@media(max-width:380px){
+  .sb-agente{margin:14px 8px 0}
+  .nav-grp{padding:12px 4px 2px}
+  .modal-ov{padding:14px 8px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     WAL · CONTROLE REMOTO DO FEIRÃO (Torre de Controle da Diretoria)
+     Não remova nem mova este bloco. Ele verifica, a cada carregamento
+     e a cada 20s, se a Diretoria suspendeu o Feirão inteiro ou este
+     painel especificamente (dashboard-diretor-wal.html) e exibe uma
+     tela de manutenção quando necessário.
+     Chave deste painel: 'agente'
+============================================================ -->
+<div id="walOverlayManutencao" style="position:fixed;inset:0;z-index:99999;background:radial-gradient(circle at 30% 20%,#15294a 0%,#08192E 65%);display:none;align-items:center;justify-content:center;padding:24px;font-family:'Inter',Arial,sans-serif;color:#E8EDF5;text-align:center">
+  <div style="max-width:420px;width:100%">
+    <div style="width:60px;height:60px;border-radius:50%;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 16px">🛠️</div>
+    <div style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#E8C96A;margin-bottom:8px">WAL Imóveis</div>
+    <div id="walOverlayTitulo" style="font-size:15px;font-weight:700;margin-bottom:10px">Estamos em manutenção rápida</div>
+    <div id="walOverlayMsg" style="font-size:13px;color:#9db1c8;line-height:1.6">Volte em instantes. Já estamos de olho e o Feirão retorna em breve.</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var WAL_CONTROLE_KEY = 'atendente';
+  // Preencha com a mesma URL do Apps Script usada no dashboard-diretor-wal.html
+  var WAL_CONTROLE_API_URL = 'https://script.google.com/macros/s/AKfycbx9iqiPMZk1HfBRWqU71vGtFN8WpKQ_SkyX-EwjAriQr3f2xELdaae6h23aJiCAdFp9AA/exec';
+  var LS_KEY = 'wal_diretor_v1';
+
+  function lerLocal(){{
+    try{{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }}catch(e){{ return null; }}
+  }}
+  function aplicarEstado(ctrl){{
+    if(!ctrl) return;
+    var overlay = document.getElementById('walOverlayManutencao');
+    if(!overlay) return;
+    var bloqueado = ctrl.fairStatus==='suspenso' || ctrl.fairStatus==='nao_iniciado' || (ctrl.modulos && ctrl.modulos[WAL_CONTROLE_KEY]===false);
+    if(bloqueado){{
+      document.getElementById('walOverlayTitulo').textContent = ctrl.fairStatus==='nao_iniciado' ? 'O Feirão ainda não começou' : 'Estamos em manutenção rápida';
+      document.getElementById('walOverlayMsg').textContent = ctrl.mensagem || ctrl.mensagemVisitante || 'Volte em instantes. Já estamos de olho e retornamos em breve.';
+      overlay.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }} else {{
+      overlay.style.display = 'none';
+      document.body.style.overflow = '';
+    }}
+  }}
+  function consultarRemoto(){{
+    if(!WAL_CONTROLE_API_URL || WAL_CONTROLE_API_URL.indexOf('COLOQUE_AQUI')===0) return;
+    var cb = 'walCtrlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    var s = document.createElement('script');
+    var timeout = setTimeout(function(){{ limpar(); }}, 10000);
+    function limpar(){{ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }}
+    window[cb] = function(data){{
+      limpar();
+      if(data && data.ok && data.controle){{
+        localStorage.setItem(LS_KEY, JSON.stringify(data.controle));
+        aplicarEstado(data.controle);
+      }}
+    }};
+    s.onerror = limpar;
+    s.src = WAL_CONTROLE_API_URL + '?action=feirao_get_controle&callback=' + cb;
+    document.body.appendChild(s);
+  }}
+  aplicarEstado(lerLocal());
+  consultarRemoto();
+  setInterval(consultarRemoto, 20000);
+}})();
+</script>
+<!-- ===== FIM DO BLOCO DE CONTROLE REMOTO DA DIRETORIA ===== -->
+
+<button id="mobileNavToggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.getElementById('sidebarBackdrop').classList.toggle('show')" aria-label="Abrir menu">☰</button>
+<div id="sidebarBackdrop" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('show')"></div>
+
+
+<!-- ══ TOAST ══ -->
+<div id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     AUTH SCREEN — LOGIN / CADASTRO
+═══════════════════════════════════════════ -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-logo-area">
+      <div class="auth-brand">WAL Consultoria</div>
+      <div class="auth-tagline">Especialistas em imóveis para servidores públicos</div>
+      <div class="auth-badge">🎧 Portal do Atendente</div>
+    </div>
+    <div class="auth-box">
+      <div class="auth-tabs">
+        <div class="auth-tab active" onclick="switchAuthTab('login')">Entrar</div>
+        <div class="auth-tab" onclick="switchAuthTab('cadastro')">Sou novo Atendente</div>
+      </div>
+
+      <!-- LOGIN -->
+      <div class="auth-panel active" id="tabLogin">
+        <div class="auth-title">Bem-vindo de volta</div>
+        <div class="auth-sub" id="loginSub">Informe seu e-mail cadastrado. Vamos enviar um código de acesso de 6 dígitos.</div>
+        <div id="loginStep1">
+          <div class="field-row mb14">
+            <div><div class="field-lbl">E-mail</div><input class="field-inp" type="email" id="loginEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')doLoginEnviarCodigo()"></div>
+          </div>
+          <button class="auth-btn" id="loginBtnEnviar" onclick="doLoginEnviarCodigo()">Enviar código de acesso</button>
+          <div class="auth-err" id="loginErr"></div>
+        </div>
+        <div id="loginStep2" style="display:none">
+          <div class="field-row mb14">
+            <div><div class="field-lbl">Código de acesso</div><input class="field-inp mono" id="loginCodigo" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')doLoginConfirmarCodigo()"></div>
+          </div>
+          <button class="auth-btn" id="loginBtnConfirmar" onclick="doLoginConfirmarCodigo()">Confirmar e entrar</button>
+          <div class="auth-err" id="loginErr2"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:14px">
+            <span class="card-link" onclick="doLoginReenviarCodigo()">Reenviar código</span>
+            <span class="card-link" onclick="voltarLoginStep1()">Trocar e-mail</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- CADASTRO -->
+      <div class="auth-panel" id="tabCadastro">
+        <div class="auth-title">Cadastro de Atendente WAL</div>
+        <div class="auth-sub">Faça a triagem dos leads recebidos, acompanhe cada um pela sua fila de atendimento e registre visitas e simulações.
+		Preencha seu cadastro para solicitar acesso — a liberação depende de aprovação da direção.</div>
+
+        <div class="f-sec">Dados Pessoais</div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Nome completo *</div><input class="field-inp" id="cadNome" placeholder="João Silva"></div>
+          <div><div class="field-lbl">CPF *</div><input class="field-inp" id="cadCpf" placeholder="000.000.000-00"></div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">E-mail *</div><input class="field-inp" type="email" id="cadEmail" placeholder="joao@email.com"></div>
+          <div><div class="field-lbl">WhatsApp *</div><input class="field-inp" id="cadTel" placeholder="(21) 99999-9999"></div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Data de nascimento</div><input class="field-inp" type="date" id="cadNasc"></div>
+          <div><div class="field-lbl">Profissão / Vínculo</div>
+            <select class="field-sel" id="cadProf">
+              <option value="">Selecione...</option>
+              <option>Militar da Aeronáutica</option>
+			  <option>Militar do Exército</option>
+              <option>Militar da Marinha</option>
+			  <option>Bombeiro</option>
+			  <option>Policia Civil / Militar</option>
+			  <option>Servidor Federal</option>
+              <option>Servidor Estadual</option>
+			  <option>Servidor Municipal</option>
+			  <option>Pensionista/Reserva Militar</option>
+              <option>Pensionista Civil</option>
+			  <option>Empresário</option>
+			  <option>Profissional Liberal</option>
+			  <option>Do Lar</option>
+			  <option>Funcionário</option>	  
+			  <option>Outro</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">UF *</div>
+            <select class="field-sel" id="cadUf">
+              <option value="">Selecione...</option>
+              <option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option>
+              <option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option>
+              <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+              <option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option>
+              <option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option>
+              <option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option>
+              <option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option>
+              <option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option>
+              <option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
+            </select>
+          </div>
+          <div><div class="field-lbl">Cidade *</div><input class="field-inp" id="cadCidade" placeholder="Ex: Rio de Janeiro" oninput="filtrarCidadeCad_(this)"></div>
+        </div>
+
+        <input type="hidden" id="cadBanco"><input type="hidden" id="cadAgencia"><input type="hidden" id="cadConta">
+        <input type="hidden" id="cadTipoConta"><input type="hidden" id="cadPix">
+
+        <div class="f-sec">Documentos</div>
+        <div class="field-row field-2 mb14">
+          <div>
+            <div class="field-lbl">RG ou CNH (frente) *</div>
+            <div class="upload-area" id="docRgArea" onclick="document.getElementById('docRg').click()">
+              <input type="file" id="docRg" accept="image/*,.pdf" onchange="handleUpload(this,'docRgNome')">
+              <div style="font-size:24px">📄</div>
+              <div class="upload-lbl">Clique para selecionar</div>
+              <div class="upload-name" id="docRgNome"></div>
+            </div>
+          </div>
+          <div>
+            <div class="field-lbl">Comprovante de residência</div>
+            <div class="upload-area" id="docResArea" onclick="document.getElementById('docRes').click()">
+              <input type="file" id="docRes" accept="image/*,.pdf" onchange="handleUpload(this,'docResNome')">
+              <div style="font-size:24px">🏠</div>
+              <div class="upload-lbl">Clique para selecionar</div>
+              <div class="upload-name" id="docResNome"></div>
+            </div>
+            <div class="fs10 c-muted" style="margin-top:4px">Campo não Obrigatório</div>
+          </div>
+        </div>
+
+        <div class="terms-check" id="cadTermosWrap">
+          <input type="checkbox" id="cadTermos">
+          <label for="cadTermos">Li e aceito os <a href="WAL_Termos_de_Parceria_Agente_v2.0.pdf" target="_blank" rel="noopener">Termos de Parceria</a> e a <a href="WAL_Politica_de_Privacidade_Agente_v2.0.pdf" target="_blank" rel="noopener">Política de Privacidade</a> da WAL Consultoria. Entendo que minha participação depende de aprovação pela direção.</label>
+        </div>
+
+        <button class="auth-btn" id="cadBtn" onclick="doCadastroValidarEEnviarCodigo()">Enviar Solicitação de Cadastro</button>
+        <div class="auth-err" id="cadErr">Preencha todos os campos obrigatórios.</div>
+        <div class="auth-ok" id="cadOk">✅ Solicitação enviada! Aguarde a aprovação da WAL Consultoria. Você receberá um e-mail em até 48 horas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TELA PENDENTE ══ -->
+<div id="pendScreen">
+  <div class="pend-box">
+    <div class="pend-icon">⏳</div>
+    <div class="pend-title">Cadastro em análise</div>
+    <div class="pend-sub">Sua solicitação foi recebida pela WAL Consultoria. Nossa equipe irá analisar seus dados e documentos. Você receberá um e-mail assim que for aprovado.</div>
+    <div class="pend-steps">
+      <div class="pend-step done"><div class="pend-step-ico">✅</div><div><strong>Cadastro enviado</strong><div class="fs10 c-muted">Dados e documentos recebidos</div></div></div>
+      <div class="pend-step curr"><div class="pend-step-ico">🔍</div><div><strong style="color:var(--amber-ink)">Análise da direção</strong><div class="fs10 c-muted">Em análise · prazo de até 48h</div></div></div>
+      <div class="pend-step next"><div class="pend-step-ico">✉️</div><div><strong>E-mail de aprovação</strong><div class="fs10 c-muted">Acesso ao portal liberado</div></div></div>
+    </div>
+    <button class="btn-teal btn" style="width:100%;justify-content:center" onclick="doLogout()">← Voltar ao login</button>
+  </div>
+</div>
+
+<!-- ══ GATE DE E-MAIL/OTP — usado pelo cadastro "Quero ser Agente" ══ -->
+<div class="modal-ov" id="authGateOverlay">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-h">
+      <div class="modal-title">Confirme seu e-mail</div>
+      <button class="modal-close" onclick="fecharModal('authGateOverlay')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="auth-sub" style="margin-bottom:14px">Enviamos um código de 6 dígitos para <strong id="authGateEmailTxt" style="color:var(--teal)"></strong>.</div>
+      <div class="field-row mb14">
+        <div><div class="field-lbl">Código de acesso</div><input class="field-inp mono" id="authGateCodigo" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')doAuthGateConfirmar()"></div>
+      </div>
+      <div class="auth-err" id="authGateErr"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:10px">
+        <span class="card-link" onclick="doAuthGateReenviar()">Reenviar código</span>
+        <span class="card-link" onclick="fecharModal('authGateOverlay')">Cancelar</span>
+      </div>
+    </div>
+    <div class="modal-f">
+      <button class="auth-btn" id="authGateBtn" onclick="doAuthGateConfirmar()" style="width:auto;flex:1">Confirmar código</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP — DASHBOARD DO AGENTE
+═══════════════════════════════════════════ -->
+<div class="app" id="appWrap">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sb-logo">
+      <div class="sb-brand">WAL Consultoria</div>
+      <div class="sb-mode"><div class="sb-mode-dot"></div>Atendente</div>
+    </div>
+
+    <div class="sb-agente">
+      <div class="sba-av" id="sbAv">AT</div>
+      <div class="sba-name" id="sbNome">Atendente</div>
+      <div class="sba-role" id="sbRole">Atendente · WAL</div>
+      <div class="sba-pills">
+        <div class="sba-pill"><div class="sba-pill-val" id="sbFilaQtd">0</div><div class="sba-pill-lbl">Na Fila</div></div>
+        <div class="sba-pill"><div class="sba-pill-val" id="sbAgendaQtd">0</div><div class="sba-pill-lbl">Visitas</div></div>
+        <div class="sba-pill"><div class="sba-pill-val" id="sbFechadosQtd">0</div><div class="sba-pill-lbl">Fechados</div></div>
+      </div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Principal</div>
+      <div class="nav-item active" onclick="nav(this,'fila')">
+        <span class="nav-ico">🎧</span>Minha Fila
+        <span class="nav-bdg nb-t" id="sbBdgFila">0</span>
+      </div>
+      <div class="nav-item" onclick="nav(this,'agenda')"><span class="nav-ico">📅</span>Agenda de Visita</div>
+      <div class="nav-item" onclick="nav(this,'funil')"><span class="nav-ico">📉</span>Funil por Lead</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Ferramentas</div>
+      <div class="nav-item" onclick="nav(this,'empreendimentos')"><span class="nav-ico">🏢</span>Unidades Disponíveis</div>
+      <div class="nav-item" onclick="nav(this,'simulador')"><span class="nav-ico">🧮</span>Simulador Financeiro</div>
+      <div class="nav-item" onclick="nav(this,'ia')"><span class="nav-ico">🤖</span>Assistente IA</div>
+    </div>
+
+    <div class="nav-grp">
+      <div class="nav-lbl">Desempenho</div>
+      <div class="nav-item" onclick="nav(this,'desempenho')"><span class="nav-ico">📈</span>Meu Desempenho</div>
+      <div class="nav-item" onclick="nav(this,'perfil')"><span class="nav-ico">👤</span>Meu Perfil</div>
+    </div>
+
+    <div class="sb-footer">
+      <div class="sf-av2" id="sbAvFoot">AT</div>
+      <div>
+        <div style="color:#fff;font-size:12px;font-weight:600" id="sbNomeFoot">Atendente</div>
+        <div style="color:rgba(255,255,255,.4);font-size:10px">Online agora</div>
+      </div>
+      <div class="sf-out" onclick="doLogout()" title="Sair">🚪</div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-bread">
+        <span class="tb-sec">WAL Consultoria</span>
+        <span class="tb-sep">›</span>
+        <span class="tb-page" id="topbarTitle">Minha Fila</span>
+      </div>
+      <div class="tb-meta">
+        <div class="tb-notif" onclick="nav(document.querySelector('[onclick*=fila]'),'fila')">
+          🔔<div class="notif-dot" id="notifDot" style="display:none"></div>
+        </div>
+        <div class="tb-clock" id="clock">—</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+    <!-- ══ MINHA FILA ══ -->
+    <div class="panel active" id="panel-fila">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">👋 Olá, <span id="phNome">Atendente</span>!</div>
+          <div class="ph-title">Minha Fila de Atendimento</div>
+          <div class="ph-sub" id="phData">Carregando...</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-teal btn" onclick="abrirLeadsDisponiveis()">🔎 Pegar lead disponível</button>
+        </div>
+      </div>
+
+      <div class="alert-box alert-teal mb20" id="filaAlert">
+        🎧 Você ainda não tem leads na fila. Clique em <strong>Pegar lead disponível</strong> para começar a atender.
+      </div>
+
+      <!-- KPIs -->
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi teal"><div class="kpi-lbl">Na Fila</div><div class="kpi-val" id="kpiFila">0</div><div class="kpi-dlt fl">→ total atribuído a mim</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Em Atendimento</div><div class="kpi-val" id="kpiEmAtend">0</div><div class="kpi-dlt fl">→ contato/proposta/visita</div></div>
+        <div class="kpi red"><div class="kpi-lbl">Urgentes</div><div class="kpi-val" id="kpiUrgentes">0</div><div class="kpi-dlt fl">→ sem retorno há 24h+</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Fechados</div><div class="kpi-val" id="kpiFechados">0</div><div class="kpi-dlt up">▲ parabéns!</div></div>
+      </div>
+
+      <div class="flex-bet mb14" style="gap:10px;flex-wrap:wrap">
+        <div class="flex" style="gap:8px">
+          <input class="field-inp" type="text" id="filaBusca" placeholder="🔍 Buscar por nome..." style="width:200px" oninput="renderFila()">
+          <select class="field-sel" id="filaFiltStatus" style="width:auto" onchange="renderFila()">
+            <option value="">Todos os status</option>
+            <option value="novo">Novo</option>
+            <option value="contato">Em contato</option>
+            <option value="proposta">Proposta enviada</option>
+            <option value="visita">Visita agendada</option>
+            <option value="fechado">Fechado ✅</option>
+            <option value="perdido">Perdido</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="filaLista"></div>
+    </div>
+
+    <!-- ══ AGENDA DE VISITA ══ -->
+    <div class="panel" id="panel-agenda">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📅 Compromissos</div>
+          <div class="ph-title">Agenda de Visita</div>
+          <div class="ph-sub">Visitas que você agendou para os leads da sua fila</div>
+        </div>
+      </div>
+      <div id="agendaLista"></div>
+    </div>
+
+    <!-- ══ FUNIL POR LEAD ══ -->
+    <div class="panel" id="panel-funil">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📉 Progresso</div>
+          <div class="ph-title">Funil por Lead</div>
+          <div class="ph-sub">Distribuição dos leads da sua fila por etapa</div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">📉 Funil da Minha Fila</div></div>
+        <div class="card-b" id="funilVisual"></div>
+      </div>
+    </div>
+
+    <!-- ══ MEU DESEMPENHO ══ -->
+    <div class="panel" id="panel-desempenho">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">📈 Indicadores</div>
+          <div class="ph-title">Meu Desempenho</div>
+          <div class="ph-sub">Seus números de atendimento</div>
+        </div>
+      </div>
+      <div class="kpi-strip mb20" style="grid-template-columns:repeat(4,1fr)">
+        <div class="kpi teal"><div class="kpi-lbl">Leads Atribuídos</div><div class="kpi-val" id="dpTotal">0</div></div>
+        <div class="kpi gold"><div class="kpi-lbl">Taxa de Conversão</div><div class="kpi-val" id="dpConv">0%</div></div>
+        <div class="kpi green"><div class="kpi-lbl">Vendas Fechadas</div><div class="kpi-val" id="dpFechados">0</div></div>
+        <div class="kpi amber"><div class="kpi-lbl">Visitas Realizadas</div><div class="kpi-val" id="dpVisitas">0</div></div>
+      </div>
+      <div class="card">
+        <div class="card-h"><div class="card-title">📋 Resumo por status</div></div>
+        <div class="card-b" style="padding:0" id="dpTabela"></div>
+      </div>
+    </div>
+
+    <!-- ══ SIMULADOR FINANCEIRO ══ -->
+    <div class="panel" id="panel-simulador">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🧮 Financiamento</div>
+          <div class="ph-title">Simulador Financeiro</div>
+          <div class="ph-sub">Mesmo simulador do site — compare SAC/PRICE/CFIAe/POUPEX com o lead</div>
+        </div>
+        <div class="ph-acts">
+          <a class="btn btn-teal" id="simuladorAbrirNovaAba" href="../../simulador.html" target="_blank" rel="noopener">↗ Abrir em nova aba</a>
+        </div>
+      </div>
+      <div class="card">
+        <iframe id="simuladorFrame" src="../../simulador.html" style="width:100%;height:75vh;border:0;display:block;background:#fff"></iframe>
+      </div>
+    </div>
+
+
+    <!-- ══ UNIDADES DISPONÍVEIS ══ -->
+    <div class="panel" id="panel-empreendimentos">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🏢 Portfólio</div>
+          <div class="ph-title">Unidades Disponíveis</div>
+          <div class="ph-sub">Filtre por tipo, cidade e faixa de valor para achar o ideal pro seu lead</div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-b">
+          <div class="field-row field-5">
+            <div><div class="field-lbl">UF</div><select class="field-sel" id="empFUf" onchange="atualizarCidadesEmp();filtrarEmps()"><option value="">Todos</option></select></div>
+            <div><div class="field-lbl">Tipo de Imóvel</div><select class="field-sel" id="empFTipo" onchange="filtrarEmps()"><option value="">Todos os tipos</option></select></div>
+            <div><div class="field-lbl">Cidade</div><select class="field-sel" id="empFCidade" onchange="atualizarBairrosEmp();filtrarEmps()"><option value="">Todas as cidades</option></select></div>
+            <div><div class="field-lbl">Bairro</div><select class="field-sel" id="empFBairro" onchange="filtrarEmps()"><option value="">Todos os bairros</option></select></div>
+            <div><div class="field-lbl">Faixa de Valor</div><select class="field-sel" id="empFFaixa" onchange="filtrarEmps()"><option value="">Qualquer valor</option></select></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-gold" onclick="filtrarEmps()">▶ Filtrar</button>
+            <button class="btn" onclick="limparFiltrosEmps()">✕ Limpar</button>
+            <button class="btn btn-teal" onclick="abrirMapaFiltrado()">🗺️ Ver no Mapa</button>
+            <input class="field-inp" type="text" id="empBusca" placeholder="🔍 Buscar por nome..." style="width:200px;margin-left:auto" oninput="filtrarEmps()">
+          </div>
+        </div>
+      </div>
+      <div class="fs11 c-muted mb14" id="empContagem"></div>
+      <div id="empGrid" class="emp-grid mb20"></div>
+    </div>
+
+    <!-- ══ ASSISTENTE IA ══ -->
+    <div class="panel" id="panel-ia">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🤖 Inteligência Artificial</div>
+          <div class="ph-title">Assistente IA do Atendente</div>
+          <div class="ph-sub">Tire dúvidas, prepare abordagens e simule respostas antes de falar com o lead</div>
+        </div>
+      </div>
+
+      <div class="g2 mb20" style="gap:20px">
+        <!-- Chat -->
+        <div style="grid-column:span 2">
+          <div class="ai-wrap">
+            <div class="card-h" style="border-bottom:1px solid var(--bdr);flex-shrink:0">
+              <div class="card-title">💬 Chat com o Assistente</div>
+              <div class="flex" style="gap:8px">
+                <span class="bdg bg" style="font-size:8px">● Online</span>
+                <button class="btn btn-sm" onclick="limparChat()">Limpar</button>
+              </div>
+            </div>
+            <div class="ai-msgs" id="aiMsgs"></div>
+            <div class="ai-chips" id="aiChipsIa">
+              <div class="ai-chip" onclick="sendAiChip('Como faço a primeira abordagem com um lead novo que ainda não retornei?')">Primeira abordagem</div>
+              <div class="ai-chip" onclick="sendAiChip('Qual o benefício mais impactante do financiamento CFIAe que devo mencionar primeiro?')">Melhor argumento CFIAe</div>
+              <div class="ai-chip" onclick="sendAiChip('O lead sumiu depois do primeiro contato. Como faço o follow-up sem ser inconveniente?')">Follow-up de lead sumido</div>
+              <div class="ai-chip" onclick="sendAiChip('Me dê um script de mensagem no WhatsApp para confirmar uma visita agendada')">Script de confirmação de visita</div>
+              <div class="ai-chip" onclick="sendAiChip('Como funciona o financiamento CFIAe para militar? Explique de forma simples que eu possa repassar ao lead.')">Explicar CFIAe simplesmente</div>
+              <div class="ai-chip" onclick="sendAiChip('O lead disse que precisa pensar mais. Como responder essa objeção?')">Objeção: preciso pensar mais</div>
+            </div>
+            <div class="ai-inp-row">
+              <textarea class="ai-inp" id="aiInp" placeholder="Pergunte como abordar, o que responder, como apresentar as unidades..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiMsg()}"></textarea>
+              <button class="ai-send" id="aiSendBtn" onclick="sendAiMsg()">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="g3">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🎯 Abordagem por Etapa</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Script de primeiro contato para um lead que acabou de chegar, sem informação de interesse ainda')">🆕 Lead novo, sem contato</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como conduzir a conversa com um lead que já demonstrou interesse e está avaliando propostas?')">📋 Lead em proposta</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como preparar a confirmação de uma visita agendada para amanhã?')">📅 Antes da visita agendada</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🔄 Respostas para Objeções</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: não tenho dinheiro para a entrada')">💰 "Não tenho para a entrada"</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: vou esperar os preços caírem')">📉 "Vou esperar preços cair"</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: a parcela vai comprometer meu orçamento')">📋 "Vai pesar no orçamento"</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Resposta para: preciso pensar mais, volto depois')">🤔 "Preciso pensar mais"</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">💬 Scripts Prontos</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Crie uma mensagem curta de WhatsApp para o primeiro contato com um lead novo')">📱 Msg WhatsApp · Primeiro contato</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Crie uma mensagem curta de WhatsApp para confirmar uma visita agendada')">📱 Msg WhatsApp · Confirmar visita</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como fazer o followup de um lead que demonstrou interesse mas sumiu?')">🔔 Follow-up de sumido</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como explicar o benefício do FGTS para reduzir a entrada de forma fácil de entender?')">💰 Explicar FGTS na entrada</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ COMISSÕES ══ -->
+    <!-- ══ PERFIL ══ -->
+    <div class="panel" id="panel-perfil">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">👤 Minha Conta</div>
+          <div class="ph-title">Meu Perfil de Atendente</div>
+          <div class="ph-sub">Gerencie seus dados pessoais e documentos</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn-teal btn" onclick="salvarPerfil()">💾 Salvar alterações</button>
+        </div>
+      </div>
+
+      <div class="g2 mb20">
+        <div class="card">
+          <div class="card-h"><div class="card-title">👤 Dados Pessoais</div></div>
+          <div class="card-b">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--bdr)">
+              <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--teal),var(--teal2));display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff" id="perfAvatar">AT</div>
+              <div>
+                <div class="fs14 fw6" id="perfNomeDisplay">Atendente</div>
+                <div class="fs11 c-muted" id="perfEmailDisplay">atendente@wal.com.br</div>
+                <div style="margin-top:4px"><span class="bdg bg">✅ Aprovado · Atendente</span></div>
+              </div>
+            </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Nome completo</div><input class="field-inp" id="perfNome" value=""></div>
+              <div><div class="field-lbl">CPF</div><input class="field-inp" id="perfCpf" value="" readonly style="opacity:.5"></div>
+            </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">E-mail</div><input class="field-inp" id="perfEmail" value=""></div>
+              <div><div class="field-lbl">WhatsApp</div><input class="field-inp" id="perfTel" value=""></div>
+            </div>
+            <div class="field-row mb14">
+              <div><div class="field-lbl">Profissão / Vínculo</div>
+                <select class="field-sel" id="perfProf" onchange="togglePerfProfOutro()">
+                  <option>Militar da Aeronáutica</option>
+                  <option>Civil da Aeronáutica</option>
+                  <option>Militar da Marinha</option>
+                  <option>Civil da Marinha</option>
+                  <option>Militar do Exército</option>
+                  <option>Civil do Exército</option>
+                  <option>Bombeiro</option>
+                  <option>Policial Civil</option>
+                  <option>Policial Militar</option>
+                  <option>Funcionário Público Federal</option>
+                  <option>Funcionário Público Estadual</option>
+                  <option>Funcionário Público Municipal</option>
+                  <option>Empresa Pública</option>
+                  <option>Outro</option>
+                </select>
+                <input class="field-inp" id="perfProfOutro" placeholder="Digite sua profissão / vínculo" style="display:none;margin-top:8px">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-h"><div class="card-title">📄 Documentos</div></div>
+            <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
+              <div id="perfDocsWrap" style="display:flex;flex-direction:column;gap:8px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODAL LEADS DISPONÍVEIS -->
+<div class="modal-ov" id="modalDisponiveis">
+  <div class="modal-box" style="max-width:600px">
+    <div class="modal-h">
+      <div class="modal-title">Leads Disponíveis</div>
+      <button class="modal-close" onclick="fecharModal('modalDisponiveis')">×</button>
+    </div>
+    <div class="modal-body" id="disponiveisBody">Carregando...</div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalDisponiveis')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE DO LEAD -->
+<div class="modal-ov" id="modalLead">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-h">
+      <div class="modal-title" id="leadModalTitle">Lead</div>
+      <button class="modal-close" onclick="fecharModal('modalLead')">×</button>
+    </div>
+    <div class="modal-body" id="leadModalBody"></div>
+    <div class="modal-f">
+      <button class="btn" onclick="fecharModal('modalLead')">Fechar</button>
+      <button class="btn-teal btn" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');fecharModal('modalLead')">🤖 Pedir ajuda à IA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL COMPARTILHAR UNIDADE -->
+<div class="modal-ov" id="modalCompEmp">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-h">
+      <div class="modal-title">Compartilhar</div>
+      <button class="modal-close" onclick="fecharModal('modalCompEmp')">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="compEmpOpcoes" style="display:flex;flex-direction:column;gap:10px">
+        <a id="compEmpWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
+        <button class="btn-full btn" onclick="compEmpMostrarEmail()">✉️ Enviar por E-mail</button>
+        <button class="btn-full btn" id="compEmpBtnCopiar" onclick="compEmpCopiarLink(this)">🔗 Copiar Link</button>
+      </div>
+      <div id="compEmpFormEmail" style="display:none;flex-direction:column;gap:10px">
+        <div class="field-lbl">E-mail do destinatário</div>
+        <input class="field-inp" type="email" id="compEmpEmailInput" placeholder="nome@email.com">
+        <div id="compEmpEmailErr" class="fs11" style="display:none;color:var(--red-ink)"></div>
+        <button class="btn-full btn-gold" id="compEmpBtnEnviar" onclick="compEmpEnviarEmail()">Enviar →</button>
+        <button class="btn" style="background:none;border:none;justify-content:center" onclick="compEmpVoltar()">← Voltar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══ DATA ═══ */
+const TIPO_PESSOA = 'atendente';
+/* Versão dos documentos legais vinculados no checkbox "Li e aceito os
+   Termos..." do cadastro — gravada em Termos_Versao (planilha) sempre
+   que alguém aceita, pra saber quem aceitou qual versão se os PDFs
+   forem atualizados no futuro. Trocar aqui junto quando os arquivos
+   WAL_Termos_de_Parceria_Agente_vX.pdf/WAL_Politica_de_Privacidade_
+   Agente_vX.pdf forem substituídos por uma versão nova. */
+const TERMOS_VERSAO = 'v2.0';
+let _user = null;
+let _leadAtualId = null;
+let _leads = [];
+let _leadsDisponiveis = [];
+let _agendamentos = [];
+let _empreendimentos = [];
+let _historicoCache = {};
+
+const AI_SYSTEM_ATENDENTE = `Você é o Assistente IA da WAL Consultoria Imobiliária, ajudando ATENDENTES — a equipe interna que faz a triagem dos leads recebidos pelo site antes de encaminhar para o corretor.
+
+Seu papel é ajudar o atendente a:
+1. Fazer o primeiro contato e a triagem de leads de forma natural, sem soar como script decorado
+2. Responder dúvidas sobre os empreendimentos e financiamento CFIAe
+3. Superar objeções de forma profissional e empática
+4. Criar mensagens de WhatsApp e confirmações de visita prontas para usar
+
+CFIAe FAB: 8,5%a.a.+TR, até 35 anos, até 90% financiado, FGTS aceito.
+
+Seja natural, empático, direto. Dê respostas práticas que o atendente possa usar imediatamente no atendimento do lead.`;
+
+let _aiHistory = [];
+
+/* ═══ API DO CADASTRO ÚNICO (painel/shared/apps-script-sistema-web-cadastro.gs) ═══
+   Mesmo backend usado pelo resto do Sistema Web (gate de e-mail/OTP em
+   index.html, imovel.html, reserva.html). GET/JSONP para tudo que
+   precisa de resposta (login, indicações, empreendimentos); POST
+   no-cors só para o que é disparar-e-esquecer (não usado aqui, mas
+   mantido pelo padrão do arquivo). */
+/* Mesma URL do projeto "WAL Sistema Web — Cadastro Único" já usada em
+   index.html/imovel.html/reserva.html (dashboard-gestao-usuarios.html) —
+   NÃO é a URL do CRM (essa é outro projeto, "Script CRM - Criacao",
+   nunca deve receber este arquivo — ver incidente de 16/08/2026 na
+   memória do projeto). Precisa que este projeto receba a versão atual
+   de apps-script-sistema-web-cadastro.gs (com as funções crm_*) e seja
+   republicado com "Nova versão" para essa URL funcionar de verdade. */
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+/* Base absoluta do site (com domínio) — necessária pro link que vai no
+   WhatsApp/e-mail em abrirCompartilharEmp(), já que quem abre esse link não está
+   dentro do contexto do dashboard (link relativo não funcionaria fora
+   daqui). Mesmo padrão de SITE_BASE_URL já usado em imovel.html/
+   reserva.html, ajustado pra profundidade de pasta deste arquivo
+   (painel/atendente/ → raiz do site). */
+const SITE_BASE_URL = (function(){
+  const o = window.location.origin;
+  if (!o || o === 'null' || o.startsWith('file')) return '';
+  return o + window.location.pathname.replace(/painel\/atendente\/.*$/, '');
+})();
+function cadastroApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    const cb = 'crmAgCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+function chamarCadastroApi(action, payload){
+  try{
+    fetch(CADASTRO_API_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action}, payload)) }).catch(()=>{});
+  }catch(e){}
+}
+
+/* Projeto Apps Script ISOLADO, numa conta pessoal (não Workspace) —
+   só cuida do upload de documentos (RG/CNH, comprovante de
+   residência) pro Drive. Separado do CADASTRO_API_URL porque a conta
+   Workspace que roda o projeto principal bloqueia DriveApp por
+   política de segurança do domínio, mesmo com autorização concedida.
+   Ver painel/shared/apps-script-upload-documentos-agente.gs. */
+const UPLOAD_DOCUMENTOS_API_URL = 'https://script.google.com/macros/s/AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw/exec';
+function chamarUploadDocumentosApi(action, payload){
+  try{
+    fetch(UPLOAD_DOCUMENTOS_API_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action}, payload)) }).catch(()=>{});
+  }catch(e){}
+}
+
+/* ═══ UTILS ═══ */
+function hoje(d=0){const dt=new Date();dt.setDate(dt.getDate()+d);return dt.toISOString().split('T')[0]}
+function fmtDt(s){if(!s)return'—';const m=String(s).match(/^(\d{4})-(\d{2})-(\d{2})/);return m?`${m[3]}/${m[2]}/${m[1]}`:String(s)}
+function toast(msg,tipo=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='show'+(tipo?' t-'+tipo:'');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.className='',4000);
+}
+function fecharModal(id){document.getElementById(id).classList.remove('show')}
+function abrirModal(id){document.getElementById(id).classList.add('show')}
+
+/* ═══ AUTH ═══ */
+function switchAuthTab(tab){
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='login'?0:1)));
+  document.getElementById('tabLogin').classList.toggle('active',tab==='login');
+  document.getElementById('tabCadastro').classList.toggle('active',tab==='cadastro');
+}
+function iniciaisDe_(nome){ return (nome||'').split(' ').filter(Boolean).slice(0,2).map(p=>p[0]).join('').toUpperCase()||'AT'; }
+
+let _loginEmailAtual='';
+function doLoginEnviarCodigo(){
+  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
+  const err=document.getElementById('loginErr');
+  err.style.display='none';
+  if(!email||email.indexOf('@')===-1){err.textContent='Informe um e-mail válido.';err.style.display='block';return}
+  const btn=document.getElementById('loginBtnEnviar');
+  btn.disabled=true;btn.textContent='Enviando...';
+  chamarCadastroApi('cadastro_login_solicitar_codigo',{email});
+  _loginEmailAtual=email;
+  setTimeout(()=>{btn.disabled=false;btn.textContent='Enviar código de acesso'},600);
+  document.getElementById('loginStep1').style.display='none';
+  document.getElementById('loginStep2').style.display='block';
+  document.getElementById('loginSub').innerHTML=`Enviamos um código de 6 dígitos para <strong style="color:var(--teal)">${email}</strong>.`;
+  document.getElementById('loginCodigo').value='';
+  document.getElementById('loginCodigo').focus();
+}
+function doLoginReenviarCodigo(){
+  chamarCadastroApi('cadastro_login_solicitar_codigo',{email:_loginEmailAtual});
+  toast('Código reenviado.','green');
+}
+function voltarLoginStep1(){
+  document.getElementById('loginStep1').style.display='block';
+  document.getElementById('loginStep2').style.display='none';
+  document.getElementById('loginSub').textContent='Informe seu e-mail cadastrado. Vamos enviar um código de acesso de 6 dígitos.';
+  const e2=document.getElementById('loginErr2');if(e2)e2.style.display='none';
+}
+async function doLoginConfirmarCodigo(){
+  const codigo=document.getElementById('loginCodigo').value.trim();
+  const err=document.getElementById('loginErr2');
+  err.style.display='none';
+  if(!codigo){err.textContent='Informe o código recebido.';err.style.display='block';return}
+  const btn=document.getElementById('loginBtnConfirmar');
+  btn.disabled=true;btn.textContent='Verificando...';
+  const resp=await cadastroApiJsonp('crm_pessoa_verificar_codigo',{email:_loginEmailAtual,codigo,tipo:TIPO_PESSOA});
+  btn.disabled=false;btn.textContent='Confirmar e entrar';
+  if(!resp||resp.status!=='ok'){err.textContent=(resp&&resp.message)||'Não foi possível confirmar o código. Tente novamente.';err.style.display='block';return}
+  if(!resp.cadastrado){
+    voltarLoginStep1();
+    switchAuthTab('cadastro');
+    document.getElementById('cadEmail').value=_loginEmailAtual;
+    toast('E-mail ainda não cadastrado como Agente. Complete seus dados abaixo.','amber');
+    return;
+  }
+  _user=Object.assign({email:_loginEmailAtual,sessionToken:resp.sessionToken,tipo:TIPO_PESSOA},resp.pessoa);
+  iniciarApp();
+}
+
+let _cadEmailPendente='';
+/* Validação "anti-lixo" campo a campo — mesmo critério já usado em
+   reserva.html (validarCPF/validarNomeCompletoReserva/validarTelefoneReserva),
+   reaproveitado aqui pra que o cadastro de Agente não aceite CPF/telefone/
+   nome inválidos silenciosamente. */
+function validarCPF(cpf){
+  cpf=String(cpf).replace(/\D/g,'');
+  if(cpf.length!==11) return false;
+  if(/^(\d)\1{10}$/.test(cpf)) return false;
+  let soma=0,resto;
+  for(let i=1;i<=9;i++) soma+=parseInt(cpf[i-1])*(11-i);
+  resto=(soma*10)%11; if(resto===10||resto===11) resto=0;
+  if(resto!==parseInt(cpf[9])) return false;
+  soma=0;
+  for(let i=1;i<=10;i++) soma+=parseInt(cpf[i-1])*(12-i);
+  resto=(soma*10)%11; if(resto===10||resto===11) resto=0;
+  return resto===parseInt(cpf[10]);
+}
+function validarNomeCompletoCad_(nome){
+  const limpo=(nome||'').trim();
+  if(!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+  const partes=limpo.split(/\s+/).filter(Boolean);
+  return partes.length>=2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length>=4;
+}
+function validarTelefoneCad_(tel){
+  const digitos=(tel||'').replace(/\D/g,'');
+  if(digitos.length<10||digitos.length>11) return false;
+  const ddd=parseInt(digitos.slice(0,2),10);
+  return ddd>=11&&ddd<=99;
+}
+function validarEmailCad_(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test((email||'').trim());
+}
+// Cidade é opcional, mas se preenchida precisa parecer um nome de
+// cidade de verdade — mesmo critério de validarNomeCompletoCad_,
+// só que sem exigir 2+ palavras (cidade pode ser um nome só, ex: "Niterói").
+function filtrarCidadeCad_(el){
+  el.value=el.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'.\s]/g,'');
+}
+function validarCidadeCad_(cidade){
+  const limpo=(cidade||'').trim();
+  if(!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+  if(limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length<2) return false;
+  if(/^(.)\1+$/.test(limpo.replace(/\s/g,''))) return false;
+  return true;
+}
+function limparValidacaoCadastro_(){
+  ['cadNome','cadCpf','cadEmail','cadTel','cadUf','cadCidade'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
+  ['docRgArea','docResArea'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.borderColor=''});
+  const tw=document.getElementById('cadTermosWrap'); if(tw) tw.style.outline='';
+}
+function marcarCampoInvalidoCad_(id,ehArea){
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(ehArea) el.style.outline='2px solid #DC2626'; else { el.style.borderColor='#DC2626'; el.focus(); }
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function doCadastroValidarEEnviarCodigo(){
+  const nome=document.getElementById('cadNome').value.trim();
+  const email=document.getElementById('cadEmail').value.trim().toLowerCase();
+  const tel=document.getElementById('cadTel').value.trim();
+  const cpf=document.getElementById('cadCpf').value.trim();
+  const uf=document.getElementById('cadUf').value;
+  const cidade=document.getElementById('cadCidade').value.trim();
+  const termos=document.getElementById('cadTermos').checked;
+  const err=document.getElementById('cadErr');
+  const ok=document.getElementById('cadOk');
+  err.style.display='none';ok.style.display='none';
+  limparValidacaoCadastro_();
+
+  const checagens=[
+    {cond:!nome,                              id:'cadNome',    msg:'Informe seu nome completo.'},
+    {cond:nome&&!validarNomeCompletoCad_(nome),id:'cadNome',    msg:'Nome incompleto ou inválido — informe nome e sobrenome, sem números ou símbolos.'},
+    {cond:!cpf,                               id:'cadCpf',     msg:'Informe seu CPF.'},
+    {cond:cpf&&!validarCPF(cpf),              id:'cadCpf',     msg:'CPF inválido — confira os números digitados.'},
+    {cond:!email,                             id:'cadEmail',   msg:'Informe seu e-mail.'},
+    {cond:email&&!validarEmailCad_(email),    id:'cadEmail',   msg:'Informe um e-mail válido.'},
+    {cond:!tel,                               id:'cadTel',     msg:'Informe seu WhatsApp.'},
+    {cond:tel&&!validarTelefoneCad_(tel),     id:'cadTel',     msg:'WhatsApp inválido — informe DDD + número (10 ou 11 dígitos).'},
+    {cond:!uf,                                id:'cadUf',      msg:'Selecione seu estado (UF).'},
+    {cond:!cidade,                             id:'cadCidade',  msg:'Informe sua cidade.'},
+    {cond:cidade&&!validarCidadeCad_(cidade), id:'cadCidade',  msg:'Cidade inválida — use apenas letras, sem números ou símbolos.'},
+    {cond:!_docFiles.docRg,                   id:'docRgArea',  area:true, msg:'Envie o RG ou CNH (frente) — documento obrigatório.'},
+    {cond:!termos,                            id:'cadTermosWrap', area:true, msg:'Marque a caixa de aceite dos Termos de Parceria e da Política de Privacidade.'}
+  ];
+  for(const c of checagens){
+    if(c.cond){
+      marcarCampoInvalidoCad_(c.id,c.area);
+      err.textContent=c.msg;err.style.display='block';
+      return;
+    }
+  }
+  _cadEmailPendente=email;
+  document.getElementById('authGateEmailTxt').textContent=email;
+  document.getElementById('authGateCodigo').value='';
+  document.getElementById('authGateErr').style.display='none';
+  chamarCadastroApi('cadastro_login_solicitar_codigo',{email});
+  abrirModal('authGateOverlay');
+}
+function doAuthGateReenviar(){
+  chamarCadastroApi('cadastro_login_solicitar_codigo',{email:_cadEmailPendente});
+  toast('Código reenviado.','green');
+}
+async function doAuthGateConfirmar(){
+  const codigo=document.getElementById('authGateCodigo').value.trim();
+  const err=document.getElementById('authGateErr');
+  err.style.display='none';
+  if(!codigo){err.textContent='Informe o código recebido.';err.style.display='block';return}
+  const btn=document.getElementById('authGateBtn');
+  btn.disabled=true;btn.textContent='Verificando...';
+  const respVerif=await cadastroApiJsonp('crm_pessoa_verificar_codigo',{email:_cadEmailPendente,codigo,tipo:TIPO_PESSOA});
+  if(!respVerif||respVerif.status!=='ok'){
+    btn.disabled=false;btn.textContent='Confirmar código';
+    err.textContent=(respVerif&&respVerif.message)||'Não foi possível confirmar o código. Tente novamente.';err.style.display='block';return
+  }
+  if(respVerif.cadastrado){
+    btn.disabled=false;btn.textContent='Confirmar código';
+    err.textContent='Este e-mail já tem cadastro de Agente. Volte para "Entrar" e faça login.';err.style.display='block';return
+  }
+  const resp=await cadastroApiJsonp('crm_pessoa_cadastrar',{
+    email:_cadEmailPendente, sessionToken:respVerif.sessionToken, tipo:TIPO_PESSOA,
+    nome:document.getElementById('cadNome').value.trim(),
+    cpf:document.getElementById('cadCpf').value.trim(),
+    whatsapp:document.getElementById('cadTel').value.trim(),
+    nascimento:document.getElementById('cadNasc').value,
+    profissao:document.getElementById('cadProf').value,
+    uf:document.getElementById('cadUf').value,
+    cidade:document.getElementById('cadCidade').value.trim(),
+    banco:document.getElementById('cadBanco').value,
+    agencia:document.getElementById('cadAgencia').value,
+    conta:document.getElementById('cadConta').value,
+    tipoConta:document.getElementById('cadTipoConta').value,
+    pix:document.getElementById('cadPix').value,
+    termosAceitos:document.getElementById('cadTermos').checked,
+    termosVersao:TERMOS_VERSAO
+  });
+  btn.disabled=false;btn.textContent='Confirmar código';
+  if(!resp||resp.status!=='ok'){err.textContent=(resp&&resp.message)||'Não foi possível concluir o cadastro. Tente novamente.';err.style.display='block';return}
+  fecharModal('authGateOverlay');
+  document.getElementById('cadOk').style.display='block';
+
+  // Documentos são grandes demais para o GET/JSONP usado no resto do
+  // cadastro — enviados à parte, em POST fire-and-forget (mesmo padrão
+  // do reserva.html). O cadastro em si já está concluído nesse ponto,
+  // então uma falha aqui não impede a solicitação de ir pra análise.
+  try{
+    const documentos=[];
+    if(_docFiles.docRg) documentos.push({descricao:'RG_ou_CNH', nome:_docFiles.docRg.name, tipo:_docFiles.docRg.type||'application/octet-stream', base64:await docParaBase64_(_docFiles.docRg)});
+    if(_docFiles.docRes) documentos.push({descricao:'Comprovante_Residencia', nome:_docFiles.docRes.name, tipo:_docFiles.docRes.type||'application/octet-stream', base64:await docParaBase64_(_docFiles.docRes)});
+    if(documentos.length) chamarUploadDocumentosApi('crm_pessoa_upload_documentos',{
+      email:_cadEmailPendente, sessionToken:respVerif.sessionToken, tipo:TIPO_PESSOA,
+      nome:document.getElementById('cadNome').value.trim(), documentos
+    });
+  }catch(e){ console.warn('Falha ao enviar documentos:',e.message); }
+
+  setTimeout(()=>{
+    ['cadNome','cadCpf','cadEmail','cadTel','cadUf','cadCidade','cadBanco','cadAgencia','cadConta','cadPix','cadMotivacao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    document.getElementById('cadTermos').checked=false;
+    ['docRg','docRes'].forEach(id=>{document.getElementById(id).value='';document.getElementById(id+'Nome').textContent='';_docFiles[id]=null});
+  },2000);
+}
+const MAX_DOC_MB=5;
+let _docFiles={docRg:null,docRes:null};
+function handleUpload(input,nomeId){
+  const f=input.files[0];
+  const nomeEl=document.getElementById(nomeId);
+  if(!f){ _docFiles[input.id]=null; nomeEl.textContent=''; return }
+  if(f.size>MAX_DOC_MB*1024*1024){
+    alert(`Arquivo muito grande! Limite: ${MAX_DOC_MB} MB.\nUse PDF comprimido ou imagem menor.`);
+    input.value=''; _docFiles[input.id]=null; nomeEl.textContent=''; return;
+  }
+  _docFiles[input.id]=f;
+  nomeEl.textContent='✅ '+f.name;
+}
+function docParaBase64_(file){
+  return new Promise((res,rej)=>{
+    const r=new FileReader();
+    r.onload=()=>res(r.result.split(',')[1]);
+    r.onerror=()=>rej(new Error('Falha ao ler '+file.name));
+    r.readAsDataURL(file);
+  });
+}
+
+/* ═══ DOCUMENTOS NO PERFIL (RG/CNH, Comprovante de Residência,
+   Contrato de Parceria assinado) ═══
+   Mostra o que já foi enviado no cadastro (_user.docRgUrl/
+   docComprovanteUrl/docContratoUrl, vindos de crm_pessoaParaObjeto_) e
+   permite reenviar ou enviar pela primeira vez direto daqui,
+   reaproveitando a mesma ação crm_pessoa_upload_documentos (POST
+   fire-and-forget, sem resposta pra ler — por isso o estado "enviando"
+   abaixo é otimista: não temos como confirmar o link novo sem um novo
+   login). O Contrato NÃO é assinatura digital de verdade (não existe
+   integração tipo DocuSign aqui, pedido 54.7.2) — o agente baixa o
+   modelo, assina como puder (impresso+scan ou app do celular) e sobe o
+   PDF assinado aqui, igual RG/CNH. Fica guardado na MESMA pasta do
+   Drive dos outros documentos (mesmo projeto isolado,
+   apps-script-upload-documentos-agente.gs). */
+const PERF_DOCS_CFG=[
+  {key:'docRgUrl',         label:'RG / CNH',                  icon:'📄', inputId:'perfDocRg',  descricao:'RG_ou_CNH'},
+  {key:'docComprovanteUrl',label:'Comprovante de Residência', icon:'🏠', inputId:'perfDocRes', descricao:'Comprovante_Residencia', obrigatorio:false}
+];
+let _perfDocsEnviando={};
+/* Card dos Termos de Parceria/Política de Privacidade, na mesma
+   subseção Documentos (pedido 54.7) — mesmo raciocínio do aceite no
+   cadastro (54.6): se por algum motivo a pessoa ficou sem aceitar
+   (ex.: cadastro antigo, de antes dessa validação existir), dá pra
+   aceitar por aqui também. Ao contrário do upload de documentos, essa
+   ação (crm_pessoa_aceitar_termos) mora no projeto principal (não no
+   isolado do Drive) e responde de verdade via GET/JSONP — por isso dá
+   pra confirmar o aceite na hora, sem precisar do estado "otimista"
+   usado no upload de arquivo. */
+function termosCardHtml_(){
+  const aceito=_user.termosAceitosEm;
+  const hrefTermos=`WAL_Termos_de_Parceria_Agente_${TERMOS_VERSAO}.pdf`;
+  const hrefPrivacidade=`WAL_Politica_de_Privacidade_Agente_${TERMOS_VERSAO}.pdf`;
+  if(aceito){
+    return `<div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px;flex-wrap:wrap;gap:8px">
+      <div class="flex" style="gap:8px"><span style="font-size:18px">📋</span><div>
+        <div class="fs12 fw6">Termos de Parceria e Política de Privacidade</div>
+        <div class="fs10 c-muted">Aceito em ${fmtDt(aceito)}${_user.termosVersao?' · versão '+_user.termosVersao:''}</div>
+      </div></div>
+      <div class="flex" style="gap:6px">
+        <a class="btn btn-sm" href="${hrefTermos}" target="_blank" rel="noopener">📄 Termos</a>
+        <a class="btn btn-sm" href="${hrefPrivacidade}" target="_blank" rel="noopener">🔒 Privacidade</a>
+      </div>
+    </div>`;
+  }
+  return `<div style="padding:10px;background:var(--amber-dim);border:1px solid rgba(217,119,6,.25);border-radius:7px">
+    <div class="flex-bet">
+      <div class="flex" style="gap:8px"><span style="font-size:18px">📋</span><div><div class="fs12 fw6 c-amber">Termos de Parceria e Política de Privacidade</div><div class="fs10 c-muted">Você ainda não aceitou — pode ter ficado pra trás no cadastro</div></div></div>
+      <span class="bdg ba">Pendente</span>
+    </div>
+    <div class="flex" style="gap:6px;margin-top:8px;flex-wrap:wrap">
+      <a class="btn btn-sm" href="${hrefTermos}" target="_blank" rel="noopener">📄 Ler Termos</a>
+      <a class="btn btn-sm" href="${hrefPrivacidade}" target="_blank" rel="noopener">🔒 Ler Política</a>
+    </div>
+    <div class="terms-check" style="margin-top:10px;margin-bottom:0">
+      <input type="checkbox" id="perfTermosCheck">
+      <label for="perfTermosCheck">Li e aceito os <a href="${hrefTermos}" target="_blank" rel="noopener">Termos de Parceria</a> e a <a href="${hrefPrivacidade}" target="_blank" rel="noopener">Política de Privacidade</a> da WAL Consultoria.</label>
+    </div>
+    <button class="btn-teal btn btn-sm" style="margin-top:10px;width:100%" onclick="aceitarTermosPerfil()">✅ Aceitar agora</button>
+  </div>`;
+}
+async function aceitarTermosPerfil(){
+  const chk=document.getElementById('perfTermosCheck');
+  if(chk&&!chk.checked){toast('Marque a caixa confirmando que leu os Termos e a Política antes de aceitar.','');return}
+  const resp=await cadastroApiJsonp('crm_pessoa_aceitar_termos',{
+    email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+    termosAceitos:true, termosVersao:TERMOS_VERSAO
+  });
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível registrar o aceite. Tente novamente.','red');return}
+  _user.termosAceitosEm=resp.aceitoEm||new Date().toISOString();
+  _user.termosVersao=TERMOS_VERSAO;
+  renderDocumentosPerfil();
+  toast('Termos aceitos! Obrigado.','green');
+}
+function renderDocumentosPerfil(){
+  const wrap=document.getElementById('perfDocsWrap');
+  if(!wrap)return;
+  const docsHtml=PERF_DOCS_CFG.map(d=>{
+    const url=_user[d.key];
+    const enviando=_perfDocsEnviando[d.descricao];
+    if(enviando){
+      return `<div style="padding:10px;background:var(--teal-dim);border:1px solid rgba(34,211,238,.25);border-radius:7px">
+        <div class="flex" style="gap:8px"><span style="font-size:18px">⏳</span><div>
+          <div class="fs12 fw6 c-teal">${d.label}</div>
+          <div class="fs10 c-muted">Enviando... pode levar alguns instantes para aparecer aqui</div>
+        </div></div>
+      </div>`;
+    }
+    if(url){
+      return `<div class="flex-bet" style="padding:10px;background:var(--card2);border:1px solid var(--bdr);border-radius:7px;flex-wrap:wrap;gap:8px">
+        <div class="flex" style="gap:8px"><span style="font-size:18px">${d.icon}</span><div><div class="fs12 fw6">${d.label}</div><div class="fs10 c-muted">Documento enviado</div></div></div>
+        <div class="flex" style="gap:6px">
+          <a class="btn btn-sm" href="${url}" target="_blank" rel="noopener">👁️ Ver</a>
+          <button class="btn btn-sm" onclick="document.getElementById('${d.inputId}').click()">🔄 Reenviar</button>
+        </div>
+      </div>
+      <input type="file" id="${d.inputId}" accept="image/*,.pdf" style="display:none" onchange="handleUploadPerfil(this,'${d.descricao}')">`;
+    }
+    const naoObrigatorio=d.obrigatorio===false;
+    return `<div style="padding:10px;background:${naoObrigatorio?'var(--card2)':'var(--amber-dim)'};border:1px solid ${naoObrigatorio?'var(--bdr)':'rgba(217,119,6,.25)'};border-radius:7px">
+      <div class="flex-bet">
+        <div class="flex" style="gap:8px"><span style="font-size:18px">${d.icon}</span><div><div class="fs12 fw6${naoObrigatorio?'':' c-amber'}">${d.label}</div><div class="fs10 c-muted">Ainda não recebemos este documento</div></div></div>
+        ${naoObrigatorio?'':'<span class="bdg ba">Pendente</span>'}
+      </div>
+      ${naoObrigatorio
+        ?'<div class="fs10 c-muted" style="margin-top:6px">Campo não Obrigatório</div>'
+        :'<div class="fs10 c-amber" style="margin-top:6px">⚠️ Envie o quanto antes para não atrasar sua aprovação.</div>'}
+      ${d.modeloUrl?`<a class="btn btn-sm" style="margin-top:8px;width:100%;justify-content:center" href="${d.modeloUrl}" target="_blank" rel="noopener">📥 Baixar contrato para assinar</a>`:''}
+      <button class="btn-teal btn btn-sm" style="margin-top:8px;width:100%" onclick="document.getElementById('${d.inputId}').click()">📤 Enviar agora</button>
+      <input type="file" id="${d.inputId}" accept="image/*,.pdf" style="display:none" onchange="handleUploadPerfil(this,'${d.descricao}')">
+    </div>`;
+  }).join('');
+  wrap.innerHTML=docsHtml+termosCardHtml_();
+}
+async function handleUploadPerfil(input,descricao){
+  const f=input.files[0];if(!f)return;
+  if(f.size>MAX_DOC_MB*1024*1024){
+    alert(`Arquivo muito grande! Limite: ${MAX_DOC_MB} MB.\nUse PDF comprimido ou imagem menor.`);
+    input.value='';return;
+  }
+  try{
+    const base64=await docParaBase64_(f);
+    chamarUploadDocumentosApi('crm_pessoa_upload_documentos',{
+      email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+      nome:_user.nome, documentos:[{descricao, nome:f.name, tipo:f.type||'application/octet-stream', base64}]
+    });
+    _perfDocsEnviando[descricao]=true;
+    renderDocumentosPerfil();
+    toast('Documento enviado!','green');
+  }catch(e){
+    toast('Não foi possível ler o arquivo. Tente novamente.','red');
+  }
+}
+function doLogout(){
+  _user=null;
+  document.getElementById('authScreen').style.display='flex';
+  document.getElementById('pendScreen').style.display='none';
+  document.getElementById('appWrap').style.display='none';
+  voltarLoginStep1();
+}
+
+/* ═══ INIT APP ═══ */
+async function iniciarApp(){
+  document.getElementById('authScreen').style.display='none';
+  if(!_user.habilitado || _user.status==='inativo'){
+    document.getElementById('pendScreen').style.display='flex';
+    return;
+  }
+  document.getElementById('appWrap').style.display='flex';
+  // preencher sidebar/perfil a partir da pessoa real (ATENDENTES)
+  const primeiroNome=(_user.nome||'').split(' ')[0]||'Atendente';
+  const ini=iniciaisDe_(_user.nome);
+  ['sbAv','sbAvFoot','perfAvatar'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ini});
+  document.getElementById('sbNome').textContent=_user.nome||'—';
+  document.getElementById('sbNomeFoot').textContent=_user.nome||'—';
+  document.getElementById('sbRole').textContent='Atendente'+(_user.profissao?' · '+_user.profissao.split(' ')[0]:'');
+  document.getElementById('phNome').textContent=primeiroNome;
+  document.getElementById('perfNomeDisplay').textContent=_user.nome||'—';
+  document.getElementById('perfEmailDisplay').textContent=_user.email;
+  document.getElementById('perfNome').value=_user.nome||'';
+  document.getElementById('perfCpf').value=_user.cpf||'';
+  document.getElementById('perfEmail').value=_user.email;
+  document.getElementById('perfTel').value=_user.whatsapp||'';
+  if(_user.profissao){
+    const selProf=document.getElementById('perfProf');
+    if([...selProf.options].some(o=>o.value===_user.profissao)){
+      selProf.value=_user.profissao;
+    }else{
+      selProf.value='Outro';
+      document.getElementById('perfProfOutro').value=_user.profissao;
+    }
+  }
+  togglePerfProfOutro();
+  // data
+  const d=new Date();
+  const dias=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  document.getElementById('phData').textContent=`${dias[d.getDay()]}, ${d.getDate()} de ${['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'][d.getMonth()]} de ${d.getFullYear()}`;
+  // clock
+  tick();setInterval(tick,1000);
+  renderDocumentosPerfil();
+  // IA welcome
+  addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Fazer a triagem e o primeiro contato com os leads da sua fila\n• Responder objeções de forma profissional\n• Criar mensagens de WhatsApp e confirmações de visita\n• Explicar o financiamento CFIAe de forma simples\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
+  await carregarDadosIniciais();
+  setInterval(carregarDadosIniciais, 30000);
+}
+function tick(){const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=String(n.getMinutes()).padStart(2,'0'),s=String(n.getSeconds()).padStart(2,'0');const el=document.getElementById('clock');if(el)el.textContent=`${h}:${m}:${s} BRT`}
+
+/* ═══ DADOS REAIS (planilha "WAL — CRM de Leads") ═══ */
+async function carregarDadosIniciais(){
+  const [respEmp, respFila, respAgenda] = await Promise.all([
+    cadastroApiJsonp('crm_empreendimentos_listar', {}),
+    cadastroApiJsonp('crm_atendente_leads_listar', {email:_user.email, sessionToken:_user.sessionToken, escopo:'minha'}),
+    cadastroApiJsonp('crm_atendente_listar_agendamentos', {email:_user.email, sessionToken:_user.sessionToken})
+  ]);
+  _empreendimentos = (respEmp && respEmp.itens) || [];
+  _leads = (respFila && respFila.itens) || [];
+  _agendamentos = (respAgenda && respAgenda.itens) || [];
+  renderFila();
+  renderAgenda();
+  renderFunil();
+  renderDesempenho();
+  popularFiltrosEmp();filtrarEmps();
+}
+function nomeEmp_(empId){ const e=_empreendimentos.find(x=>x.id===empId); return e?e.nome:(empId?'—':'—'); }
+/* Copiado de imovel.html — a coluna "URL da Imagem" do Portfólio guarda
+   link de "view" do Drive (.../d/ID/view), que não renderiza em <img>
+   direto; precisa converter pro formato lh3.googleusercontent.com. */
+function fixDriveUrl(url) {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
+
+/* ═══ NAV ═══ */
+const TITLES={fila:'Minha Fila',agenda:'Agenda de Visita',funil:'Funil por Lead',empreendimentos:'Unidades Disponíveis',simulador:'Simulador Financeiro',ia:'Assistente IA',desempenho:'Meu Desempenho',perfil:'Meu Perfil'};
+function nav(el,id){
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  if(el?.classList)el.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const t=document.getElementById('panel-'+id);if(t)t.classList.add('active');
+  document.getElementById('topbarTitle').textContent=TITLES[id]||id;
+  const _sb=document.querySelector('.sidebar'); if(_sb) _sb.classList.remove('open');
+  const _bd=document.getElementById('sidebarBackdrop'); if(_bd) _bd.classList.remove('show');
+}
+
+/* ═══ MINHA FILA / LEAD ═══ */
+function statusLeadBdg(s){return{novo:'bt',contato:'bt',proposta:'bp',visita:'bg',fechado:'bg',perdido:'br'}[s]||'bz'}
+function statusLeadLabel(s){return{novo:'Novo',contato:'Em contato',proposta:'Proposta enviada',visita:'Visita agendada',fechado:'✅ Fechado',perdido:'Perdido'}[s]||s}
+function statusLeadPct(s){return{novo:15,contato:35,proposta:55,visita:75,fechado:100,perdido:0}[s]||10}
+function horasDesde_(iso){ if(!iso) return 0; const d=new Date(iso); if(isNaN(d.getTime())) return 0; return (Date.now()-d.getTime())/3600000; }
+
+function atualizarPills(){
+  const ativos=_leads.filter(l=>l.status!=='perdido'&&l.status!=='fechado').length;
+  const fechados=_leads.filter(l=>l.status==='fechado').length;
+  const urgentes=_leads.filter(l=>['novo','contato'].includes(l.status)&&horasDesde_(l.atualizadoEm)>24).length;
+  document.getElementById('sbFilaQtd').textContent=_leads.length;
+  document.getElementById('sbAgendaQtd').textContent=_agendamentos.filter(a=>a.status==='agendado').length;
+  document.getElementById('sbFechadosQtd').textContent=fechados;
+  document.getElementById('sbBdgFila').textContent=_leads.length;
+  document.getElementById('kpiFila').textContent=_leads.length;
+  document.getElementById('kpiEmAtend').textContent=_leads.filter(l=>['contato','proposta','visita'].includes(l.status)).length;
+  document.getElementById('kpiUrgentes').textContent=urgentes;
+  document.getElementById('kpiFechados').textContent=fechados;
+  const alertEl=document.getElementById('filaAlert');
+  if(alertEl) alertEl.innerHTML = _leads.length
+    ? `🎧 Você tem <strong>${ativos} lead${ativos===1?'':'s'} em atendimento</strong>. Clique em um lead da fila para ver o detalhe e registrar o andamento.`
+    : `🎧 Você ainda não tem leads na fila. Clique em <strong>Pegar lead disponível</strong> para começar a atender.`;
+  const nd=document.getElementById('notifDot');
+  if(nd) nd.style.display=urgentes?'':'none';
+}
+function renderFila(){
+  atualizarPills();
+  const busca=(document.getElementById('filaBusca')?.value||'').toLowerCase();
+  const st=document.getElementById('filaFiltStatus')?.value||'';
+  let list=_leads.filter(l=>{
+    if(st&&l.status!==st)return false;
+    if(busca&&!(l.nome||'').toLowerCase().includes(busca))return false;
+    return true;
+  });
+  list.sort((a,b)=>(b.atualizadoEm||'').localeCompare(a.atualizadoEm||''));
+  const el=document.getElementById('filaLista');
+  if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum lead encontrado.</div>`;return}
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Origem</th><th>Status</th><th>Prioridade</th><th>Atualizado</th><th>Progresso</th><th></th></tr></thead><tbody>${list.map(l=>`<tr class="clk" onclick="abrirLead('${l.id}')">
+    <td><div class="fw6">${l.nome||'—'}</div><div class="fs10 c-muted">${l.telefone||l.email||''}</div></td>
+    <td class="fs11">${l.origem||'—'}</td>
+    <td><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></td>
+    <td><span class="bdg bz fs10">${l.prioridade||'média'}</span></td>
+    <td class="mono fs10 c-muted">${fmtDt((l.atualizadoEm||'').split('T')[0])}</td>
+    <td style="min-width:100px"><div class="prog-bar"><div class="pf pf-teal" style="width:${statusLeadPct(l.status)}%"></div></div></td>
+    <td><button class="btn btn-sm btn-teal" onclick="event.stopPropagation();abrirLead('${l.id}')">Ver ›</button></td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+
+async function abrirLeadsDisponiveis(){
+  abrirModal('modalDisponiveis');
+  const body=document.getElementById('disponiveisBody');
+  body.innerHTML='Carregando...';
+  const resp=await cadastroApiJsonp('crm_atendente_leads_listar',{email:_user.email,sessionToken:_user.sessionToken,escopo:'disponiveis'});
+  _leadsDisponiveis=(resp&&resp.itens)||[];
+  if(!_leadsDisponiveis.length){body.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum lead disponível no momento.</div>`;return}
+  body.innerHTML=_leadsDisponiveis.map(l=>`<div class="lead-card" style="cursor:default">
+    <div class="lc-top">
+      <div><div class="lc-name">${l.nome||'—'}</div><div class="lc-sub">${l.telefone||l.email||''} · ${l.origem||'—'}</div></div>
+      <button class="btn btn-sm btn-teal" onclick="pegarLead('${l.id}')">🎧 Pegar</button>
+    </div>
+  </div>`).join('');
+}
+async function pegarLead(id){
+  const resp=await cadastroApiJsonp('crm_atendente_lead_atribuir',{email:_user.email,sessionToken:_user.sessionToken,leadId:id});
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível pegar este lead.','');return}
+  toast('✅ Lead atribuído à sua fila!','green');
+  fecharModal('modalDisponiveis');
+  await carregarDadosIniciais();
+  nav(document.querySelector('[onclick*=fila]'),'fila');
+}
+
+async function abrirLead(id){
+  const l=_leads.find(x=>x.id===id); if(!l)return;
+  _leadAtualId=id;
+  document.getElementById('leadModalTitle').textContent=l.nome||'Lead';
+  document.getElementById('leadModalBody').innerHTML='Carregando...';
+  abrirModal('modalLead');
+  const resp=await cadastroApiJsonp('crm_atendente_listar_historico',{email:_user.email,sessionToken:_user.sessionToken,leadId:id});
+  renderLeadModal(l,(resp&&resp.itens)||[]);
+}
+function renderLeadModal(l,historico){
+  const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div></div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
+  document.getElementById('leadModalBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
+      <div>
+        <div class="flex-bet mb14"><div><div class="fs14 fw6">${l.nome||'—'}</div><div class="fs11 c-muted">${l.telefone||''}${l.email?' · '+l.email:''}</div></div><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Origem</div><div class="fs12 fw6">${l.origem||'—'}</div></div>
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Consultor</div><div class="fs12 fw6">${l.consultor||'—'}</div></div>
+        </div>
+        <div class="f-sec mb14">Atualizar status</div>
+        <div class="field-row field-2 mb14">
+          <div><select class="field-sel" id="leadStatusSel">${['novo','contato','proposta','visita','fechado','perdido'].map(s=>`<option value="${s}" ${l.status===s?'selected':''}>${statusLeadLabel(s)}</option>`).join('')}</select></div>
+          <div><select class="field-sel" id="leadPrioridadeSel">${['baixa','media','alta'].map(p=>`<option value="${p}" ${(l.prioridade||'media')===p?'selected':''}>Prioridade ${p}</option>`).join('')}</select></div>
+        </div>
+        <button class="btn btn-teal btn-sm" onclick="salvarStatusLead()">💾 Salvar status</button>
+        <div class="f-sec mb14" style="margin-top:18px">Registrar nota</div>
+        <textarea class="field-ta" id="leadNotaTxt" placeholder="Ex: Liguei, não atendeu. Vou tentar de novo amanhã à tarde."></textarea>
+        <button class="btn btn-teal btn-sm" style="margin-top:8px" onclick="salvarNotaLead()">📝 Adicionar nota</button>
+        <div class="f-sec mb14" style="margin-top:18px">Agendar visita</div>
+        <div class="field-row field-2 mb14">
+          <div><div class="field-lbl">Data</div><input class="field-inp" type="date" id="leadVisitaData"></div>
+          <div><div class="field-lbl">Hora</div><input class="field-inp" type="time" id="leadVisitaHora"></div>
+        </div>
+        <div class="field-row mb14">
+          <div><div class="field-lbl">Empreendimento</div><select class="field-sel" id="leadVisitaEmp"><option value="">Selecione...</option>${_empreendimentos.map(e=>`<option value="${e.id}">${e.nome}</option>`).join('')}</select></div>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="salvarAgendamentoLead()">📅 Agendar visita</button>
+      </div>
+      <div>
+        <div class="sec mb14">Histórico</div>
+        <div class="tl-wrap"><div class="tl-line"></div>${tl}</div>
+      </div>
+    </div>`;
+}
+async function salvarStatusLead(){
+  const status=document.getElementById('leadStatusSel').value;
+  const prioridade=document.getElementById('leadPrioridadeSel').value;
+  const resp=await cadastroApiJsonp('crm_atendente_lead_status',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,status,prioridade});
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível salvar.','');return}
+  const l=_leads.find(x=>x.id===_leadAtualId);
+  if(l){l.status=status;l.prioridade=prioridade;}
+  await cadastroApiJsonp('crm_atendente_historico_evento',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,email_lead:(l&&l.email)||'',tipo:'status',texto:`Status alterado para "${statusLeadLabel(status)}".`});
+  toast('✅ Status atualizado!','green');
+  renderFila();renderFunil();renderDesempenho();
+  abrirLead(_leadAtualId);
+}
+async function salvarNotaLead(){
+  const texto=document.getElementById('leadNotaTxt').value.trim();
+  if(!texto){toast('Escreva uma nota antes de salvar.','');return}
+  const l=_leads.find(x=>x.id===_leadAtualId);
+  const resp=await cadastroApiJsonp('crm_atendente_historico_evento',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,email_lead:(l&&l.email)||'',tipo:'nota',texto});
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível salvar a nota.','');return}
+  toast('📝 Nota registrada!','green');
+  abrirLead(_leadAtualId);
+}
+async function salvarAgendamentoLead(){
+  const data=document.getElementById('leadVisitaData').value;
+  const hora=document.getElementById('leadVisitaHora').value;
+  if(!data||!hora){toast('Informe data e hora da visita.','');return}
+  const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
+  const empId=document.getElementById('leadVisitaEmp').value;
+  const resp=await cadastroApiJsonp('crm_atendente_agendamento',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,nome:l.nome,telefone:l.telefone,email_lead:l.email,empId,data,hora});
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível agendar.','');return}
+  await cadastroApiJsonp('crm_atendente_historico_evento',{email:_user.email,sessionToken:_user.sessionToken,leadId:_leadAtualId,email_lead:l.email,tipo:'visita',texto:`Visita agendada para ${fmtDt(data)} às ${hora}${empId?' — '+nomeEmp_(empId):''}.`});
+  toast('📅 Visita agendada!','green');
+  await carregarDadosIniciais();
+  abrirLead(_leadAtualId);
+}
+
+/* ═══ AGENDA DE VISITA ═══ */
+function renderAgenda(){
+  const el=document.getElementById('agendaLista'); if(!el)return;
+  if(!_agendamentos.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma visita agendada.</div>`;return}
+  const ordenados=[..._agendamentos].sort((a,b)=>(a.data+a.hora).localeCompare(b.data+b.hora));
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Data</th><th>Hora</th><th>Empreendimento</th><th>Status</th><th></th></tr></thead><tbody>${ordenados.map(a=>`<tr>
+    <td class="fw6">${a.nome||'—'}</td>
+    <td class="mono fs11">${fmtDt(a.data)}</td>
+    <td class="mono fs11">${a.hora||'—'}</td>
+    <td class="fs11">${nomeEmp_(a.empId)}</td>
+    <td><span class="bdg ${a.status==='realizada'?'bg':a.status==='cancelada'?'br':'bt'}">${a.status}</span></td>
+    <td>${a.status==='agendado'?`<div class="flex" style="gap:4px"><button class="btn btn-sm btn-teal" onclick="marcarVisita('${a.id}','realizada')">✅</button><button class="btn btn-sm btn-red" onclick="marcarVisita('${a.id}','cancelada')">✕</button></div>`:''}</td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+async function marcarVisita(id,status){
+  const resp=await cadastroApiJsonp('crm_atendente_agendamento',{email:_user.email,sessionToken:_user.sessionToken,id,status});
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível atualizar.','');return}
+  toast(status==='realizada'?'✅ Visita marcada como realizada!':'Visita cancelada.','green');
+  await carregarDadosIniciais();
+}
+
+/* ═══ FUNIL POR LEAD ═══ */
+function renderFunil(){
+  const el=document.getElementById('funilVisual'); if(!el)return;
+  const etapas=[
+    {key:'novo',label:'Novo',cor:'pf-teal'},
+    {key:'contato',label:'Em contato',cor:'pf-teal'},
+    {key:'proposta',label:'Proposta enviada',cor:'pf-gold'},
+    {key:'visita',label:'Visita agendada',cor:'pf-amber'},
+    {key:'fechado',label:'Fechado ✅',cor:'pf-green'},
+  ];
+  const total=Math.max(_leads.filter(l=>l.status!=='perdido').length,1);
+  el.innerHTML=etapas.map(e=>{
+    const n=_leads.filter(l=>l.status===e.key).length;
+    const pct=Math.round(n/total*100);
+    return`<div class="fstep">
+      <div class="fstep-n">${n}</div>
+      <div style="flex:1"><div class="fs12 fw6">${e.label}</div><div class="fs10 c-muted">${n} lead${n!==1?'s':''}</div></div>
+      <div class="fstep-bar"><div class="fstep-fill ${e.cor}" style="width:${pct}%"></div></div>
+      <div class="fstep-pct">${pct}%</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══ MEU DESEMPENHO ═══ */
+function renderDesempenho(){
+  const dpTotal=document.getElementById('dpTotal'); if(!dpTotal)return;
+  const total=_leads.length;
+  const fechados=_leads.filter(l=>l.status==='fechado').length;
+  const conv=total?Math.round(fechados/total*100):0;
+  const visitasRealizadas=_agendamentos.filter(a=>a.status==='realizada').length;
+  dpTotal.textContent=total;
+  document.getElementById('dpConv').textContent=conv+'%';
+  document.getElementById('dpFechados').textContent=fechados;
+  document.getElementById('dpVisitas').textContent=visitasRealizadas;
+  const etapas=['novo','contato','proposta','visita','fechado','perdido'];
+  document.getElementById('dpTabela').innerHTML=`<table class="tbl">${etapas.map(s=>`<tr><td class="fw6">${statusLeadLabel(s)}</td><td class="fs11 c-muted" style="text-align:right">${_leads.filter(l=>l.status===s).length}</td></tr>`).join('')}</table>`;
+}
+
+/* ═══ EMPREENDIMENTOS (planilha "WAL Imóveis — Portfólio") ═══ */
+/* Backend "Leads Landing Page" — reaproveitado só pra ação
+   tipo:'compartilhar_email' (já usada por imovel.html/reserva.html
+   pra mandar um e-mail com assunto+corpo pro destinatário). Não tem
+   relação com CADASTRO_API_URL nem com nenhuma outra função deste
+   arquivo. */
+const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
+let _compEmpDados=null;
+function abrirCompartilharEmp(id){
+  const e=_empreendimentos.find(x=>x.id===id);
+  if(!e)return;
+  const link=`${SITE_BASE_URL}imovel.html?id=${encodeURIComponent(e.id)}`;
+  const texto=`🏗️ *${e.nome}* (${e.construtora})\n📍 ${e.bairro} · ${e.cidade}/${e.uf}\n💰 Faixa: ${e.faixa||'consulte'}\n\n${e.descricao||''}\n\nQuer saber mais? Clique no link abaixo!\n${link}`;
+  _compEmpDados={id:e.id, link, texto, assunto:`Empreendimento interessante — ${e.nome}`};
+  document.getElementById('compEmpWpp').href=`https://wa.me/?text=${encodeURIComponent(texto)}`;
+  document.getElementById('compEmpOpcoes').style.display='flex';
+  document.getElementById('compEmpFormEmail').style.display='none';
+  abrirModal('modalCompEmp');
+}
+function compEmpCopiarLink(btn){
+  navigator.clipboard.writeText(_compEmpDados.link).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent='✅ Link copiado!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  });
+}
+function compEmpMostrarEmail(){
+  document.getElementById('compEmpOpcoes').style.display='none';
+  document.getElementById('compEmpFormEmail').style.display='flex';
+  document.getElementById('compEmpEmailErr').style.display='none';
+  const inp=document.getElementById('compEmpEmailInput');
+  inp.value='';inp.focus();
+  // Modal é estático (não recriado a cada abertura) — sem isto, o botão
+  // ficava travado em "Enviando..." desabilitado pra sempre depois do
+  // 1º envio bem-sucedido, porque o sucesso só fechava o modal sem
+  // reabilitar o botão. Reseta aqui sempre que a tela de e-mail abre,
+  // não só nos casos de erro.
+  const btn=document.getElementById('compEmpBtnEnviar');
+  btn.disabled=false;btn.textContent='Enviar →';
+}
+function compEmpVoltar(){
+  document.getElementById('compEmpFormEmail').style.display='none';
+  document.getElementById('compEmpOpcoes').style.display='flex';
+}
+async function compEmpEnviarEmail(){
+  const inp=document.getElementById('compEmpEmailInput');
+  const destinatario=(inp.value||'').trim();
+  const errEl=document.getElementById('compEmpEmailErr');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(destinatario)){errEl.textContent='Digite um e-mail válido.';errEl.style.display='block';return}
+  errEl.style.display='none';
+  const btn=document.getElementById('compEmpBtnEnviar');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario,assunto:_compEmpDados.assunto,corpo:_compEmpDados.texto})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      toast('✅ E-mail enviado para '+destinatario+'!','green');
+      fecharModal('modalCompEmp');
+      btn.disabled=false;btn.textContent='Enviar →';
+    }else{
+      errEl.textContent=data.message||'Não foi possível enviar agora. Tente novamente.';errEl.style.display='block';
+      btn.disabled=false;btn.textContent='Enviar →';
+    }
+  }catch(e){
+    errEl.textContent='Falha na conexão. Tente novamente.';errEl.style.display='block';
+    btn.disabled=false;btn.textContent='Enviar →';
+  }
+}
+
+/* ═══ FILTROS DE EMPREENDIMENTOS (mesmo padrão de imoveis.html) ═══ */
+let _empFiltrados=[];
+const EMP_FAIXAS=[
+  {id:'300',  max:300,  label:'Até R$ 300 mil'},
+  {id:'500',  max:500,  label:'Até R$ 500 mil'},
+  {id:'700',  max:700,  label:'Até R$ 700 mil'},
+  {id:'850',  max:850,  label:'Até R$ 850 mil'},
+  {id:'990',  max:990,  label:'Até R$ 990 mil'},
+  {id:'1500', max:1500, label:'Até R$ 1.500 mil'},
+  {id:'2500', max:2500, label:'Até R$ 2.500 mil'},
+  {id:'9999', max:99999,label:'Acima de R$ 2.500 mil'}
+];
+function empFaixaMatch_(valorMil,faixaId){
+  if(!faixaId)return true;
+  const f=EMP_FAIXAS.find(x=>x.id===faixaId);
+  if(!f)return true;
+  if(faixaId==='9999')return valorMil>2500;
+  return valorMil<=f.max;
+}
+function popularFiltrosEmp(){
+  const ufs=[...new Set(_empreendimentos.map(e=>e.uf).filter(Boolean))].sort();
+  document.getElementById('empFUf').innerHTML='<option value="">Todos</option>'+ufs.map(u=>`<option value="${u}">${u}</option>`).join('');
+  const tipos=[...new Set(_empreendimentos.map(e=>e.tipo).filter(Boolean))].sort();
+  document.getElementById('empFTipo').innerHTML='<option value="">Todos os tipos</option>'+tipos.map(t=>`<option value="${t}">${t}</option>`).join('');
+  document.getElementById('empFFaixa').innerHTML='<option value="">Qualquer valor</option>'+EMP_FAIXAS.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
+  atualizarCidadesEmp();
+}
+function atualizarCidadesEmp(){
+  const uf=document.getElementById('empFUf').value;
+  const cidades=[...new Set(_empreendimentos.filter(e=>!uf||e.uf===uf).map(e=>e.cidade).filter(Boolean))].sort();
+  document.getElementById('empFCidade').innerHTML='<option value="">Todas as cidades</option>'+cidades.map(c=>`<option value="${c}">${c}</option>`).join('');
+  atualizarBairrosEmp();
+}
+function atualizarBairrosEmp(){
+  const uf=document.getElementById('empFUf').value;
+  const cidade=document.getElementById('empFCidade').value;
+  const bairros=[...new Set(_empreendimentos.filter(e=>(!uf||e.uf===uf)&&(!cidade||e.cidade===cidade)).map(e=>e.bairro).filter(Boolean))].sort();
+  document.getElementById('empFBairro').innerHTML='<option value="">Todos os bairros</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
+}
+/* "Ver no Mapa" leva o filtro atual (UF/Tipo/Cidade/Bairro/Busca — o
+   mapa não tem filtro de Faixa de Valor, então esse campo não é
+   transferido). */
+function abrirMapaFiltrado(){
+  const params=new URLSearchParams();
+  const mapa={uf:'empFUf', tipo:'empFTipo', cidade:'empFCidade', bairro:'empFBairro', busca:'empBusca'};
+  Object.keys(mapa).forEach(chave=>{
+    const el=document.getElementById(mapa[chave]);
+    const v=el?el.value.trim():'';
+    if(v)params.set(chave,v);
+  });
+  window.open(`${SITE_BASE_URL}mapa-empreendimentos.html?${params.toString()}`,'_blank');
+}
+function filtrarEmps(){
+  const uf=document.getElementById('empFUf').value;
+  const tipo=document.getElementById('empFTipo').value;
+  const cidade=document.getElementById('empFCidade').value;
+  const bairro=document.getElementById('empFBairro').value;
+  const faixa=document.getElementById('empFFaixa').value;
+  const busca=(document.getElementById('empBusca')?.value||'').toLowerCase();
+  _empFiltrados=_empreendimentos.filter(e=>{
+    if(uf&&e.uf!==uf)return false;
+    if(tipo&&e.tipo!==tipo)return false;
+    if(cidade&&e.cidade!==cidade)return false;
+    if(bairro&&e.bairro!==bairro)return false;
+    if(!empFaixaMatch_(e.valorMil,faixa))return false;
+    if(busca&&!e.nome.toLowerCase().includes(busca)&&!e.bairro.toLowerCase().includes(busca))return false;
+    return true;
+  });
+  renderEmps();
+}
+function limparFiltrosEmps(){
+  ['empFUf','empFTipo','empFCidade','empFBairro','empFFaixa'].forEach(id=>{document.getElementById(id).value=''});
+  const busca=document.getElementById('empBusca');if(busca)busca.value='';
+  atualizarCidadesEmp();
+  filtrarEmps();
+}
+function renderEmps(){
+  const list=_empFiltrados;
+  const cont=document.getElementById('empContagem');
+  if(cont)cont.textContent=`Mostrando ${list.length} empreendimento${list.length===1?'':'s'}`;
+  const el=document.getElementById('empGrid');
+  if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum empreendimento encontrado. Tente ajustar os filtros.</div>`;return}
+  el.innerHTML=list.map(e=>`
+    <div class="emp-card">
+      <div class="emp-img">${e.imagem?`<img src="${fixDriveUrl(e.imagem)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:42px;position:relative;z-index:1">🏗️</span>`}</div>
+      <div class="emp-body">
+        <div class="emp-nome">${e.nome}</div>
+        <div class="emp-const">${e.construtora} · ${e.bairro} · ${e.cidade}/${e.uf}</div>
+        <div class="sp" style="margin-bottom:10px">
+          ${e.tipo?`<span class="bdg bt">${e.tipo}</span>`:''}
+          ${e.destaque?'<span class="bdg bo">⭐ Destaque</span>':''}
+        </div>
+        <div class="emp-stat-g" style="margin-bottom:10px">
+          <div><div class="emp-stat-lbl">Unidades</div><div class="emp-stat-val">${e.qtdUnidades||'—'}</div></div>
+          <div><div class="emp-stat-lbl">Faixa de valor</div><div class="emp-stat-val" style="font-size:10px">${e.faixa||'—'}</div></div>
+        </div>
+        <div class="sec" style="margin-bottom:8px">Sobre o empreendimento</div>
+        <div style="font-size:11px;color:var(--txt);line-height:1.6">${e.descricao||'Sem descrição cadastrada.'}</div>
+        <div style="display:flex;gap:6px;margin-top:12px">
+          <!-- Botão "Materiais" removido daqui de propósito (24/08/2026) junto com o
+               item do menu, enquanto o Antonio monta a parte de marketing. -->
+          <button class="btn-gold btn btn-sm" style="flex:1" onclick="abrirCompartilharEmp('${e.id}')">📲 Compartilhar</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+/* ═══ PERFIL ═══ */
+function togglePerfProfOutro(){
+  const outro=document.getElementById('perfProf').value==='Outro';
+  document.getElementById('perfProfOutro').style.display=outro?'block':'none';
+}
+function perfProfissaoAtual_(){
+  const sel=document.getElementById('perfProf').value;
+  return sel==='Outro' ? document.getElementById('perfProfOutro').value.trim() : sel;
+}
+async function salvarPerfil(){
+  if(!_user){toast('Sessão expirada. Faça login novamente.','');return}
+  if(document.getElementById('perfProf').value==='Outro' && !document.getElementById('perfProfOutro').value.trim()){
+    toast('Informe sua Profissão / Vínculo no campo "Outro".','');return
+  }
+  const btn=document.querySelector('#panel-perfil .btn-teal');
+  if(btn){btn.disabled=true;btn.textContent='Salvando...'}
+  const respPerfil = await cadastroApiJsonp('crm_pessoa_atualizar_perfil', {
+    email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+    nome:document.getElementById('perfNome').value,
+    whatsapp:document.getElementById('perfTel').value,
+    profissao:perfProfissaoAtual_()
+  });
+  if(btn){btn.disabled=false;btn.textContent='💾 Salvar alterações'}
+  if(!respPerfil||respPerfil.status!=='ok'){
+    toast((respPerfil&&respPerfil.message)||'Não foi possível salvar as alterações. Tente novamente.','');return
+  }
+  _user.nome=document.getElementById('perfNome').value;
+  _user.whatsapp=document.getElementById('perfTel').value;
+  _user.profissao=perfProfissaoAtual_();
+  document.getElementById('sbNome').textContent=_user.nome;
+  document.getElementById('sbNomeFoot').textContent=_user.nome;
+  document.getElementById('perfNomeDisplay').textContent=_user.nome;
+  toast('✅ Perfil atualizado!','green');
+}
+
+/* ═══ ASSISTENTE IA ═══ */
+function addAiMsg(role,txt){
+  const el=document.getElementById('aiMsgs');if(!el)return;
+  const isAI=role==='ai';
+  const div=document.createElement('div');
+  div.className='ai-msg';
+  div.innerHTML=`<div class="ai-av ${isAI?'av-ai':'av-u'}">${isAI?'W':'Eu'}</div><div class="ai-bubble ${isAI?'ai-bubble-ai':'ai-bubble-u'}">${txt.replace(/\n/g,'<br>')}</div>`;
+  el.appendChild(div);
+  el.scrollTop=el.scrollHeight;
+}
+function sendAiChip(msg){
+  const inp=document.getElementById('aiInp');if(!inp)return;
+  inp.value=msg;sendAiMsg();
+  nav(document.querySelector('[onclick*=ia]'),'ia');
+}
+async function sendAiMsg(){
+  const inp=document.getElementById('aiInp');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';
+  addAiMsg('user',msg);
+  _aiHistory.push({role:'user',content:msg});
+  const btn=document.getElementById('aiSendBtn');
+  if(btn){btn.textContent='⏳';btn.disabled=true;btn.classList.add('loading')}
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:AI_SYSTEM_ATENDENTE,messages:_aiHistory})
+    });
+    const data=await resp.json();
+    const reply=data.content?.[0]?.text||'Desculpe, não consegui responder agora.';
+    _aiHistory.push({role:'assistant',content:reply});
+    addAiMsg('ai',reply);
+  }catch(e){addAiMsg('ai','⚠️ Erro de conexão. Verifique sua internet e tente novamente.')}
+  if(btn){btn.textContent='➤';btn.disabled=false;btn.classList.remove('loading')}
+}
+function limparChat(){
+  _aiHistory=[];
+  const el=document.getElementById('aiMsgs');if(el)el.innerHTML='';
+  addAiMsg('ai','Chat reiniciado! Como posso ajudar?');
+}
+</script>
+<script src="../shared/compartilhamento-seguro.js"></script>
+</body>
+</html>
