@@ -895,6 +895,12 @@ const SHEET_ID   = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
 const SHEET_NAME = 'IMOVEISDISPONIVEIS';
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
 const WPP_NUM    = '5521972443592';
+/* CRM LEADS — mesmo Apps Script que admin.html/reserva.html/simulador.html/
+   index.html/mapa-empreendimentos.html já usam, vinculado à planilha
+   "WAL — CRM de Leads", aba LEADS. Não substitui o SCRIPT_URL acima (a
+   planilha "Leads Landing Page FAB" continua recebendo tudo) — grava
+   nas duas em paralelo. */
+const CRM_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 
 /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
    — usado só para o gate de e-mail/OTP do formulário "Tenho Interesse",
@@ -1626,12 +1632,67 @@ function trocarEmailInteresse() {
   campo.focus();
 }
 
+/* Monta e manda o lead do "Quero ser Contactado"/"Simular Financiamento"
+   também pra aba LEADS da "WAL — CRM de Leads" (planilha diferente da
+   "Leads Landing Page FAB" que o SCRIPT_URL acima já alimenta) —
+   análise dos campos e mapeamento combinados com o Antonio em 76).
+   Campos que a aba LEADS não tem coluna própria (posto/cargo, imóvel
+   específico visto) ficam condensados em "Solicitação", pro corretor
+   já abrir o lead sabendo o que fazer. */
+function registrarNoCRMImovel_(data) {
+  const ref = lerReferenciaAgente_();
+  const localizacao = [data.bairro_desejado, [data.cidade, data.estado].filter(Boolean).join('/')]
+    .filter(Boolean).join(', ');
+  const notaSolicitacao = [
+    data.posto ? ('Posto/Cargo: ' + data.posto) : '',
+    'Imóvel de interesse: ' + (data.imovel_interesse || '—') +
+      (imovelAtual && imovelAtual.construtora ? (' (' + imovelAtual.construtora + ')') : ''),
+    'Página: ' + location.href
+  ].filter(Boolean).join('\n');
+  const amanha = new Date(Date.now() + 24 * 3600 * 1000);
+  const dataProxAcao = amanha.getFullYear() + '-' +
+    String(amanha.getMonth() + 1).padStart(2, '0') + '-' +
+    String(amanha.getDate()).padStart(2, '0');
+
+  fetch(CRM_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'criarOuAtualizar',
+      lead: {
+        status: 'novo', prioridade: 'alta',
+        nome: data.nome, telefone: data.whatsapp, email: data.email,
+        origem: 'Página do Imóvel — ' + (data.imovel_interesse || ''),
+        consultor: (ref && ref.nome) || '',
+        solicitacao: notaSolicitacao,
+        orcamento: data.faixa_valor || '',
+        area: localizacao,
+        proxacao: 'Contatar lead interessado no imóvel',
+        proxdata: dataProxAcao
+      }
+    })
+  }).catch(() => {});
+
+  // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
+  // admin.html e dashboard_atendente.html leem/gravam).
+  fetch(CADASTRO_API_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'crm_lead_evento_publico',
+      telefone: data.whatsapp, email: data.email,
+      tipo: '🏠 Página do Imóvel', texto: notaSolicitacao, origem: 'Página do Imóvel'
+    })
+  }).catch(() => {});
+}
+
 function enviarInteresseFinal(data) {
   fetch(SCRIPT_URL, {
     method: 'POST', mode: 'no-cors',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(data)
   });
+  registrarNoCRMImovel_(data);
 
   if (_interesseDestino === 'simulador') {
     // já verificamos o e-mail por OTP — o simulador.html não precisa
