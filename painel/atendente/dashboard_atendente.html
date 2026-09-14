@@ -2161,6 +2161,10 @@ function renderEmps(){
   const cont=document.getElementById('empContagem');
   if(cont)cont.textContent=`Mostrando ${list.length} empreendimento${list.length===1?'':'s'}`;
   const el=document.getElementById('empGrid');
+  // Preserva descrições que o atendente já tinha expandido: carregarDadosIniciais()
+  // roda a cada 30s (setInterval mais abaixo) e chama renderEmps() de novo, então sem
+  // isso o "+ detalhes" fechava sozinho no meio da leitura (reportado 14/09/2026).
+  const expandidos=new Set(Array.from(el.querySelectorAll('.descricao-wrapper.descricao-expandida')).map(w=>w.dataset.descId));
   if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum empreendimento encontrado. Tente ajustar os filtros.</div>`;return}
   el.innerHTML=list.map(e=>`
     <div class="emp-card">
@@ -2190,7 +2194,14 @@ function renderEmps(){
     </div>`).join('');
   list.forEach((e) => {
     const wrapper = el.querySelector('.descricao-wrapper[data-desc-id="' + e.id + '"]');
-    if (wrapper) preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), e.descricao, 'Sem descrição cadastrada.');
+    if (!wrapper) return;
+    preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), e.descricao, 'Sem descrição cadastrada.');
+    if (expandidos.has(e.id)) {
+      wrapper.classList.remove('descricao-recolhida');
+      wrapper.classList.add('descricao-expandida');
+      const botao = wrapper.nextElementSibling;
+      if (botao) { botao.textContent = '− mostrar menos'; botao.hidden = false; botao.setAttribute('aria-expanded', 'true'); }
+    }
   });
   recalcularDescricoesInteligentes();
 }
