@@ -698,7 +698,10 @@
 
       <div class="fg">
         <label class="form-label">Nome do Empreendimento / Imóvel Pretendido <span class="req">*</span></label>
-        <input class="form-input" type="text" id="empreendimento" placeholder="Ex: Reserva Atlântica, Gran Vitória Residencial..." required>
+        <input class="form-input" type="text" id="empreendimento" list="empreendimentos-lista"
+               placeholder="Ex: Reserva Atlântica, Gran Vitória Residencial..." required
+               autocomplete="off" oninput="onEmpreendimentoInput()">
+        <datalist id="empreendimentos-lista"></datalist>
         <span id="empreendimento-erro" style="display:none;font-size:11px;color:#DC2626;margin-top:5px">
           ⚠ Informe o nome do empreendimento — não pode ser vazio ou inconsistente
         </span>
@@ -726,16 +729,22 @@
         </div>
         <div class="fg">
           <label class="form-label">Forma de Pagamento <span class="req">*</span></label>
-          <select class="form-select" id="forma_pagamento" required>
+          <select class="form-select" id="forma_pagamento" required onchange="toggleFormaPagamentoOutro()">
             <option value="" disabled selected>Selecione</option>
             <option>À Vista</option>
             <option>Financiamento Bancário</option>
             <option>FGTS + Financiamento</option>
             <option>CFIAe + Financiamento</option>
             <option>CFIAe</option>
+            <option>CEF (Caixa Econômica)</option>
+            <option>CCCPM (Marinha)</option>
+            <option>POUPEX</option>
             <option>35 / 65</option>
             <option>Construtora + Banco</option>
+            <option>Outro</option>
           </select>
+          <input class="form-input" type="text" id="forma_pagamento_outro" placeholder="Qual?"
+                 style="display:none;margin-top:8px">
         </div>
       </div>
 
@@ -990,6 +999,74 @@
   const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
   const CRM_URL_RES = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 
+  /* ── Autocomplete "Nome do Empreendimento" (78.2) — lista vem da mesma
+     planilha "WAL Imóveis — Portfólio" / aba IMOVEISDISPONIVEIS que
+     imovel.html, imoveis.html e index.html já leem (via gviz JSONP, sem
+     precisar de API key). Datalist nativo: o navegador já filtra
+     conforme digita e funciona em celular; só ordenamos em ordem
+     alfabética antes de montar as <option>. Ao digitar um nome que bate
+     exatamente com um empreendimento ativo, preenche Faixa de Valor
+     sozinho, bucketizando o preço "a partir de" real (coluna J) nas
+     mesmas faixas fixas do <select> — o texto livre da coluna "Faixa"
+     da planilha não bate com essas opções, então comparar pelo valor
+     numérico é mais confiável que comparar texto. */
+  const PLANILHA_IMOVEIS_ID_RESERVA = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+  let _valorPorEmpreendimento = {};
+
+  function gvizJsonpReserva_(sheetId, sheet) {
+    return new Promise((resolve) => {
+      const cbName = 'gvizCbReserva_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+      const script = document.createElement('script');
+      const timeout = setTimeout(() => { cleanup(); resolve(null); }, 12000);
+      function cleanup() { clearTimeout(timeout); delete window[cbName]; script.remove(); }
+      window[cbName] = (data) => { cleanup(); resolve(data); };
+      script.onerror = () => { cleanup(); resolve(null); };
+      script.src = 'https://docs.google.com/spreadsheets/d/' + sheetId +
+                   '/gviz/tq?tqx=out:json;responseHandler:' + cbName +
+                   '&sheet=' + encodeURIComponent(sheet);
+      document.head.appendChild(script);
+    });
+  }
+
+  function bucketFaixaValorReserva_(valor) {
+    if (!valor || valor <= 0) return '';
+    if (valor < 300000)  return 'Até R$ 300.000';
+    if (valor < 500000)  return 'R$ 300.000 a R$ 500.000';
+    if (valor < 700000)  return 'R$ 500.000 a R$ 700.000';
+    if (valor < 900000)  return 'R$ 700.000 a R$ 900.000';
+    if (valor < 1250000) return 'R$ 900.000 a R$ 1.250.000';
+    return 'Acima de R$ 1.250.000';
+  }
+
+  async function carregarEmpreendimentosAutocomplete() {
+    const json = await gvizJsonpReserva_(PLANILHA_IMOVEIS_ID_RESERVA, 'IMOVEISDISPONIVEIS');
+    const rows = (json && json.table && json.table.rows) || [];
+    if (!rows.length) return; // sem dados agora — campo continua funcionando como texto livre
+
+    const g = (row, i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v) : ''; };
+    const nomes = [];
+    rows.forEach((row) => {
+      const ativo = row.c && row.c[1] && row.c[1].v === true;
+      const nome  = String(g(row, 5) || '').trim();
+      if (!ativo || !nome || _valorPorEmpreendimento.hasOwnProperty(nome)) return;
+      _valorPorEmpreendimento[nome] = parseFloat(row.c && row.c[9] && row.c[9].v) || 0;
+      nomes.push(nome);
+    });
+    nomes.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    document.getElementById('empreendimentos-lista').innerHTML =
+      nomes.map((n) => '<option value="' + n.replace(/"/g, '&quot;') + '">').join('');
+  }
+  carregarEmpreendimentosAutocomplete();
+
+  function onEmpreendimentoInput() {
+    const nome = document.getElementById('empreendimento').value.trim();
+    if (!_valorPorEmpreendimento.hasOwnProperty(nome)) return;
+    const faixa = bucketFaixaValorReserva_(_valorPorEmpreendimento[nome]);
+    const sel = document.getElementById('faixa_valor');
+    if (faixa && Array.from(sel.options).some((o) => o.value === faixa)) sel.value = faixa;
+  }
+
   /* Projeto ISOLADO numa conta Google pessoal, só pra upload no Drive —
      mesmo princípio (e mesmo script) já usado no autocadastro do agente
      em dashboard-agente.html (ver painel/shared/apps-script-upload-
@@ -1155,6 +1232,14 @@
     { id: 'f-decl-ir2',   desc: 'Declaração IR Cônjuge' },
     { id: 'f-recibo-ir2', desc: 'Recibo IR Cônjuge' },
   ];
+
+  /* ── Forma de Pagamento "Outro": mostra campo de texto livre ── */
+  function toggleFormaPagamentoOutro() {
+    const outro = document.getElementById('forma_pagamento').value === 'Outro';
+    const campo = document.getElementById('forma_pagamento_outro');
+    campo.style.display = outro ? 'block' : 'none';
+    if (!outro) campo.value = '';
+  }
 
   /* ── Cônjuge: mostrar/ocultar seções ── */
   function temConjuge() {
@@ -1539,6 +1624,15 @@
       return;
     }
 
+    /* 9.5 Forma de pagamento "Outro" — exige o texto livre preenchido */
+    if (document.getElementById('forma_pagamento').value === 'Outro' &&
+        !document.getElementById('forma_pagamento_outro').value.trim()) {
+      document.getElementById('forma_pagamento_outro').style.borderColor = '#DC2626';
+      document.getElementById('forma_pagamento_outro').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      alert('⚠ Informe qual é a forma de pagamento.');
+      return;
+    }
+
     /* 10. Documentos obrigatórios */
     for (const doc of DOCS_REQUIRED) {
       const el = document.getElementById(doc.id);
@@ -1664,7 +1758,9 @@
       empreendimento:  document.getElementById('empreendimento').value.trim(),
       faixa_valor:     document.getElementById('faixa_valor').value,
       valor_entrada:   document.getElementById('valor_entrada').value.trim(),
-      forma_pagamento: document.getElementById('forma_pagamento').value,
+      forma_pagamento: document.getElementById('forma_pagamento').value === 'Outro'
+        ? document.getElementById('forma_pagamento_outro').value.trim()
+        : document.getElementById('forma_pagamento').value,
       detalhes:        document.getElementById('detalhes').value.trim(),
       documentos:      [],
       conjuge:         null
