@@ -1432,7 +1432,13 @@ function crm_admin_listar_historico_todos_(p) {
    de criar/achar o lead no outro projeto. Não recebe o Id do lead (esses
    fetches são no-cors, cegos) — acha pelo telefone/e-mail; se ainda não
    achar (corrida com o create, que roda em paralelo em outro projeto),
-   espera 1.5s fora de qualquer lock e tenta mais uma vez antes de desistir. */
+   tenta de novo com espera crescente (1.5s, 3s, 4.5s — total ~9s fora de
+   qualquer lock) antes de desistir. Janela aumentada em 14-09-2026 (78.1):
+   o retry único de 1.5s perdia a corrida quase toda vez nos testes reais
+   (index.html, chat.html, reserva.html) — o outro projeto do CRM
+   costuma demorar mais que isso pra terminar de criar o lead. Seguro
+   esperar mais aqui: quem chama é sempre fire-and-forget (mode:'no-cors',
+   sem await no caminho crítico da tela). */
 function crm_lead_evento_publico_(data) {
   var texto = s_(data.texto).trim();
   var telefone = String(data.telefone || '').replace(/\D/g, '');
@@ -1444,8 +1450,8 @@ function crm_lead_evento_publico_(data) {
   if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
 
   var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
-  if (!idLead) {
-    Utilities.sleep(1500);
+  for (var tentativa = 1; !idLead && tentativa <= 3; tentativa++) {
+    Utilities.sleep(1500 * tentativa);
     idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
   }
   if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
