@@ -1206,13 +1206,19 @@ function now() {
 const CRM_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 
 function registrarLeadNoCRM(dados) {
+  // Único ponto de chamada (logo após nome/telefone/e-mail, antes de
+  // qualquer troca de mensagem) sempre manda interesse/orcamento/area
+  // vazios — sem esse fallback, "Solicitação" ficava em branco na aba
+  // LEADS e crm_lead_evento_publico_ rejeita texto vazio (achado ao
+  // investigar 77.2, corrigido a pedido do Antonio).
+  const nota = dados.interesse || 'Iniciou conversa com o Assistente IA do site';
   const payload = {
     action: 'criar',
     lead: {
       nome: dados.nome || '',
       telefone: dados.telefone || '',
       email: dados.email || '',
-      solicitacao: dados.interesse || '',
+      solicitacao: nota,
       orcamento: dados.orcamento || '',
       area: dados.area || '',
       origem: 'Chat IA',
@@ -1226,6 +1232,20 @@ function registrarLeadNoCRM(dados) {
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify(payload)
   }).catch(() => {}); // silencioso — não interrompe o chat
+
+  // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
+  // admin.html e dashboard_atendente.html leem/gravam) — o chat gravava
+  // no CRM mas não aparecia nesse histórico. Fire-and-forget, não trava
+  // o chat.
+  fetch(CADASTRO_API_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({
+      action: 'crm_lead_evento_publico',
+      telefone: dados.telefone, email: dados.email,
+      tipo: 'Chat IA', texto: nota, origem: 'Chat IA'
+    })
+  }).catch(() => {});
 }
 
 /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)

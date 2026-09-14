@@ -2576,10 +2576,32 @@
       });
     } catch (err) { /* no-cors: assume enviado */ }
 
-    // Registra no CRM
-    registrarNoCRM(
-      { nome: data.nome, telefone: data.whatsapp, email: data.email, origem: 'Conhecer Opções' },
+    // Registra no CRM — nota rica com os campos que o formulário já coleta
+    // (antes ia um texto fixo genérico; mesmo padrão do imovel.html, ver
+    // registrarNoCRMImovel_ — combinado com o Antonio em 77.2). Vai tanto
+    // pro campo "Solicitação" da aba LEADS quanto pro "Texto" da 1ª
+    // interação em HISTORICO_ATENDIMENTO_LEAD.
+    const localizacaoDesejada = [data.bairro_desejado, [data.cidade, data.estado].filter(Boolean).join('/')]
+      .filter(Boolean).join(', ');
+    const notaSolicitacao = [
+      data.posto ? ('Posto/Cargo: ' + data.posto) : '',
+      data.base ? ('Base/Unidade: ' + data.base) : '',
+      localizacaoDesejada ? ('Localização desejada: ' + localizacaoDesejada) : '',
+      data.imovel_interesse ? ('Imóvel de interesse: ' + data.imovel_interesse) : '',
+      data.forma_pagamento ? ('Forma de pagamento: ' + data.forma_pagamento) : '',
+      data.quer_agendar === 'Sim' ? 'Quer agendar uma consulta com o Consultor WAL' : '',
       'Solicitou conhecer as opções de imóveis'
+    ].filter(Boolean).join('\n');
+
+    registrarNoCRM(
+      {
+        nome: data.nome, telefone: data.whatsapp, email: data.email,
+        origem: 'Conhecer Opções',
+        solicitacao: notaSolicitacao,
+        orcamento: data.faixa_valor || '',
+        area: localizacaoDesejada
+      },
+      notaSolicitacao
     );
 
     showSuccess(data);
