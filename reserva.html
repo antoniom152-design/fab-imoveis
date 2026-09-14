@@ -999,19 +999,25 @@
   const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
   const CRM_URL_RES = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 
-  /* ── Autocomplete "Nome do Empreendimento" (78.2) — lista vem da mesma
-     planilha "WAL Imóveis — Portfólio" / aba IMOVEISDISPONIVEIS que
-     imovel.html, imoveis.html e index.html já leem (via gviz JSONP, sem
-     precisar de API key). Datalist nativo: o navegador já filtra
-     conforme digita e funciona em celular; só ordenamos em ordem
-     alfabética antes de montar as <option>. Ao digitar um nome que bate
-     exatamente com um empreendimento ativo, preenche Faixa de Valor
-     sozinho, bucketizando o preço "a partir de" real (coluna J) nas
-     mesmas faixas fixas do <select> — o texto livre da coluna "Faixa"
-     da planilha não bate com essas opções, então comparar pelo valor
-     numérico é mais confiável que comparar texto. */
+  /* ── Autocomplete "Nome do Empreendimento" (78.2, corrigido em 78.4) —
+     lista vem da mesma planilha "WAL Imóveis — Portfólio" / aba
+     IMOVEISDISPONIVEIS que imovel.html, imoveis.html e index.html já
+     leem (via gviz JSONP, sem precisar de API key). Datalist nativo: o
+     navegador já filtra conforme digita e funciona em celular; só
+     ordenamos em ordem alfabética antes de montar as <option>.
+     Preenchimento da Faixa de Valor: a 1ª versão (78.2) calculava a
+     faixa a partir do valor numérico (coluna J) porque supôs que o
+     texto da coluna "Faixa" (coluna I) não batia com as opções do
+     <select> — só que ela bate, sempre que tem o prefixo "De " removido
+     (ex.: planilha tem "De R$ 300.000 a R$ 500.000", o <select> tem
+     "R$ 300.000 a R$ 500.000"). O valor numérico, por outro lado, tem
+     linhas com unidades inconsistentes entre si (algumas em Reais
+     cheios, outras em milhares) — foi isso que causava o bug reportado
+     em 78.4 (sempre caía em "Até R$ 300.000"). Comparar o texto já
+     normalizado é mais simples e bateu 100% (77/77 registros com faixa
+     preenchida) num teste real contra a planilha. */
   const PLANILHA_IMOVEIS_ID_RESERVA = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
-  let _valorPorEmpreendimento = {};
+  let _faixaPorEmpreendimento = {};
 
   function gvizJsonpReserva_(sheetId, sheet) {
     return new Promise((resolve) => {
@@ -1028,14 +1034,8 @@
     });
   }
 
-  function bucketFaixaValorReserva_(valor) {
-    if (!valor || valor <= 0) return '';
-    if (valor < 300000)  return 'Até R$ 300.000';
-    if (valor < 500000)  return 'R$ 300.000 a R$ 500.000';
-    if (valor < 700000)  return 'R$ 500.000 a R$ 700.000';
-    if (valor < 900000)  return 'R$ 700.000 a R$ 900.000';
-    if (valor < 1250000) return 'R$ 900.000 a R$ 1.250.000';
-    return 'Acima de R$ 1.250.000';
+  function normalizarFaixaValor_(txt) {
+    return String(txt || '').trim().replace(/^De\s+/i, '');
   }
 
   async function carregarEmpreendimentosAutocomplete() {
@@ -1048,8 +1048,8 @@
     rows.forEach((row) => {
       const ativo = row.c && row.c[1] && row.c[1].v === true;
       const nome  = String(g(row, 5) || '').trim();
-      if (!ativo || !nome || _valorPorEmpreendimento.hasOwnProperty(nome)) return;
-      _valorPorEmpreendimento[nome] = parseFloat(row.c && row.c[9] && row.c[9].v) || 0;
+      if (!ativo || !nome || _faixaPorEmpreendimento.hasOwnProperty(nome)) return;
+      _faixaPorEmpreendimento[nome] = normalizarFaixaValor_(g(row, 8));
       nomes.push(nome);
     });
     nomes.sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -1061,8 +1061,8 @@
 
   function onEmpreendimentoInput() {
     const nome = document.getElementById('empreendimento').value.trim();
-    if (!_valorPorEmpreendimento.hasOwnProperty(nome)) return;
-    const faixa = bucketFaixaValorReserva_(_valorPorEmpreendimento[nome]);
+    if (!_faixaPorEmpreendimento.hasOwnProperty(nome)) return;
+    const faixa = _faixaPorEmpreendimento[nome];
     const sel = document.getElementById('faixa_valor');
     if (faixa && Array.from(sel.options).some((o) => o.value === faixa)) sel.value = faixa;
   }
