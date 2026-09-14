@@ -205,10 +205,70 @@
   }
   .section-title em { font-style: normal; color: var(--gold-ink); }
 
-  .descricao-text {
-    font-size: 15px; font-weight: 300; line-height: 1.85;
-    color: var(--ink-muted); margin-bottom: 40px;
+  .secao-descricao-imovel { margin-bottom: 40px; }
+
+  .descricao-wrapper { position: relative; width: 100%; }
+
+  .descricao-wrapper.descricao-recolhida { max-height: calc(1.85em * 7); overflow: hidden; }
+
+  .descricao-wrapper.descricao-expandida { max-height: none; overflow: visible; }
+
+  .descricao-wrapper.descricao-com-excedente::after {
+    content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 60px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(245,242,234,0), var(--surf) 90%);
   }
+
+  .descricao-wrapper.descricao-expandida::after { display: none; }
+
+  .descricao-imovel {
+    font-size: 15px; font-weight: 300; line-height: 1.85;
+    color: var(--ink-muted); overflow-wrap: anywhere;
+  }
+
+  .descricao-imovel h2 {
+    font-family: 'Playfair Display', serif; font-weight: 700;
+    margin: 0 0 14px; color: var(--navy); font-size: clamp(19px, 3vw, 22px); line-height: 1.3;
+  }
+
+  .descricao-imovel h3 {
+    margin: 24px 0 10px; color: var(--navy); font-size: 17px; font-weight: 600; line-height: 1.3;
+  }
+
+  .descricao-imovel p { margin: 0 0 16px; }
+
+  .descricao-imovel ul, .descricao-imovel ol { margin: 8px 0 18px; padding-left: 22px; }
+
+  .descricao-imovel li { margin-bottom: 8px; padding-left: 2px; }
+
+  .descricao-imovel strong { color: var(--navy); font-weight: 600; }
+
+  .descricao-imovel blockquote {
+    margin: 20px 0; padding: 14px 18px; border-left: 3px solid var(--gold);
+    border-radius: 0 6px 6px 0; background: rgba(201,168,76,.08); color: var(--ink-muted);
+  }
+
+  .descricao-imovel blockquote p:last-child { margin-bottom: 0; }
+
+  .descricao-imovel a { color: var(--gold-ink); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+  .descricao-imovel a:hover { color: var(--navy); }
+
+  .botao-detalhes-descricao {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-height: 38px; margin-top: 10px; padding: 8px 16px;
+    border: 1px solid var(--gold); border-radius: 6px; background: var(--navy-mid);
+    color: var(--gold-ink); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: color .2s ease, background-color .2s ease, border-color .2s ease;
+  }
+
+  .botao-detalhes-descricao:hover { background: rgba(201,168,76,.10); color: var(--navy); }
+
+  .botao-detalhes-descricao:focus-visible { outline: 3px solid rgba(201,168,76,.35); outline-offset: 3px; }
+
+  .botao-detalhes-descricao[hidden] { display: none; }
+
+  .descricao-indisponivel { color: var(--text-muted); font-style: italic; }
 
   /* ─── DIFERENCIAIS ─── */
   .diferenciais-grid {
@@ -442,7 +502,9 @@
     .main-wrap { padding: 20px 16px 48px; gap: 24px; }
 
     .section-title { font-size: 18px; }
-    .descricao-text { font-size: 14px; }
+    .descricao-imovel { font-size: 14px; line-height: 1.75; }
+    .descricao-wrapper.descricao-recolhida { max-height: calc(1.75em * 7); }
+    .botao-detalhes-descricao { min-height: 40px; padding: 9px 16px; }
 
     .diferenciais-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
     .diferencial-item { padding: 12px 14px; }
@@ -538,6 +600,8 @@
     .galeria-fotos { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 <body>
 
@@ -650,7 +714,13 @@
 
     <!-- DESCRIÇÃO -->
     <h2 class="section-title">Sobre o <em>Empreendimento</em></h2>
-    <p class="descricao-text" id="descricao-text">—</p>
+    <section class="secao-descricao-imovel">
+      <div id="descricao-wrapper" class="descricao-wrapper descricao-recolhida">
+        <div id="descricao-imovel" class="descricao-imovel"></div>
+      </div>
+      <button id="botao-detalhes-descricao" class="botao-detalhes-descricao" type="button"
+              aria-controls="descricao-wrapper" aria-expanded="false" hidden>+ detalhes</button>
+    </section>
 
     <!-- DIFERENCIAIS -->
     <h2 class="section-title">Diferenciais do <em>Projeto</em></h2>
@@ -1079,6 +1149,203 @@ function goSlide(idx) {
 function nextSlide() { goSlide(currentSlide + 1); }
 function prevSlide() { goSlide(currentSlide - 1); }
 
+/* ─── DESCRIÇÃO INTELIGENTE (texto simples ou Markdown) ─── */
+function normalizarQuebras(texto) {
+  return String(texto || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+}
+
+function possuiMarkdown(texto) {
+  if (!texto || typeof texto !== 'string') return false;
+  const padroesMarkdown = [
+    /^#{1,6}\s+.+$/m,
+    /\*\*[^*\n]+\*\*/,
+    /^\s*[-*+]\s+.+$/m,
+    /^\s*\d+\.\s+.+$/m,
+    /^\s*>\s+.+$/m,
+    /\[[^\]]+\]\([^)]+\)/
+  ];
+  return padroesMarkdown.some((padrao) => padrao.test(texto));
+}
+
+function pareceTituloSimples(texto) {
+  const linha = texto.trim();
+  if (!linha) return false;
+  if (linha.length < 3 || linha.length > 90) return false;
+  if (linha.split(/\s+/).length > 12) return false;
+  if (linha.endsWith('.')) return false;
+  const possuiLetras = /[A-Za-zÀ-ÿ]/.test(linha);
+  const estaEmMaiusculas = possuiLetras && linha === linha.toLocaleUpperCase('pt-BR');
+  return estaEmMaiusculas || linha.endsWith(':');
+}
+
+function renderizarTextoSimples(texto) {
+  const fragmento = document.createDocumentFragment();
+  const conteudo = normalizarQuebras(texto);
+  if (!conteudo) return fragmento;
+
+  const blocos = conteudo.split(/\n\s*\n/);
+  let primeiroBlocoValido = true;
+
+  blocos.forEach((bloco) => {
+    const linhas = bloco.split('\n').map((linha) => linha.trim()).filter(Boolean);
+    if (!linhas.length) return;
+
+    const todasSaoItens = linhas.every((linha) => /^[-*•]\s+/.test(linha));
+
+    if (todasSaoItens) {
+      const lista = document.createElement('ul');
+      linhas.forEach((linha) => {
+        const item = document.createElement('li');
+        item.textContent = linha.replace(/^[-*•]\s+/, '');
+        lista.appendChild(item);
+      });
+      fragmento.appendChild(lista);
+      primeiroBlocoValido = false;
+      return;
+    }
+
+    if (linhas.length === 1 && pareceTituloSimples(linhas[0])) {
+      const titulo = document.createElement(primeiroBlocoValido ? 'h2' : 'h3');
+      titulo.textContent = linhas[0].replace(/:$/, '');
+      fragmento.appendChild(titulo);
+      primeiroBlocoValido = false;
+      return;
+    }
+
+    const paragrafo = document.createElement('p');
+    linhas.forEach((linha, indice) => {
+      paragrafo.appendChild(document.createTextNode(linha));
+      if (indice < linhas.length - 1) paragrafo.appendChild(document.createElement('br'));
+    });
+    fragmento.appendChild(paragrafo);
+    primeiroBlocoValido = false;
+  });
+
+  return fragmento;
+}
+
+function renderizarMarkdown(texto) {
+  if (typeof marked === 'undefined') throw new Error('A biblioteca marked.js não foi carregada.');
+  if (typeof DOMPurify === 'undefined') throw new Error('A biblioteca DOMPurify não foi carregada.');
+
+  const htmlConvertido = marked.parse(normalizarQuebras(texto), { breaks: false, gfm: true });
+  const htmlSanitizado = DOMPurify.sanitize(htmlConvertido, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+    FORBID_ATTR: ['style', 'onclick', 'onerror', 'onload']
+  });
+
+  const resultado = document.createElement('div');
+  resultado.innerHTML = htmlSanitizado;
+
+  resultado.querySelectorAll('a[href]').forEach((link) => {
+    const href = link.getAttribute('href') || '';
+    if (/^https?:\/\//i.test(href)) {
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+    }
+  });
+
+  return resultado;
+}
+
+function configurarExpansaoDescricao() {
+  const wrapper = document.getElementById('descricao-wrapper');
+  const botao = document.getElementById('botao-detalhes-descricao');
+  const descricao = document.getElementById('descricao-imovel');
+  if (!wrapper || !botao || !descricao) return;
+
+  wrapper.classList.remove('descricao-expandida');
+  wrapper.classList.add('descricao-recolhida');
+  botao.textContent = '+ detalhes';
+  botao.setAttribute('aria-expanded', 'false');
+
+  requestAnimationFrame(() => {
+    const ultrapassaLimite = descricao.scrollHeight > wrapper.clientHeight + 2;
+    botao.hidden = !ultrapassaLimite;
+    wrapper.classList.toggle('descricao-com-excedente', ultrapassaLimite);
+    if (!ultrapassaLimite) wrapper.classList.remove('descricao-recolhida');
+  });
+}
+
+function alternarDescricaoCompleta() {
+  const wrapper = document.getElementById('descricao-wrapper');
+  const botao = document.getElementById('botao-detalhes-descricao');
+  if (!wrapper || !botao) return;
+
+  const estaExpandida = wrapper.classList.contains('descricao-expandida');
+
+  if (estaExpandida) {
+    wrapper.classList.remove('descricao-expandida');
+    wrapper.classList.add('descricao-recolhida');
+    botao.textContent = '+ detalhes';
+    botao.setAttribute('aria-expanded', 'false');
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } else {
+    wrapper.classList.remove('descricao-recolhida');
+    wrapper.classList.add('descricao-expandida');
+    botao.textContent = '− mostrar menos';
+    botao.setAttribute('aria-expanded', 'true');
+  }
+}
+
+function inicializarBotaoDescricao() {
+  const botao = document.getElementById('botao-detalhes-descricao');
+  if (!botao || botao.dataset.inicializado === 'true') return;
+  botao.addEventListener('click', alternarDescricaoCompleta);
+  botao.dataset.inicializado = 'true';
+}
+
+function exibirDescricaoImovel(descricao) {
+  const container = document.getElementById('descricao-imovel');
+  if (!container) {
+    console.warn('Elemento #descricao-imovel não encontrado.');
+    return;
+  }
+
+  container.replaceChildren();
+  const conteudo = normalizarQuebras(descricao);
+
+  if (!conteudo) {
+    const mensagem = document.createElement('p');
+    mensagem.className = 'descricao-indisponivel';
+    mensagem.textContent = 'Entre em contato para obter mais informações sobre este empreendimento.';
+    container.appendChild(mensagem);
+    inicializarBotaoDescricao();
+    configurarExpansaoDescricao();
+    return;
+  }
+
+  try {
+    if (possuiMarkdown(conteudo)) {
+      container.appendChild(renderizarMarkdown(conteudo));
+    } else {
+      container.appendChild(renderizarTextoSimples(conteudo));
+    }
+  } catch (erro) {
+    console.error('Não foi possível formatar a descrição:', erro);
+    container.replaceChildren(renderizarTextoSimples(conteudo));
+  }
+
+  inicializarBotaoDescricao();
+  configurarExpansaoDescricao();
+}
+
+let temporizadorDescricao;
+window.addEventListener('resize', () => {
+  clearTimeout(temporizadorDescricao);
+  temporizadorDescricao = setTimeout(() => {
+    const wrapper = document.getElementById('descricao-wrapper');
+    if (wrapper && !wrapper.classList.contains('descricao-expandida')) {
+      configurarExpansaoDescricao();
+    }
+  }, 150);
+});
+
+if (document.fonts && document.fonts.ready) {
+  document.fonts.ready.then(() => configurarExpansaoDescricao());
+}
+
 /* ─── RENDER ─── */
 function renderImovel(im, todos) {
   imovelAtual = im;
@@ -1112,8 +1379,7 @@ function renderImovel(im, todos) {
     [im.cidade, im.uf].filter(Boolean).join('/') || '—';
 
   // descrição
-  document.getElementById('descricao-text').textContent =
-    im.descricao || 'Entre em contato para obter mais informações sobre este empreendimento.';
+  exibirDescricaoImovel(im.descricao);
 
   // tabela preços
   const valorStr = im.valor > 0
