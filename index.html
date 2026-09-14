@@ -611,12 +611,53 @@
   }
 
   .prop-desc {
-    font-size: 13px;
-    color: var(--ink-muted);
-    font-weight: 300;
-    line-height: 1.6;
     margin-bottom: 16px;
   }
+
+  .prop-desc .descricao-wrapper { position: relative; width: 100%; }
+
+  .prop-desc .descricao-wrapper.descricao-recolhida { max-height: calc(1.6em * 7); overflow: hidden; }
+
+  .prop-desc .descricao-wrapper.descricao-expandida { max-height: none; overflow: visible; }
+
+  .prop-desc .descricao-wrapper.descricao-com-excedente::after {
+    content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 40px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), var(--navy-mid) 90%);
+  }
+
+  .prop-desc .descricao-wrapper.descricao-expandida::after { display: none; }
+
+  .prop-desc .descricao-imovel {
+    font-size: 13px; color: var(--ink-muted); font-weight: 300; line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+
+  .prop-desc .descricao-imovel h2, .prop-desc .descricao-imovel h3 {
+    color: var(--navy); font-size: 14px; font-weight: 600; margin: 0 0 6px;
+  }
+
+  .prop-desc .descricao-imovel p { margin: 0 0 10px; }
+
+  .prop-desc .descricao-imovel ul, .prop-desc .descricao-imovel ol { margin: 4px 0 10px; padding-left: 18px; }
+
+  .prop-desc .descricao-imovel li { margin-bottom: 4px; }
+
+  .prop-desc .descricao-imovel strong { color: var(--navy); font-weight: 600; }
+
+  .prop-desc .descricao-imovel a { color: var(--gold-ink); font-weight: 600; text-decoration: underline; }
+
+  .prop-desc .botao-detalhes-descricao {
+    display: inline-flex; align-items: center; margin-top: 6px; padding: 0;
+    border: none; background: none; color: var(--gold-ink); font: inherit;
+    font-size: 12px; font-weight: 700; text-decoration: underline; cursor: pointer;
+  }
+
+  .prop-desc .botao-detalhes-descricao:hover { color: var(--navy); }
+
+  .prop-desc .botao-detalhes-descricao[hidden] { display: none; }
+
+  .prop-desc .descricao-indisponivel { color: var(--text-muted); font-style: italic; margin: 0; }
 
   .prop-footer {
     display: flex;
@@ -1120,6 +1161,8 @@
     .ebook-section { padding: 40px 16px !important; }
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 <body>
 
@@ -2982,7 +3025,12 @@ function gvizJsonpIndex(sheetId, sheet) {
           <div class="prop-body">
             <div class="prop-city">${localStr}</div>
             <div class="prop-name">${nome}</div>
-            <div class="prop-desc">${descricao}</div>
+            <div class="prop-desc">
+              <div class="descricao-wrapper descricao-recolhida" data-desc-id="${imovelId}">
+                <div class="descricao-imovel"></div>
+              </div>
+              <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
+            </div>
             <div class="prop-footer">
               <div>
                 <div class="prop-price-label">A partir de</div>
@@ -3003,6 +3051,12 @@ function gvizJsonpIndex(sheetId, sheet) {
 
     if (destRJ.length) document.getElementById('props-grid-rj').innerHTML = destRJ.map(cardHtml).join('');
     if (destSP.length) document.getElementById('props-grid-sp').innerHTML = destSP.map(cardHtml).join('');
+
+    destRJ.concat(destSP).forEach((row) => {
+      const wrapper = document.querySelector('.descricao-wrapper[data-desc-id="' + g(row, 0) + '"]');
+      if (wrapper) preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), g(row, 6));
+    });
+    recalcularDescricoesInteligentes();
 
   } catch(e) {
     console.warn('Destaques: falha ao carregar planilha', e.message);
@@ -3312,5 +3366,6 @@ function prevBannerSlide() { goBannerSlide(bannerCurrentSlide - 1); }
   }
 
 </script>
+<script src="painel/shared/descricao-inteligente.js"></script>
 </body>
 </html>

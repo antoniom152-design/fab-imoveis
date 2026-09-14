@@ -252,10 +252,51 @@
     font-size: 18px; font-weight: 700; color: var(--gold-ink);
   }
 
-  .card-desc {
-    font-size: 12px; color: var(--ink-muted); line-height: 1.55;
-    flex: 1;
+  .card-desc { flex: 1; }
+
+  .card-desc .descricao-wrapper { position: relative; width: 100%; }
+
+  .card-desc .descricao-wrapper.descricao-recolhida { max-height: calc(1.55em * 7); overflow: hidden; }
+
+  .card-desc .descricao-wrapper.descricao-expandida { max-height: none; overflow: visible; }
+
+  .card-desc .descricao-wrapper.descricao-com-excedente::after {
+    content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 36px;
+    pointer-events: none;
+    background: linear-gradient(to bottom, rgba(255,255,255,0), #ffffff 90%);
   }
+
+  .card-desc .descricao-wrapper.descricao-expandida::after { display: none; }
+
+  .card-desc .descricao-imovel {
+    font-size: 12px; color: var(--ink-muted); line-height: 1.55; overflow-wrap: anywhere;
+  }
+
+  .card-desc .descricao-imovel h2, .card-desc .descricao-imovel h3 {
+    color: var(--navy); font-size: 13px; font-weight: 600; margin: 0 0 6px;
+  }
+
+  .card-desc .descricao-imovel p { margin: 0 0 8px; }
+
+  .card-desc .descricao-imovel ul, .card-desc .descricao-imovel ol { margin: 4px 0 8px; padding-left: 16px; }
+
+  .card-desc .descricao-imovel li { margin-bottom: 4px; }
+
+  .card-desc .descricao-imovel strong { color: var(--navy); font-weight: 600; }
+
+  .card-desc .descricao-imovel a { color: var(--gold-ink); font-weight: 600; text-decoration: underline; }
+
+  .card-desc .botao-detalhes-descricao {
+    display: inline-flex; align-items: center; margin-top: 4px; padding: 0;
+    border: none; background: none; color: var(--gold-ink); font: inherit;
+    font-size: 11px; font-weight: 700; text-decoration: underline; cursor: pointer;
+  }
+
+  .card-desc .botao-detalhes-descricao:hover { color: var(--navy); }
+
+  .card-desc .botao-detalhes-descricao[hidden] { display: none; }
+
+  .card-desc .descricao-indisponivel { color: var(--text-muted); font-style: italic; margin: 0; }
 
   /* Botões do card */
   .card-actions { display: flex; flex-direction: column; gap: 7px; margin-top: 4px; }
@@ -415,6 +456,8 @@
     border: 1px solid var(--border);
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 <body>
 
@@ -877,7 +920,12 @@ function renderCard(im) {
           <span class="card-faixa-val">${im.faixaTexto}</span>
         </div>
 
-        <p class="card-desc">${im.descricao}</p>
+        <div class="card-desc">
+          <div class="descricao-wrapper descricao-recolhida" data-desc-id="${im.id}">
+            <div class="descricao-imovel"></div>
+          </div>
+          <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
+        </div>
 
         <div class="card-actions">
           <!-- Mais informações → Blogger -->
@@ -1213,6 +1261,11 @@ function render() {
   } else {
     empty.style.display = 'none';
     grid.innerHTML = imoveis.map(renderCard).join('');
+    imoveis.forEach((im) => {
+      const wrapper = grid.querySelector('.descricao-wrapper[data-desc-id="' + im.id + '"]');
+      if (wrapper) preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), im.descricao);
+    });
+    recalcularDescricoesInteligentes();
   }
 }
 
@@ -1349,5 +1402,6 @@ async function salvarESimularIm() {
   </div>
 </div>
 
+<script src="painel/shared/descricao-inteligente.js"></script>
 </body>
 </html>

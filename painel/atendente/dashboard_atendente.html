@@ -385,6 +385,22 @@ a{text-decoration:none;color:inherit}
 .emp-stat-g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .emp-stat-lbl{font-size:9px;color:var(--muted)}
 .emp-stat-val{font-size:12px;font-weight:700;color:var(--txt);font-family:var(--mono)}
+.emp-body .descricao-wrapper{position:relative;width:100%}
+.emp-body .descricao-wrapper.descricao-recolhida{max-height:calc(1.6em * 7);overflow:hidden}
+.emp-body .descricao-wrapper.descricao-expandida{max-height:none;overflow:visible}
+.emp-body .descricao-wrapper.descricao-com-excedente::after{content:'';position:absolute;right:0;bottom:0;left:0;height:32px;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,0),var(--card2) 90%)}
+.emp-body .descricao-wrapper.descricao-expandida::after{display:none}
+.emp-body .descricao-imovel{font-size:11px;color:var(--txt);line-height:1.6;overflow-wrap:anywhere}
+.emp-body .descricao-imovel h2,.emp-body .descricao-imovel h3{color:var(--navy);font-size:12px;font-weight:700;margin:0 0 6px}
+.emp-body .descricao-imovel p{margin:0 0 8px}
+.emp-body .descricao-imovel ul,.emp-body .descricao-imovel ol{margin:4px 0 8px;padding-left:16px}
+.emp-body .descricao-imovel li{margin-bottom:4px}
+.emp-body .descricao-imovel strong{color:var(--navy);font-weight:700}
+.emp-body .descricao-imovel a{color:var(--gold);font-weight:700;text-decoration:underline}
+.emp-body .botao-detalhes-descricao{display:inline-flex;align-items:center;margin-top:4px;padding:0;border:none;background:none;color:var(--gold);font:inherit;font-size:10px;font-weight:700;text-decoration:underline;cursor:pointer}
+.emp-body .botao-detalhes-descricao:hover{color:var(--txt)}
+.emp-body .botao-detalhes-descricao[hidden]{display:none}
+.emp-body .descricao-indisponivel{color:var(--muted);font-style:italic;margin:0}
 
 /* ── AI CHAT ── */
 .ai-wrap{display:flex;flex-direction:column;height:480px;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);overflow:hidden}
@@ -474,6 +490,8 @@ a{text-decoration:none;color:inherit}
   .modal-ov{padding:14px 8px}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 </head>
 <body>
 
@@ -2159,7 +2177,10 @@ function renderEmps(){
           <div><div class="emp-stat-lbl">Faixa de valor</div><div class="emp-stat-val" style="font-size:10px">${e.faixa||'—'}</div></div>
         </div>
         <div class="sec" style="margin-bottom:8px">Sobre o empreendimento</div>
-        <div style="font-size:11px;color:var(--txt);line-height:1.6">${e.descricao||'Sem descrição cadastrada.'}</div>
+        <div class="descricao-wrapper descricao-recolhida" data-desc-id="${e.id}">
+          <div class="descricao-imovel"></div>
+        </div>
+        <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
         <div style="display:flex;gap:6px;margin-top:12px">
           <!-- Botão "Materiais" removido daqui de propósito (24/08/2026) junto com o
                item do menu, enquanto o Antonio monta a parte de marketing. -->
@@ -2167,6 +2188,11 @@ function renderEmps(){
         </div>
       </div>
     </div>`).join('');
+  list.forEach((e) => {
+    const wrapper = el.querySelector('.descricao-wrapper[data-desc-id="' + e.id + '"]');
+    if (wrapper) preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), e.descricao, 'Sem descrição cadastrada.');
+  });
+  recalcularDescricoesInteligentes();
 }
 
 /* ═══ PERFIL ═══ */
@@ -2256,5 +2282,6 @@ function limparChat(){
 }
 </script>
 <script src="../shared/compartilhamento-seguro.js"></script>
+<script src="../shared/descricao-inteligente.js"></script>
 </body>
 </html>
