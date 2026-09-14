@@ -990,18 +990,76 @@
   const SCRIPT_URL  = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
   const CRM_URL_RES = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 
-  function registrarNoCRMReserva(nome, telefone, email) {
+  /* Projeto ISOLADO numa conta Google pessoal, só pra upload no Drive —
+     mesmo princípio (e mesmo script) já usado no autocadastro do agente
+     em dashboard-agente.html (ver painel/shared/apps-script-upload-
+     documentos-agente.gs): a conta Workspace da WAL bloqueia DriveApp,
+     então essa ação isolada roda numa conta sem essa restrição. Pasta de
+     destino das reservas: PASTA_DOCUMENTOS_RESERVA_ID no .gs (link
+     combinado com o Antonio em 78.1). */
+  const UPLOAD_DOCUMENTOS_RESERVA_API_URL = 'https://script.google.com/macros/s/AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw/exec';
+
+  /* Sobe os documentos (já em base64 no payload) pro Drive e devolve os
+     links — ao contrário dos outros fetch() deste arquivo, este NÃO usa
+     mode:'no-cors': testamos e esse endpoint responde com CORS liberado
+     (Access-Control-Allow-Origin: *), então dá pra ler a resposta de
+     verdade e pegar as URLs de volta (necessário pra montar o e-mail
+     com links em vez de anexo — ver processarReserva no backend). */
+  async function enviarDocumentosParaDrive(payload) {
+    if (!payload.documentos.length) return { status: 'ok', pastaUrl: '', arquivos: [] };
+    try {
+      const res = await fetch(UPLOAD_DOCUMENTOS_RESERVA_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          action: 'crm_reserva_upload_documentos',
+          nome: payload.nome,
+          timestamp: payload.timestamp,
+          documentos: payload.documentos
+        })
+      });
+      const data = await res.json();
+      if (data && data.status === 'ok') return data;
+      console.warn('Upload pro Drive retornou erro:', data && data.message);
+    } catch (err) {
+      console.warn('Falha ao enviar documentos pro Drive:', err.message);
+    }
+    return { status: 'error', pastaUrl: '', arquivos: [] };
+  }
+
+  function registrarNoCRMReserva(payload) {
     const now = new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T');
-    const notaHistorico = 'Enviou formulário de reserva de imóvel';
-    const payload = {
+    // Nota rica com os campos que o formulário já coleta (antes ia um
+    // texto fixo genérico — mesmo padrão do imovel.html/index.html,
+    // combinado com o Antonio em 78.1). Vai tanto pro campo "Solicitação"
+    // da aba LEADS quanto pro "Texto" da 1ª interação em
+    // HISTORICO_ATENDIMENTO_LEAD. Origem sempre "Reserva".
+    const notaSolicitacao = [
+      'Empreendimento: ' + (payload.empreendimento || '—'),
+      'Faixa de valor: ' + (payload.faixa_valor || '—'),
+      'Valor de entrada: ' + (payload.valor_entrada || '—'),
+      'Forma de pagamento: ' + (payload.forma_pagamento || '—'),
+      payload.detalhes ? ('Detalhes: ' + payload.detalhes) : '',
+      payload.conjuge ? ('Cônjuge/Companheiro(a): ' + payload.conjuge.nome) : '',
+      payload.pastaDriveUrl ? ('Documentos: ' + payload.pastaDriveUrl) : '',
+      'Enviou formulário de reserva de imóvel'
+    ].filter(Boolean).join('\n');
+
+    const crmPayload = {
       action: 'criarOuAtualizar',
-      lead: { nome, telefone, email, origem: 'Reserva', prioridade: 'alta', status: 'novo' },
-      interacao: { tipo: 'Reserva', data: now, nota: notaHistorico }
+      lead: {
+        nome: payload.nome, telefone: payload.telefone, email: payload.email,
+        origem: 'Reserva', prioridade: 'alta', status: 'novo',
+        solicitacao: notaSolicitacao,
+        orcamento: payload.faixa_valor || '',
+        area: payload.empreendimento || ''
+      },
+      interacao: { tipo: 'Reserva', data: now, nota: notaSolicitacao }
     };
     fetch(CRM_URL_RES, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(crmPayload)
     }).catch(() => {});
 
     // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
@@ -1012,7 +1070,8 @@
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         action: 'crm_lead_evento_publico',
-        telefone, email, tipo: 'Reserva', texto: notaHistorico, origem: 'Reserva'
+        telefone: payload.telefone, email: payload.email,
+        tipo: 'Reserva', texto: notaSolicitacao, origem: 'Reserva'
       })
     }).catch(() => {});
   }
@@ -1652,8 +1711,23 @@
       }
     }
 
-    /* 6. Envia para o Google Apps Script */
-    setProgresso(65, 'Enviando dados e documentos…');
+    /* 6. Sobe os documentos pro Drive ANTES de mandar pro backend de
+       e-mail/planilha — troca o payload.documentos (com base64, pesado
+       e sujeito ao limite de anexo do Brevo) pelos links já publicados.
+       Solução pro risco de documento "sumir" silenciosamente: como o
+       e-mail passa a citar links em vez de carregar o arquivo, não tem
+       mais limite de tamanho por anexo — e se algum arquivo falhar ao
+       subir, isso fica registrado em documentosFaltando (o backend
+       destaca isso no e-mail interno em vez de simplesmente omitir). */
+    setProgresso(65, 'Enviando documentos ao Drive…');
+    const qtdDocumentosOriginal = payload.documentos.length;
+    const resultadoDrive = await enviarDocumentosParaDrive(payload);
+    payload.pastaDriveUrl = resultadoDrive.pastaUrl || '';
+    payload.documentos = resultadoDrive.arquivos || [];
+    payload.documentosFaltando = qtdDocumentosOriginal - payload.documentos.length;
+
+    /* 7. Envia para o Google Apps Script */
+    setProgresso(80, 'Enviando dados…');
 
     let enviou = false;
     try {
@@ -1681,9 +1755,9 @@
     await new Promise(r => setTimeout(r, 600)); // pausa visual
 
     if (enviou) {
-      registrarNoCRMReserva(payload.nome, payload.telefone, payload.email);
+      registrarNoCRMReserva(payload);
       registrarIndicacaoAgente_(payload.nome, payload.telefone, payload.email, payload.empreendimento);
-      mostrarSucesso(payload.nome, payload.empreendimento, payload.conjuge);
+      mostrarSucesso(payload.nome, payload.empreendimento, payload.conjuge, payload.documentosFaltando);
     } else {
       btn.textContent = 'Confirmar Reserva e Enviar Documentos →';
       btn.disabled    = false;
@@ -1693,7 +1767,7 @@
   }
 
   /* ─── TELA DE SUCESSO ──────────────────────────────────── */
-  function mostrarSucesso(nome, empreendimento, conjuge) {
+  function mostrarSucesso(nome, empreendimento, conjuge, documentosFaltando) {
     const nomeCompleto = conjuge
       ? `${nome} e cônjuge ${conjuge.nome}`
       : nome;
@@ -1704,6 +1778,16 @@
     document.getElementById('waBtn2').href = `https://wa.me/${WPP_CONS_2}?text=${msgCliente}`;
     document.getElementById('successOverlay').classList.add('show');
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Reserva foi enviada mesmo assim (não trava o cliente por um problema
+    // no upload) — mas avisa, já que o corretor também vê isso destacado
+    // no e-mail interno e pode pedir reenvio.
+    if (documentosFaltando > 0) {
+      setTimeout(() => {
+        alert('⚠️ Sua reserva foi enviada, mas ' + documentosFaltando +
+          ' documento(s) não puderam ser enviados agora. Nossa equipe vai entrar em contato para reenviar.');
+      }, 400);
+    }
   }
 
   /* ─── COMPARTILHAR SITE ─── */

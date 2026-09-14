@@ -1,11 +1,14 @@
 /* ═══════════════════════════════════════════════════════════════════
-   WAL Imóveis — Upload de Documentos do Autocadastro (RG/CNH,
-   comprovante de residência) pro Google Drive
-   Data: 24-08-2026
+   WAL Imóveis — Upload de Documentos (Autocadastro de agente/corretor/
+   atendente E formulário de Reserva) pro Google Drive
+   Data: 24-08-2026 · Ampliado 14-09-2026 (78.1) pra também atender
+   reserva.html
    Google Sheets URL: https://script.google.com/macros/s/AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw/exec
    Código de implantação: AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw
-   PASTA_DOCUMENTOS_CADASTRO_ID  
+   PASTA_DOCUMENTOS_CADASTRO_ID
    link da pasta: https://drive.google.com/drive/folders/1wCfmfSvoiX9WUMNwiheF156E4CtKvueg?usp=sharing
+   PASTA_DOCUMENTOS_RESERVA_ID (nova, 78.1)
+   link da pasta: https://drive.google.com/drive/folders/1JVW-dTxsy10z35cledwP9TdaqZ1mgvt0?usp=sharing
    ═══════════════════════════════════════════════════════════════════
    Projeto ISOLADO, criado numa conta Google PESSOAL (não Workspace) de
    propósito. Motivo: o projeto principal do cadastro
@@ -20,8 +23,16 @@
 
    Só cuida do upload — login, OTP, cadastro do agente/corretor/
    atendente continuam 100% no projeto original
-   (apps-script-sistema-web-cadastro.gs), sem nenhuma mudança de
-   comportamento pro resto do Sistema Web.
+   (apps-script-sistema-web-cadastro.gs); a reserva (dados, e-mails,
+   WhatsApp, aba RESERVA) continua 100% no projeto "Leads Landing Page
+   FAB" (apps-script-leads-landing-page-fab.gs) — este arquivo aqui só
+   recebe os documentos em base64 e devolve os links do Drive, sem
+   nenhuma outra mudança de comportamento pro resto do Sistema Web.
+
+   Se ainda não compartilhou PASTA_DOCUMENTOS_RESERVA_ID como Editor com
+   esta conta pessoal, o upload de reserva falha silenciosamente do
+   lado do reserva.html (fica sem link, mas a reserva em si continua
+   indo — ver documentosFaltando em reserva.html/finalizarReserva).
 
    ── COMO IMPLANTAR (1ª vez) ──
    1. No Google Drive da conta PESSOAL (a que você quer usar), crie um
@@ -58,6 +69,12 @@
    de origem. Repetidos aqui de propósito (projeto isolado, sem como
    importar de outro .gs). */
 var PASTA_DOCUMENTOS_CADASTRO_ID = '1PheLkFZrPBT-R5zHExtMpTEMSwZyquao';
+/* Documentos do reserva.html (RG/CNH, CPF, comprovante de renda/
+   residência, IR — titular e cônjuge) — pasta separada da de cadastro
+   de agente acima, combinada com o Antonio em 78.1. Precisa estar
+   compartilhada com Editor pra esta MESMA conta pessoal que já tem
+   acesso à pasta de cadastro (ver instruções no topo do arquivo). */
+var PASTA_DOCUMENTOS_RESERVA_ID = '1JVW-dTxsy10z35cledwP9TdaqZ1mgvt0';
 var PLANILHA_CADASTRO_ID = '1QKt4iVS_JaFI9Ir_gpOpAUcR4t8rrNJbYwLaH84BUdI';
 var ABA_OTP               = 'OTP_CODES';
 var PLANILHA_CRM_LEADS_ID = '1LeIsShjdVMKuB99cJf_N-eBW3M8lf_uo-la88CQjvH4';
@@ -181,12 +198,50 @@ function crm_pessoa_upload_documentos_(data) {
   });
 }
 
+/* Documentos do reserva.html (titular + cônjuge, já filtrados/validados
+   no navegador). Ao contrário do cadastro de agente acima — que reusa a
+   pasta da pessoa se ela reenviar documento —, aqui SEMPRE cria uma
+   pasta nova por reserva: duas reservas da mesma pessoa em datas
+   diferentes são eventos distintos, não queremos sobrescrever.
+   Sem validação de sessão de propósito (reserva.html já passou pelo
+   próprio gate de e-mail/código antes de chegar aqui, e este endpoint
+   é só um "cofre" de arquivos — não expõe nem grava nada em nenhuma
+   planilha de pessoa). Devolve a lista de arquivos com suas URLs, na
+   MESMA ordem recebida, pra reserva.html montar o payload mais leve
+   (sem base64) que vai pro backend de e-mail/planilha. */
+function pastaDocumentosReserva_(nome, timestamp) {
+  var raiz = DriveApp.getFolderById(PASTA_DOCUMENTOS_RESERVA_ID);
+  var nomeLimpo = (s_(nome).trim() || 'Sem nome') + ' — ' + (s_(timestamp).trim() || new Date().toISOString());
+  return raiz.createFolder(nomeLimpo);
+}
+function crm_reserva_upload_documentos_(data) {
+  var documentos = data.documentos || [];
+  if (!documentos.length) return { status: 'ok', pastaUrl: '', arquivos: [] };
+
+  return comLock_(function () {
+    var pasta = pastaDocumentosReserva_(data.nome, data.timestamp);
+    var arquivos = [];
+    documentos.forEach(function (doc) {
+      if (!doc.base64) return;
+      try {
+        var blob = Utilities.newBlob(Utilities.base64Decode(doc.base64), doc.tipo || 'application/octet-stream', doc.nome || (doc.descricao || 'documento'));
+        var arquivo = pasta.createFile(blob);
+        arquivos.push({ descricao: doc.descricao || '', nome: doc.nome || '', url: arquivo.getUrl() });
+      } catch (e) {
+        Logger.log('Falha ao subir ' + (doc.nome || doc.descricao) + ': ' + e.message);
+      }
+    });
+    return { status: 'ok', pastaUrl: pasta.getUrl(), arquivos: arquivos };
+  });
+}
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
     var out;
     switch (data.action) {
-      case 'crm_pessoa_upload_documentos': out = crm_pessoa_upload_documentos_(data); break;
+      case 'crm_pessoa_upload_documentos':  out = crm_pessoa_upload_documentos_(data); break;
+      case 'crm_reserva_upload_documentos': out = crm_reserva_upload_documentos_(data); break;
       default: out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);
