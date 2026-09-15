@@ -1132,7 +1132,25 @@ a{text-decoration:none;color:inherit}
     <div class="modal-body" id="leadModalBody"></div>
     <div class="modal-f">
       <button class="btn" onclick="fecharModal('modalLead')">Fechar</button>
+      <button class="btn btn-gold" onclick="abrirCompartilharReserva()">📋 Confirmar Reserva e Enviar Documentos</button>
       <button class="btn-teal btn" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');fecharModal('modalLead')">🤖 Pedir ajuda à IA</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ENVIAR FORMULÁRIO DE RESERVA (74.7) -->
+<div class="modal-ov" id="modalCompReserva">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-h">
+      <div class="modal-title">Enviar formulário de reserva</div>
+      <button class="modal-close" onclick="fecharModal('modalCompReserva')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a id="compReservaWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
+        <button class="btn-full btn" id="compReservaBtnEmail" onclick="compReservaEnviarEmail()">✉️ Enviar por E-mail</button>
+        <button class="btn-full btn" id="compReservaBtnCopiar" onclick="compReservaCopiarLink(this)">🔗 Copiar Link</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2063,6 +2081,85 @@ async function compEmpEnviarEmail(){
     errEl.textContent='Falha na conexão. Tente novamente.';errEl.style.display='block';
     btn.disabled=false;btn.textContent='Enviar →';
   }
+}
+
+/* ═══ ENVIAR FORMULÁRIO DE RESERVA (74.7) ═══
+   Botão "Confirmar Reserva e Enviar Documentos" na ficha do lead — gera
+   um link individual pro reserva.html (com nome/telefone/e-mail/
+   empreendimento já preenchidos, ver preencherViaLinkIndividual_ em
+   reserva.html) e manda pelo canal que o atendente escolher. Ao
+   contrário de abrirCompartilharEmp() (compartilhamento genérico de um
+   empreendimento, sem contato certo), aqui já se sabe o telefone/e-mail
+   do lead — por isso o WhatsApp já abre direto na conversa com ele, e o
+   e-mail sai sem precisar digitar destinatário. */
+let _compReservaDados = null;
+function abrirCompartilharReserva(){
+  const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
+  const empNome=(document.getElementById('leadVisitaEmp')?.value||'').trim();
+  // Mesma validação de salvarAgendamentoLead(): não basta ter texto no
+  // campo, precisa bater com um empreendimento de verdade da lista —
+  // sem isso, um nome digitado errado ou incompleto geraria um link
+  // com "empreendimento" incorreto sem o atendente perceber.
+  if(!empNome||!empIdPorNomeDigitado_(empNome)){
+    toast('Selecione um empreendimento da lista no campo "Agendar visita" antes de gerar o link.','');
+    document.getElementById('leadVisitaEmp')?.focus();
+    return;
+  }
+
+  const params=new URLSearchParams({nome:l.nome||'',telefone:l.telefone||'',email:l.email||'',empreendimento:empNome});
+  const link=`${SITE_BASE_URL}reserva.html?${params.toString()}`;
+  const texto=
+`Olá, ${l.nome||''}! Tudo bem?
+Para prosseguirmos com a reserva da unidade no empreendimento ${empNome}, é necessário preencher o formulário disponível no link abaixo:
+🔗 ${link}
+
+No formulário, você deverá:
+✅ preencher seus dados pessoais;
+✅ informar os dados do cônjuge ou companheiro(a), caso seja casado(a) ou viva em união estável;
+✅ anexar os documentos solicitados para a reserva.
+
+Após o preenchimento e o envio dos documentos, nossa equipe realizará a conferência das informações e dará continuidade ao processo de reserva da unidade.
+Caso tenha alguma dúvida durante o preenchimento, entre em contato conosco. Estamos à disposição para ajudar.
+
+WAL Imóveis | WAL Servidor
+comercial@walservidor.com.br
+www.walservidor.com.br
+
+Atendimento imobiliário especializado para servidores públicos e suas famílias.`;
+
+  _compReservaDados={link,texto,email:l.email||''};
+  document.getElementById('compReservaWpp').href=`https://wa.me/55${(l.telefone||'').replace(/\D/g,'')}?text=${encodeURIComponent(texto)}`;
+  const btnEmail=document.getElementById('compReservaBtnEmail');
+  btnEmail.disabled=!l.email;
+  btnEmail.title=l.email?'':'Lead sem e-mail cadastrado';
+  btnEmail.textContent='✉️ Enviar por E-mail';
+  abrirModal('modalCompReserva');
+}
+function compReservaCopiarLink(btn){
+  navigator.clipboard.writeText(_compReservaDados.link).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent='✅ Link copiado!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  });
+}
+async function compReservaEnviarEmail(){
+  if(!_compReservaDados||!_compReservaDados.email){toast('Este lead não tem e-mail cadastrado.','');return}
+  const btn=document.getElementById('compReservaBtnEmail');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:_compReservaDados.email,assunto:'Formulário de Reserva — WAL Imóveis',corpo:_compReservaDados.texto})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      toast('✅ E-mail enviado para '+_compReservaDados.email+'!','green');
+      fecharModal('modalCompReserva');
+    }else{
+      toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
+    }
+  }catch(e){
+    toast('Falha na conexão. Tente novamente.','');
+  }
+  btn.disabled=false;btn.textContent='✉️ Enviar por E-mail';
 }
 
 /* ═══ FILTROS DE EMPREENDIMENTOS (mesmo padrão de imoveis.html) ═══ */
