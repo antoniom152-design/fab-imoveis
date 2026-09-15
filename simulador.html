@@ -706,6 +706,19 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
 const CRM_URL_SIM = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 const SITE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
 
+/* Lê o id do Agente que indicou (mesma chave/janela de 90 dias de
+   registrarIndicacaoAgente_ logo abaixo) — usado pra gravar
+   LEADS.Agente_Id junto com o lead do simulador (pedido 79.6). */
+function lerRefAgenteId_() {
+  try {
+    const raw = localStorage.getItem('wal_ref_agente');
+    if (!raw) return '';
+    const ref = JSON.parse(raw);
+    if (!ref || !ref.id || !ref.capturadoEm) return '';
+    if ((Date.now() - ref.capturadoEm) / 86400000 > 90) return '';
+    return ref.id;
+  } catch(e) { return ''; }
+}
 function registrarNoCRMSim(lead, nota) {
   fetch(CRM_URL_SIM, {
     method: 'POST', mode: 'no-cors',
@@ -790,7 +803,7 @@ function simpConfirmar() {
   if (!ok) return;
 
   registrarNoCRMSim(
-    { nome, telefone: tel, email, origem: 'Simulador' },
+    { nome, telefone: tel, email, origem: 'Simulador', agenteId: lerRefAgenteId_() },
     'Acessou o Simulador de Financiamento'
   );
   registrarIndicacaoAgente_(nome, tel, email);
