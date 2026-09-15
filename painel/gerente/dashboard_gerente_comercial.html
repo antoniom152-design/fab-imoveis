@@ -155,10 +155,17 @@ a{text-decoration:none;color:inherit}
 
 /* ── SIDEBAR ── */
 .sidebar{
-  width:224px;min-height:100vh;background:var(--navy);
+  width:224px;height:100vh;background:var(--navy);
   display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;
   border-right:1px solid rgba(255,255,255,.08);
+  overflow-y:auto;
 }
+/* height:100vh + overflow-y:auto (não min-height sem overflow) —
+   este dashboard tem bem mais itens de menu que o do Atendente (de onde
+   foi clonado), então o conteúdo passava da altura da tela: como a
+   sidebar é position:fixed, ela não acompanhava o scroll da página e não
+   tinha rolagem própria, deixando "Meu Perfil"/"Sair" inacessíveis em
+   telas mais baixas (pedido 79.9). */
 .sb-logo{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.12)}
 .sb-brand{color:#fff;font-family:'Playfair Display',serif;font-size:17px;font-weight:700}
 .sb-mode{
