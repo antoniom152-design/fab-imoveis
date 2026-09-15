@@ -2559,7 +2559,11 @@ async function carregarReservas(){
   const el=document.getElementById('reservaLista');
   if(el)el.innerHTML='Carregando...';
   const resp=await scriptLeadsJsonp('getReservas',{});
-  _reservas=Array.isArray(resp)?resp:((resp&&resp.itens)||(resp&&resp.data)||[]);
+  // Formato real confirmado via curl (15/09/2026): {"rows":[{"Nome Titular":...,
+  // "E-mail Titular":...,"Telefone Titular":...,"Valor de Entrada":...}]} — outros
+  // formatos mantidos como fallback defensivo, mas "rows" é o que a aba RESERVA
+  // (Leads Landing Page FAB, doGet(action=getReservas)) realmente devolve hoje.
+  _reservas=(resp&&resp.rows)||(Array.isArray(resp)?resp:((resp&&resp.itens)||(resp&&resp.data)||[]));
   renderReservas();
 }
 function renderReservas(){
@@ -2569,11 +2573,13 @@ function renderReservas(){
   el.innerHTML=_reservas.map((r,i)=>{
     const nomeTitular=r['Nome Titular']||r.nome||r.Nome||'—';
     const emp=r['Empreendimento']||r.empreendimento||'—';
-    const valor=r['Valor Entrada']||r.valorEntrada||'';
-    const chave=(r['E-mail']||r.email||nomeTitular)+'|'+emp;
+    const valor=r['Valor de Entrada']||r.valorEntrada||'';
+    const telefone=r['Telefone Titular']||r.telefone||'';
+    const email=r['E-mail Titular']||r.email||'';
+    const chave=(email||nomeTitular)+'|'+emp;
     return`<div class="lead-card" style="cursor:default">
       <div class="lc-top">
-        <div><div class="lc-name">${nomeTitular}</div><div class="lc-sub">${emp} · ${r['Telefone']||r.telefone||''}</div></div>
+        <div><div class="lc-name">${nomeTitular}</div><div class="lc-sub">${emp} · ${telefone}</div></div>
         <span class="bdg bo">Autodeclarada</span>
       </div>
       <div class="fs11 c-muted" style="margin:6px 0">Entrada: ${valor||'—'} · Doc: ${r['Link Documentos (Drive)']?`<a href="${r['Link Documentos (Drive)']}" target="_blank" rel="noopener" style="color:var(--gold)">ver documentos</a>`:'—'}</div>
