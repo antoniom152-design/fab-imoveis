@@ -1077,7 +1077,7 @@ a{text-decoration:none;color:inherit}
           <div class="field-row mb14">
             <div><div class="field-lbl">Descrição / Justificativa</div><textarea class="field-ta" id="viabDescricao" placeholder="Ex: cliente pede 5% de desconto para fechar hoje à vista."></textarea></div>
           </div>
-          <button class="btn btn-gold" onclick="enviarSolicitacaoViabilizador()">✉️ Enviar ao Viabilizador</button>
+          <button class="btn btn-gold" id="viabBtnEnviar" onclick="enviarSolicitacaoViabilizador()">✉️ Enviar ao Viabilizador</button>
         </div>
       </div>
       <div class="card">
@@ -2627,10 +2627,11 @@ async function salvarEmpreendimentoGerente(){
   setTimeout(()=>cadastroApiJsonp('crm_empreendimentos_listar',{}).then(r=>{_empreendimentos=(r&&r.itens)||[];popularFiltrosEmp();filtrarEmps();popularDatalistViabilizador_()}),4000);
 }
 
-/* ═══ SOLICITAÇÃO AO VIABILIZADOR (local + e-mail — mesmo padrão do modo
-   Gerente do dashboard-feirao-atendente.html: ainda não existe uma aba
-   dedicada no backend do Sistema Web pra isso, ver plano de portabilidade).
-   Fica salvo só neste navegador (localStorage), igual ao Feirão. */
+/* ═══ SOLICITAÇÃO AO VIABILIZADOR (local + e-mail real via SCRIPT_URL_LEADS,
+   mesma rotina 'compartilhar_email' usada por imovel.html/compReservaEnviarEmail —
+   ainda não existe uma aba dedicada no backend do Sistema Web pra isso, ver
+   plano de portabilidade). Registro fica salvo só neste navegador (localStorage),
+   igual ao Feirão; o e-mail em si é enviado de verdade pelo backend. */
 const VIAB_LS_KEY='wal_gerente_viab_v1';
 function viabCarregarLocal_(){ try{return JSON.parse(localStorage.getItem(VIAB_LS_KEY)||'[]')}catch(e){return[]} }
 function viabSalvarLocal_(lista){ try{localStorage.setItem(VIAB_LS_KEY,JSON.stringify(lista))}catch(e){} }
@@ -2649,21 +2650,35 @@ function renderViabLista(){
     <td class="fs11">${v.descricao}</td>
   </tr>`).join('')}</tbody></table></div>`;
 }
-function enviarSolicitacaoViabilizador(){
+async function enviarSolicitacaoViabilizador(){
   const tipo=document.getElementById('viabTipo').value;
   const emp=document.getElementById('viabEmp').value.trim();
   const email=document.getElementById('viabEmail').value.trim();
   const descricao=document.getElementById('viabDescricao').value.trim();
   if(!descricao){toast('Descreva a solicitação antes de enviar.','');return}
   if(!email){toast('Informe o e-mail do Viabilizador.','');return}
-  const registro={data:new Date().toISOString(),tipo,emp,email,descricao};
-  const lista=viabCarregarLocal_();lista.push(registro);viabSalvarLocal_(lista);
+  const btn=document.getElementById('viabBtnEnviar');
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='Enviando...';
   const assunto=`[WAL Imóveis] ${tipo}${emp?' — '+emp:''}`;
   const corpo=`Olá,\n\n${descricao}\n\nEmpreendimento: ${emp||'—'}\nSolicitado por: ${_user.nome} (Gerente Comercial WAL)\n\nAguardo retorno.`;
-  window.open(`mailto:${email}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(corpo)}`,'_blank');
-  toast('✉️ Cliente de e-mail aberto — confira e envie a mensagem.','green');
-  document.getElementById('viabDescricao').value='';
-  renderViabLista();
+  try{
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:email,assunto,corpo})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      const registro={data:new Date().toISOString(),tipo,emp,email,descricao};
+      const lista=viabCarregarLocal_();lista.push(registro);viabSalvarLocal_(lista);
+      toast('✅ E-mail enviado para '+email+'!','green');
+      document.getElementById('viabDescricao').value='';
+      renderViabLista();
+    }else{
+      toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
+    }
+  }catch(e){
+    toast('Falha na conexão. Tente novamente.','');
+  }
+  btn.disabled=false;btn.textContent=orig;
 }
 
 /* ═══ RESERVA DE UNIDADE (leitura real da aba RESERVA da planilha "Leads
