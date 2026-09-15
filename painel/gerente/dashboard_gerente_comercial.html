@@ -91,6 +91,7 @@ a{text-decoration:none;color:inherit}
 .field-2{grid-template-columns:1fr 1fr}
 .field-3{grid-template-columns:1fr 1fr 1fr}
 .field-5{grid-template-columns:repeat(5,1fr)}
+.field-6{grid-template-columns:repeat(6,1fr)}
 .f-sec{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--bdr);margin-top:4px}
 .auth-btn{
   width:100%;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;
@@ -470,7 +471,7 @@ a{text-decoration:none;color:inherit}
   .topbar{padding-left:58px}
   .g2,.g3{grid-template-columns:1fr}
   .field-2,.field-3{grid-template-columns:1fr}
-  .field-5{grid-template-columns:1fr 1fr}
+  .field-5,.field-6{grid-template-columns:1fr 1fr}
   .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:repeat(2,1fr)!important}
   .emp-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
   div[style*="grid-template-columns:1fr 280px"]{grid-template-columns:1fr!important}
@@ -479,7 +480,7 @@ a{text-decoration:none;color:inherit}
 
 @media(max-width:600px){
   .kpi-strip[style*="repeat(4,1fr)"]{grid-template-columns:1fr!important}
-  .field-5{grid-template-columns:1fr}
+  .field-5,.field-6{grid-template-columns:1fr}
   .ph-title{font-size:19px}
   .kpi-val{font-size:20px}
   .content{padding:14px}
@@ -1028,11 +1029,12 @@ a{text-decoration:none;color:inherit}
 
       <div class="card mb20">
         <div class="card-b">
-          <div class="field-row field-5">
+          <div class="field-row field-6">
             <div><div class="field-lbl">UF</div><select class="field-sel" id="empFUf" onchange="atualizarCidadesEmp();filtrarEmps()"><option value="">Todos</option></select></div>
             <div><div class="field-lbl">Tipo de Imóvel</div><select class="field-sel" id="empFTipo" onchange="filtrarEmps()"><option value="">Todos os tipos</option></select></div>
             <div><div class="field-lbl">Cidade</div><select class="field-sel" id="empFCidade" onchange="atualizarBairrosEmp();filtrarEmps()"><option value="">Todas as cidades</option></select></div>
             <div><div class="field-lbl">Bairro</div><select class="field-sel" id="empFBairro" onchange="filtrarEmps()"><option value="">Todos os bairros</option></select></div>
+            <div><div class="field-lbl">Construtora</div><select class="field-sel" id="empFConstrutora" onchange="filtrarEmps()"><option value="">Todas</option></select></div>
             <div><div class="field-lbl">Faixa de Valor</div><select class="field-sel" id="empFFaixa" onchange="filtrarEmps()"><option value="">Qualquer valor</option></select></div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
@@ -2461,12 +2463,17 @@ function popularFiltrosEmp(){
   const prevUf=document.getElementById('empFUf').value;
   const prevTipo=document.getElementById('empFTipo').value;
   const prevFaixa=document.getElementById('empFFaixa').value;
+  const prevConstrutora=document.getElementById('empFConstrutora').value;
   const ufs=[...new Set(_empreendimentos.map(e=>e.uf).filter(Boolean))].sort();
   document.getElementById('empFUf').innerHTML='<option value="">Todos</option>'+ufs.map(u=>`<option value="${u}">${u}</option>`).join('');
   document.getElementById('empFUf').value=prevUf;
   const tipos=[...new Set(_empreendimentos.map(e=>e.tipo).filter(Boolean))].sort();
   document.getElementById('empFTipo').innerHTML='<option value="">Todos os tipos</option>'+tipos.map(t=>`<option value="${t}">${t}</option>`).join('');
   document.getElementById('empFTipo').value=prevTipo;
+  // Filtro "Construtora" (pedido 79.11) — mesmo padrão do mapa-empreendimentos.html.
+  const construtoras=[...new Set(_empreendimentos.map(e=>e.construtora).filter(Boolean))].sort();
+  document.getElementById('empFConstrutora').innerHTML='<option value="">Todas</option>'+construtoras.map(c=>`<option value="${escAttr_(c)}">${c}</option>`).join('');
+  document.getElementById('empFConstrutora').value=prevConstrutora;
   document.getElementById('empFFaixa').innerHTML='<option value="">Qualquer valor</option>'+EMP_FAIXAS.map(f=>`<option value="${f.id}">${f.label}</option>`).join('');
   document.getElementById('empFFaixa').value=prevFaixa;
   atualizarCidadesEmp();
@@ -2487,12 +2494,12 @@ function atualizarBairrosEmp(){
   document.getElementById('empFBairro').innerHTML='<option value="">Todos os bairros</option>'+bairros.map(b=>`<option value="${b}">${b}</option>`).join('');
   document.getElementById('empFBairro').value=prevBairro;
 }
-/* "Ver no Mapa" leva o filtro atual (UF/Tipo/Cidade/Bairro/Busca — o
-   mapa não tem filtro de Faixa de Valor, então esse campo não é
-   transferido). */
+/* "Ver no Mapa" leva o filtro atual (UF/Tipo/Cidade/Bairro/Construtora/
+   Busca — o mapa não tem filtro de Faixa de Valor, então esse campo não
+   é transferido). */
 function abrirMapaFiltrado(){
   const params=new URLSearchParams();
-  const mapa={uf:'empFUf', tipo:'empFTipo', cidade:'empFCidade', bairro:'empFBairro', busca:'empBusca'};
+  const mapa={uf:'empFUf', tipo:'empFTipo', cidade:'empFCidade', bairro:'empFBairro', construtora:'empFConstrutora', busca:'empBusca'};
   Object.keys(mapa).forEach(chave=>{
     const el=document.getElementById(mapa[chave]);
     const v=el?el.value.trim():'';
@@ -2506,12 +2513,14 @@ function filtrarEmps(){
   const cidade=document.getElementById('empFCidade').value;
   const bairro=document.getElementById('empFBairro').value;
   const faixa=document.getElementById('empFFaixa').value;
+  const construtora=document.getElementById('empFConstrutora').value;
   const busca=(document.getElementById('empBusca')?.value||'').toLowerCase();
   _empFiltrados=_empreendimentos.filter(e=>{
     if(uf&&e.uf!==uf)return false;
     if(tipo&&e.tipo!==tipo)return false;
     if(cidade&&e.cidade!==cidade)return false;
     if(bairro&&e.bairro!==bairro)return false;
+    if(construtora&&e.construtora!==construtora)return false;
     if(!empFaixaMatch_(e.valorMil,faixa))return false;
     if(busca&&!e.nome.toLowerCase().includes(busca)&&!e.bairro.toLowerCase().includes(busca))return false;
     return true;
@@ -2519,7 +2528,7 @@ function filtrarEmps(){
   renderEmps();
 }
 function limparFiltrosEmps(){
-  ['empFUf','empFTipo','empFCidade','empFBairro','empFFaixa'].forEach(id=>{document.getElementById(id).value=''});
+  ['empFUf','empFTipo','empFCidade','empFBairro','empFConstrutora','empFFaixa'].forEach(id=>{document.getElementById(id).value=''});
   const busca=document.getElementById('empBusca');if(busca)busca.value='';
   atualizarCidadesEmp();
   filtrarEmps();
