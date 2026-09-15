@@ -28,6 +28,16 @@
     padding: 12px 20px;
     border-bottom: 3px solid #C9A84C;
   }
+  /* Identidade WAL no topo do mapa — a página não tinha logo/slogan
+     antes (só o proto-banner funcional abaixo); adicionada pra quem
+     chega por um link de parceiro (ex.: CFIAe) ver de cara quem está
+     por trás do mapa, mesma logo usada em imovel.html/index.html. */
+  .brand-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .brand-row img { height: 34px; width: 34px; object-fit: contain; border-radius: 4px; flex-shrink: 0; }
+  .brand-row .brand-text { display: flex; flex-direction: column; line-height: 1.25; }
+  .brand-row .brand-text strong { font-size: 0.95em; color: #fff; letter-spacing: .02em; }
+  .brand-row .brand-text span { font-size: 0.72em; color: #C9A84C; text-transform: uppercase; letter-spacing: .06em; }
+
   .proto-banner-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   .proto-banner h1 { font-size: 1.2em; color: #C9A84C; margin-bottom: 3px; }
   .proto-banner p { font-size: 0.82em; color: #b9c2d0; max-width: 720px; line-height: 1.45; }
@@ -466,6 +476,13 @@
 <body>
 
 <div class="proto-banner">
+  <div class="brand-row">
+    <img src="logo%20novo%20wal.jpeg" alt="WAL Imóveis">
+    <div class="brand-text">
+      <strong>WAL Imóveis</strong>
+      <span>Especialistas em imóveis para Funcionário Público</span>
+    </div>
+  </div>
   <div class="proto-banner-top">
     <div>
       <h1>Mapa de Empreendimentos Disponíveis V3.1</h1>
@@ -893,6 +910,29 @@ function mostrarBannerAgente_(ref){
 }
 capturarReferenciaAgente_(new URLSearchParams(location.search).get('agente')).then(mostrarBannerAgente_);
 
+/* Mesma ideia de REF_AGENTE_KEY, pra rótulo livre de campanha/disparo
+   (link ?campanha=), sem validação contra o backend — ver imovel.html
+   pro mesmo par de funções. */
+const REF_CAMPANHA_KEY  = 'wal_ref_campanha';
+const REF_CAMPANHA_DIAS = 90;
+function lerReferenciaCampanha_(){
+  try{
+    const raw = localStorage.getItem(REF_CAMPANHA_KEY);
+    if(!raw) return null;
+    const ref = JSON.parse(raw);
+    const dias = (Date.now()-ref.capturadoEm)/86400000;
+    if(dias > REF_CAMPANHA_DIAS){ localStorage.removeItem(REF_CAMPANHA_KEY); return null; }
+    return ref;
+  }catch(e){ return null; }
+}
+function capturarReferenciaCampanha_(campanhaIdParam){
+  if(campanhaIdParam){
+    localStorage.setItem(REF_CAMPANHA_KEY, JSON.stringify({ id: campanhaIdParam, capturadoEm: Date.now() }));
+  }
+  return lerReferenciaCampanha_();
+}
+capturarReferenciaCampanha_(new URLSearchParams(location.search).get('campanha'));
+
 /* Endpoint do "Leads Landing Page" — usado só para compartilhar o mapa
    por e-mail (tipo:"compartilhar_email"). NÃO é o CRM de Leads: esse
    projeto grava numa outra planilha, aba "Leads" (não "LEADS"). */
@@ -926,6 +966,8 @@ function _paramsMapaAtual(){
   }
   const agenteAtual = new URLSearchParams(location.search).get('agente');
   if(agenteAtual) params.set('agente', agenteAtual);
+  const campanhaAtual = new URLSearchParams(location.search).get('campanha');
+  if(campanhaAtual) params.set('campanha', campanhaAtual);
   return params;
 }
 function linkMapaAtual_(){

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do Parceiro CFIAe | WAL Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+  body {
+    font-family: 'Barlow', Arial, sans-serif;
+    background: #f4f5f7; color: #1a2332;
+  }
+  a { color: inherit; }
+  .gold { color: #C9A84C; }
+
+  /* ── LOGIN ── */
+  #tela-login {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #0A1628 0%, #16233a 100%); padding: 20px;
+  }
+  .login-box { background: #fff; border-radius: 10px; padding: 34px 30px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .login-brand img { height: 38px; width: 38px; object-fit: contain; border-radius: 4px; }
+  .login-brand strong { display: block; font-size: 1.05em; }
+  .login-brand span { display: block; font-size: 0.72em; color: #7f8c9a; text-transform: uppercase; letter-spacing: .05em; }
+  .login-box h1 { font-family: 'Playfair Display', serif; font-size: 1.25em; margin-bottom: 6px; }
+  .login-box p.sub { font-size: 0.85em; color: #667; line-height: 1.5; margin-bottom: 18px; }
+  .login-box label { display: block; font-size: 0.72em; text-transform: uppercase; letter-spacing: .05em; color: #7f8c9a; margin-bottom: 4px; }
+  .login-box input { width: 100%; padding: 11px 12px; border: 1px solid #d5dae2; border-radius: 6px; font-size: 0.95em; font-family: inherit; margin-bottom: 14px; }
+  .login-box input:focus { outline: none; border-color: #C9A84C; }
+  .btn-primary {
+    width: 100%; padding: 12px; border: none; border-radius: 6px; background: #0A1628; color: #C9A84C;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+    font-size: 0.9em; cursor: pointer; transition: background .2s;
+  }
+  .btn-primary:hover { background: #16233a; }
+  .btn-primary:disabled { opacity: .6; cursor: default; }
+  .btn-link { background: none; border: none; color: #7f8c9a; font-size: 0.82em; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; }
+  .err-box { background: #fdecea; border: 1px solid #f5c2bd; color: #b3261e; font-size: 0.82em; padding: 9px 11px; border-radius: 6px; margin-bottom: 12px; display: none; }
+  .info-box { background: #eef4fb; border: 1px solid #bcd8f2; color: #0A4D8C; font-size: 0.8em; padding: 10px 12px; border-radius: 6px; margin-top: 14px; line-height: 1.5; }
+
+  /* ── APP ── */
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  header.top {
+    background: linear-gradient(135deg, #0A1628 0%, #16233a 100%); color: #fff;
+    padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    border-bottom: 3px solid #C9A84C;
+  }
+  header.top .brand { display: flex; align-items: center; gap: 10px; }
+  header.top .brand img { height: 36px; width: 36px; object-fit: contain; border-radius: 4px; }
+  header.top .brand strong { display: block; font-size: 1em; }
+  header.top .brand span { display: block; font-size: 0.7em; color: #C9A84C; text-transform: uppercase; letter-spacing: .06em; }
+  header.top .who { font-size: 0.82em; color: #cfd6e2; text-align: right; }
+  header.top .who strong { color: #fff; }
+  .btn-sair { background: none; border: 1px solid rgba(255,255,255,.35); color: #fff; padding: 6px 12px; border-radius: 5px; font-size: 0.78em; cursor: pointer; margin-left: 10px; }
+  .btn-sair:hover { border-color: #C9A84C; color: #C9A84C; }
+
+  nav.tabs { background: #fff; display: flex; gap: 4px; padding: 0 22px; border-bottom: 1px solid #e2e6ec; flex-wrap: wrap; }
+  nav.tabs button {
+    background: none; border: none; padding: 13px 16px; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 0.82em; color: #7f8c9a; cursor: pointer;
+    border-bottom: 3px solid transparent;
+  }
+  nav.tabs button.active { color: #0A1628; border-bottom-color: #C9A84C; }
+
+  main { flex: 1; padding: 22px; max-width: 980px; width: 100%; margin: 0 auto; }
+  .painel-view { display: none; }
+  .painel-view.active { display: block; }
+
+  .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .card h2 { font-family: 'Playfair Display', serif; font-size: 1.1em; margin-bottom: 4px; }
+  .card p.desc { font-size: 0.85em; color: #667; margin-bottom: 16px; line-height: 1.5; }
+
+  .campo { margin-bottom: 14px; }
+  .campo label { display: block; font-size: 0.72em; text-transform: uppercase; letter-spacing: .05em; color: #7f8c9a; margin-bottom: 4px; }
+  .campo select, .campo input[type="text"] {
+    width: 100%; padding: 10px 11px; border: 1px solid #d5dae2; border-radius: 6px; font-size: 0.92em; font-family: inherit; background: #fbfbfc;
+  }
+  .campo select:focus, .campo input:focus { outline: none; border-color: #C9A84C; background: #fff; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 620px) { .row-2 { grid-template-columns: 1fr; } }
+
+  .btn-gold { background: #C9A84C; color: #0A1628; border: none; padding: 11px 18px; border-radius: 6px; font-weight: 700; font-size: 0.88em; cursor: pointer; }
+  .btn-gold:hover { background: #b8973f; }
+  .btn-gold:disabled { opacity: .55; cursor: default; }
+
+  .link-out { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px dashed #e2e6ec; }
+  .link-out .url-box { background: #f4f5f7; border: 1px solid #e2e6ec; border-radius: 6px; padding: 10px 12px; font-size: 0.82em; word-break: break-all; margin-bottom: 12px; color: #333; }
+  .share-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .share-btns a, .share-btns button {
+    display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 6px; font-size: 0.82em; font-weight: 600;
+    text-decoration: none; cursor: pointer; border: 1px solid #d5dae2; background: #fff; color: #1a2332;
+  }
+  .share-btns .wpp { background: #25D366; color: #fff; border-color: #25D366; }
+  .share-btns .mapa-link { background: #0A1628; color: #C9A84C; border-color: #0A1628; }
+
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .kpi { background: #fff; border-radius: 10px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  .kpi .num { font-family: 'Playfair Display', serif; font-size: 1.7em; color: #0A1628; }
+  .kpi .lbl { font-size: 0.72em; color: #7f8c9a; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
+
+  .camp-card { background: #fff; border-radius: 10px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden; }
+  .camp-head { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; flex-wrap: wrap; }
+  .camp-head .nome { font-weight: 700; font-size: 0.95em; }
+  .camp-head .nums { display: flex; gap: 16px; font-size: 0.8em; color: #556; }
+  .camp-head .nums b { color: #0A1628; }
+  .camp-body { display: none; padding: 0 18px 16px; }
+  .camp-body.show { display: block; }
+  table.tbl-lead { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  table.tbl-lead th { text-align: left; color: #7f8c9a; text-transform: uppercase; font-size: 0.72em; letter-spacing: .04em; padding: 6px 8px; border-bottom: 1px solid #e2e6ec; }
+  table.tbl-lead td { padding: 7px 8px; border-bottom: 1px solid #f0f2f5; }
+  .bdg { padding: 2px 9px; border-radius: 20px; font-size: 0.72em; font-weight: 700; white-space: nowrap; }
+  .bdg-novo { background: #eef4fb; color: #0A4D8C; }
+  .bdg-contato { background: #fff4e0; color: #a15c00; }
+  .bdg-proposta { background: #f0e8ff; color: #5b21b6; }
+  .bdg-fechado { background: #e6f7ec; color: #157347; }
+  .bdg-perdido { background: #fdecea; color: #b3261e; }
+
+  .empty { text-align: center; padding: 30px 10px; color: #96a0ab; font-size: 0.88em; }
+
+  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0A1628; color: #fff; padding: 11px 18px; border-radius: 8px; font-size: 0.85em; opacity: 0; pointer-events: none; transition: all .25s; z-index: 999; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #toast.t-green { background: #157347; }
+  #toast.t-red { background: #b3261e; }
+</style>
+</head>
+<body>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="tela-login">
+  <div class="login-box">
+    <div class="login-brand">
+      <img src="../../logo%20novo%20wal.jpeg" alt="WAL Imóveis">
+      <div>
+        <strong>WAL Imóveis</strong>
+        <span>Especialistas em imóveis para Funcionário Público</span>
+      </div>
+    </div>
+
+    <div id="loginStep1">
+      <h1>Painel do Parceiro CFIAe</h1>
+      <p class="sub">Informe o e-mail já cadastrado junto à WAL. Vamos enviar um código de acesso de 6 dígitos.</p>
+      <div class="err-box" id="loginErr"></div>
+      <label>E-mail</label>
+      <input type="email" id="loginEmail" placeholder="seuemail@exemplo.com" autocomplete="email">
+      <button class="btn-primary" id="loginBtnEnviar" onclick="doLoginEnviarCodigo()">Enviar código de acesso</button>
+      <div class="info-box">Este painel é de uso exclusivo do CFIAe, cadastrado como parceiro institucional da WAL Imóveis. Se ainda não tem acesso, fale com a Diretoria WAL.</div>
+    </div>
+
+    <div id="loginStep2" style="display:none">
+      <h1>Confirmar código</h1>
+      <p class="sub" id="loginSub"></p>
+      <div class="err-box" id="loginErr2"></div>
+      <label>Código de 6 dígitos</label>
+      <input type="text" id="loginCodigo" inputmode="numeric" maxlength="6" placeholder="000000">
+      <button class="btn-primary" id="loginBtnConfirmar" onclick="doLoginConfirmarCodigo()">Confirmar e entrar</button>
+      <button class="btn-link" onclick="doLoginReenviarCodigo()">Reenviar código</button>
+      <button class="btn-link" onclick="voltarLoginStep1()">← Usar outro e-mail</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <img src="../../logo%20novo%20wal.jpeg" alt="WAL Imóveis">
+      <div>
+        <strong>Painel do Parceiro CFIAe</strong>
+        <span>WAL Imóveis</span>
+      </div>
+    </div>
+    <div class="who">
+      Logado como <strong id="whoNome">—</strong>
+      <button class="btn-sair" onclick="doLogout()">Sair</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button class="active" data-view="gerar" onclick="mudarView('gerar')">🔗 Gerar Link</button>
+    <button data-view="campanhas" onclick="mudarView('campanhas')">📊 Minhas Campanhas</button>
+    <a href="../../mapa-empreendimentos.html" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:13px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:0.82em;color:#7f8c9a;text-decoration:none">🗺️ Abrir Mapa de Empreendimentos ↗</a>
+  </nav>
+
+  <main>
+    <!-- ── GERAR LINK ── -->
+    <section class="painel-view active" id="view-gerar">
+      <div class="card">
+        <h2>Gerar link de indicação</h2>
+        <p class="desc">Escolha o empreendimento e dê um nome para o disparo (ex.: "Disparo Setembro 2026"). O link já sai com a identificação do CFIAe, e toda pessoa que se cadastrar por ele fica registrada nesse disparo em "Minhas Campanhas".</p>
+        <div class="row-2">
+          <div class="campo">
+            <label>Empreendimento</label>
+            <select id="selEmpreendimento"><option value="">Carregando…</option></select>
+          </div>
+          <div class="campo">
+            <label>Nome do disparo / campanha</label>
+            <input type="text" id="inputCampanha" placeholder="Ex.: Disparo Setembro 2026" maxlength="60">
+          </div>
+        </div>
+        <button class="btn-gold" id="btnGerarLink" onclick="gerarLinkCfiae()">Gerar link</button>
+
+        <div class="link-out" id="linkOut">
+          <div class="url-box" id="linkGerado">—</div>
+          <div class="share-btns">
+            <button onclick="copiarLinkGerado()">📋 Copiar link</button>
+            <a href="#" id="btnWpp" target="_blank" rel="noopener" class="wpp">📱 WhatsApp</a>
+            <button onclick="mostrarFormEmail()">✉️ E-mail</button>
+            <a href="#" id="btnMapaComLink" target="_blank" rel="noopener" class="mapa-link">🗺️ Ver mapa com este link</a>
+          </div>
+          <div id="formEmail" style="display:none;margin-top:12px">
+            <div class="campo">
+              <label>Enviar para o e-mail</label>
+              <input type="email" id="emailDestino" placeholder="destino@exemplo.com">
+            </div>
+            <button class="btn-gold" id="btnEnviarEmail" onclick="enviarLinkPorEmail()">Enviar →</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CAMPANHAS ── -->
+    <section class="painel-view" id="view-campanhas">
+      <div class="kpis">
+        <div class="kpi"><div class="num" id="kpiTotalCad">—</div><div class="lbl">Total cadastrados</div></div>
+        <div class="kpi"><div class="num" id="kpiTotalFechado">—</div><div class="lbl">Vendas fechadas</div></div>
+        <div class="kpi"><div class="num" id="kpiTotalCampanhas">—</div><div class="lbl">Disparos/campanhas</div></div>
+      </div>
+      <div id="listaCampanhas"></div>
+    </section>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const TIPO_PESSOA = 'agente';
+let _user = null;
+let _empreendimentos = [];
+let _indicacoes = [];
+
+/* ═══ API do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs) ═══
+   Mesma URL/instância usada por index.html/imovel.html/reserva.html/
+   painel/agente/dashboard-agente.html — o CFIAe é um registro normal
+   na aba AGENTES (tipo 'agente'), só o dashboard é diferente. */
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+/* E-mail de compartilhamento usa o mesmo endpoint "Leads Landing Page"
+   que painel/agente/dashboard-agente.html já usa em compEmpEnviarEmail(). */
+const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
+const SITE_BASE_URL = (function(){
+  const o = window.location.origin;
+  if (!o || o === 'null' || o.startsWith('file')) return '';
+  return o + window.location.pathname.replace(/painel\/cfiae\/.*$/, '');
+})();
+
+function cadastroApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    const cb = 'crmCfiaeCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+function chamarCadastroApi(action, payload){
+  try{
+    fetch(CADASTRO_API_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action}, payload)) }).catch(()=>{});
+  }catch(e){}
+}
+
+function toast(msg, tipo){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (tipo ? ' t-'+tipo : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>{ t.className=''; }, 3800);
+}
+
+/* ═══ LOGIN (OTP por e-mail, mesmo fluxo de painel/agente/dashboard-agente.html) ═══ */
+let _loginEmailAtual = '';
+function doLoginEnviarCodigo(){
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const err = document.getElementById('loginErr');
+  err.style.display = 'none';
+  if (!email || email.indexOf('@') === -1){ err.textContent = 'Informe um e-mail válido.'; err.style.display = 'block'; return; }
+  const btn = document.getElementById('loginBtnEnviar');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  chamarCadastroApi('cadastro_login_solicitar_codigo', { email });
+  _loginEmailAtual = email;
+  setTimeout(()=>{ btn.disabled = false; btn.textContent = 'Enviar código de acesso'; }, 600);
+  document.getElementById('loginStep1').style.display = 'none';
+  document.getElementById('loginStep2').style.display = 'block';
+  document.getElementById('loginSub').innerHTML = `Enviamos um código de 6 dígitos para <strong>${email}</strong>.`;
+  document.getElementById('loginCodigo').value = '';
+  document.getElementById('loginCodigo').focus();
+}
+function doLoginReenviarCodigo(){
+  chamarCadastroApi('cadastro_login_solicitar_codigo', { email: _loginEmailAtual });
+  toast('Código reenviado.', 'green');
+}
+function voltarLoginStep1(){
+  document.getElementById('loginStep1').style.display = 'block';
+  document.getElementById('loginStep2').style.display = 'none';
+  document.getElementById('loginErr2').style.display = 'none';
+}
+async function doLoginConfirmarCodigo(){
+  const codigo = document.getElementById('loginCodigo').value.trim();
+  const err = document.getElementById('loginErr2');
+  err.style.display = 'none';
+  if (!codigo){ err.textContent = 'Informe o código recebido.'; err.style.display = 'block'; return; }
+  const btn = document.getElementById('loginBtnConfirmar');
+  btn.disabled = true; btn.textContent = 'Verificando...';
+  const resp = await cadastroApiJsonp('crm_pessoa_verificar_codigo', { email:_loginEmailAtual, codigo, tipo:TIPO_PESSOA });
+  btn.disabled = false; btn.textContent = 'Confirmar e entrar';
+  if (!resp || resp.status !== 'ok'){ err.textContent = (resp && resp.message) || 'Não foi possível confirmar o código. Tente novamente.'; err.style.display = 'block'; return; }
+  if (!resp.cadastrado){
+    // Este painel não tem autocadastro de propósito — o CFIAe é
+    // provisionado manualmente pela Diretoria (ver plano/memória do
+    // projeto), diferente de painel/agente/dashboard-agente.html.
+    err.textContent = 'E-mail ainda não habilitado neste painel. Fale com a Diretoria WAL para liberar o acesso.';
+    err.style.display = 'block';
+    return;
+  }
+  _user = Object.assign({ email:_loginEmailAtual, sessionToken:resp.sessionToken, tipo:TIPO_PESSOA }, resp.pessoa);
+  iniciarApp();
+}
+function doLogout(){
+  _user = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('tela-login').style.display = 'flex';
+  voltarLoginStep1();
+  document.getElementById('loginEmail').value = '';
+}
+
+/* ═══ APP ═══ */
+function mudarView(view){
+  document.querySelectorAll('nav.tabs button[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
+  document.querySelectorAll('.painel-view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+}
+
+async function iniciarApp(){
+  document.getElementById('tela-login').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('whoNome').textContent = _user.nome || _user.email;
+
+  const [respEmp, respInd] = await Promise.all([
+    cadastroApiJsonp('crm_empreendimentos_listar', {}),
+    cadastroApiJsonp('crm_indicacao_listar', { email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA })
+  ]);
+  _empreendimentos = (respEmp && respEmp.itens) || [];
+  _indicacoes = (respInd && respInd.itens) || [];
+  popularSelectEmpreendimentos();
+  renderCampanhas();
+}
+
+function popularSelectEmpreendimentos(){
+  const sel = document.getElementById('selEmpreendimento');
+  if (!_empreendimentos.length){ sel.innerHTML = '<option value="">Nenhum empreendimento disponível</option>'; return; }
+  sel.innerHTML = '<option value="">Selecione...</option>' + _empreendimentos
+    .slice()
+    .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''))
+    .map(e=>`<option value="${e.id}">${e.nome}${e.cidade?' — '+e.cidade+'/'+e.uf:''}</option>`).join('');
+}
+
+/* ═══ GERADOR DE LINK ═══ */
+let _linkAtual = null;
+function gerarLinkCfiae(){
+  const empId = document.getElementById('selEmpreendimento').value;
+  const campanha = document.getElementById('inputCampanha').value.trim();
+  if (!empId){ toast('Escolha um empreendimento.', 'red'); return; }
+  if (!campanha){ toast('Dê um nome para o disparo/campanha.', 'red'); return; }
+  const emp = _empreendimentos.find(e=>e.id===empId);
+  const params = new URLSearchParams({ id: empId, agente: _user.id, campanha });
+  const link = `${SITE_BASE_URL}imovel.html?${params.toString()}`;
+  const mapaParams = new URLSearchParams({ agente: _user.id, campanha });
+  const linkMapa = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
+  const texto = `🏗️ *${emp ? emp.nome : 'Empreendimento WAL Imóveis'}*\n\nCondições especiais para militares FAB, indicação CFIAe.\n\nConfira: ${link}`;
+
+  _linkAtual = { link, linkMapa, texto, assunto: `WAL Imóveis — ${emp ? emp.nome : 'Empreendimento'} (indicação CFIAe)` };
+  document.getElementById('linkGerado').textContent = link;
+  document.getElementById('btnWpp').href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  document.getElementById('btnMapaComLink').href = linkMapa;
+  document.getElementById('formEmail').style.display = 'none';
+  document.getElementById('linkOut').style.display = 'block';
+}
+function copiarLinkGerado(){
+  if (!_linkAtual) return;
+  navigator.clipboard.writeText(_linkAtual.link).then(()=>toast('Link copiado!', 'green'));
+}
+function mostrarFormEmail(){
+  document.getElementById('formEmail').style.display = 'block';
+  document.getElementById('emailDestino').value = '';
+  document.getElementById('emailDestino').focus();
+}
+async function enviarLinkPorEmail(){
+  const destino = document.getElementById('emailDestino').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(destino)){ toast('Digite um e-mail válido.', 'red'); return; }
+  const btn = document.getElementById('btnEnviarEmail');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try{
+    const res = await fetch(SCRIPT_URL_LEADS, { method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ tipo:'compartilhar_email', destinatario:destino, assunto:_linkAtual.assunto, corpo:_linkAtual.texto }) });
+    const data = await res.json();
+    if (data.status === 'ok'){ toast('E-mail enviado para '+destino+'!', 'green'); document.getElementById('formEmail').style.display='none'; }
+    else { toast(data.message || 'Não foi possível enviar agora.', 'red'); }
+  }catch(e){ toast('Falha na conexão. Tente novamente.', 'red'); }
+  btn.disabled = false; btn.textContent = 'Enviar →';
+}
+
+/* ═══ MINHAS CAMPANHAS ═══
+   Reaproveita a ação crm_indicacao_listar (já usada por
+   painel/agente/dashboard-agente.html) sem mudança nenhuma no
+   backend — o agrupamento por campanhaId é feito aqui no front,
+   já que hoje não existe entidade de campanha, só o rótulo livre
+   gravado em Campanha_Id (ver crm_indicacao_publica_criar_). */
+const STATUS_LABEL = { agente:'Novo cadastro', contato:'Em contato', proposta:'Proposta', fechado:'Venda fechada', perdido:'Perdido' };
+const STATUS_BDG = { agente:'bdg-novo', contato:'bdg-contato', proposta:'bdg-proposta', fechado:'bdg-fechado', perdido:'bdg-perdido' };
+function nomeEmp_(empId){ const e = _empreendimentos.find(x=>x.id===empId); return e ? e.nome : (empId ? '—' : 'Não informado'); }
+function fmtDt_(iso){ if(!iso) return '—'; const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso); }
+
+function renderCampanhas(){
+  const totalCad = _indicacoes.length;
+  const totalFechado = _indicacoes.filter(i=>i.status==='fechado').length;
+  const grupos = {};
+  _indicacoes.forEach(i=>{
+    const chave = (i.campanhaId || '').trim() || '(sem campanha — link antigo ou geral)';
+    if (!grupos[chave]) grupos[chave] = [];
+    grupos[chave].push(i);
+  });
+  const nomesCampanhas = Object.keys(grupos).sort((a,b)=>grupos[b].length-grupos[a].length);
+
+  document.getElementById('kpiTotalCad').textContent = totalCad;
+  document.getElementById('kpiTotalFechado').textContent = totalFechado;
+  document.getElementById('kpiTotalCampanhas').textContent = nomesCampanhas.length;
+
+  const cont = document.getElementById('listaCampanhas');
+  if (!nomesCampanhas.length){
+    cont.innerHTML = '<div class="card"><div class="empty">Nenhuma indicação registrada ainda. Gere um link na aba "Gerar Link" e compartilhe para começar a ver os resultados aqui.</div></div>';
+    return;
+  }
+  cont.innerHTML = nomesCampanhas.map((nome, idx)=>{
+    const itens = grupos[nome].slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
+    const fechados = itens.filter(i=>i.status==='fechado').length;
+    const bodyId = 'campBody'+idx;
+    return `
+      <div class="camp-card">
+        <div class="camp-head" onclick="document.getElementById('${bodyId}').classList.toggle('show')">
+          <div class="nome">📣 ${nome}</div>
+          <div class="nums"><span><b>${itens.length}</b> cadastrados</span><span><b>${fechados}</b> vendas</span></div>
+        </div>
+        <div class="camp-body" id="${bodyId}">
+          <table class="tbl-lead">
+            <thead><tr><th>Nome</th><th>Empreendimento</th><th>Status</th><th>Cadastro</th></tr></thead>
+            <tbody>
+              ${itens.map(i=>`<tr><td>${i.nomeCliente||'—'}</td><td>${nomeEmp_(i.empId)}</td><td><span class="bdg ${STATUS_BDG[i.status]||'bdg-novo'}">${STATUS_LABEL[i.status]||i.status}</span></td><td>${fmtDt_(i.criadoEm)}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

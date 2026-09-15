@@ -637,7 +637,11 @@ function crm_indicacaoParaObjeto_(i) {
     criadoEm: dataStr_(i.Criado_em), ultimaAtualizacao: dataStr_(i.Ultima_atualizacao), postoCargo: s_(i.Posto_Cargo),
     residenciaAtual: s_(i.Residencia_Atual), formaPgto: s_(i.Forma_Pgto),
     corretorId: s_(i.Corretor_Id), agenteId: s_(i.Agente_Id), atendenteId: s_(i.Atendente_Id),
-    obsIndicador: s_(i.Obs_Do_Indicador), obsGerencia: s_(i.Obs_Gerencia_Comercial)
+    obsIndicador: s_(i.Obs_Do_Indicador), obsGerencia: s_(i.Obs_Gerencia_Comercial),
+    // Campanha_Id é opcional e recente (link com &campanha=, ver
+    // crm_indicacao_publica_criar_) — s_() devolve '' de propósito
+    // se a coluna ainda não existir na aba.
+    campanhaId: s_(i.Campanha_Id)
   };
 }
 
@@ -930,7 +934,11 @@ function crm_indicacao_publica_criar_(data) {
       Id: id, Nome_Cliente: nomeCliente, Telefone: telefone, Email: s_(data.emailCliente),
       Emp_Id: s_(data.empId), Status: 'agente', Criado_em: agoraStr, Ultima_atualizacao: agoraStr,
       Obs_Do_Indicador: 'Indicação automática via link compartilhado (' + (s_(data.origem) || 'site') + ')',
-      Obs_Gerencia_Comercial: '', Agente_Id: s_(agente.Id)
+      Obs_Gerencia_Comercial: '', Agente_Id: s_(agente.Id),
+      // Rótulo livre de campanha/disparo (link ...&campanha=X) — só é
+      // gravado se a coluna Campanha_Id existir na aba (ver mapeamento
+      // por headersInd.map abaixo); nunca quebra se a coluna não existir.
+      Campanha_Id: s_(data.campanhaId).trim()
     };
     var headersInd = headersDe_(abaInd);
     abaInd.appendRow(headersInd.map(function (h) { return camposInd[h] !== undefined ? camposInd[h] : ''; }));
