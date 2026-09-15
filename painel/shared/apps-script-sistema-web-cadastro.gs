@@ -1764,6 +1764,34 @@ function crm_gerente_equipe_listar_(p) {
   return { status: 'ok', itens: lerAbaObjetos_(ctx.aba).map(crm_pessoaParaObjeto_) };
 }
 
+/* Ativar/desativar um Atendente da equipe (aba ATENDENTES, coluna Status)
+   — mesmo campo que admin_pessoa_atualizar_ já mexe (usado pela aba
+   Equipe do admin.html), só que aqui é o próprio Gerente que aciona, sem
+   precisar do PIN_ADMIN_SISTEMA da Diretoria. Só mexe em Status (não em
+   Habilitado — aprovação de cadastro continua sendo decisão da
+   Diretoria). Pedido 79.5, mesmo toggle Ativo/Inativo do modo Gerente do
+   Feirão (dashboard-feirao-atendente.html). */
+function crm_gerente_atendente_status_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var ctx = crm_pessoaAba_('atendente');
+  if (!ctx) return { status: 'error', message: 'Aba ' + ABA_ATENDENTES + ' não encontrada.' };
+  var idAtendente = s_(data.atendenteId).trim();
+  var status = s_(data.status).trim().toLowerCase();
+  if (!idAtendente) return { status: 'error', message: 'Id do atendente é obrigatório.' };
+  if (['ativo', 'inativo'].indexOf(status) === -1) return { status: 'error', message: 'Status inválido.' };
+
+  return comLock_(function () {
+    var linha = acharLinhaPorChave_(ctx.aba, 'Id', idAtendente);
+    if (linha === -1) return { status: 'error', message: 'Atendente não encontrado.' };
+    var headers = headersDe_(ctx.aba);
+    ctx.aba.getRange(linha, headers.indexOf('Status') + 1).setValue(status);
+    var colAtualizado = headers.indexOf('Atualizado_em');
+    if (colAtualizado !== -1) ctx.aba.getRange(linha, colAtualizado + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
 /* Registra uma orientação/nota do Gerente na linha do tempo do lead —
    mesmo desenho de crm_atendente_historico_evento_, mas sem checar se o
    lead pertence a este Gerente (ele pode anotar em qualquer lead). */
@@ -1914,6 +1942,7 @@ function doGet(e) {
       case 'crm_gerente_lead_atribuir':         result = crm_gerente_lead_atribuir_(p); break;
       case 'crm_gerente_lead_status':           result = crm_gerente_lead_status_(p); break;
       case 'crm_gerente_historico_evento':      result = crm_gerente_historico_evento_(p); break;
+      case 'crm_gerente_atendente_status':      result = crm_gerente_atendente_status_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
@@ -1951,6 +1980,7 @@ function doPost(e) {
       case 'crm_gerente_lead_status':         out = crm_gerente_lead_status_(data); break;
       case 'crm_gerente_historico_evento':    out = crm_gerente_historico_evento_(data); break;
       case 'crm_gerente_ia_chat':             out = crm_gerente_ia_chat_(data); break;
+      case 'crm_gerente_atendente_status':    out = crm_gerente_atendente_status_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);

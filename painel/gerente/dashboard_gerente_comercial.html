@@ -2085,19 +2085,36 @@ async function salvarNotaLead(){
 function renderEquipe(){
   const el=document.getElementById('equipeLista'); if(!el)return;
   if(!_equipe.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum Atendente cadastrado ainda.</div>`;return}
-  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Atendente</th><th>Status</th><th>Leads</th><th>Em andamento</th><th>Fechados</th><th>Conversão</th></tr></thead><tbody>${_equipe.map(a=>{
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Atendente</th><th>Cadastro</th><th>Status</th><th>Leads</th><th>Em andamento</th><th>Fechados</th><th>Conversão</th></tr></thead><tbody>${_equipe.map(a=>{
     const meus=_leads.filter(l=>l.atendenteId===a.id);
     const fech=meus.filter(l=>l.status==='fechado').length;
     const conv=meus.length?Math.round(fech/meus.length*100):0;
+    const statusAtivo=(a.status||'ativo').toLowerCase()!=='inativo';
     return`<tr>
       <td><div class="fw6">${a.nome||'—'}</div><div class="fs10 c-muted">${a.email||''}</div></td>
-      <td><span class="bdg ${a.habilitado?'bg':'ba'}">${a.habilitado?'Ativo':'Pendente'}</span></td>
+      <td><span class="bdg ${a.habilitado?'bg':'ba'}">${a.habilitado?'Habilitado':'Pendente'}</span></td>
+      <td>
+        <select class="field-sel" style="width:auto;padding:4px 8px;font-size:11px" onchange="mudarStatusAtendente('${escAttr_(a.id)}',this.value)">
+          <option value="ativo" ${statusAtivo?'selected':''}>🟢 Ativo</option>
+          <option value="inativo" ${!statusAtivo?'selected':''}>🔴 Inativo</option>
+        </select>
+      </td>
       <td class="mono">${meus.length}</td>
       <td class="mono">${meus.filter(l=>['contato','proposta','visita'].includes(l.status)).length}</td>
       <td class="mono">${fech}</td>
       <td class="mono">${conv}%</td>
     </tr>`;
   }).join('')}</tbody></table></div>`;
+}
+/* Toggle Ativo/Inativo do Atendente (pedido 79.5, mesmo Status do modo
+   Gerente do Feirão) — só mexe em Status, não em Habilitado (aprovação
+   de cadastro continua sendo decisão da Diretoria em admin.html). */
+async function mudarStatusAtendente(atendenteId,status){
+  const resp=await cadastroApiJsonp('crm_gerente_atendente_status',{email:_user.email,sessionToken:_user.sessionToken,atendenteId,status});
+  if(!resp||resp.status!=='ok'){toast((resp&&resp.message)||'Não foi possível atualizar o status.','');renderEquipe();return}
+  const a=_equipe.find(x=>x.id===atendenteId);
+  if(a)a.status=status;
+  toast(status==='ativo'?'✅ Atendente ativado!':'⏸ Atendente desativado.','green');
 }
 
 /* ═══ FUNIL DE ATENDIMENTO ═══ */
