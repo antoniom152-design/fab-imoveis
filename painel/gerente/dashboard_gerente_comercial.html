@@ -1081,7 +1081,7 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
       <div class="card">
-        <div class="card-h"><div class="card-title">🕓 Solicitações enviadas (neste dispositivo)</div></div>
+        <div class="card-h"><div class="card-title">🕓 Solicitações enviadas</div></div>
         <div class="card-b" style="padding:0" id="viabLista"></div>
       </div>
     </div>
@@ -2627,21 +2627,19 @@ async function salvarEmpreendimentoGerente(){
   setTimeout(()=>cadastroApiJsonp('crm_empreendimentos_listar',{}).then(r=>{_empreendimentos=(r&&r.itens)||[];popularFiltrosEmp();filtrarEmps();popularDatalistViabilizador_()}),4000);
 }
 
-/* ═══ SOLICITAÇÃO AO VIABILIZADOR (local + e-mail real via SCRIPT_URL_LEADS,
-   mesma rotina 'compartilhar_email' usada por imovel.html/compReservaEnviarEmail —
-   ainda não existe uma aba dedicada no backend do Sistema Web pra isso, ver
-   plano de portabilidade). Registro fica salvo só neste navegador (localStorage),
-   igual ao Feirão; o e-mail em si é enviado de verdade pelo backend. */
-const VIAB_LS_KEY='wal_gerente_viab_v1';
-function viabCarregarLocal_(){ try{return JSON.parse(localStorage.getItem(VIAB_LS_KEY)||'[]')}catch(e){return[]} }
-function viabSalvarLocal_(lista){ try{localStorage.setItem(VIAB_LS_KEY,JSON.stringify(lista))}catch(e){} }
+/* ═══ SOLICITAÇÃO AO VIABILIZADOR (e-mail real via SCRIPT_URL_LEADS, mesma
+   rotina 'compartilhar_email' usada por imovel.html/compReservaEnviarEmail;
+   registro real na aba SOLICITACOES_VIABILIZADOR via CADASTRO_API_URL —
+   pedido 79.14, antes ficava só em localStorage "neste dispositivo"). */
 function popularDatalistViabilizador_(){
   const dl=document.getElementById('viabEmpList'); if(!dl)return;
   dl.innerHTML=[..._empreendimentos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(e=>`<option value="${escAttr_(e.nome)}">`).join('');
 }
-function renderViabLista(){
+async function renderViabLista(){
   const el=document.getElementById('viabLista'); if(!el)return;
-  const lista=viabCarregarLocal_();
+  el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Carregando...</div>`;
+  const resp=await cadastroApiJsonp('crm_gerente_viab_listar',{email:_user.email,sessionToken:_user.sessionToken});
+  const lista=(resp&&resp.itens)||[];
   if(!lista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma solicitação enviada ainda.</div>`;return}
   el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Tipo</th><th>Empreendimento</th><th>Descrição</th></tr></thead><tbody>${[...lista].reverse().map(v=>`<tr>
     <td class="mono fs11">${fmtDtHora_(v.data)}</td>
@@ -2667,8 +2665,7 @@ async function enviarSolicitacaoViabilizador(){
       body:JSON.stringify({tipo:'compartilhar_email',destinatario:email,assunto,corpo})});
     const data=await res.json();
     if(data.status==='ok'){
-      const registro={data:new Date().toISOString(),tipo,emp,email,descricao};
-      const lista=viabCarregarLocal_();lista.push(registro);viabSalvarLocal_(lista);
+      await cadastroApiJsonp('crm_gerente_viab_criar',{email:_user.email,sessionToken:_user.sessionToken,tipo,emp,emailViabilizador:email,descricao});
       toast('✅ E-mail enviado para '+email+'!','green');
       document.getElementById('viabDescricao').value='';
       renderViabLista();

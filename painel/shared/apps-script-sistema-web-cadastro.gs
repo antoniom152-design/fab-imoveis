@@ -1226,6 +1226,10 @@ function admin_indicacoes_listar_(data) {
    (HISTORICO_ATENDIMENTO/AGENDAMENTOS_VISITA). */
 var ABA_HISTORICO_ATENDIMENTO_LEAD = 'HISTORICO_ATENDIMENTO_LEAD';
 var ABA_AGENDAMENTOS_VISITA_LEAD   = 'AGENDAMENTOS_VISITA_LEAD';
+/* Solicitação ao Viabilizador do Gerente (pedido 79.14) — antes só
+   ficava salva em localStorage do navegador ("neste dispositivo"),
+   sem histórico real nenhum. */
+var ABA_SOLICITACOES_VIABILIZADOR = 'SOLICITACOES_VIABILIZADOR';
 
 /* SEM "_" no final de propósito (diferente do resto do arquivo) — é a
    única forma de uma função aparecer no menu "Selecionar função" do
@@ -1247,6 +1251,18 @@ function setupAtendenteCrmLeads() {
   criarAbaSeNaoExiste_(ssCrm, ABA_AGENDAMENTOS_VISITA_LEAD, ['Id', 'Lead_Id', 'Atendente_Id', 'Nome', 'Telefone', 'Email', 'Emp_Id', 'Data', 'Hora', 'Status', 'Obs', 'Criado_em']);
   relatorio.push('Aba ' + ABA_AGENDAMENTOS_VISITA_LEAD + ' verificada/criada.');
   var msg = '✅ Portal do Atendente (leads) configurado!\n\n' + relatorio.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
+/* Cria a aba SOLICITACOES_VIABILIZADOR (pedido 79.14) — mesmo padrão
+   das outras abas novas do Gerente/Atendente acima. */
+function setupSolicitacoesViabilizador() {
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  criarAbaSeNaoExiste_(ssCrm, ABA_SOLICITACOES_VIABILIZADOR, [
+    'Id', 'Gerente_Id', 'Gerente_Nome', 'Tipo', 'Emp', 'Email_Viabilizador', 'Descricao', 'Criado_em'
+  ]);
+  var msg = '✅ Aba ' + ABA_SOLICITACOES_VIABILIZADOR + ' verificada/criada.';
   Logger.log(msg);
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
 }
@@ -1878,6 +1894,51 @@ function crm_gerente_listar_historico_(p) {
   return { status: 'ok', itens: itens };
 }
 
+/* Solicitação ao Viabilizador (pedido 79.14) — grava o pedido de
+   verdade na planilha, além de disparar o e-mail (compartilhar_email,
+   via SCRIPT_URL_LEADS, chamado à parte pelo frontend). Antes só
+   ficava em localStorage do navegador ("neste dispositivo"). */
+function crm_gerente_viab_criar_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var descricao = s_(data.descricao).trim();
+  var emailViab = s_(data.emailViabilizador).trim();
+  if (!descricao) return { status: 'error', message: 'Descrição é obrigatória.' };
+  if (!emailViab) return { status: 'error', message: 'E-mail do Viabilizador é obrigatório.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_SOLICITACOES_VIABILIZADOR);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_SOLICITACOES_VIABILIZADOR + ' não encontrada — rode setupSolicitacoesViabilizador().' };
+    var headers = headersDe_(aba);
+    var id = gerarId_(aba, 'VIA');
+    var campos = {
+      Id: id, Gerente_Id: gerente.Id, Gerente_Nome: gerente.Nome, Tipo: s_(data.tipo),
+      Emp: s_(data.emp), Email_Viabilizador: emailViab, Descricao: descricao, Criado_em: agora_()
+    };
+    aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
+    return { status: 'ok', id: id };
+  });
+}
+
+/* Lista só as solicitações deste Gerente (equivalente ao antigo "neste
+   dispositivo", só que por Gerente em vez de por navegador — agora
+   aparece em qualquer dispositivo que ele entrar). */
+function crm_gerente_viab_listar_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_SOLICITACOES_VIABILIZADOR);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (v) { return s_(v.Gerente_Id) === s_(gerente.Id); })
+    .map(function (v) {
+      return { data: dataStr_(v.Criado_em), tipo: s_(v.Tipo), emp: s_(v.Emp), email: s_(v.Email_Viabilizador), descricao: s_(v.Descricao) };
+    });
+  itens.sort(function (a, b) { return new Date(a.data) - new Date(b.data); });
+  return { status: 'ok', itens: itens };
+}
+
 /* Mesmo formato/uso de crm_admin_listar_historico_todos_ (agrupado por
    Lead_Id, pro Funil/"Acompanhar Atendimento"), mas autenticado pela
    sessão do próprio Gerente em vez do PIN do admin.html — o Gerente não
@@ -1991,6 +2052,8 @@ function doGet(e) {
       case 'crm_gerente_lead_status':           result = crm_gerente_lead_status_(p); break;
       case 'crm_gerente_historico_evento':      result = crm_gerente_historico_evento_(p); break;
       case 'crm_gerente_atendente_status':      result = crm_gerente_atendente_status_(p); break;
+      case 'crm_gerente_viab_criar':            result = crm_gerente_viab_criar_(p); break;
+      case 'crm_gerente_viab_listar':           result = crm_gerente_viab_listar_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
