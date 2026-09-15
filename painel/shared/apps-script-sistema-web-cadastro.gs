@@ -58,14 +58,20 @@ var ABA_IMOVEIS_DISPONIVEIS = 'IMOVEISDISPONIVEIS';
 var ABA_AGENTES    = 'AGENTES';
 var ABA_CORRETOR   = 'CORRETOR';
 var ABA_ATENDENTES = 'ATENDENTES';
+/* GERENTES — 4º papel do mesmo esquema, acrescentado pra portar o modo
+   Gerente do dashboard-feirao-atendente.html pro Sistema Web (ver
+   painel/gerente/dashboard_gerente_comercial.html). Aba criada (se ainda
+   não existir) por setupGerenteCrmLeads_(), mesmo padrão de
+   setupAtendenteCrmLeads() — não precisa o Antonio criar à mão. */
+var ABA_GERENTES   = 'GERENTES';
 var ABA_COMISSOES  = 'COMISSOES';
 var ABA_INDICACOES = 'INDICACOES';
 var ABA_CONTROLE   = 'CONTROLE';
 var ABA_COMPARTILHAMENTOS = 'COMPARTILHAMENTOS';
-var CRM_PESSOA_ABAS_    = { agente: ABA_AGENTES, corretor: ABA_CORRETOR, atendente: ABA_ATENDENTES };
-var CRM_PESSOA_PREFIXO_ = { agente: 'AG', corretor: 'CO', atendente: 'AT' };
-var CRM_PESSOA_ID_COL_  = { agente: 'Agente_Id', corretor: 'Corretor_Id', atendente: 'Atendente_Id' };
-var CRM_PAPEL_CODIGO_   = { agente: 'AG', corretor: 'CO', atendente: 'AT' };
+var CRM_PESSOA_ABAS_    = { agente: ABA_AGENTES, corretor: ABA_CORRETOR, atendente: ABA_ATENDENTES, gerente: ABA_GERENTES };
+var CRM_PESSOA_PREFIXO_ = { agente: 'AG', corretor: 'CO', atendente: 'AT', gerente: 'GE' };
+var CRM_PESSOA_ID_COL_  = { agente: 'Agente_Id', corretor: 'Corretor_Id', atendente: 'Atendente_Id', gerente: 'Gerente_Id' };
+var CRM_PAPEL_CODIGO_   = { agente: 'AG', corretor: 'CO', atendente: 'AT', gerente: 'GE' };
 
 /* O upload de documentos (RG/CNH, comprovante de residência) do
    autocadastro NÃO fica aqui — foi movido pra um projeto Apps Script
@@ -99,7 +105,7 @@ var DASHBOARDS_SEED_ = [
   { id: 'CLIENTE',           nome: 'Cliente',           descricao: 'Comprador/lead com simulação, reserva e chat',   icone: '🏠', rota: 'painel/cliente/dashboard-cliente.html',                      ordem: 1 },
   { id: 'AGENTE',            nome: 'Agente Parceiro',   descricao: 'Indicador externo — comissão por indicação',     icone: '🤝', rota: 'painel/agente/dashboard-agente.html',                        ordem: 2 },
   { id: 'ATENDENTE',         nome: 'Atendente',         descricao: 'Triagem interna — recebe leads do Gerente',      icone: '🎧', rota: 'painel/atendente/dashboard_atendente.html',                  ordem: 3 },
-  { id: 'GERENTE_COMERCIAL', nome: 'Gerente Comercial', descricao: 'Distribui leads, acompanha a equipe',            icone: '👥', rota: 'painel/gerente-comercial/dashboard-gerente-comercial.html', ordem: 4 },
+  { id: 'GERENTE_COMERCIAL', nome: 'Gerente Comercial', descricao: 'Distribui leads, acompanha a equipe',            icone: '👥', rota: 'painel/gerente/dashboard_gerente_comercial.html',           ordem: 4 },
   { id: 'CORRETOR_AUTONOMO', nome: 'Corretor Autônomo', descricao: 'Venda completa — do interesse ao contrato',      icone: '🧑‍💼', rota: 'painel/corretor/dashboard-corretor.html',                  ordem: 5 },
   { id: 'MARKETING',         nome: 'Marketing',         descricao: 'Origem de leads, campanhas, conteúdo',           icone: '📣', rota: 'painel/marketing/dashboard-marketing.html',                  ordem: 6 },
   { id: 'DIRETORIA',         nome: 'Diretoria',         descricao: 'Visão executiva consolidada do negócio',         icone: '📊', rota: 'painel/diretoria/dashboard-diretoria.html',                  ordem: 7 },
@@ -699,10 +705,16 @@ function crm_pessoa_cadastrar_(data) {
     var headers = headersDe_(ctx.aba);
     var id = gerarId_(ctx.aba, ctx.prefixo);
     var agoraStr = agora_();
+    // Gerente é papel interno (poucas contas, criadas com o conhecimento
+    // do Antonio) e ainda não existe tela de aprovação pra esse papel
+    // específico (a aba Equipe do admin.html só lista agente/corretor/
+    // atendente hoje) — então, diferente dos outros 3, nasce já
+    // Habilitado=true. Se um dia existir aprovação de Gerente também,
+    // troque só esta linha (ctx.tipo==='gerente' ? true : false).
     var campos = {
       Id: id, Nome: nome, Email: email, CPF: data.cpf || '', WhatsApp: data.whatsapp || '',
       Nascimento: data.nascimento || '', Profissao: data.profissao || '', Senha_Hash: '',
-      Status: 'ativo', Habilitado: false, Criado_em: agoraStr, UF: data.uf || '', Cidade: data.cidade || '',
+      Status: 'ativo', Habilitado: ctx.tipo === 'gerente', Criado_em: agoraStr, UF: data.uf || '', Cidade: data.cidade || '',
       CRECI: data.creci || '', Foto: '', Banco: data.banco || '', Agencia: data.agencia || '',
       Conta: data.conta || '', Tipo_Conta: data.tipoConta || '', Pix: data.pix || '',
       Atualizado_em: agoraStr, Classificacao: '', Ultimo_Acesso: agoraStr,
@@ -1633,6 +1645,220 @@ function crm_atendente_ia_chat_(data) {
   }
 }
 
+/* ══════════════════ PORTAL DO GERENTE COMERCIAL ══════════════════
+   Migração do modo Gerente de dashboard-feirao-atendente.html (que
+   falava com a planilha isolada do Feirão) pro Sistema Web — mesma aba
+   LEADS/HISTORICO_ATENDIMENTO_LEAD que o Portal do Atendente já usa
+   acima, só que sem o recorte "minha fila": o Gerente sempre enxerga
+   todo mundo, e pode atribuir/reatribuir lead pra qualquer Atendente
+   (o Atendente só consegue "pegar" um lead livre, nunca tomar de outro
+   — ver crm_atendente_lead_atribuir_). Não criamos hierarquia
+   Gerente→Atendente aqui (fica pra depois, se algum dia existir mais de
+   um Gerente): qualquer Gerente cadastrado vê a equipe inteira. */
+function setupGerenteCrmLeads() {
+  var relatorio = [];
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  criarAbaSeNaoExiste_(ssCrm, ABA_GERENTES, [
+    'Id', 'Nome', 'Email', 'CPF', 'WhatsApp', 'Nascimento', 'Profissao', 'Senha_Hash',
+    'Status', 'Habilitado', 'Criado_em', 'UF', 'Cidade', 'CRECI', 'Foto',
+    'Banco', 'Agencia', 'Conta', 'Tipo_Conta', 'Pix', 'Atualizado_em', 'Classificacao', 'Ultimo_Acesso',
+    'Termos_Aceitos_Em', 'Termos_Versao', 'Doc_RG_URL', 'Doc_Comprovante_Residencia_URL', 'Doc_Contrato_Assinado_URL'
+  ]);
+  relatorio.push('Aba ' + ABA_GERENTES + ' verificada/criada (mesmo esquema de AGENTES/CORRETOR/ATENDENTES).');
+  var msg = '✅ Portal do Gerente Comercial configurado!\n\n' + relatorio.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
+/* Mesmo padrão de crm_atendenteContexto_, procurando na aba GERENTES. */
+function crm_gerenteContexto_(email, sessionToken) {
+  var emailN = normalizarEmail_(email);
+  if (!_sessaoOtpValida_(emailN, sessionToken)) return null;
+  var ctx = crm_pessoaAba_('gerente');
+  if (!ctx) return null;
+  var pessoa = lerAbaObjetos_(ctx.aba).find(function (p) { return normalizarEmail_(p.Email) === emailN; });
+  if (!pessoa) return null;
+  return pessoa;
+}
+
+/* Sem recorte "minha"/"disponíveis" — o Gerente sempre vê a fila inteira,
+   com filtro opcional por status e/ou atendente já atribuído (p.status,
+   p.atendenteId) pra montar as telas "Leads do Feirão"/"Funil de
+   Atendimento" equivalentes. */
+function crm_gerente_leads_listar_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(abaLeads);
+  if (p.status) itens = itens.filter(function (l) { return s_(l.Status).toLowerCase() === s_(p.status).trim().toLowerCase(); });
+  if (p.atendenteId) itens = itens.filter(function (l) { return s_(l.Atendente_Id) === s_(p.atendenteId); });
+  return { status: 'ok', itens: itens.map(crm_leadParaObjeto_) };
+}
+
+/* Versão gerencial de crm_atendente_lead_atribuir_: não checa dono atual
+   (pode reatribuir um lead que já é de outro atendente) e aceita
+   data.atendenteId vazio pra "tirar" o atendente do lead. */
+function crm_gerente_lead_atribuir_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var idLead = s_(data.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+    if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+    var linha = acharLinhaPorChave_(abaLeads, 'ID', idLead);
+    if (linha === -1) return { status: 'error', message: 'Lead não encontrado.' };
+    var headers = headersDe_(abaLeads);
+    var colAtendente = headers.indexOf('Atendente_Id');
+    if (colAtendente === -1) return { status: 'error', message: 'Coluna Atendente_Id não configurada — rode setupAtendenteCrmLeads().' };
+    abaLeads.getRange(linha, colAtendente + 1).setValue(s_(data.atendenteId));
+    var colAtualizado = headers.indexOf('Atualizado em');
+    if (colAtualizado !== -1) abaLeads.getRange(linha, colAtualizado + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
+/* Versão gerencial de crm_atendente_lead_status_: muda status/prioridade
+   de QUALQUER lead (não só os que pertencem ao Gerente — ele não "possui"
+   leads, só distribui). */
+function crm_gerente_lead_status_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var idLead = s_(data.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+    if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+    var linha = acharLinhaPorChave_(abaLeads, 'ID', idLead);
+    if (linha === -1) return { status: 'error', message: 'Lead não encontrado.' };
+    var headers = headersDe_(abaLeads);
+    if (data.status !== undefined) abaLeads.getRange(linha, headers.indexOf('Status') + 1).setValue(data.status);
+    if (data.prioridade !== undefined) abaLeads.getRange(linha, headers.indexOf('Prioridade') + 1).setValue(data.prioridade);
+    var colAtualizado = headers.indexOf('Atualizado em');
+    if (colAtualizado !== -1) abaLeads.getRange(linha, colAtualizado + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
+/* Lista a aba ATENDENTES pro seletor de atribuição e o ranking da Visão
+   Geral do Gerente — mesmo crm_pessoaParaObjeto_ do resto do arquivo. */
+function crm_gerente_equipe_listar_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var ctx = crm_pessoaAba_('atendente');
+  if (!ctx) return { status: 'ok', itens: [] };
+  return { status: 'ok', itens: lerAbaObjetos_(ctx.aba).map(crm_pessoaParaObjeto_) };
+}
+
+/* Registra uma orientação/nota do Gerente na linha do tempo do lead —
+   mesmo desenho de crm_atendente_historico_evento_, mas sem checar se o
+   lead pertence a este Gerente (ele pode anotar em qualquer lead). */
+function crm_gerente_historico_evento_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var idLead = s_(data.leadId).trim();
+  var texto = s_(data.texto).trim();
+  if (!idLead || !texto) return { status: 'error', message: 'Lead e texto são obrigatórios.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_HISTORICO_ATENDIMENTO_LEAD + ' não encontrada — rode setupAtendenteCrmLeads().' };
+    var timestamp = s_(data.timestamp) || agora_();
+    aba.appendRow([idLead, s_(data.email_lead), s_(data.tipo) || 'gerente', texto, gerente.Nome, timestamp]);
+    return { status: 'ok' };
+  });
+}
+
+/* Histórico de 1 lead só (pro modal de detalhe do lead) — mesmo formato
+   de crm_atendente_listar_historico_, mas sem checar se o lead pertence
+   a este Gerente (ele pode abrir qualquer lead). */
+function crm_gerente_listar_historico_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var idLead = s_(p.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (h) { return s_(h.Lead_Id) === idLead; })
+    .map(function (h) { return { tipo: s_(h.Tipo), texto: s_(h.Texto), autor: s_(h.Autor), timestamp: dataStr_(h.Timestamp) }; });
+  itens.sort(function (a, b) { return new Date(a.timestamp) - new Date(b.timestamp); });
+  return { status: 'ok', itens: itens };
+}
+
+/* Mesmo formato/uso de crm_admin_listar_historico_todos_ (agrupado por
+   Lead_Id, pro Funil/"Acompanhar Atendimento"), mas autenticado pela
+   sessão do próprio Gerente em vez do PIN do admin.html — o Gerente não
+   tem por que saber o PIN_ADMIN_SISTEMA da Diretoria. */
+function crm_gerente_listar_historico_todos_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+  if (!aba) return { status: 'ok', porLead: {} };
+  var porLead = {};
+  lerAbaObjetos_(aba).forEach(function (h) {
+    var idLead = s_(h.Lead_Id);
+    if (!idLead) return;
+    if (!porLead[idLead]) porLead[idLead] = [];
+    porLead[idLead].push(crm_historicoParaFormatoAdmin_(h));
+  });
+  Object.keys(porLead).forEach(function (id) {
+    porLead[id].sort(function (a, b) { return new Date(a.data + 'T' + (a.hora || '00:00')) - new Date(b.data + 'T' + (b.hora || '00:00')); });
+  });
+  return { status: 'ok', porLead: porLead };
+}
+
+/* Mesmo proxy server-side de crm_atendente_ia_chat_ (chave da Anthropic
+   só nas Propriedades do Script, nunca no HTML) — só troca a checagem de
+   sessão pra crm_gerenteContexto_. */
+function crm_gerente_ia_chat_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+
+  var apiKey = anthropicApiKey_();
+  if (!apiKey) return { status: 'error', message: 'Assistente IA não configurado — falta ANTHROPIC_API_KEY nas Propriedades do Script.' };
+
+  var mensagens;
+  try { mensagens = JSON.parse(s_(data.messages) || '[]'); } catch (e) { return { status: 'error', message: 'Histórico de mensagens inválido.' }; }
+  if (!mensagens.length) return { status: 'error', message: 'Nenhuma mensagem enviada.' };
+
+  try {
+    var resp = UrlFetchApp.fetch('https://api.anthropic.com/v1/messages', {
+      method: 'post',
+      contentType: 'application/json',
+      muteHttpExceptions: true,
+      headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      payload: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1000,
+        system: s_(data.system),
+        messages: mensagens
+      })
+    });
+    var codigo = resp.getResponseCode();
+    var corpo = JSON.parse(resp.getContentText());
+    if (codigo < 200 || codigo >= 300) {
+      Logger.log('crm_gerente_ia_chat_ erro: ' + codigo + ' — ' + resp.getContentText());
+      return { status: 'error', message: (corpo.error && corpo.error.message) || ('Erro ' + codigo + ' na API da IA.') };
+    }
+    var texto = corpo.content && corpo.content[0] && corpo.content[0].text;
+    if (!texto) return { status: 'error', message: 'Resposta vazia da IA.' };
+    return { status: 'ok', reply: texto };
+  } catch (e) {
+    Logger.log('crm_gerente_ia_chat_ erro: ' + e.message);
+    return { status: 'error', message: 'Falha de conexão com a IA.' };
+  }
+}
+
 /* ══════════════════ doGet / doPost ══════════════════ */
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || '';
@@ -1673,6 +1899,13 @@ function doGet(e) {
       case 'crm_admin_listar_historico':        result = crm_admin_listar_historico_(p); break;
       case 'crm_admin_listar_historico_todos':  result = crm_admin_listar_historico_todos_(p); break;
       case 'crm_admin_migrar_historico_q':      result = crm_admin_migrar_historico_q_(p); break;
+      case 'crm_gerente_leads_listar':          result = crm_gerente_leads_listar_(p); break;
+      case 'crm_gerente_equipe_listar':         result = crm_gerente_equipe_listar_(p); break;
+      case 'crm_gerente_listar_historico':      result = crm_gerente_listar_historico_(p); break;
+      case 'crm_gerente_listar_historico_todos': result = crm_gerente_listar_historico_todos_(p); break;
+      case 'crm_gerente_lead_atribuir':         result = crm_gerente_lead_atribuir_(p); break;
+      case 'crm_gerente_lead_status':           result = crm_gerente_lead_status_(p); break;
+      case 'crm_gerente_historico_evento':      result = crm_gerente_historico_evento_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
@@ -1706,6 +1939,10 @@ function doPost(e) {
       case 'crm_atendente_agendamento':       out = crm_atendente_agendamento_(data); break;
       case 'crm_lead_evento_publico':         out = crm_lead_evento_publico_(data); break;
       case 'crm_atendente_ia_chat':           out = crm_atendente_ia_chat_(data); break;
+      case 'crm_gerente_lead_atribuir':       out = crm_gerente_lead_atribuir_(data); break;
+      case 'crm_gerente_lead_status':         out = crm_gerente_lead_status_(data); break;
+      case 'crm_gerente_historico_evento':    out = crm_gerente_historico_evento_(data); break;
+      case 'crm_gerente_ia_chat':             out = crm_gerente_ia_chat_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);
