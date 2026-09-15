@@ -524,6 +524,14 @@
   .crm-lead-table tbody tr{border-bottom:1px solid rgba(201,168,76,.06);transition:background .15s;cursor:pointer}
   .crm-lead-table tbody tr:hover{background:rgba(201,168,76,.05)}
   .crm-lead-table tbody td{padding:12px 14px;color:var(--ink-muted);vertical-align:middle}
+  /* Coluna "Ações" da tabela "Todas as Pessoas" (aba Equipe) fixa na borda
+     direita — a tabela tem muitas colunas e ficava larga demais pro
+     container, obrigando a rolar a tela pro lado pra achar o botão
+     Habilitar/Revogar (pedido 79.3). Sombra à esquerda sinaliza que ainda
+     há conteúdo escondido pra rolar. */
+  .col-sticky-end{position:sticky;right:0;background:var(--navy-mid);box-shadow:-6px 0 6px -6px rgba(10,22,40,.25)}
+  .crm-lead-table thead th.col-sticky-end{z-index:2}
+  .crm-lead-table tbody td.col-sticky-end{z-index:1}
   .crm-nome{color:var(--navy)!important;font-weight:600;font-size:13px}
   .crm-acao-pendente{color:var(--gold-ink)!important;font-size:11px;font-style:italic}
   .crm-prox-data{font-size:11px}
@@ -2487,7 +2495,7 @@ function jsonOut(obj) {
               <th>Status</th>
               <th>Acesso ao dashboard</th>
               <th onclick="equipeOrdenar('cadastro')" style="cursor:pointer;user-select:none" title="Ordenar por data de cadastro">Cadastro <span id="eq-seta-cadastro"></span></th>
-              <th style="color:var(--gold-ink)">Ações</th>
+              <th class="col-sticky-end" style="color:var(--gold-ink)">Ações</th>
             </tr>
           </thead>
           <tbody id="eq-pessoas-tbody">
@@ -5303,7 +5311,7 @@ function equipeRenderPessoas() {
       </td>
       <td>${habBadge}</td>
       <td style="font-size:11px;white-space:nowrap">${fmtData(p.criadoEm)}</td>
-      <td onclick="event.stopPropagation()" style="white-space:nowrap">
+      <td class="col-sticky-end" onclick="event.stopPropagation()" style="white-space:nowrap">
         <button class="btn-tbl ${p.habilitado?'btn-tbl-off':'btn-tbl-on'}" onclick="equipeMudarHabilitado('${escAttr_(p.email)}','${p.tipo}',${!p.habilitado})">
           ${p.habilitado?'⛔ Revogar':'✅ Habilitar'}
         </button>
