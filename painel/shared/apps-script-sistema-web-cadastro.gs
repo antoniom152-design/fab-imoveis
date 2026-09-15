@@ -1300,7 +1300,11 @@ function crm_leadParaObjeto_(l) {
     consultor: s_(l.Consultor), atendenteId: s_(l.Atendente_Id),
     agenteId: s_(l.Agente_Id), gerenteId: s_(l.Gerente_Id),
     solicitacao: s_(l['Solicitação']), orcamento: s_(l['Orçamento']), area: s_(l['Área']),
-    observacoes: s_(l['Observações']), proxAcao: s_(l['Próxima Ação']), proxData: s_(l['Data Próxima Ação']),
+    // proxData usa dataSomenteStr_ (não s_) — o Sheets converte sozinho
+    // uma célula tipo "2026-09-20" pra objeto Date, e s_() devolveria o
+    // Date.toString() cheio ("Thu Sep 03 2026 00:00:00 GMT-0300...") em
+    // vez de uma data limpa (achado testando o pedido 79.8 ao vivo).
+    observacoes: s_(l['Observações']), proxAcao: s_(l['Próxima Ação']), proxData: dataSomenteStr_(l['Data Próxima Ação']),
     criadoEm: dataStr_(l['Criado em']), atualizadoEm: dataStr_(l['Atualizado em'])
   };
 }
