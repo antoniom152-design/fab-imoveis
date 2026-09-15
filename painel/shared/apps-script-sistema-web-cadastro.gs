@@ -1260,7 +1260,8 @@ function setupAtendenteCrmLeads() {
 function setupSolicitacoesViabilizador() {
   var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
   criarAbaSeNaoExiste_(ssCrm, ABA_SOLICITACOES_VIABILIZADOR, [
-    'Id', 'Gerente_Id', 'Gerente_Nome', 'Tipo', 'Emp', 'Email_Viabilizador', 'Descricao', 'Criado_em'
+    'Id', 'Gerente_Id', 'Gerente_Nome', 'Tipo', 'Emp', 'Email_Viabilizador', 'Descricao', 'Criado_em',
+    'Status', 'Resposta', 'Respondido_em'
   ]);
   var msg = '✅ Aba ' + ABA_SOLICITACOES_VIABILIZADOR + ' verificada/criada.';
   Logger.log(msg);
@@ -1914,7 +1915,8 @@ function crm_gerente_viab_criar_(data) {
     var id = gerarId_(aba, 'VIA');
     var campos = {
       Id: id, Gerente_Id: gerente.Id, Gerente_Nome: gerente.Nome, Tipo: s_(data.tipo),
-      Emp: s_(data.emp), Email_Viabilizador: emailViab, Descricao: descricao, Criado_em: agora_()
+      Emp: s_(data.emp), Email_Viabilizador: emailViab, Descricao: descricao, Criado_em: agora_(),
+      Status: 'Aguardando resposta', Resposta: '', Respondido_em: ''
     };
     aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
     return { status: 'ok', id: id };
@@ -1933,10 +1935,43 @@ function crm_gerente_viab_listar_(p) {
   var itens = lerAbaObjetos_(aba)
     .filter(function (v) { return s_(v.Gerente_Id) === s_(gerente.Id); })
     .map(function (v) {
-      return { data: dataStr_(v.Criado_em), tipo: s_(v.Tipo), emp: s_(v.Emp), email: s_(v.Email_Viabilizador), descricao: s_(v.Descricao) };
+      return {
+        id: s_(v.Id), data: dataStr_(v.Criado_em), tipo: s_(v.Tipo), emp: s_(v.Emp), email: s_(v.Email_Viabilizador),
+        descricao: s_(v.Descricao), status: s_(v.Status) || 'Aguardando resposta', resposta: s_(v.Resposta),
+        respondidoEm: dataStr_(v.Respondido_em)
+      };
     });
   itens.sort(function (a, b) { return new Date(a.data) - new Date(b.data); });
   return { status: 'ok', itens: itens };
+}
+
+/* Registra a resposta do Viabilizador pra uma solicitação já enviada
+   (pedido 79.15) — o Gerente digita o que o Viabilizador respondeu
+   (por telefone, WhatsApp, e-mail à parte etc.) e fica gravado na
+   planilha, recuperável de qualquer lugar. Só o próprio Gerente que
+   criou a solicitação pode registrar a resposta dela. */
+function crm_gerente_viab_responder_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var id = s_(data.id).trim();
+  var resposta = s_(data.resposta).trim();
+  if (!id) return { status: 'error', message: 'Id da solicitação é obrigatório.' };
+  if (!resposta) return { status: 'error', message: 'Descreva a resposta do Viabilizador antes de salvar.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_SOLICITACOES_VIABILIZADOR);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_SOLICITACOES_VIABILIZADOR + ' não encontrada — rode setupSolicitacoesViabilizador().' };
+    var linha = acharLinhaPorChave_(aba, 'Id', id);
+    if (linha === -1) return { status: 'error', message: 'Solicitação não encontrada.' };
+    var headers = headersDe_(aba);
+    var donoLinha = s_(aba.getRange(linha, headers.indexOf('Gerente_Id') + 1).getValue());
+    if (donoLinha !== s_(gerente.Id)) return { status: 'error', message: 'Esta solicitação não pertence a este Gerente.' };
+    aba.getRange(linha, headers.indexOf('Resposta') + 1).setValue(resposta);
+    aba.getRange(linha, headers.indexOf('Status') + 1).setValue('Respondido');
+    aba.getRange(linha, headers.indexOf('Respondido_em') + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
 }
 
 /* Mesmo formato/uso de crm_admin_listar_historico_todos_ (agrupado por
@@ -2054,6 +2089,7 @@ function doGet(e) {
       case 'crm_gerente_atendente_status':      result = crm_gerente_atendente_status_(p); break;
       case 'crm_gerente_viab_criar':            result = crm_gerente_viab_criar_(p); break;
       case 'crm_gerente_viab_listar':           result = crm_gerente_viab_listar_(p); break;
+      case 'crm_gerente_viab_responder':        result = crm_gerente_viab_responder_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
