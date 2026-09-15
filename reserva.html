@@ -1056,8 +1056,32 @@
 
     document.getElementById('empreendimentos-lista').innerHTML =
       nomes.map((n) => '<option value="' + n.replace(/"/g, '&quot;') + '">').join('');
+
+    // Se o campo já veio preenchido via link individual (ver
+    // preencherViaLinkIndividual_ logo abaixo), só dá pra bater com um
+    // empreendimento conhecido depois que a lista carregar — por isso
+    // essa chamada fica aqui no fim, não lá na hora do preenchimento.
+    onEmpreendimentoInput();
   }
   carregarEmpreendimentosAutocomplete();
+
+  /* Link individual gerado pelo dashboard_atendente.html (74.7, botão
+     "Confirmar Reserva e Enviar Documentos" na ficha do lead) — chega
+     com ?nome=&telefone=&email=&empreendimento= pra pré-preencher o
+     formulário com o que o atendente já sabe sobre o lead, poupando
+     ele de digitar tudo de novo. Campos ausentes na URL simplesmente
+     ficam em branco, como sempre. */
+  (function preencherViaLinkIndividual_() {
+    const params = new URLSearchParams(location.search);
+    const nome = params.get('nome');
+    const telefone = params.get('telefone');
+    const email = params.get('email');
+    const empreendimento = params.get('empreendimento');
+    if (nome) document.getElementById('nome').value = nome;
+    if (telefone) document.getElementById('telefone').value = telefone;
+    if (email) document.getElementById('email').value = email;
+    if (empreendimento) document.getElementById('empreendimento').value = empreendimento;
+  })();
 
   function onEmpreendimentoInput() {
     const nome = document.getElementById('empreendimento').value.trim();
