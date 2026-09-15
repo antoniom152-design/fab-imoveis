@@ -2082,12 +2082,38 @@ function mostrarBannerAgente_(ref) {
   document.getElementById('ref-agente-banner').style.display = 'flex';
 }
 
+/* ─── CAMPANHA/DISPARO (link ?campanha=) ───
+   Mesmo mecanismo de REF_AGENTE_KEY acima, mas sem validação contra o
+   backend (é só um rótulo livre, ex.: "cfiae-disparo-set2026") — grava
+   direto no localStorage por REF_CAMPANHA_DIAS. reserva.html/chat.html/
+   simulador.html leem essa chave junto com wal_ref_agente na hora de
+   criar a indicação (crm_indicacao_publica_criar_ no backend). */
+const REF_CAMPANHA_KEY  = 'wal_ref_campanha';
+const REF_CAMPANHA_DIAS = 90;
+function lerReferenciaCampanha_() {
+  try {
+    const raw = localStorage.getItem(REF_CAMPANHA_KEY);
+    if (!raw) return null;
+    const ref = JSON.parse(raw);
+    const dias = (Date.now() - ref.capturadoEm) / 86400000;
+    if (dias > REF_CAMPANHA_DIAS) { localStorage.removeItem(REF_CAMPANHA_KEY); return null; }
+    return ref;
+  } catch(e) { return null; }
+}
+function capturarReferenciaCampanha_(campanhaIdParam) {
+  if (campanhaIdParam) {
+    localStorage.setItem(REF_CAMPANHA_KEY, JSON.stringify({ id: campanhaIdParam, capturadoEm: Date.now() }));
+  }
+  return lerReferenciaCampanha_();
+}
+
 /* ─── INIT ─── */
 document.addEventListener('DOMContentLoaded', async function() {
   const params   = new URLSearchParams(window.location.search);
   const imovelId = params.get('id');
 
   capturarReferenciaAgente_(params.get('agente')).then(mostrarBannerAgente_);
+  capturarReferenciaCampanha_(params.get('campanha'));
 
   // Botão "voltar" no topo: quem chegou direto do index.html ("Saiba mais")
   // volta pra página principal; quem chegou do imoveis.html continua

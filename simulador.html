@@ -745,13 +745,23 @@ function registrarIndicacaoAgente_(nome, telefone, email) {
     const ref = JSON.parse(raw);
     if (!ref || !ref.id || !ref.capturadoEm) return;
     if ((Date.now() - ref.capturadoEm) / 86400000 > 90) return;
+    // Rótulo de campanha/disparo (ver wal_ref_campanha em imovel.html/
+    // mapa-empreendimentos.html) — mesma janela de validade, opcional.
+    let campanhaId = '';
+    try {
+      const rawCamp = localStorage.getItem('wal_ref_campanha');
+      if (rawCamp) {
+        const refCamp = JSON.parse(rawCamp);
+        if (refCamp && refCamp.id && (Date.now() - refCamp.capturadoEm) / 86400000 <= 90) campanhaId = refCamp.id;
+      }
+    } catch(e) {}
     fetch(CADASTRO_API_URL, {
       method: 'POST', mode: 'no-cors',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         action: 'crm_indicacao_publica_criar',
         agenteId: ref.id, nomeCliente: nome, telefone, emailCliente: email,
-        empId: '', origem: 'simulador.html'
+        empId: '', origem: 'simulador.html', campanhaId
       })
     }).catch(() => {});
   } catch(e) {}
