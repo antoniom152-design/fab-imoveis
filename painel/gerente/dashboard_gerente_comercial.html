@@ -828,8 +828,9 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
 
-      <div class="alert-box alert-teal mb20" id="filaAlert">
-        📋 Acompanhe os leads e a equipe de Atendentes por aqui.
+      <div class="alert-box alert-teal mb20" id="filaAlert" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
+        <div id="filaAlertTxt">📋 Acompanhe os leads e a equipe de Atendentes por aqui.</div>
+        <button class="btn btn-gold" id="filaAlertBtn" style="display:none;flex-shrink:0" onclick="irParaLeadsSemAtendente()">Encaminhar agora</button>
       </div>
 
       <div class="kpi-strip mb20" style="grid-template-columns:repeat(5,1fr)">
@@ -1946,11 +1947,26 @@ function atualizarPills(){
   document.getElementById('kpiFechados').textContent=fechados;
   document.getElementById('kpiConversao').textContent=(total?Math.round(fechados/total*100):0)+'% conversão';
   const alertEl=document.getElementById('filaAlert');
-  if(alertEl) alertEl.innerHTML = semAtendente
-    ? `📋 Há <strong>${semAtendente} lead${semAtendente===1?'':'s'} sem Atendente</strong>. Vá em <strong>Leads</strong> para encaminhar.`
-    : `📋 Todos os leads têm um Atendente responsável.`;
+  const alertTxt=document.getElementById('filaAlertTxt');
+  const alertBtn=document.getElementById('filaAlertBtn');
+  if(alertEl&&alertTxt&&alertBtn){
+    alertEl.classList.toggle('alert-amber',!!semAtendente);
+    alertEl.classList.toggle('alert-teal',!semAtendente);
+    alertTxt.innerHTML = semAtendente
+      ? `⚠️ Há <strong>${semAtendente} lead${semAtendente===1?'':'s'} recém-chegado${semAtendente===1?'':'s'}</strong> sem Atendente designado. Quanto antes o encaminhamento, maior a chance de fechamento.`
+      : `📋 Todos os leads têm um Atendente responsável.`;
+    alertBtn.style.display = semAtendente ? '' : 'none';
+  }
   const nd=document.getElementById('notifDot');
   if(nd) nd.style.display=(urgentes||semAtendente)?'':'none';
+}
+/* Botão "Encaminhar agora" do alerta da Visão Geral — leva direto pra
+   Leads já filtrado em "Sem atendente" (mesma rotina do modo Gerente do
+   dashboard-feirao-atendente.html, pedido 79.4). */
+function irParaLeadsSemAtendente(){
+  nav(document.querySelector('[onclick*=leads]'),'leads');
+  const sel=document.getElementById('filaFiltAtendente');
+  if(sel){ sel.value='__sem__'; renderLeads(); }
 }
 let _filaSort={campo:'atualizadoEm',dir:-1};
 function filaOrdenar(campo){
