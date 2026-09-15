@@ -1126,7 +1126,7 @@ function crm_controle_ler_(p) {
 function admin_pessoas_listar_(data) {
   var auth = autorizarAdmin_(data.authPin);
   if (!auth.ok) return { status: 'error', message: auth.erro };
-  var tipos = data.tipo ? [s_(data.tipo).trim().toLowerCase()] : ['agente', 'corretor', 'atendente'];
+  var tipos = data.tipo ? [s_(data.tipo).trim().toLowerCase()] : ['agente', 'corretor', 'atendente', 'gerente'];
   var itens = [];
   tipos.forEach(function (t) {
     var ctx = crm_pessoaAba_(t);

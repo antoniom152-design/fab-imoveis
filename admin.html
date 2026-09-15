@@ -552,6 +552,7 @@
   .s-agente    {background:#0D2A2A;color:#5EEAD4;--dot:#14B8A6}
   .s-corretor  {background:#172040;color:#93C5FD;--dot:#3B82F6}
   .s-atendente {background:#2A1A40;color:#C4B5FD;--dot:#8B5CF6}
+  .s-gerente   {background:#2A1F0A;color:#FCD34D;--dot:#D97706}
   .s-ativo     {background:#1C2F1C;color:#86EFAC;--dot:#22C55E}
   .s-inativo   {background:#2C0A0A;color:#FCA5A5;--dot:#EF4444}
   .equipe-view-toggle{display:flex;gap:8px;margin-bottom:18px}
@@ -2404,6 +2405,9 @@ function jsonOut(obj) {
       <button class="btn-header btn-primary" onclick="equipeCompartilharCadastro('atendente')" style="height:38px;padding:0 16px;font-size:11px">
         🎧 Compartilhar cadastro — Atendente
       </button>
+      <button class="btn-header btn-primary" onclick="equipeCompartilharCadastro('gerente')" style="height:38px;padding:0 16px;font-size:11px">
+        👥 Cadastro de Gerente
+      </button>
     </div>
   </div>
 
@@ -2413,6 +2417,10 @@ function jsonOut(obj) {
       <div class="crm-stat-pill active" onclick="equipeFiltrarPapel('')" id="equipe-pill-all">
         <span class="crm-stat-num" id="equipe-n-all" style="color:var(--gold-ink)">0</span>
         <span class="crm-stat-lbl">Total</span>
+      </div>
+      <div class="crm-stat-pill" onclick="equipeFiltrarPapel('gerente')" id="equipe-pill-gerente">
+        <span class="crm-stat-num" id="equipe-n-gerente" style="color:#FCD34D">0</span>
+        <span class="crm-stat-lbl">Gerentes</span>
       </div>
       <div class="crm-stat-pill" onclick="equipeFiltrarPapel('agente')" id="equipe-pill-agente">
         <span class="crm-stat-num" id="equipe-n-agente" style="color:#5EEAD4">0</span>
@@ -5095,7 +5103,7 @@ function equipeAtualizarCidades() {
 
 function equipeAtualizarStats() {
   document.getElementById('equipe-n-all').textContent = _eqPessoas.length;
-  ['agente','corretor','atendente'].forEach(t => {
+  ['agente','corretor','atendente','gerente'].forEach(t => {
     document.getElementById('equipe-n-' + t).textContent = _eqPessoas.filter(p => p.tipo === t).length;
   });
   const pendentes = _eqPessoas.filter(p => !p.habilitado).length;
@@ -5130,7 +5138,7 @@ function equipeLimparFiltros() {
   equipeFiltrarPapel('');
 }
 
-const EQUIPE_PAPEL_LABEL = { agente: 'Agente', corretor: 'Corretor', atendente: 'Atendente' };
+const EQUIPE_PAPEL_LABEL = { agente: 'Agente', corretor: 'Corretor', atendente: 'Atendente', gerente: 'Gerente' };
 
 /* ── Compartilhar link de autocadastro (aba "Quero ser Agente/Corretor/
    Atendente" de cada dashboard) ── Mesmo padrão de compartilharSite()
@@ -5142,12 +5150,14 @@ const EQUIPE_PAPEL_LABEL = { agente: 'Agente', corretor: 'Corretor', atendente: 
 const EQUIPE_LINKS_CADASTRO = {
   agente: 'https://www.walservidor.com.br/painel/agente/dashboard-agente.html',
   corretor: '',
-  atendente: 'https://www.walservidor.com.br/painel/atendente/dashboard_atendente.html'
+  atendente: 'https://www.walservidor.com.br/painel/atendente/dashboard_atendente.html',
+  gerente: 'https://www.walservidor.com.br/painel/gerente/dashboard_gerente_comercial.html'
 };
 const EQUIPE_LINKS_MSG = {
   agente: '🤝 Olá! Você foi convidado(a) a se cadastrar como *Agente Parceiro* da WAL Imóveis — indique conhecidos interessados em comprar imóvel e ganhe bonificação sobre as vendas concretizadas. Cadastre-se aqui:',
   corretor: '🧑‍💼 Olá! Você foi convidado(a) a se cadastrar como *Corretor* da WAL Imóveis. Cadastre-se aqui:',
-  atendente: '🎧 Olá! Você foi convidado(a) a se cadastrar como *Atendente* da WAL Imóveis. Cadastre-se aqui:'
+  atendente: '🎧 Olá! Você foi convidado(a) a se cadastrar como *Atendente* da WAL Imóveis. Cadastre-se aqui:',
+  gerente: '👥 Olá! Você foi convidado(a) a se cadastrar como *Gerente Comercial* da WAL Imóveis. Cadastre-se aqui:'
 };
 let _eqLinkCompartilhar = '';
 
