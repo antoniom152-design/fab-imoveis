@@ -1287,12 +1287,20 @@ function crm_atendenteContexto_(email, sessionToken) {
   if (!pessoa) return null;
   return pessoa;
 }
+/* Campos solicitacao/orcamento/area/observacoes/proxAcao/proxData
+   acrescentados pro modal "Todos os campos" do Gerente (pedido 79.8) —
+   já existiam na aba (ver setupCRM() em apps-script-crm-leads.gs) mas
+   este mapeador nunca os expunha, então nenhuma tela do Sistema Web
+   conseguia mostrá-los antes. Aditivo — quem já lia só os campos de
+   sempre continua funcionando igual. */
 function crm_leadParaObjeto_(l) {
   return {
     id: s_(l.ID), status: s_(l.Status) || 'novo', prioridade: s_(l.Prioridade) || 'media',
     nome: s_(l.Nome), telefone: s_(l.Telefone), email: s_(l.Email), origem: s_(l.Origem),
     consultor: s_(l.Consultor), atendenteId: s_(l.Atendente_Id),
     agenteId: s_(l.Agente_Id), gerenteId: s_(l.Gerente_Id),
+    solicitacao: s_(l['Solicitação']), orcamento: s_(l['Orçamento']), area: s_(l['Área']),
+    observacoes: s_(l['Observações']), proxAcao: s_(l['Próxima Ação']), proxData: s_(l['Data Próxima Ação']),
     criadoEm: dataStr_(l['Criado em']), atualizadoEm: dataStr_(l['Atualizado em'])
   };
 }
