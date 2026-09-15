@@ -1278,6 +1278,23 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- MODAL REGISTRAR RESPOSTA DO VIABILIZADOR (79.15) -->
+<div class="modal-ov" id="modalViabResposta">
+  <div class="modal-box" style="max-width:420px">
+    <div class="modal-h">
+      <div class="modal-title">Registrar resposta do Viabilizador</div>
+      <button class="modal-close" onclick="fecharModal('modalViabResposta')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="field-lbl">O que o Viabilizador respondeu?</div>
+        <textarea class="field-ta" id="viabRespostaTexto" placeholder="Ex: aprovado 5% de desconto, condição válida até sexta."></textarea>
+        <button class="btn-full btn-gold" id="viabRespostaBtnSalvar" onclick="salvarRespostaViabilizador()">Salvar resposta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL COMPARTILHAR UNIDADE -->
 <div class="modal-ov" id="modalCompEmp">
   <div class="modal-box" style="max-width:380px">
@@ -2635,18 +2652,43 @@ function popularDatalistViabilizador_(){
   const dl=document.getElementById('viabEmpList'); if(!dl)return;
   dl.innerHTML=[..._empreendimentos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(e=>`<option value="${escAttr_(e.nome)}">`).join('');
 }
+let _viabRespostaIdAtual=null;
 async function renderViabLista(){
   const el=document.getElementById('viabLista'); if(!el)return;
   el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Carregando...</div>`;
   const resp=await cadastroApiJsonp('crm_gerente_viab_listar',{email:_user.email,sessionToken:_user.sessionToken});
   const lista=(resp&&resp.itens)||[];
   if(!lista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma solicitação enviada ainda.</div>`;return}
-  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Tipo</th><th>Empreendimento</th><th>Descrição</th></tr></thead><tbody>${[...lista].reverse().map(v=>`<tr>
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Tipo</th><th>Empreendimento</th><th>Descrição</th><th>Resposta do Viabilizador</th></tr></thead><tbody>${[...lista].reverse().map(v=>`<tr>
     <td class="mono fs11">${fmtDtHora_(v.data)}</td>
     <td class="fs11">${v.tipo}</td>
     <td class="fs11">${v.emp||'—'}</td>
     <td class="fs11">${v.descricao}</td>
+    <td class="fs11">${v.resposta
+      ? `<div><b>${v.resposta}</b><div class="c-muted mono" style="font-size:10px;margin-top:2px">${fmtDtHora_(v.respondidoEm)}</div></div>`
+      : `<button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalViabResposta('${v.id}')">📝 Registrar resposta</button>`}</td>
   </tr>`).join('')}</tbody></table></div>`;
+}
+function abrirModalViabResposta(id){
+  _viabRespostaIdAtual=id;
+  document.getElementById('viabRespostaTexto').value='';
+  abrirModal('modalViabResposta');
+}
+async function salvarRespostaViabilizador(){
+  const resposta=document.getElementById('viabRespostaTexto').value.trim();
+  if(!resposta){toast('Descreva a resposta do Viabilizador antes de salvar.','');return}
+  const btn=document.getElementById('viabRespostaBtnSalvar');
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='Salvando...';
+  const resp=await cadastroApiJsonp('crm_gerente_viab_responder',{email:_user.email,sessionToken:_user.sessionToken,id:_viabRespostaIdAtual,resposta});
+  btn.disabled=false;btn.textContent=orig;
+  if(resp&&resp.status==='ok'){
+    toast('✅ Resposta registrada!','green');
+    fecharModal('modalViabResposta');
+    renderViabLista();
+  }else{
+    toast((resp&&resp.message)||'Não foi possível salvar agora. Tente novamente.','');
+  }
 }
 async function enviarSolicitacaoViabilizador(){
   const tipo=document.getElementById('viabTipo').value;
