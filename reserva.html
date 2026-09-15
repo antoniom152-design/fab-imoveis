@@ -1128,6 +1128,20 @@
     return { status: 'error', pastaUrl: '', arquivos: [] };
   }
 
+  /* Lê o id do Agente que indicou (mesma chave/janela de 90 dias de
+     registrarIndicacaoAgente_ logo abaixo) — usado tanto pra gravar
+     LEADS.Agente_Id quanto pra INDICACOES. Extraído pra função própria
+     pra não duplicar a checagem de validade duas vezes (pedido 79.6). */
+  function lerRefAgenteId_() {
+    try {
+      const raw = localStorage.getItem('wal_ref_agente');
+      if (!raw) return '';
+      const ref = JSON.parse(raw);
+      if (!ref || !ref.id || !ref.capturadoEm) return '';
+      if ((Date.now() - ref.capturadoEm) / 86400000 > 90) return '';
+      return ref.id;
+    } catch(e) { return ''; }
+  }
   function registrarNoCRMReserva(payload) {
     const now = new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T');
     // Nota rica com os campos que o formulário já coleta (antes ia um
@@ -1153,7 +1167,8 @@
         origem: 'Reserva', prioridade: 'alta', status: 'novo',
         solicitacao: notaSolicitacao,
         orcamento: payload.faixa_valor || '',
-        area: payload.empreendimento || ''
+        area: payload.empreendimento || '',
+        agenteId: lerRefAgenteId_()
       },
       interacao: { tipo: 'Reserva', data: now, nota: notaSolicitacao }
     };

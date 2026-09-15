@@ -78,6 +78,35 @@ function setupCRM() {
   SpreadsheetApp.getUi().alert('✅ CRM configurado!');
 }
 
+/* Coluna 18 (Atendente_Id) já foi acrescentada por fora deste script (ver
+   painel/shared/apps-script-sistema-web-cadastro.gs, setupAtendenteCrmLeads()).
+   Esta função acrescenta Agente_Id e Gerente_Id do mesmo jeito — pedido
+   79.6, rastrear quem indicou (Agente) e quem geriu por último (Gerente).
+   Lê/grava por NOME de coluna, nunca por posição fixa, pra não quebrar se
+   alguém reordenar colunas na planilha (mesmo cuidado do campo "Projeto"
+   em IMOVEISDISPONIVEIS). Rode manualmente pelo editor do Apps Script. */
+function setupCRMAgenteGerente() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('LEADS');
+  if (!sheet) throw new Error('Aba LEADS não encontrada.');
+  var relatorio = [];
+  ['Agente_Id', 'Gerente_Id'].forEach(function (nomeCol) {
+    var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    if (headers.indexOf(nomeCol) === -1) {
+      sheet.getRange(1, headers.length + 1).setValue(nomeCol);
+      relatorio.push('Coluna ' + nomeCol + ' acrescentada (coluna ' + (headers.length + 1) + ').');
+    } else {
+      relatorio.push('Coluna ' + nomeCol + ' já existia.');
+    }
+  });
+  var msg = '✅ Agente_Id/Gerente_Id configurados na aba LEADS!\n\n' + relatorio.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+function headerColIndex_(sheet, nomeCol) {
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  return headers.indexOf(nomeCol);
+}
+
 /* ── Leitura via GET (JSONP) ─────────────────── */
 function doGet(e) {
   var cb    = e.parameter.callback;
@@ -107,7 +136,8 @@ function doGet(e) {
       nome:s(r[3]), telefone:s(r[4]), email:s(r[5]), origem:s(r[6]),
       consultor:s(r[7]), solicitacao:s(r[8]), orcamento:s(r[9]),
       area:s(r[10]), obs:s(r[11]), proxacao:s(r[12]), proxdata:s(r[13]),
-      criado_em:sDataHora(r[14]), atualizado_em:sDataHora(r[15]), historico:hist
+      criado_em:sDataHora(r[14]), atualizado_em:sDataHora(r[15]), historico:hist,
+      atendente_id:s(r[17]), agente_id:s(r[18]), gerente_id:s(r[19])
     };
   }).filter(function(r){ return r.id && r.nome; });
 
@@ -148,6 +178,14 @@ function criarLead(sheet, lead) {
     lead.proxacao||'', lead.proxdata||'', now, now,
     JSON.stringify(lead.historico||[])
   ]);
+  // Agente_Id gravado à parte, por NOME de coluna (não por posição fixa —
+  // ver setupCRMAgenteGerente()) — pedido 79.6, rastreia qual Agente
+  // indicou este lead (vem de localStorage['wal_ref_agente'] no
+  // navegador). Só grava se a coluna já existir na planilha.
+  if (lead.agenteId) {
+    var colAgente = headerColIndex_(sheet, 'Agente_Id');
+    if (colAgente !== -1) sheet.getRange(sheet.getLastRow(), colAgente + 1).setValue(lead.agenteId);
+  }
   return {ok:true, id:id};
 }
 
@@ -162,6 +200,16 @@ function criarOuAtualizarLead(sheet, lead, interacao) {
       if (interacao) hist.push(interacao);
       sheet.getRange(i+1, 16).setValue(agoraBR());
       sheet.getRange(i+1, 17).setValue(JSON.stringify(hist));
+      // Só preenche Agente_Id se ainda estiver vazio — quem indicou
+      // primeiro mantém o crédito, uma submissão posterior sem link não
+      // sobrescreve uma indicação já registrada.
+      if (lead.agenteId) {
+        var colAgente = headerColIndex_(sheet, 'Agente_Id');
+        if (colAgente !== -1) {
+          var atual = sheet.getRange(i+1, colAgente+1).getValue();
+          if (!atual) sheet.getRange(i+1, colAgente+1).setValue(lead.agenteId);
+        }
+      }
       return {ok:true, acao:'interacao', id:String(vals[i][0])};
     }
   }

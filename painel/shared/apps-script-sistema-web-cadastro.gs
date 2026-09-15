@@ -585,7 +585,8 @@ function cadastro_leadRegistrar_(data) {
     var agoraStr = agora_();
     var camposCriar = {
       ID: 'CRM_' + Date.now(), Status: 'novo', Prioridade: 'alta', Nome: nome, Email: email,
-      Origem: data.origem || '', 'Criado em': agoraStr, 'Atualizado em': agoraStr
+      Origem: data.origem || '', 'Criado em': agoraStr, 'Atualizado em': agoraStr,
+      Agente_Id: s_(data.agenteId).trim()
     };
     aba.appendRow(headers.map(function (h) { return camposCriar[h] !== undefined ? camposCriar[h] : ''; }));
     return { status: 'ok' };
@@ -838,7 +839,11 @@ function crm_indicacao_criar_(data) {
       var camposLead = {
         ID: id, Status: 'novo', Prioridade: 'media', Nome: nomeCliente, Telefone: telefone,
         Email: s_(data.emailCliente), Origem: 'Indicação · ' + ctx.tipo, Consultor: s_(pessoa.Nome),
-        'Criado em': agoraStr, 'Atualizado em': agoraStr
+        'Criado em': agoraStr, 'Atualizado em': agoraStr,
+        // Só preenche Agente_Id de verdade quando quem indicou é um Agente
+        // (ctx.tipo==='agente') — indicação de Corretor/Atendente/Gerente
+        // não tem Agente por trás, fica em branco de propósito.
+        Agente_Id: ctx.tipo === 'agente' ? s_(pessoa.Id) : ''
       };
       abaLeads.appendRow(headersLeads.map(function (h) { return camposLead[h] !== undefined ? camposLead[h] : ''; }));
     }
@@ -949,7 +954,7 @@ function crm_indicacao_publica_criar_(data) {
       var camposLead = {
         ID: id, Status: 'novo', Prioridade: 'media', Nome: nomeCliente, Telefone: telefone,
         Email: s_(data.emailCliente), Origem: 'Indicação · agente (link)', Consultor: s_(agente.Nome),
-        'Criado em': agoraStr, 'Atualizado em': agoraStr
+        'Criado em': agoraStr, 'Atualizado em': agoraStr, Agente_Id: s_(agente.Id)
       };
       abaLeads.appendRow(headersLeads.map(function (h) { return camposLead[h] !== undefined ? camposLead[h] : ''; }));
     }
@@ -1246,6 +1251,30 @@ function setupAtendenteCrmLeads() {
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
 }
 
+/* Mesmo padrão de setupAtendenteCrmLeads() acima, só que pras colunas
+   Agente_Id (rastreia qual Agente indicou o lead — pedido 79.6) e
+   Gerente_Id (rastreia qual Gerente encaminhou/atribuiu o lead a um
+   Atendente por último — não é hierarquia fixa, é "quem geriu"). SEM
+   "_" no final de propósito, mesmo motivo de setupAtendenteCrmLeads(). */
+function setupLeadsAgenteGerente() {
+  var relatorio = [];
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) throw new Error('Aba ' + ABA_LEADS + ' não encontrada em PLANILHA_CRM_LEADS_ID.');
+  ['Agente_Id', 'Gerente_Id'].forEach(function (nomeCol) {
+    var headers = headersDe_(abaLeads);
+    if (headers.indexOf(nomeCol) === -1) {
+      abaLeads.getRange(1, headers.length + 1).setValue(nomeCol);
+      relatorio.push('Coluna ' + nomeCol + ' acrescentada em ' + ABA_LEADS + ' (coluna ' + (headers.length + 1) + ').');
+    } else {
+      relatorio.push('Coluna ' + nomeCol + ' já existia em ' + ABA_LEADS + '.');
+    }
+  });
+  var msg = '✅ Agente_Id/Gerente_Id configurados em ' + ABA_LEADS + '!\n\n' + relatorio.join('\n');
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
 /* Confere sessão OTP + acha a pessoa na aba ATENDENTES pelo e-mail —
    repetido em toda ação abaixo (mesmo padrão de crm_indicacao_listar_
    etc.), devolve null se qualquer uma das duas falhar. */
@@ -1263,6 +1292,7 @@ function crm_leadParaObjeto_(l) {
     id: s_(l.ID), status: s_(l.Status) || 'novo', prioridade: s_(l.Prioridade) || 'media',
     nome: s_(l.Nome), telefone: s_(l.Telefone), email: s_(l.Email), origem: s_(l.Origem),
     consultor: s_(l.Consultor), atendenteId: s_(l.Atendente_Id),
+    agenteId: s_(l.Agente_Id), gerenteId: s_(l.Gerente_Id),
     criadoEm: dataStr_(l['Criado em']), atualizadoEm: dataStr_(l['Atualizado em'])
   };
 }
@@ -1724,6 +1754,12 @@ function crm_gerente_lead_atribuir_(data) {
     var colAtendente = headers.indexOf('Atendente_Id');
     if (colAtendente === -1) return { status: 'error', message: 'Coluna Atendente_Id não configurada — rode setupAtendenteCrmLeads().' };
     abaLeads.getRange(linha, colAtendente + 1).setValue(s_(data.atendenteId));
+    // Registra qual Gerente encaminhou/atribuiu por último (pedido 79.6) —
+    // não é "dono fixo", é rastro de quem geriu; sobrescreve a cada nova
+    // atribuição, mesmo espírito do Atendente_Id acima. Só grava se a
+    // coluna já existir (rode setupLeadsAgenteGerente()), nunca quebra.
+    var colGerente = headers.indexOf('Gerente_Id');
+    if (colGerente !== -1) abaLeads.getRange(linha, colGerente + 1).setValue(s_(gerente.Id));
     var colAtualizado = headers.indexOf('Atualizado em');
     if (colAtualizado !== -1) abaLeads.getRange(linha, colAtualizado + 1).setValue(agora_());
     return { status: 'ok' };

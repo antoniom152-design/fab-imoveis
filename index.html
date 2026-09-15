@@ -2258,6 +2258,23 @@
   // ─── CRM WAL ───
   const CRM_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 
+  // Se essa pessoa chegou até aqui por um link de Agente Parceiro em
+  // OUTRA página (imovel.html/mapa-empreendimentos.html?agente=AG0002 →
+  // salvo em localStorage, ver REF_AGENTE_KEY em imovel.html), mantém a
+  // indicação atrelada ao Agente mesmo que o formulário seja preenchido
+  // aqui no index.html — mesma chave/janela de 90 dias (pedido 79.6).
+  // index.html não captura ?agente= da própria URL, só lê o que já foi
+  // capturado antes em outra página.
+  function lerRefAgenteId_() {
+    try {
+      const raw = localStorage.getItem('wal_ref_agente');
+      if (!raw) return '';
+      const ref = JSON.parse(raw);
+      if (!ref || !ref.id || !ref.capturadoEm) return '';
+      if ((Date.now() - ref.capturadoEm) / 86400000 > 90) return '';
+      return ref.id;
+    } catch(e) { return ''; }
+  }
   function registrarNoCRM(lead, notaHistorico) {
     const interacao = {
       tipo: lead.origem,
@@ -2269,7 +2286,7 @@
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
         action: 'criarOuAtualizar',
-        lead: Object.assign({ prioridade: 'alta', status: 'novo' }, lead),
+        lead: Object.assign({ prioridade: 'alta', status: 'novo', agenteId: lerRefAgenteId_() }, lead),
         interacao
       })
     }).catch(() => {});

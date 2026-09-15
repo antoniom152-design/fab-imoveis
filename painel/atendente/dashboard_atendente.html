@@ -1873,16 +1873,31 @@ async function pegarLead(id){
   nav(document.querySelector('[onclick*=fila]'),'fila');
 }
 
+/* Cache de nome de Agente por id (crm_agente_publico, mesma ação pública
+   já usada em imovel.html pra validar link de indicação) — evita buscar
+   de novo toda vez que o mesmo lead/agente é aberto (pedido 79.6). */
+let _agentesNomeCache={};
+async function nomeAgente_(agenteId){
+  if(!agenteId)return'';
+  if(_agentesNomeCache[agenteId]!==undefined)return _agentesNomeCache[agenteId];
+  const resp=await cadastroApiJsonp('crm_agente_publico',{id:agenteId});
+  const nome=(resp&&resp.status==='ok')?resp.nome:'';
+  _agentesNomeCache[agenteId]=nome;
+  return nome;
+}
 async function abrirLead(id){
   const l=_leads.find(x=>x.id===id); if(!l)return;
   _leadAtualId=id;
   document.getElementById('leadModalTitle').textContent=l.nome||'Lead';
   document.getElementById('leadModalBody').innerHTML='Carregando...';
   abrirModal('modalLead');
-  const resp=await cadastroApiJsonp('crm_atendente_listar_historico',{email:_user.email,sessionToken:_user.sessionToken,leadId:id});
-  renderLeadModal(l,(resp&&resp.itens)||[]);
+  const [resp,nomeAgenteIndicador]=await Promise.all([
+    cadastroApiJsonp('crm_atendente_listar_historico',{email:_user.email,sessionToken:_user.sessionToken,leadId:id}),
+    nomeAgente_(l.agenteId)
+  ]);
+  renderLeadModal(l,(resp&&resp.itens)||[],nomeAgenteIndicador);
 }
-function renderLeadModal(l,historico){
+function renderLeadModal(l,historico,nomeAgenteIndicador){
   const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div></div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
   document.getElementById('leadModalBody').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
@@ -1890,7 +1905,7 @@ function renderLeadModal(l,historico){
         <div class="flex-bet mb14"><div><div class="fs14 fw6">${l.nome||'—'}</div><div class="fs11 c-muted">${l.telefone||''}${l.email?' · '+l.email:''}</div></div><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
           <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Origem</div><div class="fs12 fw6">${l.origem||'—'}</div></div>
-          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Consultor / Agente</div><div class="fs12 fw6">${l.consultor||'—'}</div></div>
+          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">🤝 Agente indicador</div><div class="fs12 fw6">${l.agenteId?(nomeAgenteIndicador||l.agenteId):(l.consultor||'—')}</div></div>
         </div>
         <div class="f-sec mb14">Atualizar status</div>
         <div class="field-row field-2 mb14">
