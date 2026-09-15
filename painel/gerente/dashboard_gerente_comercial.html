@@ -1880,12 +1880,25 @@ async function carregarDadosIniciais(){
   popularDatalistViabilizador_();
 }
 function nomeAtendente_(id){ const a=_equipe.find(x=>x.id===id); return a?a.nome:''; }
+/* Reconstrói as options de atendente a cada carregarDadosIniciais() (poll
+   de 30s) — sem guardar/restaurar o value antes de trocar o innerHTML, o
+   <select> sempre voltava pra primeira opção ("Todos os atendentes"),
+   derrubando o filtro "Sem atendente" sozinho depois de alguns segundos
+   (pedido 79.7). */
 function popularSelectsAtendente_(){
   const opts=_equipe.map(a=>`<option value="${a.id}">${escAttr_(a.nome)}</option>`).join('');
   const selLeadsFilt=document.getElementById('filaFiltAtendente');
-  if(selLeadsFilt) selLeadsFilt.innerHTML=`<option value="">Todos os atendentes</option><option value="__sem__">Sem atendente</option>`+opts;
+  if(selLeadsFilt){
+    const valorAtual=selLeadsFilt.value;
+    selLeadsFilt.innerHTML=`<option value="">Todos os atendentes</option><option value="__sem__">Sem atendente</option>`+opts;
+    selLeadsFilt.value=valorAtual;
+  }
   const selFunilFilt=document.getElementById('funilFiltAtendente');
-  if(selFunilFilt) selFunilFilt.innerHTML=`<option value="">Todos os atendentes</option>`+opts;
+  if(selFunilFilt){
+    const valorAtual=selFunilFilt.value;
+    selFunilFilt.innerHTML=`<option value="">Todos os atendentes</option>`+opts;
+    selFunilFilt.value=valorAtual;
+  }
 }
 function nomeEmp_(empId){ const e=_empreendimentos.find(x=>x.id===empId); return e?e.nome:(empId?'—':'—'); }
 function escAttr_(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
@@ -2030,40 +2043,93 @@ async function abrirLead(id){
   ]);
   renderLeadModal(l,(resp&&resp.itens)||[],nomeAgenteIndicador);
 }
+function campoDetalheLead_(label,valor){
+  return `<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">${label}</div><div class="fs12 fw6" style="word-break:break-word;white-space:pre-wrap">${valor||'—'}</div></div>`;
+}
+/* Aba "Todos os campos" (pedido 79.8) — o Gerente via só uma fração dos
+   dados do lead (nome/telefone/email/origem/atendente/agente). Mostra
+   literalmente todo campo que a aba LEADS tem, incluindo os que nenhuma
+   tela do Sistema Web expunha antes (Solicitação/Orçamento/Área/
+   Observações/Próxima Ação — crm_leadParaObjeto_ não devolvia esses
+   campos até agora). Só leitura, sem edição — mudar esses campos
+   continua sendo pelos controles da aba "Atendimento" ao lado. */
 function renderLeadModal(l,historico,nomeAgenteIndicador){
   const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':h.tipo==='gerente'?'📣':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div></div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
+  const nomeAt=l.atendenteId?(nomeAtendente_(l.atendenteId)||l.atendenteId):'';
   document.getElementById('leadModalBody').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
-      <div>
-        <div class="flex-bet mb14"><div><div class="fs14 fw6">${l.nome||'—'}</div><div class="fs11 c-muted">${l.telefone||''}${l.email?' · '+l.email:''}</div></div><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
-          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Origem</div><div class="fs12 fw6">${l.origem||'—'}</div></div>
-          <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Atendente atual</div><div class="fs12 fw6">${l.atendenteId?(nomeAtendente_(l.atendenteId)||l.atendenteId):'Sem atendente'}</div></div>
-          ${l.agenteId?`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;grid-column:span 2"><div class="fs10 c-muted mb-2">🤝 Agente indicador</div><div class="fs12 fw6">${nomeAgenteIndicador||l.agenteId}</div></div>`:''}
+    <div class="flex-bet mb14"><div><div class="fs14 fw6">${l.nome||'—'}</div><div class="fs11 c-muted">${l.telefone||''}${l.email?' · '+l.email:''}</div></div><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></div>
+    <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--bdr)">
+      <div class="lead-tab-btn" data-tab="atendimento" onclick="leadModalSwitchTab('atendimento')" style="padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--gold);border-bottom:2px solid var(--gold)">Atendimento</div>
+      <div class="lead-tab-btn" data-tab="campos" onclick="leadModalSwitchTab('campos')" style="padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent">Todos os campos</div>
+    </div>
+    <div id="leadTabAtendimento">
+      <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+            <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Origem</div><div class="fs12 fw6">${l.origem||'—'}</div></div>
+            <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px"><div class="fs10 c-muted mb-2">Atendente atual</div><div class="fs12 fw6">${nomeAt||'Sem atendente'}</div></div>
+            ${l.agenteId?`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;grid-column:span 2"><div class="fs10 c-muted mb-2">🤝 Agente indicador</div><div class="fs12 fw6">${nomeAgenteIndicador||l.agenteId}</div></div>`:''}
+          </div>
+          <div class="field-row mb14">
+            <div><div class="field-lbl">Empreendimento de interesse (para gerar o link de reserva)</div><input class="field-inp" type="text" id="leadVisitaEmp" list="leadVisitaEmpList" placeholder="Digite para buscar..." autocomplete="off"><datalist id="leadVisitaEmpList">${[..._empreendimentos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(e=>`<option value="${escAttr_(e.nome)}">`).join('')}</datalist></div>
+          </div>
+          <div class="f-sec mb14">Encaminhar / reatribuir</div>
+          <div class="field-row field-2 mb14">
+            <div><select class="field-sel" id="leadAtendenteSel"><option value="">— Sem atendente —</option>${_equipe.map(a=>`<option value="${a.id}" ${l.atendenteId===a.id?'selected':''}>${escAttr_(a.nome)}</option>`).join('')}</select></div>
+            <div><button class="btn btn-gold btn-sm" style="width:100%;justify-content:center" onclick="reatribuirLead()">📨 Encaminhar</button></div>
+          </div>
+          <div class="f-sec mb14" style="margin-top:18px">Atualizar status</div>
+          <div class="field-row field-2 mb14">
+            <div><select class="field-sel" id="leadStatusSel">${['novo','contato','proposta','visita','fechado','perdido'].map(s=>`<option value="${s}" ${l.status===s?'selected':''}>${statusLeadLabel(s)}</option>`).join('')}</select></div>
+            <div><select class="field-sel" id="leadPrioridadeSel">${['baixa','media','alta'].map(p=>`<option value="${p}" ${(l.prioridade||'media')===p?'selected':''}>Prioridade ${p}</option>`).join('')}</select></div>
+          </div>
+          <button class="btn btn-teal btn-sm" onclick="salvarStatusLead()">💾 Salvar status</button>
+          <div class="f-sec mb14" style="margin-top:18px">Registrar orientação para a equipe</div>
+          <textarea class="field-ta" id="leadNotaTxt" placeholder="Ex: oferecer a unidade 302 com condição especial para fechar hoje."></textarea>
+          <button class="btn btn-teal btn-sm" style="margin-top:8px" onclick="salvarNotaLead()">📣 Enviar orientação</button>
         </div>
-        <div class="field-row mb14">
-          <div><div class="field-lbl">Empreendimento de interesse (para gerar o link de reserva)</div><input class="field-inp" type="text" id="leadVisitaEmp" list="leadVisitaEmpList" placeholder="Digite para buscar..." autocomplete="off"><datalist id="leadVisitaEmpList">${[..._empreendimentos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(e=>`<option value="${escAttr_(e.nome)}">`).join('')}</datalist></div>
+        <div>
+          <div class="sec mb14">Histórico</div>
+          <div class="tl-wrap"><div class="tl-line"></div>${tl}</div>
         </div>
-        <div class="f-sec mb14">Encaminhar / reatribuir</div>
-        <div class="field-row field-2 mb14">
-          <div><select class="field-sel" id="leadAtendenteSel"><option value="">— Sem atendente —</option>${_equipe.map(a=>`<option value="${a.id}" ${l.atendenteId===a.id?'selected':''}>${escAttr_(a.nome)}</option>`).join('')}</select></div>
-          <div><button class="btn btn-gold btn-sm" style="width:100%;justify-content:center" onclick="reatribuirLead()">📨 Encaminhar</button></div>
-        </div>
-        <div class="f-sec mb14" style="margin-top:18px">Atualizar status</div>
-        <div class="field-row field-2 mb14">
-          <div><select class="field-sel" id="leadStatusSel">${['novo','contato','proposta','visita','fechado','perdido'].map(s=>`<option value="${s}" ${l.status===s?'selected':''}>${statusLeadLabel(s)}</option>`).join('')}</select></div>
-          <div><select class="field-sel" id="leadPrioridadeSel">${['baixa','media','alta'].map(p=>`<option value="${p}" ${(l.prioridade||'media')===p?'selected':''}>Prioridade ${p}</option>`).join('')}</select></div>
-        </div>
-        <button class="btn btn-teal btn-sm" onclick="salvarStatusLead()">💾 Salvar status</button>
-        <div class="f-sec mb14" style="margin-top:18px">Registrar orientação para a equipe</div>
-        <textarea class="field-ta" id="leadNotaTxt" placeholder="Ex: oferecer a unidade 302 com condição especial para fechar hoje."></textarea>
-        <button class="btn btn-teal btn-sm" style="margin-top:8px" onclick="salvarNotaLead()">📣 Enviar orientação</button>
       </div>
-      <div>
-        <div class="sec mb14">Histórico</div>
-        <div class="tl-wrap"><div class="tl-line"></div>${tl}</div>
+    </div>
+    <div id="leadTabCampos" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        ${campoDetalheLead_('ID',l.id)}
+        ${campoDetalheLead_('Status',statusLeadLabel(l.status))}
+        ${campoDetalheLead_('Prioridade',l.prioridade)}
+        ${campoDetalheLead_('Origem',l.origem)}
+        ${campoDetalheLead_('Nome',l.nome)}
+        ${campoDetalheLead_('Telefone',l.telefone)}
+        ${campoDetalheLead_('E-mail',l.email)}
+        ${campoDetalheLead_('Consultor (texto livre)',l.consultor)}
+        ${campoDetalheLead_('Atendente_Id',l.atendenteId?`${l.atendenteId}${nomeAt?' — '+nomeAt:''}`:'')}
+        ${campoDetalheLead_('Agente_Id',l.agenteId?`${l.agenteId}${nomeAgenteIndicador?' — '+nomeAgenteIndicador:''}`:'')}
+        ${campoDetalheLead_('Gerente_Id',l.gerenteId)}
+        ${campoDetalheLead_('Orçamento',l.orcamento)}
+        ${campoDetalheLead_('Área',l.area)}
+        ${campoDetalheLead_('Próxima Ação',l.proxAcao)}
+        ${campoDetalheLead_('Data Próxima Ação',l.proxData?fmtDt(l.proxData):'')}
+        ${campoDetalheLead_('Criado em',fmtDtHora_(l.criadoEm))}
+        ${campoDetalheLead_('Atualizado em',fmtDtHora_(l.atualizadoEm))}
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px">
+        ${campoDetalheLead_('Solicitação',l.solicitacao)}
+        ${campoDetalheLead_('Observações',l.observacoes)}
       </div>
     </div>`;
+  leadModalSwitchTab('atendimento');
+}
+function leadModalSwitchTab(tab){
+  const atendEl=document.getElementById('leadTabAtendimento'), camposEl=document.getElementById('leadTabCampos');
+  if(atendEl)atendEl.style.display=tab==='atendimento'?'':'none';
+  if(camposEl)camposEl.style.display=tab==='campos'?'':'none';
+  document.querySelectorAll('.lead-tab-btn').forEach(b=>{
+    const ativo=b.dataset.tab===tab;
+    b.style.color=ativo?'var(--gold)':'var(--muted)';
+    b.style.borderBottomColor=ativo?'var(--gold)':'transparent';
+  });
 }
 async function reatribuirLead(){
   const atendenteId=document.getElementById('leadAtendenteSel').value;
