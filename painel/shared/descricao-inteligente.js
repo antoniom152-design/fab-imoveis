@@ -175,6 +175,16 @@
 
     requestAnimationFrame(() => {
       if (wrapper.classList.contains('descricao-expandida')) return;
+      // wrapper.clientHeight vem 0 quando o card é montado dentro de um painel
+      // ainda escondido (display:none — ex.: dashboards com abas, onde os dados
+      // carregam em segundo plano antes do usuário abrir aquela aba). Nesse caso
+      // a medição não é confiável: sem isto, 0 > 0+2 dá "não ultrapassa o limite"
+      // e a classe descricao-recolhida (o clamp de 7 linhas) era removida
+      // permanentemente, mesmo a descrição sendo longa — só "corrigia" sozinho
+      // no próximo recálculo com o painel já visível (reportado 15/09/2026).
+      // Não mede agora; quem torna o painel visível deve chamar
+      // recalcularDescricoesInteligentes() de novo.
+      if (wrapper.clientHeight === 0) return;
       const ultrapassaLimite = conteudo.scrollHeight > wrapper.clientHeight + 2;
       botao.hidden = !ultrapassaLimite;
       wrapper.classList.toggle('descricao-com-excedente', ultrapassaLimite);
