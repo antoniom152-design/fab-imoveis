@@ -1101,7 +1101,11 @@ function crm_empreendimentoParaObjeto_(i) {
     quartos: s_(i.Quartos),
     precoMin: Number(i['Preço Mín (R$)']) || 0,
     precoMax: Number(i['Preço Máx (R$)']) || 0,
-    endereco: s_(i['Endereço'])
+    endereco: s_(i['Endereço']),
+    // Projeto (coluna X) já era gravado por processarImovel mas nunca
+    // tinha sido exposto aqui — acrescentado pra dar pra conferir o
+    // cadastro de Empreendimento do Gerente (pedido 79.23).
+    projeto: s_(i.Projeto)
   };
 }
 function crm_empreendimentos_listar_(p) {
