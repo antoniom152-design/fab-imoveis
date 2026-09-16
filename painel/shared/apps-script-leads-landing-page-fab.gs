@@ -56,7 +56,11 @@ function brevoApiKey_() {
 /* opts.replyTo: e-mail para responder · opts.attachments: [{content:base64, name}] ·
    opts.senderEmail/opts.senderName: sobrescreve o remetente padrão (BREVO_SENDER_EMAIL/
    NOME) pra este envio específico — precisa que o domínio walservidor.com.br já esteja
-   autenticado (SPF/DKIM) no Brevo, senão a API rejeita o remetente. */
+   autenticado (SPF/DKIM) no Brevo, senão a API rejeita o remetente. · opts.bcc: cópia
+   oculta — o e-mail sai pela API do Brevo, não pela caixa do Workspace, então NUNCA
+   aparece em "Enviados" da conta remetente por conta própria (pedido 79.16 - registro
+   pra segurança); opts.bcc é o jeito de garantir que uma cópia fique registrada na
+   caixa (Recebidos) de quem "enviou". */
 function enviarEmailBrevo_(destinatario, assunto, corpoHtml, opts) {
   var apiKey = brevoApiKey_();
   if (!apiKey) { Logger.log('enviarEmailBrevo_: BREVO_API_KEY não configurada nas Propriedades do script.'); return false; }
@@ -69,6 +73,7 @@ function enviarEmailBrevo_(destinatario, assunto, corpoHtml, opts) {
   if (opts.textOnly) payload.textContent = corpoHtml; else payload.htmlContent = corpoHtml;
   if (opts.replyTo) payload.replyTo = { email: opts.replyTo };
   if (opts.attachments && opts.attachments.length) payload.attachment = opts.attachments;
+  if (opts.bcc) payload.bcc = [{ email: opts.bcc }];
   try {
     var resp = UrlFetchApp.fetch('https://api.brevo.com/v3/smtp/email', {
       method: 'post',
@@ -614,11 +619,17 @@ function processarEbook(data) {
    data.remetenteEmail (opcional): sobrescreve o remetente padrão
    (wal@walservidor.com.br) só pra este envio — a Solicitação ao
    Viabilizador (pedido 79.16 - troca de remetente) manda
-   comercial@walservidor.com.br, todo o resto continua com o padrão. */
+   comercial@walservidor.com.br, todo o resto continua com o padrão.
+   Quando há remetente customizado, manda também uma cópia oculta (bcc)
+   pra ele mesmo — o Brevo envia pela API, nunca passa pela caixa do
+   Workspace, então o e-mail nunca aparece em "Enviados" por conta
+   própria; o bcc é o jeito de deixar um registro na caixa de quem
+   "enviou", pra fins de segurança/auditoria (pedido 79.16 - registro
+   de envio). */
 function processarCompartilharEmail(data) {
   var opts = { textOnly: true };
   if (data.anexos && data.anexos.length) opts.attachments = data.anexos;
-  if (data.remetenteEmail) opts.senderEmail = data.remetenteEmail;
+  if (data.remetenteEmail) { opts.senderEmail = data.remetenteEmail; opts.bcc = data.remetenteEmail; }
   var ok = enviarEmailBrevo_(data.destinatario, data.assunto || 'Imóvel WAL Imóveis', data.corpo || '', opts);
   if (!ok) throw new Error('Falha ao enviar e-mail via Brevo.');
 }
