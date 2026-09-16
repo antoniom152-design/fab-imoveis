@@ -602,9 +602,16 @@ function processarEbook(data) {
   } catch(e) { Logger.log('Ebook erro: ' + e.message); }
 }
 
-/* ─── COMPARTILHAR IMÓVEL POR E-MAIL (botão em index.html/imovel.html) ── */
+/* ─── COMPARTILHAR IMÓVEL POR E-MAIL (botão em index.html/imovel.html) ──
+   data.anexos (opcional): [{content:base64, name}] — usado pela
+   Solicitação ao Viabilizador (pedido 79.16) pra anexar documento(s) na
+   hora, sem passar pelo fluxo de upload pro Drive (esse é só pra
+   documento avulso e ocasional, não pro pacote de docs do cliente que
+   já tem o próprio fluxo — ver comentário de processarReserva()). */
 function processarCompartilharEmail(data) {
-  var ok = enviarEmailBrevo_(data.destinatario, data.assunto || 'Imóvel WAL Imóveis', data.corpo || '', { textOnly: true });
+  var opts = { textOnly: true };
+  if (data.anexos && data.anexos.length) opts.attachments = data.anexos;
+  var ok = enviarEmailBrevo_(data.destinatario, data.assunto || 'Imóvel WAL Imóveis', data.corpo || '', opts);
   if (!ok) throw new Error('Falha ao enviar e-mail via Brevo.');
 }
 
