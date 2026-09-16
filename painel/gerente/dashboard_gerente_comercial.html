@@ -2665,8 +2665,9 @@ async function renderViabLista(){
   const resp=await cadastroApiJsonp('crm_gerente_viab_listar',{email:_user.email,sessionToken:_user.sessionToken});
   const lista=(resp&&resp.itens)||[];
   if(!lista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma solicitação enviada ainda.</div>`;return}
-  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Tipo</th><th>Empreendimento</th><th>Descrição</th><th>Resposta do Viabilizador</th></tr></thead><tbody>${[...lista].reverse().map(v=>`<tr>
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>E-mail do Viabilizador</th><th>Tipo</th><th>Empreendimento</th><th>Descrição</th><th>Resposta do Viabilizador</th></tr></thead><tbody>${[...lista].reverse().map(v=>`<tr>
     <td class="mono fs11">${fmtDtHora_(v.data)}</td>
+    <td class="fs11">${v.email||'—'}</td>
     <td class="fs11">${v.tipo}</td>
     <td class="fs11">${v.emp||'—'}</td>
     <td class="fs11">${v.descricao}</td>
