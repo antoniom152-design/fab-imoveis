@@ -1829,6 +1829,42 @@ function crm_gerente_equipe_listar_(p) {
   return { status: 'ok', itens: lerAbaObjetos_(ctx.aba).map(crm_pessoaParaObjeto_) };
 }
 
+/* Tela "Agentes" do Gerente (pedido 79.19) — mesmo padrão de
+   crm_gerente_equipe_listar_ acima, só trocando pra aba AGENTES.
+   crm_pessoaParaObjeto_ já devolve todos os campos cadastrados (menos
+   Senha_Hash, de propósito); Leads/Fechados/Conversão por Agente são
+   calculados no client a partir de _leads (mesmo idioma de
+   renderEquipe(), só trocando atendenteId por agenteId — os leads já
+   trazem agenteId desde o pedido 79.6). */
+function crm_gerente_agentes_listar_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var ctx = crm_pessoaAba_('agente');
+  if (!ctx) return { status: 'ok', itens: [] };
+  return { status: 'ok', itens: lerAbaObjetos_(ctx.aba).map(crm_pessoaParaObjeto_) };
+}
+
+/* Histórico de indicações de UM Agente (pedido 79.19 — seção "Indicações
+   trazidas" no modal de detalhe). Diferente de crm_indicacao_listar_
+   (self-scoped pro próprio logado): aqui o Gerente pede o histórico de
+   qualquer Agente. Mesma aba INDICACOES/crm_indicacaoParaObjeto_ já
+   usadas em admin_indicacoes_listar_, só que filtrado por um Agente_Id
+   só e autenticado pela sessão do Gerente em vez do PIN do admin.html. */
+function crm_gerente_agente_indicacoes_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var agenteId = s_(p.agenteId).trim().toUpperCase();
+  if (!agenteId) return { status: 'error', message: 'Id do agente é obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaInd = ssCrm.getSheetByName(ABA_INDICACOES);
+  if (!abaInd) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(abaInd)
+    .filter(function (i) { return s_(i.Agente_Id).trim().toUpperCase() === agenteId; })
+    .map(crm_indicacaoParaObjeto_);
+  itens.sort(function (a, b) { return new Date(b.criadoEm) - new Date(a.criadoEm); });
+  return { status: 'ok', itens: itens };
+}
+
 /* Ativar/desativar um Atendente da equipe (aba ATENDENTES, coluna Status)
    — mesmo campo que admin_pessoa_atualizar_ já mexe (usado pela aba
    Equipe do admin.html), só que aqui é o próprio Gerente que aciona, sem
@@ -2090,6 +2126,8 @@ function doGet(e) {
       case 'crm_gerente_viab_criar':            result = crm_gerente_viab_criar_(p); break;
       case 'crm_gerente_viab_listar':           result = crm_gerente_viab_listar_(p); break;
       case 'crm_gerente_viab_responder':        result = crm_gerente_viab_responder_(p); break;
+      case 'crm_gerente_agentes_listar':        result = crm_gerente_agentes_listar_(p); break;
+      case 'crm_gerente_agente_indicacoes':     result = crm_gerente_agente_indicacoes_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
