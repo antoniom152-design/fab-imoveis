@@ -1077,6 +1077,12 @@ a{text-decoration:none;color:inherit}
           <div class="field-row mb14">
             <div><div class="field-lbl">Descrição / Justificativa</div><textarea class="field-ta" id="viabDescricao" placeholder="Ex: cliente pede 5% de desconto para fechar hoje à vista."></textarea></div>
           </div>
+          <div class="field-row mb14">
+            <div><div class="field-lbl">Anexar documento (opcional)</div>
+              <input type="file" id="viabAnexos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="viabAtualizarAnexosInfo_()">
+              <div class="fs11 c-muted" id="viabAnexosInfo" style="margin-top:4px">Nenhum arquivo selecionado (máx. 8 MB no total).</div>
+            </div>
+          </div>
           <button class="btn btn-gold" id="viabBtnEnviar" onclick="enviarSolicitacaoViabilizador()">✉️ Enviar ao Viabilizador</button>
         </div>
       </div>
@@ -2690,26 +2696,49 @@ async function salvarRespostaViabilizador(){
     toast((resp&&resp.message)||'Não foi possível salvar agora. Tente novamente.','');
   }
 }
+const VIAB_ANEXOS_MAX_BYTES=8*1024*1024;
+function viabAtualizarAnexosInfo_(){
+  const info=document.getElementById('viabAnexosInfo');
+  const arquivos=[...document.getElementById('viabAnexos').files];
+  if(!arquivos.length){info.textContent='Nenhum arquivo selecionado (máx. 8 MB no total).';info.style.color='';return}
+  const totalBytes=arquivos.reduce((s,f)=>s+f.size,0);
+  info.textContent=`${arquivos.length} arquivo(s): ${arquivos.map(f=>f.name).join(', ')} (${(totalBytes/1024).toFixed(0)} KB)`;
+  info.style.color=totalBytes>VIAB_ANEXOS_MAX_BYTES?'var(--red-ink)':'';
+}
+function viabArquivoParaBase64_(file){
+  return new Promise((resolve,reject)=>{
+    const r=new FileReader();
+    r.onload=()=>resolve({content:r.result.split(',')[1],name:file.name});
+    r.onerror=reject;
+    r.readAsDataURL(file);
+  });
+}
 async function enviarSolicitacaoViabilizador(){
   const tipo=document.getElementById('viabTipo').value;
   const emp=document.getElementById('viabEmp').value.trim();
   const email=document.getElementById('viabEmail').value.trim();
   const descricao=document.getElementById('viabDescricao').value.trim();
+  const arquivos=[...document.getElementById('viabAnexos').files];
   if(!descricao){toast('Descreva a solicitação antes de enviar.','');return}
   if(!email){toast('Informe o e-mail do Viabilizador.','');return}
+  if(arquivos.reduce((s,f)=>s+f.size,0)>VIAB_ANEXOS_MAX_BYTES){toast('Os anexos somados não podem passar de 8 MB.','');return}
   const btn=document.getElementById('viabBtnEnviar');
   const orig=btn.textContent;
   btn.disabled=true;btn.textContent='Enviando...';
   const assunto=`[WAL Imóveis] ${tipo}${emp?' — '+emp:''}`;
   const corpo=`Olá,\n\n${descricao}\n\nEmpreendimento: ${emp||'—'}\nSolicitado por: ${_user.nome} (Gerente Comercial WAL)\n\nAguardo retorno.`;
   try{
+    let anexos=[];
+    if(arquivos.length) anexos=await Promise.all(arquivos.map(viabArquivoParaBase64_));
     const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({tipo:'compartilhar_email',destinatario:email,assunto,corpo})});
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:email,assunto,corpo,anexos})});
     const data=await res.json();
     if(data.status==='ok'){
       await cadastroApiJsonp('crm_gerente_viab_criar',{email:_user.email,sessionToken:_user.sessionToken,tipo,emp,emailViabilizador:email,descricao});
       toast('✅ E-mail enviado para '+email+'!','green');
       document.getElementById('viabDescricao').value='';
+      document.getElementById('viabAnexos').value='';
+      viabAtualizarAnexosInfo_();
       renderViabLista();
     }else{
       toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
