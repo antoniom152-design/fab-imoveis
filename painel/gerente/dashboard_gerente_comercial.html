@@ -1036,8 +1036,16 @@ a{text-decoration:none;color:inherit}
             <div><div class="field-lbl">Valor a partir de (R$)</div><input class="field-inp" id="fEmpValor" placeholder="Ex: 420000"></div>
             <div><div class="field-lbl">Qtd. de Unidades</div><input class="field-inp" id="fEmpQtd" placeholder="Ex: 48"></div>
           </div>
+          <div class="field-row field-3 mb14">
+            <div><div class="field-lbl">Tipologia</div><input class="field-inp" id="fEmpTipologia" placeholder="Ex: 2 e 3 quartos"></div>
+            <div><div class="field-lbl">Endereço</div><input class="field-inp" id="fEmpEndereco" placeholder="Ex: Av. das Américas, 500"></div>
+            <div><div class="field-lbl">Projeto</div><input class="field-inp" id="fEmpProjeto" placeholder="Ex: Porto Maravilha"></div>
+          </div>
           <div class="field-row mb14">
-            <div><div class="field-lbl">Condições / observações comerciais</div><textarea class="field-ta" id="fEmpDescricao" placeholder="Texto de apresentação do empreendimento"></textarea></div>
+            <div><div class="field-lbl">Descrição</div><textarea class="field-ta" id="fEmpDescr" placeholder="Texto de apresentação do empreendimento"></textarea></div>
+          </div>
+          <div class="field-row mb14">
+            <div><div class="field-lbl">Condições / Observações Comerciais</div><textarea class="field-ta" id="fEmpDescricao" placeholder="Ex: aceita financiamento, desconto à vista, condições especiais..."></textarea></div>
           </div>
           <div style="display:flex;gap:8px">
             <button class="btn btn-teal" id="btnSalvarEmp" onclick="salvarEmpreendimentoGerente()">💾 Salvar Empreendimento</button>
@@ -2899,7 +2907,7 @@ function toggleFormEmp(){
   const abrindo=wrap.style.display==='none';
   wrap.style.display=abrindo?'block':'none';
   if(abrindo){
-    ['fEmpNome','fEmpConstrutora','fEmpTipo','fEmpUf','fEmpCidade','fEmpBairro','fEmpFaixa','fEmpValor','fEmpQtd','fEmpDescricao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    ['fEmpNome','fEmpConstrutora','fEmpTipo','fEmpUf','fEmpCidade','fEmpBairro','fEmpFaixa','fEmpValor','fEmpQtd','fEmpTipologia','fEmpEndereco','fEmpProjeto','fEmpDescr','fEmpDescricao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
     document.getElementById('formEmpTitulo').textContent='➕ Novo Empreendimento';
   }
 }
@@ -2920,7 +2928,11 @@ async function salvarEmpreendimentoGerente(){
     faixa:document.getElementById('fEmpFaixa').value.trim(),
     valor:parseFloat(document.getElementById('fEmpValor').value.replace(/[R$\s.]/g,'').replace(',','.'))||0,
     qtd:document.getElementById('fEmpQtd').value.trim(),
-    descricao:document.getElementById('fEmpDescricao').value.trim(),
+    quartos:document.getElementById('fEmpTipologia').value.trim(),
+    endereco:document.getElementById('fEmpEndereco').value.trim(),
+    projeto:document.getElementById('fEmpProjeto').value.trim(),
+    descricao:document.getElementById('fEmpDescr').value.trim(),
+    obs:document.getElementById('fEmpDescricao').value.trim(),
     operacao:'criar'
   };
   try{

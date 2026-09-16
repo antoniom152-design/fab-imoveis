@@ -685,11 +685,24 @@ function processarVisitaEmpreendimento(data) {
 }
 
 /* ─── IMÓVEL — criar ou editar linha na planilha de imóveis ─ */
+/* Acha a coluna de um header pelo NOME (não por índice fixo) — usado só
+   pro Endereço porque essa coluna foi acrescentada numa posição que o
+   resto desta função (toda por índice fixo A→X, ver mapa de colunas
+   abaixo) não cobre; testado em produção em 15/09/2026 (pedido 79.23) e
+   confirmado que a versão publicada até então NÃO gravava Endereço
+   nenhum, mesmo o código aqui aparentando fazer isso — resolver pelo
+   nome do cabeçalho evita depender de acertar o índice certo de novo. */
+function colunaPorHeaderImoveis_(aba, nomeHeader) {
+  var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
+  var idx = headers.indexOf(nomeHeader);
+  return idx === -1 ? -1 : idx + 1;
+}
 function processarImovel(data) {
   try {
     var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
     var aba = ss.getSheetByName(ABA_IMOVEIS);
     if (!aba) { Logger.log('Aba ' + ABA_IMOVEIS + ' não encontrada'); return; }
+    var linhaAlvo = -1;
 
     // Monta a linha na ordem das colunas A→W
     // A=ID | B=Ativo | C=Tipo | D=Construtora | E=Cidade | F=Nome
@@ -760,6 +773,7 @@ function processarImovel(data) {
       r[22] = data.feirao_on_line !== undefined ? feiraoOnLine  : r[22];
       r[23] = data.projeto       !== undefined ? data.projeto  : r[23];
       aba.getRange(linhaIdx, 1, 1, 24).setValues([r]);
+      linhaAlvo = linhaIdx;
       Logger.log('Imóvel atualizado: ID ' + data.id);
 
     } else {
@@ -803,7 +817,13 @@ function processarImovel(data) {
         feiraoOnLine,
         data.projeto      || ''
       ]);
+      linhaAlvo = aba.getLastRow();
       Logger.log('Imóvel criado: ' + data.nome);
+    }
+
+    if (linhaAlvo !== -1 && data.endereco !== undefined) {
+      var colEndereco = colunaPorHeaderImoveis_(aba, 'Endereço');
+      if (colEndereco !== -1) aba.getRange(linhaAlvo, colEndereco).setValue(data.endereco);
     }
   } catch(e) { Logger.log('processarImovel erro: ' + e.message); }
 }
