@@ -118,6 +118,13 @@ function doGet(e) {
       result = checkTelefone(ABA_EBOOK, e.parameter.fone || '');
     } else if (action === 'getConstrutoras') {
       result = lerAba(ABA_CONSTRUTORAS);
+    } else if (action === 'debug_imoveis_headers') {
+      // Diagnóstico temporário (pedido 79.23) — descobrir por que
+      // "Quartos" não estava gravando mesmo pelo nome do cabeçalho;
+      // remover depois de resolvido.
+      var _ssD = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
+      var _abaD = _ssD.getSheetByName(ABA_IMOVEIS);
+      result = { headers: _abaD ? _abaD.getRange(1, 1, 1, _abaD.getLastColumn()).getValues()[0] : null };
     } else {
       result = { error: 'Ação desconhecida: ' + action };
     }
@@ -693,9 +700,17 @@ function processarVisitaEmpreendimento(data) {
    nenhum, mesmo o código aqui aparentando fazer isso — resolver pelo
    nome do cabeçalho evita depender de acertar o índice certo de novo. */
 function colunaPorHeaderImoveis_(aba, nomeHeader) {
+  // Comparação sem diferenciar maiúscula/minúscula e ignorando espaço
+  // nas pontas — "Endereço" bateu de primeira com indexOf() exato, mas
+  // "Quartos" não (mesmo aparentando certo), então essa versão mais
+  // tolerante cobre o caso de o cabeçalho real ter espaço a mais/menos
+  // ou capitalização diferente sem precisar descobrir o motivo exato.
   var headers = aba.getRange(1, 1, 1, aba.getLastColumn()).getValues()[0];
-  var idx = headers.indexOf(nomeHeader);
-  return idx === -1 ? -1 : idx + 1;
+  var alvo = String(nomeHeader).trim().toLowerCase();
+  for (var i = 0; i < headers.length; i++) {
+    if (String(headers[i]).trim().toLowerCase() === alvo) return i + 1;
+  }
+  return -1;
 }
 function processarImovel(data) {
   try {
