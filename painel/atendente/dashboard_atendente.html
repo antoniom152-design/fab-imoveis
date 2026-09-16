@@ -991,10 +991,10 @@ a{text-decoration:none;color:inherit}
             <div class="ai-msgs" id="aiMsgs"></div>
             <div class="ai-chips" id="aiChipsIa">
               <div class="ai-chip" onclick="sendAiChip('Como faço a primeira abordagem com um lead novo que ainda não retornei?')">Primeira abordagem</div>
-              <div class="ai-chip" onclick="sendAiChip('Qual o benefício mais impactante do financiamento CFIAe que devo mencionar primeiro?')">Melhor argumento CFIAe</div>
+              <div class="ai-chip" onclick="sendAiChip('Qual a melhor linha de financiamento pro perfil desse lead, de acordo com a força/órgão/vínculo dele?')">Qual linha indicar</div>
               <div class="ai-chip" onclick="sendAiChip('O lead sumiu depois do primeiro contato. Como faço o follow-up sem ser inconveniente?')">Follow-up de lead sumido</div>
               <div class="ai-chip" onclick="sendAiChip('Me dê um script de mensagem no WhatsApp para confirmar uma visita agendada')">Script de confirmação de visita</div>
-              <div class="ai-chip" onclick="sendAiChip('Como funciona o financiamento CFIAe para militar? Explique de forma simples que eu possa repassar ao lead.')">Explicar CFIAe simplesmente</div>
+              <div class="ai-chip" onclick="sendAiChip('Como funciona a linha de financiamento mais indicada pro perfil desse lead? Explique de forma simples que eu possa repassar a ele.')">Explicar financiamento simplesmente</div>
               <div class="ai-chip" onclick="sendAiChip('O lead disse que precisa pensar mais. Como responder essa objeção?')">Objeção: preciso pensar mais</div>
             </div>
             <div class="ai-inp-row">
@@ -1031,6 +1031,17 @@ a{text-decoration:none;color:inherit}
             <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Crie uma mensagem curta de WhatsApp para confirmar uma visita agendada')">📱 Msg WhatsApp · Confirmar visita</div>
             <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como fazer o followup de um lead que demonstrou interesse mas sumiu?')">🔔 Follow-up de sumido</div>
             <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Como explicar o benefício do FGTS para reduzir a entrada de forma fácil de entender?')">💰 Explicar FGTS na entrada</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">🪖 Linha de Financiamento por Perfil</div></div>
+          <div class="card-b" style="display:flex;flex-direction:column;gap:6px">
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual a melhor linha de financiamento para um militar ou civil da FAB (Aeronáutica)? Quais as condições principais que devo destacar pro lead?')">✈️ FAB / Aeronáutica</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual a melhor linha de financiamento para um militar ou civil da Marinha? Quais as condições principais que devo destacar pro lead?')">⚓ Marinha</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual a melhor linha de financiamento para um militar ou civil do Exército? Quais as condições principais que devo destacar pro lead?')">🪖 Exército</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual a melhor linha de financiamento para um policial militar, policial civil ou bombeiro? Quais as condições principais que devo destacar pro lead?')">🚨 PM, PC e Bombeiro</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual a melhor linha de financiamento para um servidor público federal, estadual ou municipal? Quais as condições principais que devo destacar pro lead?')">🏛️ Servidor Federal/Estadual/Municipal</div>
+            <div style="padding:8px;background:var(--card2);border:1px solid var(--bdr);border-radius:6px;font-size:11px;cursor:pointer" onclick="sendAiChip('Qual a melhor linha de financiamento para um servidor do Ministério Público, de uma autarquia ou de uma fundação pública? Quais as condições principais que devo destacar pro lead?')">⚖️ MP, Autarquias e Fundações</div>
           </div>
         </div>
       </div>
@@ -1204,7 +1215,7 @@ let _historicoCache = {};
    Atualizar aqui se o e-book mudar (taxas, tetos, programas novos). */
 const AI_SYSTEM_ATENDENTE = `Você é o Assistente IA da WAL Consultoria Imobiliária, ajudando ATENDENTES — a equipe interna que faz a triagem dos leads recebidos pelo site antes de encaminhar para o corretor.
 
-PÚBLICO-ALVO (sempre no centro de toda resposta): nossos clientes são servidores públicos civis e militares — das Forças Armadas (FAB, Marinha, Exército), de segurança pública (PM, PC, PF, PRF, Bombeiros) e servidores federais/estaduais/municipais — na ativa ou já aposentados/na reserva/pensionistas. Toda orientação, argumento e exemplo deve considerar esse perfil: estabilidade profissional, contracheque padronizado e acesso a linhas de crédito exclusivas que o público em geral não tem.
+PÚBLICO-ALVO (sempre no centro de toda resposta): nossos clientes são funcionários públicos civis e militares — das Forças Armadas (FAB/Aeronáutica, Marinha, Exército), de segurança pública (PM, PC, PF, PRF, Bombeiros) e servidores de órgãos públicos federais, estaduais e municipais, incluindo Ministério Público, autarquias e fundações públicas — na ativa ou já aposentados/na reserva/pensionistas, comprando imóvel no RJ ou em SP. Toda orientação, argumento e exemplo deve considerar esse perfil: estabilidade profissional, contracheque padronizado e acesso a linhas de crédito exclusivas que o público em geral não tem.
 
 Seu papel é ajudar o atendente a:
 1. Fazer o primeiro contato e a triagem de leads de forma natural, sem soar como script decorado
@@ -1733,7 +1744,7 @@ async function iniciarApp(){
   tick();setInterval(tick,1000);
   renderDocumentosPerfil();
   // IA welcome
-  addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Fazer a triagem e o primeiro contato com os leads da sua fila\n• Responder objeções de forma profissional\n• Criar mensagens de WhatsApp e confirmações de visita\n• Explicar o financiamento CFIAe de forma simples\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
+  addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Fazer a triagem e o primeiro contato com os leads da sua fila\n• Responder objeções de forma profissional\n• Criar mensagens de WhatsApp e confirmações de visita\n• Indicar a linha de financiamento certa pro perfil de cada lead (FAB, Marinha, Exército, segurança pública, servidor civil...)\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
   await carregarDadosIniciais();
   setInterval(carregarDadosIniciais, 30000);
 }
