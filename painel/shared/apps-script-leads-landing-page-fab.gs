@@ -917,12 +917,31 @@ function processarConstrutora(data) {
   } catch(e) { Logger.log('processarConstrutora erro: ' + e.message); }
 }
 
-/* ─── FEIRÃO DE IMÓVEIS — adiciona as colunas novas S→W na aba
+/* ─── FEIRÃO DE IMÓVEIS — escreve os CABEÇALHOS das colunas S→W na aba
    IMOVEISDISPONIVEIS (Quartos, Preço Mín, Preço Máx, Entrega Prevista,
-   Feirao_On_Line). Rodar uma única vez. Não mexe nas colunas A→R
-   existentes (R = Link Drive, já usada pelo admin.html), então não
-   quebra nada que já lê/grava essa planilha. Referência apenas — essas
-   colunas já existem em produção, não precisa rodar de novo. ─── */
+   Feirao_On_Line). Rodar uma única vez.
+   CORRIGIDO em 16/09/2026 (pedido 79.23.1): o comentário antigo aqui
+   dizia "essas colunas já existem em produção, não precisa rodar de
+   novo" — mas o Antonio reportou (print da planilha real) que as 5
+   colunas continuavam SEM cabeçalho nenhum, mesmo com dado real
+   gravado nelas há meses (processarImovel sempre escreveu por ÍNDICE
+   fixo, então os dados foram parar na coluna certa mesmo sem o
+   cabeçalho — só ninguém conseguia LER de volta por nome de coluna,
+   inclusive Quartos, que é por isso que nunca aparecia). Essa função
+   nunca tinha rodado de verdade; a suposição de que já tinha rodado
+   estava errada.
+   Duas mudanças de segurança nesta correção:
+   1. NÃO usa mais SpreadsheetApp.getUi().alert() — trava esperando uma
+      UI que não existe quando a função roda direto pelo editor do
+      Apps Script (mesmo motivo já documentado em
+      configurarCampoProjeto() logo abaixo). Usa só Logger.log.
+   2. O preenchimento padrão "Não" na coluna Feirao_On_Line (W) agora
+      só entra nas células REALMENTE vazias — nunca sobrescreve o que
+      já estiver lá, pra não arriscar apagar um "Sim" de verdade que
+      alguém já tenha marcado pra Vitrine do Feirão.
+   Não mexe nas colunas A→R existentes (R = Link Drive, já usada pelo
+   admin.html) nem em X→AA (Projeto/Latitude/Longitude/Endereço),
+   então não quebra nada que já lê/grava essa planilha. ─── */
 function configurarCamposFeirao() {
   var ss  = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
   var aba = ss.getSheetByName(ABA_IMOVEIS);
@@ -939,7 +958,14 @@ function configurarCamposFeirao() {
     SpreadsheetApp.newDataValidation()
       .requireValueInList(['Sim', 'Não'], true)
       .setAllowInvalid(false).build());
-  aba.getRange('W2:W999').setValue('Não');
+
+  var faixaW    = aba.getRange('W2:W999');
+  var valoresW  = faixaW.getValues();
+  var preenchidas = 0;
+  for (var i = 0; i < valoresW.length; i++) {
+    if (valoresW[i][0] === '' || valoresW[i][0] === null) { valoresW[i][0] = 'Não'; preenchidas++; }
+  }
+  if (preenchidas > 0) faixaW.setValues(valoresW);
 
   aba.setColumnWidth(19, 90);
   aba.setColumnWidth(20, 110);
@@ -947,13 +973,8 @@ function configurarCamposFeirao() {
   aba.setColumnWidth(22, 130);
   aba.setColumnWidth(23, 120);
 
-  SpreadsheetApp.getUi().alert(
-    '✅ Colunas do Feirão criadas em IMOVEISDISPONIVEIS!\n\n' +
-    'Preencha (ou peça para a equipe preencher, ou use o admin.html\n' +
-    'atualizado) Quartos, Preço Mín/Máx, Entrega e marque\n' +
-    'Feirao_On_Line = "Sim" nos imóveis que devem aparecer na Vitrine\n' +
-    'do 1º Feirão de Imóveis.'
-  );
+  Logger.log('✅ Cabeçalhos do Feirão criados em IMOVEISDISPONIVEIS (S→W). ' +
+    preenchidas + ' célula(s) vazia(s) em Feirao_On_Line preenchida(s) com "Não" — nenhuma célula já preenchida foi tocada.');
 }
 
 /* ─── PROJETO — adiciona a coluna X (24ª) na aba IMOVEISDISPONIVEIS
