@@ -1039,7 +1039,21 @@ a{text-decoration:none;color:inherit}
           <div class="field-row field-3 mb14">
             <div><div class="field-lbl">Tipologia</div><input class="field-inp" id="fEmpTipologia" placeholder="Ex: 2 e 3 quartos"></div>
             <div><div class="field-lbl">Endereço</div><input class="field-inp" id="fEmpEndereco" placeholder="Ex: Av. das Américas, 500"></div>
-            <div><div class="field-lbl">Projeto</div><input class="field-inp" id="fEmpProjeto" placeholder="Ex: Porto Maravilha"></div>
+            <div><div class="field-lbl">Projeto</div>
+              <select class="field-sel" id="fEmpProjetoSel" onchange="onFEmpProjeto_()">
+                <option value="">Selecione</option>
+                <option>Porto Maravilha</option>
+                <option>Praça Onze Maravilha</option>
+                <option>Expansão Porto Maravilha - São Cristóvão</option>
+                <option>Reviver Centro</option>
+                <option value="__outra__">➕ Outra...</option>
+              </select>
+              <div id="fEmpProjetoOutraWrap" style="display:none;margin-top:6px">
+                <input class="field-inp" type="text" id="fEmpProjetoOutra" placeholder="Digite o nome do projeto" oninput="document.getElementById('fEmpProjeto').value=this.value.trim()">
+                <button type="button" class="btn" style="padding:3px 9px;font-size:11px;margin-top:4px" onclick="voltarFEmpProjetoSelect_()">✕ Voltar para a lista</button>
+              </div>
+              <input type="hidden" id="fEmpProjeto">
+            </div>
           </div>
           <div class="field-row mb14">
             <div><div class="field-lbl">Descrição</div><textarea class="field-ta" id="fEmpDescr" placeholder="Texto de apresentação do empreendimento"></textarea></div>
@@ -2907,9 +2921,33 @@ function toggleFormEmp(){
   const abrindo=wrap.style.display==='none';
   wrap.style.display=abrindo?'block':'none';
   if(abrindo){
-    ['fEmpNome','fEmpConstrutora','fEmpTipo','fEmpUf','fEmpCidade','fEmpBairro','fEmpFaixa','fEmpValor','fEmpQtd','fEmpTipologia','fEmpEndereco','fEmpProjeto','fEmpDescr','fEmpDescricao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    ['fEmpNome','fEmpConstrutora','fEmpTipo','fEmpUf','fEmpCidade','fEmpBairro','fEmpFaixa','fEmpValor','fEmpQtd','fEmpTipologia','fEmpEndereco','fEmpProjeto','fEmpProjetoSel','fEmpDescr','fEmpDescricao'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+    document.getElementById('fEmpProjetoOutraWrap').style.display='none';
     document.getElementById('formEmpTitulo').textContent='➕ Novo Empreendimento';
   }
+}
+/* Select de Projeto com opção "Outra..." (pedido 79.23.2) — mesma UX do
+   admin.html (cadProjeto/onCadProjeto), simplificada: aqui não existe
+   cascade de UF/Cidade/Bairro dependendo do valor, só o campo Projeto
+   em si. fEmpProjeto (hidden) é o valor final que salvarEmpreendimentoGerente()
+   já lia antes como input de texto simples — continua sendo lido do
+   mesmo jeito, só muda como ele é preenchido. */
+function onFEmpProjeto_(){
+  const sel=document.getElementById('fEmpProjetoSel');
+  if(sel.value==='__outra__'){
+    document.getElementById('fEmpProjetoOutraWrap').style.display='block';
+    document.getElementById('fEmpProjetoOutra').value='';
+    document.getElementById('fEmpProjeto').value='';
+    document.getElementById('fEmpProjetoOutra').focus();
+    return;
+  }
+  document.getElementById('fEmpProjetoOutraWrap').style.display='none';
+  document.getElementById('fEmpProjeto').value=sel.value;
+}
+function voltarFEmpProjetoSelect_(){
+  document.getElementById('fEmpProjetoSel').value='';
+  document.getElementById('fEmpProjetoOutraWrap').style.display='none';
+  document.getElementById('fEmpProjeto').value='';
 }
 async function salvarEmpreendimentoGerente(){
   const nome=document.getElementById('fEmpNome').value.trim();
