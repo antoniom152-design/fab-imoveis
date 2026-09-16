@@ -1967,6 +1967,11 @@ function nav(el,id){
   const _bd=document.getElementById('sidebarBackdrop'); if(_bd) _bd.classList.remove('show');
   if(id==='viabilizador') renderViabLista();
   if(id==='reserva'&&!_reservas.length) carregarReservas();
+  // Cards de Empreendimentos podem ter sido montados enquanto este painel
+  // ainda estava escondido (dados chegam em segundo plano antes do usuário
+  // clicar aqui) — recalcula agora que o painel está visível, pra aplicar
+  // o limite de 7 linhas certo na primeira entrada (reportado 15/09/2026).
+  if(id==='empreendimentos'&&typeof recalcularDescricoesInteligentes==='function') recalcularDescricoesInteligentes();
 }
 
 /* ═══ LEADS (visão do Gerente — todos, não só "minha fila") ═══ */
