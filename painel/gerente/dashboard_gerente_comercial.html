@@ -1353,29 +1353,9 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
-<!-- MODAL MENSAGEM DA RESERVA (79.27 — reaproveitado pro Viabilizador e pro Lead,
-     parametrizado por destinatario; mesma rotina real de e-mail já usada no
-     Viabilizador/Agentes) -->
-<div class="modal-ov" id="modalReservaMensagem">
-  <div class="modal-box" style="max-width:460px">
-    <div class="modal-h">
-      <div class="modal-title" id="reservaMsgTitulo">Enviar mensagem</div>
-      <button class="modal-close" onclick="fecharModal('modalReservaMensagem')">×</button>
-    </div>
-    <div class="modal-body" style="max-height:75vh;overflow-y:auto">
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div><div class="field-lbl">E-mail do destinatário</div><input class="field-inp" type="email" id="reservaMsgContato"></div>
-        <div><div class="field-lbl">Assunto</div><input class="field-inp" id="reservaMsgAssunto"></div>
-        <div><div class="field-lbl">Mensagem</div><textarea class="field-ta" id="reservaMsgCorpo"></textarea></div>
-        <button class="btn-full btn-gold" id="reservaMsgBtnEnviar" onclick="reservaMsgEnviar_()">Enviar →</button>
-      </div>
-      <div class="sec" style="margin:16px 0 8px">🕓 Mensagens enviadas</div>
-      <div id="reservaMsgHistorico" class="fs12 c-muted">Carregando...</div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL REGISTRAR RESPOSTA DA RESERVA (79.27 — reaproveitado pro Viabilizador e pro Lead) -->
+<!-- MODAL REGISTRAR RESPOSTA DA RESERVA (79.27 — reaproveitado pro Viabilizador e pro Lead;
+     mesmo padrão do modalViabResposta da tela principal do Viabilizador — só o
+     compor+histórico da mensagem é que passou a ficar inline no card, pedido 79.27.1) -->
 <div class="modal-ov" id="modalReservaResposta">
   <div class="modal-box" style="max-width:420px">
     <div class="modal-h">
@@ -3263,6 +3243,25 @@ async function carregarReservas(){
    nome de bug já achado no cadastro de Empreendimento (79.23: coluna
    existe e tem dado, só o nome usado pra ler não batia). */
 function reservaChaveDe_(r){ return (r['Timestamp']||'')+'|'+(r['E-mail']||r['Nome Titular']||''); }
+/* Bloco inline de mensagem (pedido 79.27.1 — antes era um modal, o
+   Antonio pediu pra ficar "na mesma tela"). Um bloco por
+   card×destinatário, escondido por padrão, expandido pelo botão
+   correspondente — mesmo card, sem sair da tela nem abrir overlay. */
+function reservaMsgBlocoHtml_(i,destinatario,r){
+  const titulo=destinatario==='viabilizador'?'Mensagem ao Viabilizador':'Mensagem ao Lead';
+  const emailLead=r['E-mail']||'';
+  return`<div id="reservaMsgBloco_${i}_${destinatario}" style="display:none;background:var(--card2);border:1px solid var(--bdr);border-radius:9px;padding:12px;margin-bottom:8px">
+    <div class="fw6 fs12" style="margin-bottom:8px">📩 ${titulo}</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div><div class="field-lbl">E-mail do destinatário</div><input class="field-inp" type="email" id="reservaMsgContato_${i}_${destinatario}" value="${escAttr_(destinatario==='lead'?emailLead:'')}"></div>
+      <div><div class="field-lbl">Assunto</div><input class="field-inp" id="reservaMsgAssunto_${i}_${destinatario}"></div>
+      <div><div class="field-lbl">Mensagem</div><textarea class="field-ta" id="reservaMsgCorpo_${i}_${destinatario}"></textarea></div>
+      <button class="btn-full btn-gold" id="reservaMsgBtnEnviar_${i}_${destinatario}" onclick="reservaMsgEnviar_(${i},'${destinatario}')">Enviar →</button>
+    </div>
+    <div class="sec" style="margin:14px 0 8px">🕓 Mensagens enviadas</div>
+    <div id="reservaMsgHist_${i}_${destinatario}" class="fs12 c-muted">Carregando...</div>
+  </div>`;
+}
 function renderReservas(){
   const el=document.getElementById('reservaLista'); if(!el)return;
   if(!_reservas.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma reserva registrada ainda.</div>`;return}
@@ -3282,9 +3281,11 @@ function renderReservas(){
       <div class="fs11 c-muted" style="margin:6px 0">Entrada: ${valor||'—'} · Doc: ${r['Link Documentos (Drive)']?`<a href="${r['Link Documentos (Drive)']}" target="_blank" rel="noopener" style="color:var(--gold)">ver documentos</a>`:'—'}</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
         <button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalReservaDetalhe(${i})">👁️ Ver detalhes</button>
-        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalReservaMensagem(${i},'viabilizador')">📩 Mensagem ao Viabilizador</button>
-        ${email?`<button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalReservaMensagem(${i},'lead')">📩 Mensagem ao Lead</button>`:''}
+        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="reservaToggleMsg_(${i},'viabilizador')">📩 Mensagem ao Viabilizador</button>
+        <button class="btn" style="padding:4px 10px;font-size:11px" onclick="reservaToggleMsg_(${i},'lead')">📩 Mensagem ao Lead</button>
       </div>
+      ${reservaMsgBlocoHtml_(i,'viabilizador',r)}
+      ${reservaMsgBlocoHtml_(i,'lead',r)}
       <textarea class="field-ta" style="min-height:40px" placeholder="Anotação de acompanhamento (salva só neste navegador)" onchange="reservaSalvarNota_('${chave}',this.value)">${notas[chave]||''}</textarea>
     </div>`;
   }).join('');
@@ -3332,54 +3333,55 @@ async function abrirModalReservaDetalhe(i){
   abrirModal('modalReservaDetalhe');
 }
 
-/* Mensagens da Reserva (pedido 79.27) — reaproveita o mesmo modal pros
-   2 destinatários possíveis (Viabilizador/Lead), mesma rotina real de
-   e-mail (compartilhar_email via SCRIPT_URL_LEADS) já usada no
+/* Mensagens da Reserva (pedido 79.27, ajustado no 79.27.1 pra ficar
+   inline no card em vez de modal — "mesma tela") — 2 destinatários
+   possíveis (Viabilizador/Lead), mesma rotina real de e-mail
+   (compartilhar_email via SCRIPT_URL_LEADS) já usada no
    Viabilizador/Agentes, com histórico + resposta gravados na aba
-   MENSAGENS_RESERVA. */
-let _reservaMsgAtual=null;
-function reservaMsgRenderHistorico_(itens){
+   MENSAGENS_RESERVA. Cada bloco (i,destinatario) é independente —
+   dá pra ter os dois abertos ao mesmo tempo no mesmo card. */
+function reservaMsgRenderHistorico_(itens,i,destinatario){
   if(!itens.length)return`<div class="fs12 c-muted" style="padding:12px 0">Nenhuma mensagem enviada ainda.</div>`;
-  return itens.map(m=>`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;margin-bottom:8px">
+  return itens.map(m=>`<div style="background:var(--card);border:1px solid var(--bdr);border-radius:7px;padding:10px;margin-bottom:8px">
     <div class="flex-bet" style="gap:8px"><div class="fw6 fs12">${m.assunto||'—'}</div><div class="fs10 c-muted mono">${fmtDtHora_(m.criadoEm)}</div></div>
     <div class="fs11" style="white-space:pre-wrap;margin-top:4px">${m.corpo||''}</div>
     ${m.resposta
       ? `<div class="fs11" style="margin-top:6px;padding-top:6px;border-top:1px solid var(--bdr)"><b>Resposta:</b> ${m.resposta}<div class="c-muted mono" style="font-size:10px;margin-top:2px">${fmtDtHora_(m.respondidoEm)}</div></div>`
-      : `<button class="btn" style="padding:4px 10px;font-size:11px;margin-top:6px" onclick="abrirModalReservaResposta_('${m.id}')">📝 Registrar resposta</button>`}
+      : `<button class="btn" style="padding:4px 10px;font-size:11px;margin-top:6px" onclick="abrirModalReservaResposta_('${m.id}',${i},'${destinatario}')">📝 Registrar resposta</button>`}
   </div>`).join('');
 }
-async function reservaMsgCarregarHistorico_(){
-  const el=document.getElementById('reservaMsgHistorico'); if(!el||!_reservaMsgAtual)return;
-  el.innerHTML='Carregando...';
-  const resp=await cadastroApiJsonp('crm_gerente_reserva_mensagens_listar',{email:_user.email,sessionToken:_user.sessionToken,reservaChave:_reservaMsgAtual.reservaChave,destinatario:_reservaMsgAtual.destinatario});
-  el.innerHTML=reservaMsgRenderHistorico_((resp&&resp.itens)||[]);
-}
-function abrirModalReservaMensagem(i,destinatario){
+async function reservaMsgCarregarHistorico_(i,destinatario){
   const r=_reservas[i]; if(!r)return;
-  const emailLead=r['E-mail']||'';
-  if(destinatario==='lead'&&!emailLead){toast('Este Lead não tem e-mail cadastrado.','');return}
-  _reservaMsgAtual={reservaChave:reservaChaveDe_(r),destinatario,emp:r['Empreendimento']||''};
-  document.getElementById('reservaMsgTitulo').textContent=destinatario==='viabilizador'?'Mensagem ao Viabilizador':'Mensagem ao Lead';
-  const contatoEl=document.getElementById('reservaMsgContato');
-  if(destinatario==='lead'){contatoEl.value=emailLead;contatoEl.disabled=true;}
-  else{contatoEl.value='';contatoEl.disabled=false;}
-  document.getElementById('reservaMsgAssunto').value=destinatario==='viabilizador'
-    ? `[WAL Imóveis] Consulta sobre a Reserva — ${r['Empreendimento']||''}`
-    : `[WAL Imóveis] Sobre a sua Reserva — ${r['Empreendimento']||''}`;
-  document.getElementById('reservaMsgCorpo').value=destinatario==='viabilizador'
-    ? `Olá,\n\nGostaria de confirmar a posição da unidade desejada pelo cliente ${r['Nome Titular']||''} no empreendimento ${r['Empreendimento']||''}.\n\nAguardo retorno.`
-    : '';
-  abrirModal('modalReservaMensagem');
-  reservaMsgCarregarHistorico_();
+  const el=document.getElementById(`reservaMsgHist_${i}_${destinatario}`); if(!el)return;
+  el.innerHTML='Carregando...';
+  const resp=await cadastroApiJsonp('crm_gerente_reserva_mensagens_listar',{email:_user.email,sessionToken:_user.sessionToken,reservaChave:reservaChaveDe_(r),destinatario});
+  el.innerHTML=reservaMsgRenderHistorico_((resp&&resp.itens)||[],i,destinatario);
 }
-async function reservaMsgEnviar_(){
-  if(!_reservaMsgAtual)return;
-  const contato=document.getElementById('reservaMsgContato').value.trim();
-  const assunto=document.getElementById('reservaMsgAssunto').value.trim();
-  const corpo=document.getElementById('reservaMsgCorpo').value.trim();
+function reservaToggleMsg_(i,destinatario){
+  const r=_reservas[i]; if(!r)return;
+  const bloco=document.getElementById(`reservaMsgBloco_${i}_${destinatario}`); if(!bloco)return;
+  const abrindo=bloco.style.display==='none';
+  bloco.style.display=abrindo?'block':'none';
+  if(!abrindo)return;
+  if(bloco.dataset.iniciado!=='1'){
+    bloco.dataset.iniciado='1';
+    document.getElementById(`reservaMsgAssunto_${i}_${destinatario}`).value=destinatario==='viabilizador'
+      ? `[WAL Imóveis] Consulta sobre a Reserva — ${r['Empreendimento']||''}`
+      : `[WAL Imóveis] Sobre a sua Reserva — ${r['Empreendimento']||''}`;
+    document.getElementById(`reservaMsgCorpo_${i}_${destinatario}`).value=destinatario==='viabilizador'
+      ? `Olá,\n\nGostaria de confirmar a posição da unidade desejada pelo cliente ${r['Nome Titular']||''} no empreendimento ${r['Empreendimento']||''}.\n\nAguardo retorno.`
+      : '';
+  }
+  reservaMsgCarregarHistorico_(i,destinatario);
+}
+async function reservaMsgEnviar_(i,destinatario){
+  const contato=document.getElementById(`reservaMsgContato_${i}_${destinatario}`).value.trim();
+  const assunto=document.getElementById(`reservaMsgAssunto_${i}_${destinatario}`).value.trim();
+  const corpo=document.getElementById(`reservaMsgCorpo_${i}_${destinatario}`).value.trim();
   if(!contato){toast('Informe o e-mail do destinatário.','');return}
   if(!corpo){toast('Escreva a mensagem antes de enviar.','');return}
-  const btn=document.getElementById('reservaMsgBtnEnviar');
+  const r=_reservas[i]; if(!r)return;
+  const btn=document.getElementById(`reservaMsgBtnEnviar_${i}_${destinatario}`);
   const orig=btn.textContent;
   btn.disabled=true;btn.textContent='Enviando...';
   try{
@@ -3388,10 +3390,10 @@ async function reservaMsgEnviar_(){
     const data=await res.json();
     if(data.status==='ok'){
       await cadastroApiJsonp('crm_gerente_reserva_mensagem_criar',{email:_user.email,sessionToken:_user.sessionToken,
-        reservaChave:_reservaMsgAtual.reservaChave,destinatario:_reservaMsgAtual.destinatario,contato,assunto,corpo});
+        reservaChave:reservaChaveDe_(r),destinatario,contato,assunto,corpo});
       toast('✅ Mensagem enviada para '+contato+'!','green');
-      document.getElementById('reservaMsgCorpo').value='';
-      reservaMsgCarregarHistorico_();
+      document.getElementById(`reservaMsgCorpo_${i}_${destinatario}`).value='';
+      reservaMsgCarregarHistorico_(i,destinatario);
     }else{
       toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
     }
@@ -3400,24 +3402,25 @@ async function reservaMsgEnviar_(){
   }
   btn.disabled=false;btn.textContent=orig;
 }
-let _reservaRespostaIdAtual=null;
-function abrirModalReservaResposta_(id){
-  _reservaRespostaIdAtual=id;
+let _reservaRespostaAtual=null;
+function abrirModalReservaResposta_(id,i,destinatario){
+  _reservaRespostaAtual={id,i,destinatario};
   document.getElementById('reservaRespostaTexto').value='';
   abrirModal('modalReservaResposta');
 }
 async function reservaMsgSalvarResposta_(){
+  if(!_reservaRespostaAtual)return;
   const resposta=document.getElementById('reservaRespostaTexto').value.trim();
   if(!resposta){toast('Descreva a resposta antes de salvar.','');return}
   const btn=document.getElementById('reservaRespostaBtnSalvar');
   const orig=btn.textContent;
   btn.disabled=true;btn.textContent='Salvando...';
-  const resp=await cadastroApiJsonp('crm_gerente_reserva_mensagem_responder',{email:_user.email,sessionToken:_user.sessionToken,id:_reservaRespostaIdAtual,resposta});
+  const resp=await cadastroApiJsonp('crm_gerente_reserva_mensagem_responder',{email:_user.email,sessionToken:_user.sessionToken,id:_reservaRespostaAtual.id,resposta});
   btn.disabled=false;btn.textContent=orig;
   if(resp&&resp.status==='ok'){
     toast('✅ Resposta registrada!','green');
     fecharModal('modalReservaResposta');
-    reservaMsgCarregarHistorico_();
+    reservaMsgCarregarHistorico_(_reservaRespostaAtual.i,_reservaRespostaAtual.destinatario);
   }else{
     toast((resp&&resp.message)||'Não foi possível salvar agora. Tente novamente.','');
   }
