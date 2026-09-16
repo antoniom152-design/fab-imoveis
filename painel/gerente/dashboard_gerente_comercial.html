@@ -776,6 +776,7 @@ a{text-decoration:none;color:inherit}
       <div class="nav-lbl">Principal</div>
       <div class="nav-item active" onclick="nav(this,'visaogeral')"><span class="nav-ico">📊</span>Visão Geral</div>
       <div class="nav-item" onclick="nav(this,'equipe')"><span class="nav-ico">🧑‍💼</span>Equipe</div>
+      <div class="nav-item" onclick="nav(this,'agentes')"><span class="nav-ico">🤝</span>Agentes</div>
       <div class="nav-item" onclick="nav(this,'leads')">
         <span class="nav-ico">📋</span>Leads
         <span class="nav-bdg nb-t" id="sbBdgFila">0</span>
@@ -868,6 +869,25 @@ a{text-decoration:none;color:inherit}
         ℹ️ O cadastro de novos Atendentes é feito pelo próprio Atendente em <strong>painel/atendente/dashboard_atendente.html</strong> — esta tela só mostra quem já está cadastrado.
       </div>
       <div id="equipeLista"></div>
+    </div>
+
+    <!-- ══ AGENTES (parceiros externos que indicam leads — pedido 79.19) ══ -->
+    <div class="panel" id="panel-agentes">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">🤝 Parceiros</div>
+          <div class="ph-title">Agentes Parceiros</div>
+          <div class="ph-sub">Acompanhe quem está indicando leads e envie mensagens diretamente daqui</div>
+        </div>
+      </div>
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">🏆 Ranking de Agentes</div></div>
+        <div class="card-b" style="padding:0" id="agRanking"></div>
+      </div>
+      <div class="mb14">
+        <input class="field-inp" type="text" id="agBusca" placeholder="🔍 Buscar por nome ou CPF..." style="width:260px" oninput="renderAgentes()">
+      </div>
+      <div id="agentesLista"></div>
     </div>
 
     <!-- ══ LEADS ══ -->
@@ -1296,6 +1316,40 @@ a{text-decoration:none;color:inherit}
         <div class="field-lbl">O que o Viabilizador respondeu?</div>
         <textarea class="field-ta" id="viabRespostaTexto" placeholder="Ex: aprovado 5% de desconto, condição válida até sexta."></textarea>
         <button class="btn-full btn-gold" id="viabRespostaBtnSalvar" onclick="salvarRespostaViabilizador()">Salvar resposta</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETALHE DO AGENTE (79.19) -->
+<div class="modal-ov" id="modalAgenteDetalhe">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-h">
+      <div class="modal-title" id="agDetalheTitulo">Detalhes do Agente</div>
+      <button class="modal-close" onclick="fecharModal('modalAgenteDetalhe')">×</button>
+    </div>
+    <div class="modal-body" id="agDetalheBody" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- MODAL MENSAGEM AO AGENTE (79.19 — mesma rotina real de e-mail do Viabilizador) -->
+<div class="modal-ov" id="modalAgenteMensagem">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-h">
+      <div class="modal-title">Enviar mensagem</div>
+      <button class="modal-close" onclick="fecharModal('modalAgenteMensagem')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="fs12 c-muted" id="agMsgDestino"></div>
+        <div><div class="field-lbl">Assunto</div><input class="field-inp" id="agMsgAssunto"></div>
+        <div><div class="field-lbl">Mensagem</div><textarea class="field-ta" id="agMsgCorpo" placeholder="Escreva a mensagem para o Agente..."></textarea></div>
+        <div>
+          <div class="field-lbl">Anexar documento (opcional)</div>
+          <input type="file" id="agMsgAnexos" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" onchange="agMsgAtualizarAnexosInfo_()">
+          <div class="fs11 c-muted" id="agMsgAnexosInfo" style="margin-top:4px">Nenhum arquivo selecionado (máx. 8 MB no total).</div>
+        </div>
+        <button class="btn-full btn-gold" id="agMsgBtnEnviar" onclick="enviarMensagemAgente()">Enviar →</button>
       </div>
     </div>
   </div>
@@ -1890,21 +1944,25 @@ function tick(){const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=Stri
    crm_gerente_equipe_listar_/crm_gerente_listar_historico_todos_ em
    apps-script-sistema-web-cadastro.gs. */
 let _equipe = [];
+let _agentes = [];
 let _historicoPorLead = {};
 async function carregarDadosIniciais(){
-  const [respEmp, respLeads, respEquipe, respHist] = await Promise.all([
+  const [respEmp, respLeads, respEquipe, respHist, respAgentes] = await Promise.all([
     cadastroApiJsonp('crm_empreendimentos_listar', {}),
     cadastroApiJsonp('crm_gerente_leads_listar', {email:_user.email, sessionToken:_user.sessionToken}),
     cadastroApiJsonp('crm_gerente_equipe_listar', {email:_user.email, sessionToken:_user.sessionToken}),
-    cadastroApiJsonp('crm_gerente_listar_historico_todos', {email:_user.email, sessionToken:_user.sessionToken})
+    cadastroApiJsonp('crm_gerente_listar_historico_todos', {email:_user.email, sessionToken:_user.sessionToken}),
+    cadastroApiJsonp('crm_gerente_agentes_listar', {email:_user.email, sessionToken:_user.sessionToken})
   ]);
   _empreendimentos = (respEmp && respEmp.itens) || [];
   _leads = (respLeads && respLeads.itens) || [];
   _equipe = (respEquipe && respEquipe.itens) || [];
   _historicoPorLead = (respHist && respHist.porLead) || {};
+  _agentes = (respAgentes && respAgentes.itens) || [];
   popularSelectsAtendente_();
   renderLeads();
   renderEquipe();
+  renderAgentes();
   renderVisaoGeral();
   renderFunil();
   renderAcompanhar();
@@ -1956,7 +2014,7 @@ function fixDriveUrl(url) {
 }
 
 /* ═══ NAV ═══ */
-const TITLES={visaogeral:'Visão Geral',equipe:'Equipe',leads:'Leads',funil:'Funil de Atendimento',acompanhar:'Acompanhar Atendimento',empreendimentos:'Empreendimentos & Unidades',simulador:'Simulador Financeiro',viabilizador:'Solicitação ao Viabilizador',reserva:'Reserva de Unidade',ia:'Assistente IA',perfil:'Meu Perfil'};
+const TITLES={visaogeral:'Visão Geral',equipe:'Equipe',agentes:'Agentes',leads:'Leads',funil:'Funil de Atendimento',acompanhar:'Acompanhar Atendimento',empreendimentos:'Empreendimentos & Unidades',simulador:'Simulador Financeiro',viabilizador:'Solicitação ao Viabilizador',reserva:'Reserva de Unidade',ia:'Assistente IA',perfil:'Meu Perfil'};
 function nav(el,id){
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
   if(el?.classList)el.classList.add('active');
@@ -2178,6 +2236,164 @@ async function reatribuirLead(){
   renderLeads();renderVisaoGeral();
   abrirLead(_leadAtualId);
 }
+/* ═══ AGENTES (parceiros externos que indicam leads — pedido 79.19).
+   Leads/Fechados/Conversão calculados no client a partir de _leads,
+   mesmo idioma de renderEquipe() acima, só trocando atendenteId por
+   agenteId (os leads já trazem agenteId desde o pedido 79.6). */
+function agLeadsDoAgente_(agenteId){ return _leads.filter(l=>l.agenteId===agenteId); }
+function renderAgentesRanking_(){
+  const el=document.getElementById('agRanking'); if(!el)return;
+  if(!_agentes.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum Agente cadastrado ainda.</div>`;return}
+  const linhas=_agentes.map(a=>{
+    const meus=agLeadsDoAgente_(a.id);
+    const fech=meus.filter(l=>l.status==='fechado').length;
+    const conv=meus.length?Math.round(fech/meus.length*100):0;
+    return{nome:a.nome,leads:meus.length,fech,conv};
+  }).sort((a,b)=>b.leads-a.leads);
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Agente</th><th>Leads</th><th>Fechados</th><th>Conversão</th></tr></thead><tbody>${linhas.map(r=>`<tr>
+    <td class="fw6">${r.nome||'—'}</td>
+    <td class="mono">${r.leads}</td>
+    <td class="mono">${r.fech}</td>
+    <td class="mono">${r.conv}%</td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+function renderAgentes(){
+  renderAgentesRanking_();
+  const el=document.getElementById('agentesLista'); if(!el)return;
+  const busca=(document.getElementById('agBusca')?.value||'').trim().toLowerCase();
+  const buscaDigitos=busca.replace(/\D/g,'');
+  // Busca por CPF só compara dígitos, e só entra em jogo se a busca TEM
+  // algum dígito — senão "".includes("") sempre bate e o filtro de CPF
+  // vira um no-op pra qualquer busca só-com-letras (mesmo cuidado já
+  // usado na busca de Equipe do admin.html).
+  const lista=_agentes.filter(a=>{
+    if(!busca)return true;
+    const bateNome=(a.nome||'').toLowerCase().includes(busca);
+    const bateCpf=buscaDigitos&&(a.cpf||'').replace(/\D/g,'').includes(buscaDigitos);
+    return bateNome||bateCpf;
+  });
+  if(!lista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum Agente encontrado.</div>`;return}
+  el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Agente</th><th>CPF</th><th>Cidade/UF</th><th>Leads trazidos</th><th>Ações</th></tr></thead><tbody>${lista.map(a=>{
+    const meus=agLeadsDoAgente_(a.id);
+    return`<tr>
+      <td><div class="fw6">${a.nome||'—'}</div><div class="fs10 c-muted">${a.email||''}</div></td>
+      <td class="mono fs11">${a.cpf||'—'}</td>
+      <td class="fs11">${a.cidade?a.cidade+'/'+(a.uf||''):'—'}</td>
+      <td class="mono">${meus.length}</td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalAgenteDetalhe('${escAttr_(a.id)}')">👁️ Ver detalhes</button>
+          <button class="btn btn-gold" style="padding:4px 10px;font-size:11px" onclick="abrirModalAgenteMensagem('${escAttr_(a.id)}')">✉️ Mensagem</button>
+          ${a.whatsapp?`<button class="btn" style="padding:4px 10px;font-size:11px;background:#25D366;color:#fff;border-color:transparent" onclick="agAbrirWhatsapp('${escAttr_(a.id)}')">📱 WhatsApp</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+function agAbrirWhatsapp(id){
+  const a=_agentes.find(x=>x.id===id); if(!a||!a.whatsapp)return;
+  const meus=agLeadsDoAgente_(id);
+  const texto=`Olá, ${a.nome}! Aqui é da WAL Imóveis. Queria agradecer pela parceria${meus.length?` — você já trouxe ${meus.length} indicação${meus.length===1?'':'ões'} pra gente`:''}! Continue contando com a gente para novas oportunidades. 🤝`;
+  window.open(`https://wa.me/55${a.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(texto)}`,'_blank');
+}
+async function abrirModalAgenteDetalhe(id){
+  const a=_agentes.find(x=>x.id===id); if(!a)return;
+  document.getElementById('agDetalheTitulo').textContent=a.nome||'Detalhes do Agente';
+  const docLink=(url,label)=>url?`<a href="${url}" target="_blank" rel="noopener" style="color:var(--gold-ink);text-decoration:underline">📄 Ver ${label}</a>`:'<span class="c-muted">Não enviado</span>';
+  document.getElementById('agDetalheBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${campoDetalheLead_('Id',a.id)}
+      ${campoDetalheLead_('Nome',a.nome)}
+      ${campoDetalheLead_('E-mail',a.email)}
+      ${campoDetalheLead_('CPF',a.cpf)}
+      ${campoDetalheLead_('WhatsApp',a.whatsapp)}
+      ${campoDetalheLead_('Data de Nascimento',a.nascimento?fmtDt(a.nascimento):'')}
+      ${campoDetalheLead_('Profissão',a.profissao)}
+      ${campoDetalheLead_('UF',a.uf)}
+      ${campoDetalheLead_('Cidade',a.cidade)}
+      ${campoDetalheLead_('CRECI',a.creci)}
+      ${campoDetalheLead_('Banco',a.banco)}
+      ${campoDetalheLead_('Agência',a.agencia)}
+      ${campoDetalheLead_('Conta',a.conta)}
+      ${campoDetalheLead_('Tipo de Conta',a.tipoConta)}
+      ${campoDetalheLead_('Chave Pix',a.pix)}
+      ${campoDetalheLead_('Classificação',a.classificacao)}
+      ${campoDetalheLead_('Status',a.status)}
+      ${campoDetalheLead_('Habilitado',a.habilitado?'✅ Sim':'⛔ Não')}
+      ${campoDetalheLead_('Termos Aceitos em',a.termosAceitosEm?fmtDtHora_(a.termosAceitosEm):'')}
+      ${campoDetalheLead_('Versão dos Termos',a.termosVersao)}
+      ${campoDetalheLead_('Criado em',a.criadoEm?fmtDtHora_(a.criadoEm):'')}
+      ${campoDetalheLead_('Atualizado em',a.atualizadoEm?fmtDtHora_(a.atualizadoEm):'')}
+      ${campoDetalheLead_('Último Acesso',a.ultimoAcesso?fmtDtHora_(a.ultimoAcesso):'')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px">
+      ${campoDetalheLead_('RG/CNH',docLink(a.docRgUrl,'RG/CNH'))}
+      ${campoDetalheLead_('Comprovante de Residência',docLink(a.docComprovanteUrl,'comprovante'))}
+      ${campoDetalheLead_('Contrato de Parceria',docLink(a.docContratoUrl,'contrato'))}
+    </div>
+    <div class="sec" style="margin:14px 0 8px">🤝 Indicações trazidas</div>
+    <div id="agIndicacoesList" class="fs12 c-muted">Carregando...</div>
+  `;
+  abrirModal('modalAgenteDetalhe');
+  const resp=await cadastroApiJsonp('crm_gerente_agente_indicacoes',{email:_user.email,sessionToken:_user.sessionToken,agenteId:id});
+  const itens=(resp&&resp.itens)||[];
+  const elInd=document.getElementById('agIndicacoesList'); if(!elInd)return;
+  if(!itens.length){elInd.innerHTML=`<div class="fs12 c-muted" style="padding:12px 0">Nenhuma indicação registrada ainda.</div>`;return}
+  elInd.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Telefone</th><th>Status</th></tr></thead><tbody>${itens.map(i=>`<tr>
+    <td class="mono fs11">${fmtDtHora_(i.criadoEm)}</td>
+    <td class="fs11">${i.nomeCliente||'—'}</td>
+    <td class="fs11">${i.telefone||'—'}</td>
+    <td class="fs11">${i.status||'—'}</td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+let _agMsgAgenteId=null;
+function abrirModalAgenteMensagem(id){
+  const a=_agentes.find(x=>x.id===id); if(!a)return;
+  if(!a.email){toast('Este Agente não tem e-mail cadastrado.','');return}
+  _agMsgAgenteId=id;
+  document.getElementById('agMsgDestino').textContent=`Para: ${a.nome} (${a.email})`;
+  document.getElementById('agMsgAssunto').value='[WAL Imóveis] Mensagem da Gerência Comercial';
+  document.getElementById('agMsgCorpo').value='';
+  document.getElementById('agMsgAnexos').value='';
+  agMsgAtualizarAnexosInfo_();
+  abrirModal('modalAgenteMensagem');
+}
+function agMsgAtualizarAnexosInfo_(){
+  const info=document.getElementById('agMsgAnexosInfo');
+  const arquivos=[...document.getElementById('agMsgAnexos').files];
+  if(!arquivos.length){info.textContent='Nenhum arquivo selecionado (máx. 8 MB no total).';info.style.color='';return}
+  const totalBytes=arquivos.reduce((s,f)=>s+f.size,0);
+  info.textContent=`${arquivos.length} arquivo(s): ${arquivos.map(f=>f.name).join(', ')} (${(totalBytes/1024).toFixed(0)} KB)`;
+  info.style.color=totalBytes>VIAB_ANEXOS_MAX_BYTES?'var(--red-ink)':'';
+}
+async function enviarMensagemAgente(){
+  const a=_agentes.find(x=>x.id===_agMsgAgenteId); if(!a)return;
+  const assunto=document.getElementById('agMsgAssunto').value.trim();
+  const corpo=document.getElementById('agMsgCorpo').value.trim();
+  const arquivos=[...document.getElementById('agMsgAnexos').files];
+  if(!corpo){toast('Escreva a mensagem antes de enviar.','');return}
+  if(arquivos.reduce((s,f)=>s+f.size,0)>VIAB_ANEXOS_MAX_BYTES){toast('Os anexos somados não podem passar de 8 MB.','');return}
+  const btn=document.getElementById('agMsgBtnEnviar');
+  const orig=btn.textContent;
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    let anexos=[];
+    if(arquivos.length) anexos=await Promise.all(arquivos.map(viabArquivoParaBase64_));
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:a.email,assunto,corpo,anexos})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      toast('✅ Mensagem enviada para '+a.email+'!','green');
+      fecharModal('modalAgenteMensagem');
+    }else{
+      toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
+    }
+  }catch(e){
+    toast('Falha na conexão. Tente novamente.','');
+  }
+  btn.disabled=false;btn.textContent=orig;
+}
+
 async function salvarStatusLead(){
   const status=document.getElementById('leadStatusSel').value;
   const prioridade=document.getElementById('leadPrioridadeSel').value;
