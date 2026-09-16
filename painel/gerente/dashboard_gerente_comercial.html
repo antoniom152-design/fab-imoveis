@@ -2731,7 +2731,7 @@ async function enviarSolicitacaoViabilizador(){
     let anexos=[];
     if(arquivos.length) anexos=await Promise.all(arquivos.map(viabArquivoParaBase64_));
     const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
-      body:JSON.stringify({tipo:'compartilhar_email',destinatario:email,assunto,corpo,anexos})});
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:email,assunto,corpo,anexos,remetenteEmail:'comercial@walservidor.com.br'})});
     const data=await res.json();
     if(data.status==='ok'){
       await cadastroApiJsonp('crm_gerente_viab_criar',{email:_user.email,sessionToken:_user.sessionToken,tipo,emp,emailViabilizador:email,descricao});

@@ -53,13 +53,16 @@ function brevoApiKey_() {
   return PropertiesService.getScriptProperties().getProperty('BREVO_API_KEY');
 }
 
-/* opts.replyTo: e-mail para responder · opts.attachments: [{content:base64, name}] */
+/* opts.replyTo: e-mail para responder · opts.attachments: [{content:base64, name}] ·
+   opts.senderEmail/opts.senderName: sobrescreve o remetente padrão (BREVO_SENDER_EMAIL/
+   NOME) pra este envio específico — precisa que o domínio walservidor.com.br já esteja
+   autenticado (SPF/DKIM) no Brevo, senão a API rejeita o remetente. */
 function enviarEmailBrevo_(destinatario, assunto, corpoHtml, opts) {
   var apiKey = brevoApiKey_();
   if (!apiKey) { Logger.log('enviarEmailBrevo_: BREVO_API_KEY não configurada nas Propriedades do script.'); return false; }
   opts = opts || {};
   var payload = {
-    sender: { name: BREVO_SENDER_NOME, email: BREVO_SENDER_EMAIL },
+    sender: { name: opts.senderName || BREVO_SENDER_NOME, email: opts.senderEmail || BREVO_SENDER_EMAIL },
     to: [{ email: destinatario }],
     subject: assunto
   };
@@ -607,10 +610,15 @@ function processarEbook(data) {
    Solicitação ao Viabilizador (pedido 79.16) pra anexar documento(s) na
    hora, sem passar pelo fluxo de upload pro Drive (esse é só pra
    documento avulso e ocasional, não pro pacote de docs do cliente que
-   já tem o próprio fluxo — ver comentário de processarReserva()). */
+   já tem o próprio fluxo — ver comentário de processarReserva()).
+   data.remetenteEmail (opcional): sobrescreve o remetente padrão
+   (wal@walservidor.com.br) só pra este envio — a Solicitação ao
+   Viabilizador (pedido 79.16 - troca de remetente) manda
+   comercial@walservidor.com.br, todo o resto continua com o padrão. */
 function processarCompartilharEmail(data) {
   var opts = { textOnly: true };
   if (data.anexos && data.anexos.length) opts.attachments = data.anexos;
+  if (data.remetenteEmail) opts.senderEmail = data.remetenteEmail;
   var ok = enviarEmailBrevo_(data.destinatario, data.assunto || 'Imóvel WAL Imóveis', data.corpo || '', opts);
   if (!ok) throw new Error('Falha ao enviar e-mail via Brevo.');
 }
