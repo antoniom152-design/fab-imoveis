@@ -1376,14 +1376,16 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
-<!-- MODAL MENSAGEM AO AGENTE (79.19 — mesma rotina real de e-mail do Viabilizador) -->
+<!-- MODAL MENSAGEM AO AGENTE (79.19 — mesma rotina real de e-mail do Viabilizador;
+     79.25 — histórico de mensagens já enviadas, mesmo padrão da aba "Solicitações
+     enviadas" do Viabilizador) -->
 <div class="modal-ov" id="modalAgenteMensagem">
   <div class="modal-box" style="max-width:460px">
     <div class="modal-h">
       <div class="modal-title">Enviar mensagem</div>
       <button class="modal-close" onclick="fecharModal('modalAgenteMensagem')">×</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="max-height:75vh;overflow-y:auto">
       <div style="display:flex;flex-direction:column;gap:10px">
         <div class="fs12 c-muted" id="agMsgDestino"></div>
         <div><div class="field-lbl">Assunto</div><input class="field-inp" id="agMsgAssunto"></div>
@@ -1395,6 +1397,8 @@ a{text-decoration:none;color:inherit}
         </div>
         <button class="btn-full btn-gold" id="agMsgBtnEnviar" onclick="enviarMensagemAgente()">Enviar →</button>
       </div>
+      <div class="sec" style="margin:16px 0 8px">🕓 Mensagens enviadas</div>
+      <div id="agMsgHistorico" class="fs12 c-muted">Carregando...</div>
     </div>
   </div>
 </div>
@@ -2430,6 +2434,20 @@ function abrirModalAgenteLeads(id){
   abrirModal('modalAgenteLeads');
 }
 let _agMsgAgenteId=null;
+function agRenderMsgHistorico_(itens){
+  if(!itens.length)return`<div class="fs12 c-muted" style="padding:12px 0">Nenhuma mensagem enviada ainda.</div>`;
+  return itens.map(m=>`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;margin-bottom:8px">
+    <div class="flex-bet" style="gap:8px"><div class="fw6 fs12">${m.assunto||'—'}</div><div class="fs10 c-muted mono">${fmtDtHora_(m.criadoEm)}</div></div>
+    <div class="fs11" style="white-space:pre-wrap;margin-top:4px">${m.corpo||''}</div>
+    <div class="fs10 c-muted" style="margin-top:4px">Enviado por ${m.gerenteNome||'—'}</div>
+  </div>`).join('');
+}
+async function agCarregarMsgHistorico_(agenteId){
+  const el=document.getElementById('agMsgHistorico'); if(!el)return;
+  el.innerHTML='Carregando...';
+  const resp=await cadastroApiJsonp('crm_gerente_agente_mensagens_listar',{email:_user.email,sessionToken:_user.sessionToken,agenteId});
+  el.innerHTML=agRenderMsgHistorico_((resp&&resp.itens)||[]);
+}
 function abrirModalAgenteMensagem(id){
   const a=_agentes.find(x=>x.id===id); if(!a)return;
   if(!a.email){toast('Este Agente não tem e-mail cadastrado.','');return}
@@ -2440,6 +2458,7 @@ function abrirModalAgenteMensagem(id){
   document.getElementById('agMsgAnexos').value='';
   agMsgAtualizarAnexosInfo_();
   abrirModal('modalAgenteMensagem');
+  agCarregarMsgHistorico_(id);
 }
 function agMsgAtualizarAnexosInfo_(){
   const info=document.getElementById('agMsgAnexosInfo');
@@ -2466,8 +2485,10 @@ async function enviarMensagemAgente(){
       body:JSON.stringify({tipo:'compartilhar_email',destinatario:a.email,assunto,corpo,anexos})});
     const data=await res.json();
     if(data.status==='ok'){
+      await cadastroApiJsonp('crm_gerente_agente_mensagem_criar',{email:_user.email,sessionToken:_user.sessionToken,agenteId:a.id,assunto,corpo});
       toast('✅ Mensagem enviada para '+a.email+'!','green');
-      fecharModal('modalAgenteMensagem');
+      document.getElementById('agMsgCorpo').value='';
+      agCarregarMsgHistorico_(a.id);
     }else{
       toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
     }

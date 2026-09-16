@@ -1234,6 +1234,11 @@ var ABA_AGENDAMENTOS_VISITA_LEAD   = 'AGENDAMENTOS_VISITA_LEAD';
    ficava salva em localStorage do navegador ("neste dispositivo"),
    sem histórico real nenhum. */
 var ABA_SOLICITACOES_VIABILIZADOR = 'SOLICITACOES_VIABILIZADOR';
+/* Histórico de mensagens que o Gerente manda pra um Agente Parceiro
+   (pedido 79.25) — mesmo espírito de ABA_SOLICITACOES_VIABILIZADOR:
+   antes o e-mail era só disparado (fire-and-forget), sem nenhum
+   registro; agora fica gravado, recuperável de qualquer lugar. */
+var ABA_MENSAGENS_AGENTES = 'MENSAGENS_AGENTES';
 
 /* SEM "_" no final de propósito (diferente do resto do arquivo) — é a
    única forma de uma função aparecer no menu "Selecionar função" do
@@ -1268,6 +1273,18 @@ function setupSolicitacoesViabilizador() {
     'Status', 'Resposta', 'Respondido_em'
   ]);
   var msg = '✅ Aba ' + ABA_SOLICITACOES_VIABILIZADOR + ' verificada/criada.';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
+/* Cria a aba MENSAGENS_AGENTES (pedido 79.25) — mesmo padrão de
+   setupSolicitacoesViabilizador() acima. */
+function setupMensagensAgentes() {
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  criarAbaSeNaoExiste_(ssCrm, ABA_MENSAGENS_AGENTES, [
+    'Id', 'Gerente_Id', 'Gerente_Nome', 'Agente_Id', 'Assunto', 'Corpo', 'Criado_em'
+  ]);
+  var msg = '✅ Aba ' + ABA_MENSAGENS_AGENTES + ' verificada/criada.';
   Logger.log(msg);
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
 }
@@ -1869,6 +1886,58 @@ function crm_gerente_agente_indicacoes_(p) {
   return { status: 'ok', itens: itens };
 }
 
+/* Registra o histórico de mensagens que o Gerente manda pra um Agente
+   (pedido 79.25) — mesma rotina real de e-mail do Viabilizador
+   (compartilhar_email via SCRIPT_URL_LEADS, chamada à parte pelo
+   frontend), só grava depois que o e-mail confirma sucesso. Mesmo
+   padrão de crm_gerente_viab_criar_. */
+function crm_gerente_agente_mensagem_criar_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var agenteId = s_(data.agenteId).trim().toUpperCase();
+  var corpo = s_(data.corpo).trim();
+  if (!agenteId) return { status: 'error', message: 'Id do agente é obrigatório.' };
+  if (!corpo) return { status: 'error', message: 'Mensagem é obrigatória.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_MENSAGENS_AGENTES);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_MENSAGENS_AGENTES + ' não encontrada — rode setupMensagensAgentes().' };
+    var headers = headersDe_(aba);
+    var id = gerarId_(aba, 'MSG');
+    var campos = {
+      Id: id, Gerente_Id: gerente.Id, Gerente_Nome: gerente.Nome, Agente_Id: agenteId,
+      Assunto: s_(data.assunto), Corpo: corpo, Criado_em: agora_()
+    };
+    aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
+    return { status: 'ok', id: id };
+  });
+}
+
+/* Lista TODAS as mensagens já enviadas pra um Agente, não só as deste
+   Gerente — diferente de crm_gerente_viab_listar_ (que é por Gerente,
+   porque cada solicitação ao Viabilizador é um pedido individual do
+   próprio Gerente): aqui o pedido foi "mensagens enviadas para esse
+   Agente", então o histórico é do Agente, visível pra qualquer Gerente
+   que abrir a tela — útil pra não duplicar contato sem saber que outro
+   Gerente já mandou algo parecido. */
+function crm_gerente_agente_mensagens_listar_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var agenteId = s_(p.agenteId).trim().toUpperCase();
+  if (!agenteId) return { status: 'error', message: 'Id do agente é obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_MENSAGENS_AGENTES);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (m) { return s_(m.Agente_Id).trim().toUpperCase() === agenteId; })
+    .map(function (m) {
+      return { id: s_(m.Id), gerenteNome: s_(m.Gerente_Nome), assunto: s_(m.Assunto), corpo: s_(m.Corpo), criadoEm: dataStr_(m.Criado_em) };
+    });
+  itens.sort(function (a, b) { return new Date(b.criadoEm) - new Date(a.criadoEm); });
+  return { status: 'ok', itens: itens };
+}
+
 /* Ativar/desativar um Atendente da equipe (aba ATENDENTES, coluna Status)
    — mesmo campo que admin_pessoa_atualizar_ já mexe (usado pela aba
    Equipe do admin.html), só que aqui é o próprio Gerente que aciona, sem
@@ -2132,6 +2201,8 @@ function doGet(e) {
       case 'crm_gerente_viab_responder':        result = crm_gerente_viab_responder_(p); break;
       case 'crm_gerente_agentes_listar':        result = crm_gerente_agentes_listar_(p); break;
       case 'crm_gerente_agente_indicacoes':     result = crm_gerente_agente_indicacoes_(p); break;
+      case 'crm_gerente_agente_mensagem_criar': result = crm_gerente_agente_mensagem_criar_(p); break;
+      case 'crm_gerente_agente_mensagens_listar': result = crm_gerente_agente_mensagens_listar_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
