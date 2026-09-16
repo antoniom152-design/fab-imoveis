@@ -775,7 +775,7 @@ a{text-decoration:none;color:inherit}
     <div class="nav-grp">
       <div class="nav-lbl">Principal</div>
       <div class="nav-item active" onclick="nav(this,'visaogeral')"><span class="nav-ico">📊</span>Visão Geral</div>
-      <div class="nav-item" onclick="nav(this,'equipe')"><span class="nav-ico">🧑‍💼</span>Equipe</div>
+      <div class="nav-item" onclick="nav(this,'equipe')"><span class="nav-ico">🧑‍💼</span>Equipe / Atendentes</div>
       <div class="nav-item" onclick="nav(this,'agentes')"><span class="nav-ico">🤝</span>Agentes</div>
       <div class="nav-item" onclick="nav(this,'leads')">
         <span class="nav-ico">📋</span>Leads
@@ -1130,6 +1130,19 @@ a{text-decoration:none;color:inherit}
       </div>
       <div class="card">
         <div class="card-h"><div class="card-title">🕓 Solicitações enviadas</div></div>
+        <div class="card-b" style="padding-bottom:0">
+          <div class="field-row field-2">
+            <div><div class="field-lbl">De</div><input class="field-inp" type="date" id="viabFiltroDataIni" onchange="viabFiltrarERenderizar_()"></div>
+            <div><div class="field-lbl">Até</div><input class="field-inp" type="date" id="viabFiltroDataFim" onchange="viabFiltrarERenderizar_()"></div>
+          </div>
+          <div class="field-row field-2">
+            <div><div class="field-lbl">Construtora</div><select class="field-sel" id="viabFiltroConstrutora" onchange="viabAtualizarFiltroEmp_()"><option value="">Todas</option></select></div>
+            <div><div class="field-lbl">Empreendimento</div><select class="field-sel" id="viabFiltroEmp" onchange="viabFiltrarERenderizar_()"><option value="">Todos</option></select></div>
+          </div>
+          <label class="flex" style="gap:6px;align-items:center;font-size:12px;cursor:pointer;margin-bottom:12px">
+            <input type="checkbox" id="viabFiltroSemResposta" onchange="viabFiltrarERenderizar_()"> Somente sem resposta
+          </label>
+        </div>
         <div class="card-b" style="padding:0" id="viabLista"></div>
       </div>
     </div>
@@ -2016,6 +2029,7 @@ async function carregarDadosIniciais(){
   renderAcompanhar();
   popularFiltrosEmp();filtrarEmps();
   popularDatalistViabilizador_();
+  viabPopularFiltroConstrutora_();
 }
 function nomeAtendente_(id){ const a=_equipe.find(x=>x.id===id); return a?a.nome:''; }
 /* Reconstrói as options de atendente a cada carregarDadosIniciais() (poll
@@ -3000,7 +3014,7 @@ async function salvarEmpreendimentoGerente(){
   btn.textContent=orig;btn.disabled=false;
   toast(`✅ "${nome}" cadastrado! Atualizando em alguns segundos...`,'green');
   toggleFormEmp();
-  setTimeout(()=>cadastroApiJsonp('crm_empreendimentos_listar',{}).then(r=>{_empreendimentos=(r&&r.itens)||[];popularFiltrosEmp();filtrarEmps();popularDatalistViabilizador_()}),4000);
+  setTimeout(()=>cadastroApiJsonp('crm_empreendimentos_listar',{}).then(r=>{_empreendimentos=(r&&r.itens)||[];popularFiltrosEmp();filtrarEmps();popularDatalistViabilizador_();viabPopularFiltroConstrutora_()}),4000);
 }
 
 /* ═══ SOLICITAÇÃO AO VIABILIZADOR (e-mail real via SCRIPT_URL_LEADS, mesma
@@ -3011,13 +3025,60 @@ function popularDatalistViabilizador_(){
   const dl=document.getElementById('viabEmpList'); if(!dl)return;
   dl.innerHTML=[..._empreendimentos].sort((a,b)=>(a.nome||'').localeCompare(b.nome||'','pt-BR')).map(e=>`<option value="${escAttr_(e.nome)}">`).join('');
 }
+/* Filtros da lista "Solicitações enviadas" (pedido 79.26) — período,
+   construtora, empreendimento (cascata: só mostra os empreendimentos da
+   construtora escolhida) e "sem resposta". _empreendimentos já é
+   carregado globalmente pra tela de Empreendimentos & Unidades, então
+   não precisa de nenhuma chamada nova ao backend — só cruzar v.emp
+   (nome do empreendimento digitado na solicitação) com _empreendimentos
+   pra achar a construtora dele. */
+function viabPopularFiltroConstrutora_(){
+  const sel=document.getElementById('viabFiltroConstrutora'); if(!sel)return;
+  const valorAtual=sel.value;
+  const construtoras=[...new Set(_empreendimentos.map(e=>e.construtora).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  sel.innerHTML=`<option value="">Todas</option>`+construtoras.map(c=>`<option value="${escAttr_(c)}">${escAttr_(c)}</option>`).join('');
+  if(construtoras.includes(valorAtual))sel.value=valorAtual;
+  viabAtualizarFiltroEmp_();
+}
+function viabAtualizarFiltroEmp_(){
+  const selConstrutora=document.getElementById('viabFiltroConstrutora');
+  const selEmp=document.getElementById('viabFiltroEmp'); if(!selEmp)return;
+  const construtora=selConstrutora?selConstrutora.value:'';
+  const valorAtual=selEmp.value;
+  const nomes=[...new Set([..._empreendimentos].filter(e=>!construtora||e.construtora===construtora).map(e=>e.nome).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  selEmp.innerHTML=`<option value="">Todos</option>`+nomes.map(n=>`<option value="${escAttr_(n)}">${escAttr_(n)}</option>`).join('');
+  if(nomes.includes(valorAtual))selEmp.value=valorAtual;
+  viabFiltrarERenderizar_();
+}
 let _viabRespostaIdAtual=null;
+let _viabLista=[];
 async function renderViabLista(){
   const el=document.getElementById('viabLista'); if(!el)return;
   el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Carregando...</div>`;
   const resp=await cadastroApiJsonp('crm_gerente_viab_listar',{email:_user.email,sessionToken:_user.sessionToken});
-  const lista=(resp&&resp.itens)||[];
-  if(!lista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma solicitação enviada ainda.</div>`;return}
+  _viabLista=(resp&&resp.itens)||[];
+  viabFiltrarERenderizar_();
+}
+function viabFiltrarERenderizar_(){
+  const el=document.getElementById('viabLista'); if(!el)return;
+  if(!_viabLista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma solicitação enviada ainda.</div>`;return}
+  const dataIni=document.getElementById('viabFiltroDataIni')?.value||'';
+  const dataFim=document.getElementById('viabFiltroDataFim')?.value||'';
+  const construtora=document.getElementById('viabFiltroConstrutora')?.value||'';
+  const emp=document.getElementById('viabFiltroEmp')?.value||'';
+  const semResposta=document.getElementById('viabFiltroSemResposta')?.checked||false;
+  const construtoraPorEmp_=new Map(_empreendimentos.map(e=>[e.nome,e.construtora]));
+  const lista=_viabLista.filter(v=>{
+    const dataSolic=(v.data||'').slice(0,10);
+    if(dataIni&&dataSolic<dataIni)return false;
+    if(dataFim&&dataSolic>dataFim)return false;
+    if(construtora&&construtoraPorEmp_.get(v.emp)!==construtora)return false;
+    if(emp&&v.emp!==emp)return false;
+    if(semResposta&&v.resposta)return false;
+    return true;
+  });
+  if(!lista.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhuma solicitação encontrada com esses filtros.</div>`;return}
   el.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>E-mail do Viabilizador</th><th>Tipo</th><th>Empreendimento</th><th>Descrição</th><th>Resposta do Viabilizador</th></tr></thead><tbody>${[...lista].reverse().map(v=>`<tr>
     <td class="mono fs11">${fmtDtHora_(v.data)}</td>
     <td class="fs11">${v.email||'—'}</td>
