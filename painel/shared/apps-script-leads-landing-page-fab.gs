@@ -821,9 +821,20 @@ function processarImovel(data) {
       Logger.log('Imóvel criado: ' + data.nome);
     }
 
-    if (linhaAlvo !== -1 && data.endereco !== undefined) {
-      var colEndereco = colunaPorHeaderImoveis_(aba, 'Endereço');
-      if (colEndereco !== -1) aba.getRange(linhaAlvo, colEndereco).setValue(data.endereco);
+    if (linhaAlvo !== -1) {
+      if (data.endereco !== undefined) {
+        var colEndereco = colunaPorHeaderImoveis_(aba, 'Endereço');
+        if (colEndereco !== -1) aba.getRange(linhaAlvo, colEndereco).setValue(data.endereco);
+      }
+      // Quartos também pelo nome do cabeçalho: testado em produção em
+      // 16/09/2026 e confirmado que a escrita por índice fixo (r[18] /
+      // posição S no appendRow, alguns parágrafos acima) não estava
+      // chegando na coluna real de "Quartos" (mesmo motivo do Endereço
+      // acima — índice fixo desalinhado da posição real da coluna).
+      if (data.quartos !== undefined) {
+        var colQuartos = colunaPorHeaderImoveis_(aba, 'Quartos');
+        if (colQuartos !== -1) aba.getRange(linhaAlvo, colQuartos).setValue(data.quartos);
+      }
     }
   } catch(e) { Logger.log('processarImovel erro: ' + e.message); }
 }
