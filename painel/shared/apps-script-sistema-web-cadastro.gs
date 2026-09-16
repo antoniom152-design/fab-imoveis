@@ -1239,6 +1239,14 @@ var ABA_SOLICITACOES_VIABILIZADOR = 'SOLICITACOES_VIABILIZADOR';
    antes o e-mail era só disparado (fire-and-forget), sem nenhum
    registro; agora fica gravado, recuperável de qualquer lugar. */
 var ABA_MENSAGENS_AGENTES = 'MENSAGENS_AGENTES';
+/* Histórico de mensagens da tela "Reserva de Unidade" (pedido 79.27) —
+   mesmo espírito das duas acima, só que com 2 destinatários possíveis
+   por reserva (Viabilizador ou o próprio Lead que reservou), marcados
+   na coluna Destinatario ('viabilizador'|'lead'). Como a aba RESERVA
+   (planilha separada "Leads Landing Page FAB") não tem Id próprio,
+   Reserva_Chave é montada no frontend (Timestamp+E-mail) só pra
+   conseguir agrupar as mensagens de uma mesma reserva. */
+var ABA_MENSAGENS_RESERVA = 'MENSAGENS_RESERVA';
 
 /* SEM "_" no final de propósito (diferente do resto do arquivo) — é a
    única forma de uma função aparecer no menu "Selecionar função" do
@@ -1285,6 +1293,19 @@ function setupMensagensAgentes() {
     'Id', 'Gerente_Id', 'Gerente_Nome', 'Agente_Id', 'Assunto', 'Corpo', 'Criado_em'
   ]);
   var msg = '✅ Aba ' + ABA_MENSAGENS_AGENTES + ' verificada/criada.';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
+/* Cria a aba MENSAGENS_RESERVA (pedido 79.27) — mesmo padrão de
+   setupMensagensAgentes() acima. */
+function setupMensagensReserva() {
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  criarAbaSeNaoExiste_(ssCrm, ABA_MENSAGENS_RESERVA, [
+    'Id', 'Gerente_Id', 'Gerente_Nome', 'Reserva_Chave', 'Destinatario', 'Contato',
+    'Assunto', 'Corpo', 'Criado_em', 'Status', 'Resposta', 'Respondido_em'
+  ]);
+  var msg = '✅ Aba ' + ABA_MENSAGENS_RESERVA + ' verificada/criada.';
   Logger.log(msg);
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
 }
@@ -2083,6 +2104,90 @@ function crm_gerente_viab_responder_(data) {
   });
 }
 
+/* Mensagens da tela "Reserva de Unidade" (pedido 79.27) — mesmo padrão
+   de crm_gerente_viab_criar_/listar_/responder_ acima, só com um
+   destinatario a mais (Viabilizador OU o próprio Lead que reservou) e
+   agrupado por Reserva_Chave (montada no frontend, a aba RESERVA não
+   tem Id próprio) em vez de um Id de registro já existente. */
+function crm_gerente_reserva_mensagem_criar_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var reservaChave = s_(data.reservaChave).trim();
+  var destinatario = s_(data.destinatario).trim().toLowerCase();
+  var corpo = s_(data.corpo).trim();
+  if (!reservaChave) return { status: 'error', message: 'Reserva é obrigatória.' };
+  if (['viabilizador', 'lead'].indexOf(destinatario) === -1) return { status: 'error', message: 'Destinatário inválido.' };
+  if (!corpo) return { status: 'error', message: 'Mensagem é obrigatória.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_MENSAGENS_RESERVA);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_MENSAGENS_RESERVA + ' não encontrada — rode setupMensagensReserva().' };
+    var headers = headersDe_(aba);
+    var id = gerarId_(aba, 'MRE');
+    var campos = {
+      Id: id, Gerente_Id: gerente.Id, Gerente_Nome: gerente.Nome, Reserva_Chave: reservaChave,
+      Destinatario: destinatario, Contato: s_(data.contato), Assunto: s_(data.assunto), Corpo: corpo,
+      Criado_em: agora_(), Status: 'Aguardando resposta', Resposta: '', Respondido_em: ''
+    };
+    aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
+    return { status: 'ok', id: id };
+  });
+}
+
+/* Lista as mensagens de uma reserva — opcionalmente só de um
+   destinatario (data.destinatario), pra popular separadamente o
+   histórico da aba "Viabilizador" e da aba "Lead" no mesmo modal. */
+function crm_gerente_reserva_mensagens_listar_(p) {
+  var gerente = crm_gerenteContexto_(p.email, p.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var reservaChave = s_(p.reservaChave).trim();
+  if (!reservaChave) return { status: 'error', message: 'Reserva é obrigatória.' };
+  var destinatario = s_(p.destinatario).trim().toLowerCase();
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_MENSAGENS_RESERVA);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba)
+    .filter(function (m) { return s_(m.Reserva_Chave) === reservaChave && (!destinatario || s_(m.Destinatario).toLowerCase() === destinatario); })
+    .map(function (m) {
+      return {
+        id: s_(m.Id), destinatario: s_(m.Destinatario), contato: s_(m.Contato), assunto: s_(m.Assunto), corpo: s_(m.Corpo),
+        criadoEm: dataStr_(m.Criado_em), status: s_(m.Status) || 'Aguardando resposta', resposta: s_(m.Resposta),
+        respondidoEm: dataStr_(m.Respondido_em)
+      };
+    });
+  itens.sort(function (a, b) { return new Date(b.criadoEm) - new Date(a.criadoEm); });
+  return { status: 'ok', itens: itens };
+}
+
+/* Registra a resposta (do Viabilizador OU do Lead, tanto faz — o id já
+   identifica a mensagem certa) pra uma mensagem já enviada. Mesmo
+   cuidado de posse de crm_gerente_viab_responder_: só o Gerente que
+   mandou pode registrar a resposta dela. */
+function crm_gerente_reserva_mensagem_responder_(data) {
+  var gerente = crm_gerenteContexto_(data.email, data.sessionToken);
+  if (!gerente) return { status: 'error', message: 'Sessão de e-mail não verificada ou cadastro de gerente não encontrado.' };
+  var id = s_(data.id).trim();
+  var resposta = s_(data.resposta).trim();
+  if (!id) return { status: 'error', message: 'Id da mensagem é obrigatório.' };
+  if (!resposta) return { status: 'error', message: 'Descreva a resposta antes de salvar.' };
+
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_MENSAGENS_RESERVA);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_MENSAGENS_RESERVA + ' não encontrada — rode setupMensagensReserva().' };
+    var linha = acharLinhaPorChave_(aba, 'Id', id);
+    if (linha === -1) return { status: 'error', message: 'Mensagem não encontrada.' };
+    var headers = headersDe_(aba);
+    var donoLinha = s_(aba.getRange(linha, headers.indexOf('Gerente_Id') + 1).getValue());
+    if (donoLinha !== s_(gerente.Id)) return { status: 'error', message: 'Esta mensagem não pertence a este Gerente.' };
+    aba.getRange(linha, headers.indexOf('Resposta') + 1).setValue(resposta);
+    aba.getRange(linha, headers.indexOf('Status') + 1).setValue('Respondido');
+    aba.getRange(linha, headers.indexOf('Respondido_em') + 1).setValue(agora_());
+    return { status: 'ok' };
+  });
+}
+
 /* Mesmo formato/uso de crm_admin_listar_historico_todos_ (agrupado por
    Lead_Id, pro Funil/"Acompanhar Atendimento"), mas autenticado pela
    sessão do próprio Gerente em vez do PIN do admin.html — o Gerente não
@@ -2203,6 +2308,9 @@ function doGet(e) {
       case 'crm_gerente_agente_indicacoes':     result = crm_gerente_agente_indicacoes_(p); break;
       case 'crm_gerente_agente_mensagem_criar': result = crm_gerente_agente_mensagem_criar_(p); break;
       case 'crm_gerente_agente_mensagens_listar': result = crm_gerente_agente_mensagens_listar_(p); break;
+      case 'crm_gerente_reserva_mensagem_criar':  result = crm_gerente_reserva_mensagem_criar_(p); break;
+      case 'crm_gerente_reserva_mensagens_listar': result = crm_gerente_reserva_mensagens_listar_(p); break;
+      case 'crm_gerente_reserva_mensagem_responder': result = crm_gerente_reserva_mensagem_responder_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
