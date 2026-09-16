@@ -118,13 +118,6 @@ function doGet(e) {
       result = checkTelefone(ABA_EBOOK, e.parameter.fone || '');
     } else if (action === 'getConstrutoras') {
       result = lerAba(ABA_CONSTRUTORAS);
-    } else if (action === 'debug_imoveis_headers') {
-      // Diagnóstico temporário (pedido 79.23) — descobrir por que
-      // "Quartos" não estava gravando mesmo pelo nome do cabeçalho;
-      // remover depois de resolvido.
-      var _ssD = SpreadsheetApp.openById(PLANILHA_IMOVEIS_ID);
-      var _abaD = _ssD.getSheetByName(ABA_IMOVEIS);
-      result = { headers: _abaD ? _abaD.getRange(1, 1, 1, _abaD.getLastColumn()).getValues()[0] : null };
     } else {
       result = { error: 'Ação desconhecida: ' + action };
     }
