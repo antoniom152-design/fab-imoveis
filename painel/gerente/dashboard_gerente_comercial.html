@@ -1332,6 +1332,28 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- MODAL INDICAÇÕES DO AGENTE (79.21) -->
+<div class="modal-ov" id="modalAgenteIndicacoes">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-h">
+      <div class="modal-title" id="agIndicacoesTitulo">Indicações do Agente</div>
+      <button class="modal-close" onclick="fecharModal('modalAgenteIndicacoes')">×</button>
+    </div>
+    <div class="modal-body" id="agIndicacoesBody" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- MODAL LEADS DO AGENTE (79.21) -->
+<div class="modal-ov" id="modalAgenteLeads">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-h">
+      <div class="modal-title" id="agLeadsTitulo">Leads do Agente</div>
+      <button class="modal-close" onclick="fecharModal('modalAgenteLeads')">×</button>
+    </div>
+    <div class="modal-body" id="agLeadsBody" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- MODAL MENSAGEM AO AGENTE (79.19 — mesma rotina real de e-mail do Viabilizador) -->
 <div class="modal-ov" id="modalAgenteMensagem">
   <div class="modal-box" style="max-width:460px">
@@ -2283,6 +2305,8 @@ function renderAgentes(){
       <td>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
           <button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalAgenteDetalhe('${escAttr_(a.id)}')">👁️ Ver detalhes</button>
+          <button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalAgenteIndicacoes('${escAttr_(a.id)}')">📋 Indicações</button>
+          <button class="btn" style="padding:4px 10px;font-size:11px" onclick="abrirModalAgenteLeads('${escAttr_(a.id)}')">🎯 Leads</button>
           <button class="btn btn-gold" style="padding:4px 10px;font-size:11px" onclick="abrirModalAgenteMensagem('${escAttr_(a.id)}')">✉️ Mensagem</button>
           ${a.whatsapp?`<button class="btn" style="padding:4px 10px;font-size:11px;background:#25D366;color:#fff;border-color:transparent" onclick="agAbrirWhatsapp('${escAttr_(a.id)}')">📱 WhatsApp</button>`:''}
         </div>
@@ -2335,16 +2359,53 @@ async function abrirModalAgenteDetalhe(id){
     <div id="agIndicacoesList" class="fs12 c-muted">Carregando...</div>
   `;
   abrirModal('modalAgenteDetalhe');
-  const resp=await cadastroApiJsonp('crm_gerente_agente_indicacoes',{email:_user.email,sessionToken:_user.sessionToken,agenteId:id});
-  const itens=(resp&&resp.itens)||[];
+  const itens=await agBuscarIndicacoes_(id);
   const elInd=document.getElementById('agIndicacoesList'); if(!elInd)return;
-  if(!itens.length){elInd.innerHTML=`<div class="fs12 c-muted" style="padding:12px 0">Nenhuma indicação registrada ainda.</div>`;return}
-  elInd.innerHTML=`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Telefone</th><th>Status</th></tr></thead><tbody>${itens.map(i=>`<tr>
+  elInd.innerHTML=agRenderIndicacoesTabela_(itens);
+}
+
+/* Indicações e Leads do Agente como modais próprios (pedido 79.21) —
+   mesmos dados já usados dentro do "Ver detalhes" acima (indicações via
+   crm_gerente_agente_indicacoes, leads filtrando _leads por agenteId),
+   só que abertos direto pelos botões da linha, sem precisar passar pelo
+   detalhe completo primeiro. */
+async function agBuscarIndicacoes_(agenteId){
+  const resp=await cadastroApiJsonp('crm_gerente_agente_indicacoes',{email:_user.email,sessionToken:_user.sessionToken,agenteId});
+  return (resp&&resp.itens)||[];
+}
+function agRenderIndicacoesTabela_(itens){
+  if(!itens.length)return`<div class="fs12 c-muted" style="padding:12px 0">Nenhuma indicação registrada ainda.</div>`;
+  return`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Cliente</th><th>Telefone</th><th>Status</th></tr></thead><tbody>${itens.map(i=>`<tr>
     <td class="mono fs11">${fmtDtHora_(i.criadoEm)}</td>
     <td class="fs11">${i.nomeCliente||'—'}</td>
     <td class="fs11">${i.telefone||'—'}</td>
     <td class="fs11">${i.status||'—'}</td>
   </tr>`).join('')}</tbody></table></div>`;
+}
+async function abrirModalAgenteIndicacoes(id){
+  const a=_agentes.find(x=>x.id===id); if(!a)return;
+  document.getElementById('agIndicacoesTitulo').textContent='Indicações de '+(a.nome||'');
+  document.getElementById('agIndicacoesBody').innerHTML='<div class="fs12 c-muted" style="padding:12px 0">Carregando...</div>';
+  abrirModal('modalAgenteIndicacoes');
+  const itens=await agBuscarIndicacoes_(id);
+  document.getElementById('agIndicacoesBody').innerHTML=agRenderIndicacoesTabela_(itens);
+}
+function agRenderLeadsTabela_(itens){
+  if(!itens.length)return`<div class="fs12 c-muted" style="padding:12px 0">Nenhum lead indicado por este Agente ainda.</div>`;
+  return`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Data</th><th>Nome</th><th>Telefone</th><th>Status</th><th>Atendente</th></tr></thead><tbody>${itens.map(l=>`<tr>
+    <td class="mono fs11">${fmtDtHora_(l.criadoEm)}</td>
+    <td class="fs11">${l.nome||'—'}</td>
+    <td class="fs11">${l.telefone||'—'}</td>
+    <td class="fs11">${statusLeadLabel(l.status)}</td>
+    <td class="fs11">${l.atendenteId?(nomeAtendente_(l.atendenteId)||'—'):'—'}</td>
+  </tr>`).join('')}</tbody></table></div>`;
+}
+function abrirModalAgenteLeads(id){
+  const a=_agentes.find(x=>x.id===id); if(!a)return;
+  document.getElementById('agLeadsTitulo').textContent='Leads de '+(a.nome||'');
+  const itens=agLeadsDoAgente_(id).slice().sort((x,y)=>new Date(y.criadoEm)-new Date(x.criadoEm));
+  document.getElementById('agLeadsBody').innerHTML=agRenderLeadsTabela_(itens);
+  abrirModal('modalAgenteLeads');
 }
 let _agMsgAgenteId=null;
 function abrirModalAgenteMensagem(id){
