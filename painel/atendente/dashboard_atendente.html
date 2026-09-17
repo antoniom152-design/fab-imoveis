@@ -1758,14 +1758,22 @@ async function carregarDadosIniciais(){
     cadastroApiJsonp('crm_atendente_leads_listar', {email:_user.email, sessionToken:_user.sessionToken, escopo:'minha'}),
     cadastroApiJsonp('crm_atendente_listar_agendamentos', {email:_user.email, sessionToken:_user.sessionToken})
   ]);
-  _empreendimentos = (respEmp && respEmp.itens) || [];
-  _leads = (respFila && respFila.itens) || [];
-  _agendamentos = (respAgenda && respAgenda.itens) || [];
+  /* cadastroApiJsonp NUNCA rejeita — em timeout (12s) ou erro de rede
+     resolve(null). Um `respX || []` aqui zeraria a fila inteira na tela
+     só por causa de UMA chamada lenta isolada (mesmo bug achado e
+     corrigido no dashboard_gerente_comercial.html, pedido 79.20.1) — só
+     atualiza cada dado quando a resposta realmente chegou, senão mantém
+     o último carregado. */
+  if(respEmp && respEmp.itens) _empreendimentos = respEmp.itens;
+  if(respFila && respFila.itens) _leads = respFila.itens;
+  if(respAgenda && respAgenda.itens) _agendamentos = respAgenda.itens;
+  const falhas=[!respEmp&&'Empreendimentos',!respFila&&'Leads',!respAgenda&&'Agenda'].filter(Boolean);
   renderFila();
   renderAgenda();
   renderFunil();
   renderDesempenho();
   popularFiltrosEmp();filtrarEmps();
+  return falhas;
 }
 function nomeEmp_(empId){ const e=_empreendimentos.find(x=>x.id===empId); return e?e.nome:(empId?'—':'—'); }
 function escAttr_(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
@@ -1876,8 +1884,12 @@ async function atualizarMinhaFila(){
   const orig=btn.innerHTML;
   btn.disabled=true;btn.innerHTML='⏳ Atualizando...';
   try{
-    await carregarDadosIniciais();
-    toast(`✅ Fila atualizada — ${_leads.length} lead${_leads.length===1?'':'s'} na sua fila.`,'green');
+    const falhas=await carregarDadosIniciais();
+    if(falhas&&falhas.length){
+      toast(`⚠️ Atualizado, mas ${falhas.join('/')} não respondeu a tempo — tente de novo em instantes.`,'amber');
+    }else{
+      toast(`✅ Fila atualizada — ${_leads.length} lead${_leads.length===1?'':'s'} na sua fila.`,'green');
+    }
   }catch(e){
     toast('Não foi possível atualizar agora. Tente novamente.','');
   }
