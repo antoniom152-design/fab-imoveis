@@ -824,12 +824,13 @@ a{text-decoration:none;color:inherit}
           <div class="ph-sub" id="phData">Carregando...</div>
         </div>
         <div class="ph-acts">
-          <button class="btn-teal btn" onclick="abrirLeadsDisponiveis()">🔎 Pegar lead disponível</button>
+          <button class="btn-teal btn" onclick="atualizarMinhaFila()" id="btnAtualizarLeads">🔄 Atualizar Leads</button>
+          <button class="btn" disabled title="Os leads agora são direcionados pela gerência — clique em Atualizar Leads para conferir o que foi encaminhado a você" style="opacity:.5;cursor:not-allowed">🔒 Pegar lead disponível</button>
         </div>
       </div>
 
       <div class="alert-box alert-teal mb20" id="filaAlert">
-        🎧 Você ainda não tem leads na fila. Clique em <strong>Pegar lead disponível</strong> para começar a atender.
+        🎧 Você ainda não tem leads na fila. Os leads são direcionados pela gerência — clique em <strong>Atualizar Leads</strong> para conferir se chegou algo novo.
       </div>
 
       <!-- KPIs -->
@@ -1822,7 +1823,7 @@ function atualizarPills(){
   const alertEl=document.getElementById('filaAlert');
   if(alertEl) alertEl.innerHTML = _leads.length
     ? `🎧 Você tem <strong>${ativos} lead${ativos===1?'':'s'} em atendimento</strong>. Clique em um lead da fila para ver o detalhe e registrar o andamento.`
-    : `🎧 Você ainda não tem leads na fila. Clique em <strong>Pegar lead disponível</strong> para começar a atender.`;
+    : `🎧 Você ainda não tem leads na fila. Os leads são direcionados pela gerência — clique em <strong>Atualizar Leads</strong> para conferir se chegou algo novo.`;
   const nd=document.getElementById('notifDot');
   if(nd) nd.style.display=urgentes?'':'none';
 }
@@ -1861,6 +1862,27 @@ function renderFila(){
   </tr>`).join('')}</tbody></table></div>`;
 }
 
+/* Botão "Atualizar Leads" (pedido 78.4) — substitui o "Pegar lead
+   disponível" (desativado: leads agora só chegam por atribuição da
+   gerência, via crm_gerente_lead_atribuir no dashboard_gerente_comercial.html,
+   não mais por autoatendimento). Reaproveita carregarDadosIniciais() —
+   a mesma rotina do polling automático de 30s (setInterval em
+   iniciarApp) — então é só um "puxar agora" manual da mesma consulta
+   crm_atendente_leads_listar(escopo:'minha'); não escreve nada, então
+   não corre risco de disputa com a gerência atribuindo um lead ao
+   mesmo tempo. */
+async function atualizarMinhaFila(){
+  const btn=document.getElementById('btnAtualizarLeads');
+  const orig=btn.innerHTML;
+  btn.disabled=true;btn.innerHTML='⏳ Atualizando...';
+  try{
+    await carregarDadosIniciais();
+    toast(`✅ Fila atualizada — ${_leads.length} lead${_leads.length===1?'':'s'} na sua fila.`,'green');
+  }catch(e){
+    toast('Não foi possível atualizar agora. Tente novamente.','');
+  }
+  btn.disabled=false;btn.innerHTML=orig;
+}
 async function abrirLeadsDisponiveis(){
   abrirModal('modalDisponiveis');
   const body=document.getElementById('disponiveisBody');
