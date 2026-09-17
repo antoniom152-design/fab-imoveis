@@ -827,6 +827,7 @@ a{text-decoration:none;color:inherit}
         </div>
         <div class="ph-acts">
           <button class="btn-teal btn" onclick="atualizarMinhaFila()" id="btnAtualizarLeads">🔄 Atualizar Leads</button>
+          <button class="btn" id="btnAlertaSonoro" onclick="alertaSonoroBotaoToggle_()" title="Tocar um aviso sonoro nesta tela sempre que um lead novo for direcionado a você">🔕 Alerta sonoro: desligado</button>
           <button class="btn" disabled title="Os leads agora são direcionados pela gerência — clique em Atualizar Leads para conferir o que foi encaminhado a você" style="opacity:.5;cursor:not-allowed">🔒 Pegar lead disponível</button>
         </div>
       </div>
@@ -1112,16 +1113,6 @@ a{text-decoration:none;color:inherit}
             <div class="card-h"><div class="card-title">📄 Documentos</div></div>
             <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
               <div id="perfDocsWrap" style="display:flex;flex-direction:column;gap:8px"></div>
-            </div>
-          </div>
-          <div class="card" style="margin-top:16px">
-            <div class="card-h"><div class="card-title">🔔 Notificações</div></div>
-            <div class="card-b">
-              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
-                <input type="checkbox" id="alertaSonoroCheck" onchange="alertaSonoroToggle_(this.checked)">
-                Alerta sonoro de novos leads
-              </label>
-              <div class="fs11 c-muted" style="margin-top:6px">Toca um aviso sonoro nesta tela sempre que um lead novo for direcionado a você (checagem a cada 30s, ou ao clicar em Atualizar Leads). Preferência salva só neste navegador.</div>
             </div>
           </div>
         </div>
@@ -1757,8 +1748,7 @@ async function iniciarApp(){
   // clock
   tick();setInterval(tick,1000);
   renderDocumentosPerfil();
-  const alertaChk=document.getElementById('alertaSonoroCheck');
-  if(alertaChk) alertaChk.checked=alertaSonoroAtivo_();
+  alertaSonoroAtualizarBotao_();
   // IA welcome
   addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Fazer a triagem e o primeiro contato com os leads da sua fila\n• Responder objeções de forma profissional\n• Criar mensagens de WhatsApp e confirmações de visita\n• Indicar a linha de financiamento certa pro perfil de cada lead (FAB, Marinha, Exército, segurança pública, servidor civil...)\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
   await carregarDadosIniciais();
@@ -1801,6 +1791,19 @@ function alertaSonoroTocar_(){
 function alertaSonoroToggle_(checked){
   try{localStorage.setItem(ALERTA_SONORO_LS_KEY,checked?'1':'0')}catch(e){}
   if(checked) alertaSonoroTocar_();
+}
+/* Botão "🔔/🔕 Alerta sonoro" na Minha Fila (movido de Meu Perfil pro
+   lado do "Atualizar Leads" a pedido do Antonio — a versão em Meu Perfil
+   era pouco visível, ele não achou). */
+function alertaSonoroBotaoToggle_(){
+  alertaSonoroToggle_(!alertaSonoroAtivo_());
+  alertaSonoroAtualizarBotao_();
+}
+function alertaSonoroAtualizarBotao_(){
+  const btn=document.getElementById('btnAlertaSonoro'); if(!btn)return;
+  const ativo=alertaSonoroAtivo_();
+  btn.textContent=ativo?'🔔 Alerta sonoro: ligado':'🔕 Alerta sonoro: desligado';
+  btn.classList.toggle('btn-teal',ativo);
 }
 let _leadsIdsConhecidos=null;
 function alertaSonoroChecarNovosLeads_(itens){
