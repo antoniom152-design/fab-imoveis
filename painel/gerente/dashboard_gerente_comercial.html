@@ -835,6 +835,9 @@ a{text-decoration:none;color:inherit}
           <div class="ph-title">Visão Geral</div>
           <div class="ph-sub" id="phData">Carregando...</div>
         </div>
+        <div class="ph-acts">
+          <button class="btn-teal btn" onclick="atualizarLeadsGerente()" id="btnAtualizarLeadsGerente">🔄 Atualizar Leads</button>
+        </div>
       </div>
 
       <div class="alert-box alert-teal mb20" id="filaAlert" style="display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap">
@@ -2071,11 +2074,21 @@ async function carregarDadosIniciais(){
     cadastroApiJsonp('crm_gerente_listar_historico_todos', {email:_user.email, sessionToken:_user.sessionToken}),
     cadastroApiJsonp('crm_gerente_agentes_listar', {email:_user.email, sessionToken:_user.sessionToken})
   ]);
-  _empreendimentos = (respEmp && respEmp.itens) || [];
-  _leads = (respLeads && respLeads.itens) || [];
-  _equipe = (respEquipe && respEquipe.itens) || [];
-  _historicoPorLead = (respHist && respHist.porLead) || {};
-  _agentes = (respAgentes && respAgentes.itens) || [];
+  /* cadastroApiJsonp NUNCA rejeita — em timeout (12s) ou erro de rede
+     resolve(null) (ver definição mais acima). Com 5 chamadas concorrentes
+     nesse Promise.all a cada 30s, e crm_gerente_listar_historico_todos_
+     lendo a aba HISTORICO_ATENDIMENTO_LEAD inteira (sem filtro, fica mais
+     lenta conforme a planilha cresce), é a que mais corre risco de
+     estourar o timeout. Antes, um `respX || []` aqui zerava a tela toda
+     (Leads/Equipe/Agentes/Visão Geral etc. "sumiam") só por causa de UMA
+     chamada lenta isolada — pedido 79.20.1: só atualiza cada dado quando
+     a resposta realmente chegou, senão mantém o último carregado. */
+  if(respEmp && respEmp.itens) _empreendimentos = respEmp.itens;
+  if(respLeads && respLeads.itens) _leads = respLeads.itens;
+  if(respEquipe && respEquipe.itens) _equipe = respEquipe.itens;
+  if(respHist && respHist.porLead) _historicoPorLead = respHist.porLead;
+  if(respAgentes && respAgentes.itens) _agentes = respAgentes.itens;
+  const falhas=[!respEmp&&'Empreendimentos',!respLeads&&'Leads',!respEquipe&&'Equipe',!respHist&&'Histórico',!respAgentes&&'Agentes'].filter(Boolean);
   popularSelectsAtendente_();
   renderLeads();
   renderEquipe();
@@ -2086,6 +2099,7 @@ async function carregarDadosIniciais(){
   popularFiltrosEmp();filtrarEmps();
   popularDatalistViabilizador_();
   viabPopularFiltroConstrutora_();
+  return falhas;
 }
 function nomeAtendente_(id){ const a=_equipe.find(x=>x.id===id); return a?a.nome:''; }
 /* Reconstrói as options de atendente a cada carregarDadosIniciais() (poll
@@ -2193,6 +2207,28 @@ function irParaLeadsSemAtendente(){
   nav(document.querySelector('[onclick*=leads]'),'leads');
   const sel=document.getElementById('filaFiltAtendente');
   if(sel){ sel.value='__sem__'; renderLeads(); }
+}
+/* Botão "Atualizar Leads" da Visão Geral (pedido 79.20.1 — mesmo padrão
+   do dashboard_atendente.html/atualizarMinhaFila) — "puxar agora" manual
+   do mesmo carregarDadosIniciais() do polling automático de 30s. Também
+   avisa se alguma das 5 chamadas não respondeu a tempo (ver comentário
+   em carregarDadosIniciais) — o poll automático fica silencioso pra não
+   gerar toast a cada 30s, só o clique manual mostra o aviso. */
+async function atualizarLeadsGerente(){
+  const btn=document.getElementById('btnAtualizarLeadsGerente');
+  const orig=btn.innerHTML;
+  btn.disabled=true;btn.innerHTML='⏳ Atualizando...';
+  try{
+    const falhas=await carregarDadosIniciais();
+    if(falhas&&falhas.length){
+      toast(`⚠️ Atualizado, mas ${falhas.join('/')} não respondeu a tempo — tente de novo em instantes.`,'amber');
+    }else{
+      toast(`✅ Dados atualizados — ${_leads.length} lead${_leads.length===1?'':'s'} no sistema.`,'green');
+    }
+  }catch(e){
+    toast('Não foi possível atualizar agora. Tente novamente.','');
+  }
+  btn.disabled=false;btn.innerHTML=orig;
 }
 let _filaSort={campo:'atualizadoEm',dir:-1};
 function filaOrdenar(campo){
