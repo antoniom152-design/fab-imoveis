@@ -1887,6 +1887,10 @@ function linkReservaComDados_() {
   if (wpp)   params.set('telefone', wpp);
   if (email) params.set('email', email);
   if (imovelAtual && imovelAtual.nome) params.set('empreendimento', imovelAtual.nome);
+  // "De R$ 300.000 a R$ 500.000" -> "R$ 300.000 a R$ 500.000" (mesma
+  // normalização do normalizarFaixaValor_ em reserva.html, pra bater
+  // com o value das <option> do <select id="faixa_valor"> de lá).
+  if (imovelAtual && imovelAtual.faixa) params.set('faixa_valor', imovelAtual.faixa.replace(/^De\s+/i, ''));
   const qs = params.toString();
   return 'reserva.html' + (qs ? '?' + qs : '');
 }
