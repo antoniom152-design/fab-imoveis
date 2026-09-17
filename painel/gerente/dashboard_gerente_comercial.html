@@ -189,6 +189,7 @@ a{text-decoration:none;color:inherit}
   font-weight:700;font-size:14px;color:#fff;margin-bottom:8px;
 }
 .sba-name{color:#fff;font-size:13px;font-weight:600}
+.sba-email{color:rgba(255,255,255,.62);font-size:10px;margin-top:1px;word-break:break-all}
 .sba-role{color:rgba(255,255,255,.62);font-size:10px;margin-top:1px}
 .sba-pills{display:flex;gap:6px;margin-top:10px}
 /* Fundo/borda/texto do pill hardcoded (não usam --surf2/--bdr/--muted,
@@ -764,6 +765,7 @@ a{text-decoration:none;color:inherit}
     <div class="sb-agente">
       <div class="sba-av" id="sbAv">GE</div>
       <div class="sba-name" id="sbNome">Gerente</div>
+      <div class="sba-email" id="sbEmail">—</div>
       <div class="sba-role" id="sbRole">Gerente Comercial · WAL</div>
       <div class="sba-pills">
         <div class="sba-pill"><div class="sba-pill-val" id="sbFilaQtd">0</div><div class="sba-pill-lbl">Leads</div></div>
@@ -2035,6 +2037,7 @@ async function iniciarApp(){
   ['sbAv','sbAvFoot','perfAvatar'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ini});
   document.getElementById('sbNome').textContent=_user.nome||'—';
   document.getElementById('sbNomeFoot').textContent=_user.nome||'—';
+  document.getElementById('sbEmail').textContent=_user.email||'—';
   document.getElementById('sbRole').textContent='Gerente Comercial'+(_user.profissao?' · '+_user.profissao.split(' ')[0]:'');
   document.getElementById('phNome').textContent=primeiroNome;
   document.getElementById('perfNomeDisplay').textContent=_user.nome||'—';
