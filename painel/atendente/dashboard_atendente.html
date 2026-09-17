@@ -1009,6 +1009,17 @@ a{text-decoration:none;color:inherit}
         </div>
       </div>
 
+      <div class="card mb20">
+        <div class="card-h">
+          <div class="card-title">🕓 Histórico de Consultas</div>
+          <button class="btn btn-sm" onclick="iaHistoricoLimparTudo_()">🗑️ Limpar histórico</button>
+        </div>
+        <div class="card-b">
+          <input class="field-inp" type="text" id="iaHistBusca" placeholder="🔍 Buscar em perguntas e respostas já feitas..." style="margin-bottom:10px" oninput="iaHistoricoRender_()">
+          <div id="iaHistLista" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto"></div>
+        </div>
+      </div>
+
       <div class="g3">
         <div class="card">
           <div class="card-h"><div class="card-title">🎯 Abordagem por Etapa</div></div>
@@ -1751,6 +1762,7 @@ async function iniciarApp(){
   alertaSonoroAtualizarBotao_();
   // IA welcome
   addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Fazer a triagem e o primeiro contato com os leads da sua fila\n• Responder objeções de forma profissional\n• Criar mensagens de WhatsApp e confirmações de visita\n• Indicar a linha de financiamento certa pro perfil de cada lead (FAB, Marinha, Exército, segurança pública, servidor civil...)\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
+  iaHistoricoRender_();
   await carregarDadosIniciais();
   setInterval(carregarDadosIniciais, 30000);
 }
@@ -1844,6 +1856,7 @@ async function carregarDadosIniciais(){
 }
 function nomeEmp_(empId){ const e=_empreendimentos.find(x=>x.id===empId); return e?e.nome:(empId?'—':'—'); }
 function escAttr_(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;'); }
+function escHtml_(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 /* Campo "Empreendimento" do agendamento de visita virou texto+datalist
    (digita e filtra, lista em ordem alfabética) em vez de <select> — o
    datalist só guarda o nome (não dá pra carregar o id junto), então
@@ -2466,6 +2479,80 @@ async function salvarPerfil(){
 }
 
 /* ═══ ASSISTENTE IA ═══ */
+/* ═══ HISTÓRICO DE CONSULTAS DA IA (pedido 79.29, espelhado do
+   dashboard_gerente_comercial.html) ═══
+   Guarda cada pergunta+resposta trocada com o Assistente IA neste
+   navegador (localStorage, chaveado pelo e-mail do Atendente — se mais
+   de um Atendente usar o mesmo navegador/computador, cada um só vê o
+   próprio histórico). Objetivo: achar e reaproveitar uma consulta já
+   feita sem precisar perguntar de novo pra IA. */
+function IA_HIST_LS_KEY_(){ return 'wal_atendente_iaHistorico_'+((_user&&_user.email)||'anon'); }
+function iaHistoricoCarregar_(){ try{return JSON.parse(localStorage.getItem(IA_HIST_LS_KEY_())||'[]')}catch(e){return[]} }
+function iaHistoricoSalvar_(lista){ try{localStorage.setItem(IA_HIST_LS_KEY_(),JSON.stringify(lista))}catch(e){} }
+function iaHistoricoAdicionar_(pergunta,resposta){
+  const lista=iaHistoricoCarregar_();
+  lista.unshift({id:'ih_'+Date.now()+'_'+Math.floor(Math.random()*10000),pergunta,resposta,criadoEm:new Date().toISOString()});
+  if(lista.length>200) lista.length=200; // limite de segurança pro localStorage
+  iaHistoricoSalvar_(lista);
+  iaHistoricoRender_();
+}
+function iaHistoricoRemover_(id){
+  iaHistoricoSalvar_(iaHistoricoCarregar_().filter(x=>x.id!==id));
+  _iaHistExpandido.delete(id);
+  iaHistoricoRender_();
+}
+function iaHistoricoLimparTudo_(){
+  if(!confirm('Apagar todo o histórico de consultas à IA salvo neste navegador?'))return;
+  iaHistoricoSalvar_([]);
+  _iaHistExpandido.clear();
+  iaHistoricoRender_();
+  toast('🗑️ Histórico de consultas apagado.','');
+}
+let _iaHistExpandido=new Set();
+function iaHistoricoToggle_(id){
+  if(_iaHistExpandido.has(id))_iaHistExpandido.delete(id);else _iaHistExpandido.add(id);
+  iaHistoricoRender_();
+}
+/* Reaproveita a pergunta+resposta salva direto no chat, sem chamar a IA
+   de novo (nem gastar tokens) — e alimenta _aiHistory também, pra se o
+   Atendente quiser continuar a conversa a partir dali a IA já ter esse
+   contexto. */
+function iaHistoricoUsar_(id){
+  const item=iaHistoricoCarregar_().find(x=>x.id===id); if(!item)return;
+  addAiMsg('user',item.pergunta);
+  addAiMsg('ai',item.resposta);
+  _aiHistory.push({role:'user',content:item.pergunta});
+  _aiHistory.push({role:'assistant',content:item.resposta});
+  toast('📋 Consulta reaproveitada do histórico — sem gastar uma nova chamada à IA.','green');
+}
+function iaHistoricoRender_(){
+  const el=document.getElementById('iaHistLista'); if(!el)return;
+  const busca=(document.getElementById('iaHistBusca')?.value||'').trim().toLowerCase();
+  let lista=iaHistoricoCarregar_();
+  if(busca) lista=lista.filter(x=>(x.pergunta+' '+x.resposta).toLowerCase().includes(busca));
+  if(!lista.length){
+    el.innerHTML=`<div class="fs12 c-muted" style="padding:16px;text-align:center">${busca?'Nenhuma consulta encontrada pra essa busca.':'Nenhuma consulta feita ainda — as perguntas que você fizer ao Assistente IA aparecem aqui.'}</div>`;
+    return;
+  }
+  el.innerHTML=lista.map(item=>{
+    const aberto=_iaHistExpandido.has(item.id);
+    const perguntaPreview=item.pergunta.length>110?item.pergunta.slice(0,110)+'…':item.pergunta;
+    return`<div style="background:var(--card2);border:1px solid var(--bdr);border-radius:7px;padding:10px;cursor:pointer" onclick="iaHistoricoToggle_('${item.id}')">
+      <div class="flex-bet" style="gap:8px">
+        <div class="fw6 fs12" style="flex:1">${escHtml_(perguntaPreview)}</div>
+        <div class="fs10 c-muted mono" style="white-space:nowrap">${fmtDtHora_(item.criadoEm)}</div>
+      </div>
+      ${aberto?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bdr)">
+        <div class="fs11" style="white-space:pre-wrap">${escHtml_(item.resposta)}</div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button class="btn btn-sm btn-teal" onclick="event.stopPropagation();iaHistoricoUsar_('${item.id}')">📋 Usar no chat</button>
+          <button class="btn btn-sm" onclick="event.stopPropagation();iaHistoricoRemover_('${item.id}')">🗑️ Remover</button>
+        </div>
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
 function addAiMsg(role,txt){
   const el=document.getElementById('aiMsgs');if(!el)return;
   const isAI=role==='ai';
@@ -2506,6 +2593,7 @@ async function sendAiMsg(){
     }else{
       _aiHistory.push({role:'assistant',content:data.reply});
       addAiMsg('ai',data.reply);
+      iaHistoricoAdicionar_(msg,data.reply);
     }
   }catch(e){addAiMsg('ai','⚠️ Erro de conexão. Verifique sua internet e tente novamente.')}
   if(btn){btn.textContent='➤';btn.disabled=false;btn.classList.remove('loading')}
