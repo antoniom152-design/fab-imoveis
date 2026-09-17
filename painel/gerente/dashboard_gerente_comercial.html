@@ -1326,6 +1326,16 @@ a{text-decoration:none;color:inherit}
               <div id="perfDocsWrap" style="display:flex;flex-direction:column;gap:8px"></div>
             </div>
           </div>
+          <div class="card" style="margin-top:16px">
+            <div class="card-h"><div class="card-title">🔔 Notificações</div></div>
+            <div class="card-b">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
+                <input type="checkbox" id="alertaSonoroCheck" onchange="alertaSonoroToggle_(this.checked)">
+                Alerta sonoro de novos leads
+              </label>
+              <div class="fs11 c-muted" style="margin-top:6px">Toca um aviso sonoro nesta tela sempre que um lead novo entrar no sistema (checagem a cada 30s, ou ao clicar em Atualizar Leads). Preferência salva só neste navegador.</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -2050,6 +2060,8 @@ async function iniciarApp(){
   // clock
   tick();setInterval(tick,1000);
   renderDocumentosPerfil();
+  const alertaChk=document.getElementById('alertaSonoroCheck');
+  if(alertaChk) alertaChk.checked=alertaSonoroAtivo_();
   // IA welcome
   addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Decidir pra qual Atendente encaminhar um lead\n• Revisar argumentos e linhas de financiamento antes de aprovar\n• Redigir e-mails de solicitação ao Viabilizador\n• Ler os números do funil e da equipe\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
   await carregarDadosIniciais();
@@ -2066,6 +2078,56 @@ function tick(){const n=new Date(),h=String(n.getHours()).padStart(2,'0'),m=Stri
 let _equipe = [];
 let _agentes = [];
 let _historicoPorLead = {};
+
+/* ═══ ALERTA SONORO DE NOVOS LEADS ═══
+   Preferência salva só neste navegador (localStorage) — cada Gerente liga
+   no próprio dispositivo, não é config de conta. Som gerado na hora via
+   Web Audio API (2 beeps curtos), sem depender de nenhum arquivo de
+   áudio. Detecção compara o conjunto de Ids de _leads a cada
+   carregarDadosIniciais() (poll de 30s ou "Atualizar Leads") contra o
+   conjunto da carga anterior — só a partir da 2ª carga, nunca alerta
+   pros leads que já existiam quando a tela abriu. */
+const ALERTA_SONORO_LS_KEY='wal_gerente_alertaSonoroNovosLeads';
+function alertaSonoroAtivo_(){ try{return localStorage.getItem(ALERTA_SONORO_LS_KEY)==='1'}catch(e){return false} }
+let _alertaAudioCtx=null;
+function alertaSonoroTocar_(){
+  try{
+    if(!_alertaAudioCtx) _alertaAudioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_alertaAudioCtx.state==='suspended') _alertaAudioCtx.resume();
+    const ctx=_alertaAudioCtx;
+    const beep=(freq,inicio,duracao)=>{
+      const osc=ctx.createOscillator(), gain=ctx.createGain();
+      osc.type='sine'; osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,ctx.currentTime+inicio);
+      gain.gain.exponentialRampToValueAtTime(0.25,ctx.currentTime+inicio+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+inicio+duracao);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(ctx.currentTime+inicio); osc.stop(ctx.currentTime+inicio+duracao+0.05);
+    };
+    beep(880,0,0.15); beep(1175,0.18,0.18);
+  }catch(e){}
+}
+/* Ligado direto pelo onchange do checkbox — o clique em si já é o gesto
+   do usuário que os navegadores exigem pra permitir áudio, então também
+   toca um beep de teste na hora de marcar (dá pra saber que funcionou e
+   já "destrava" o AudioContext pros alertas automáticos do poll). */
+function alertaSonoroToggle_(checked){
+  try{localStorage.setItem(ALERTA_SONORO_LS_KEY,checked?'1':'0')}catch(e){}
+  if(checked) alertaSonoroTocar_();
+}
+let _leadsIdsConhecidos=null;
+function alertaSonoroChecarNovosLeads_(itens){
+  const idsAgora=new Set(itens.map(l=>l.id));
+  if(_leadsIdsConhecidos){
+    const novos=itens.filter(l=>!_leadsIdsConhecidos.has(l.id));
+    if(novos.length && alertaSonoroAtivo_()){
+      alertaSonoroTocar_();
+      toast(`🔔 ${novos.length} lead${novos.length===1?'':'s'} novo${novos.length===1?'':'s'} ${novos.length===1?'chegou':'chegaram'} no sistema!`,'green');
+    }
+  }
+  _leadsIdsConhecidos=idsAgora;
+}
+
 async function carregarDadosIniciais(){
   const [respEmp, respLeads, respEquipe, respHist, respAgentes] = await Promise.all([
     cadastroApiJsonp('crm_empreendimentos_listar', {}),
@@ -2084,7 +2146,7 @@ async function carregarDadosIniciais(){
      chamada lenta isolada — pedido 79.20.1: só atualiza cada dado quando
      a resposta realmente chegou, senão mantém o último carregado. */
   if(respEmp && respEmp.itens) _empreendimentos = respEmp.itens;
-  if(respLeads && respLeads.itens) _leads = respLeads.itens;
+  if(respLeads && respLeads.itens){ alertaSonoroChecarNovosLeads_(respLeads.itens); _leads = respLeads.itens; }
   if(respEquipe && respEquipe.itens) _equipe = respEquipe.itens;
   if(respHist && respHist.porLead) _historicoPorLead = respHist.porLead;
   if(respAgentes && respAgentes.itens) _agentes = respAgentes.itens;
