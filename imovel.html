@@ -853,7 +853,7 @@
           <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 3a4 4 0 0 1 0 8 4 4 0 0 1 0-8zm0 10c2.67 0 8 1.34 8 4v1H4v-1c0-2.66 5.33-4 8-4z"/></svg>
           Simular Financiamento
         </a>
-        <a href="reserva.html" class="util-link">
+        <a href="reserva.html" class="util-link" onclick="irParaReserva();return false;">
           <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
           Reservar este Imóvel
         </a>
@@ -1419,7 +1419,7 @@ function renderImovel(im, todos) {
         <div class="download-desc">Calcule as parcelas do CFIAe, CEF e POUPEX</div>
       </div>
     </a>
-    <a href="reserva.html" class="download-item">
+    <a href="reserva.html" class="download-item" onclick="irParaReserva();return false;">
       <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
       <div>
         <div class="download-label">Reservar este Imóvel</div>
@@ -1865,6 +1865,33 @@ function irParaSimulador(btnEl) {
   if (!data) { avisarPreencherInteresse(); return; }
   _interesseDestino = 'simulador';
   iniciarGateInteresse(data, btnEl);
+}
+
+/* "Reservar este Imóvel" (sidebar e lista de downloads) — mesmo
+   procedimento já usado no link individual que o dashboard_atendente.html
+   gera pro botão "Confirmar Reserva e Enviar Documentos": manda nome/
+   telefone/email/empreendimento por querystring pro reserva.html, que já
+   sabe ler isso e pré-preencher o formulário (ver preencherViaLinkIndividual_
+   em reserva.html). Aqui a fonte dos dados é o mini-formulário "Quero ser
+   Contactado" da própria página — usa só o que já estiver preenchido, sem
+   exigir nada novo nem confirmar e-mail por OTP aqui: reserva.html já faz
+   esse gate na hora de enviar a reserva, pedir de novo aqui seria fricção
+   dobrada à toa. Se os campos estiverem vazios, cai no link "puro" de
+   sempre, só com o empreendimento pré-preenchido. */
+function linkReservaComDados_() {
+  const nome  = (document.getElementById('cc-nome')?.value  || '').trim();
+  const email = (document.getElementById('cc-email')?.value || '').trim();
+  const wpp   = (document.getElementById('cc-wpp')?.value   || '').trim();
+  const params = new URLSearchParams();
+  if (nome)  params.set('nome', nome);
+  if (wpp)   params.set('telefone', wpp);
+  if (email) params.set('email', email);
+  if (imovelAtual && imovelAtual.nome) params.set('empreendimento', imovelAtual.nome);
+  const qs = params.toString();
+  return 'reserva.html' + (qs ? '?' + qs : '');
+}
+function irParaReserva() {
+  window.location.href = linkReservaComDados_();
 }
 
 async function doVerificarCodigoInteresse() {
