@@ -1066,21 +1066,33 @@
   carregarEmpreendimentosAutocomplete();
 
   /* Link individual gerado pelo dashboard_atendente.html (74.7, botão
-     "Confirmar Reserva e Enviar Documentos" na ficha do lead) — chega
-     com ?nome=&telefone=&email=&empreendimento= pra pré-preencher o
-     formulário com o que o atendente já sabe sobre o lead, poupando
-     ele de digitar tudo de novo. Campos ausentes na URL simplesmente
-     ficam em branco, como sempre. */
+     "Confirmar Reserva e Enviar Documentos" na ficha do lead) e pelo
+     botão "Reservar este Imóvel" do imovel.html (80.1) — chega com
+     ?nome=&telefone=&email=&empreendimento=&faixa_valor= pra pré-preencher
+     o formulário com o que já se sabe sobre o lead/imóvel, poupando de
+     digitar tudo de novo. Campos ausentes na URL simplesmente ficam em
+     branco, como sempre.
+     faixa_valor: setado direto aqui (não depende da lista de
+     empreendimentos carregar nem do nome bater com _faixaPorEmpreendimento
+     — ver onEmpreendimentoInput logo abaixo, que é só um FALLBACK pra
+     quando o link só manda o nome do empreendimento, como o do Atendente
+     faz). Só aplica se o valor bater com uma <option> de verdade, senão
+     ignora silenciosamente (select fica "Selecione..."). */
   (function preencherViaLinkIndividual_() {
     const params = new URLSearchParams(location.search);
     const nome = params.get('nome');
     const telefone = params.get('telefone');
     const email = params.get('email');
     const empreendimento = params.get('empreendimento');
+    const faixaValor = params.get('faixa_valor');
     if (nome) document.getElementById('nome').value = nome;
     if (telefone) document.getElementById('telefone').value = telefone;
     if (email) document.getElementById('email').value = email;
     if (empreendimento) document.getElementById('empreendimento').value = empreendimento;
+    if (faixaValor) {
+      const sel = document.getElementById('faixa_valor');
+      if (Array.from(sel.options).some((o) => o.value === faixaValor)) sel.value = faixaValor;
+    }
   })();
 
   function onEmpreendimentoInput() {
