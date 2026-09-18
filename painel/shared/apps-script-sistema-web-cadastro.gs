@@ -2477,7 +2477,6 @@ function doGet(e) {
       case 'crm_gerente_reserva_mensagem_criar':  result = crm_gerente_reserva_mensagem_criar_(p); break;
       case 'crm_gerente_reserva_mensagens_listar': result = crm_gerente_reserva_mensagens_listar_(p); break;
       case 'crm_gerente_reserva_mensagem_responder': result = crm_gerente_reserva_mensagem_responder_(p); break;
-      case 'crm_lead_chat_enviar':               result = crm_lead_chat_enviar_(p); break;
       case 'crm_lead_chat_buscar':                result = crm_lead_chat_buscar_(p); break;
       case 'crm_atendente_chat_threads':          result = crm_atendente_chat_threads_(p); break;
       case 'crm_lead_id_publico':                 result = crm_lead_id_publico_(p); break;
@@ -2520,6 +2519,7 @@ function doPost(e) {
       case 'crm_gerente_historico_evento':    out = crm_gerente_historico_evento_(data); break;
       case 'crm_gerente_ia_chat':             out = crm_gerente_ia_chat_(data); break;
       case 'crm_gerente_atendente_status':    out = crm_gerente_atendente_status_(data); break;
+      case 'crm_lead_chat_enviar':             out = crm_lead_chat_enviar_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);
