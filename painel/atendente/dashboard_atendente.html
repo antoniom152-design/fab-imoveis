@@ -1117,9 +1117,48 @@ a{text-decoration:none;color:inherit}
                 <input class="field-inp" id="perfProfOutro" placeholder="Digite sua profissão / vínculo" style="display:none;margin-top:8px">
               </div>
             </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Data de Nascimento</div><input class="field-inp" type="date" id="perfNasc" value=""></div>
+              <div><div class="field-lbl">UF</div>
+                <select class="field-sel" id="perfUf">
+                  <option value="">Selecione...</option>
+                  <option value="AC">AC</option><option value="AL">AL</option><option value="AM">AM</option>
+                  <option value="AP">AP</option><option value="BA">BA</option><option value="CE">CE</option>
+                  <option value="DF">DF</option><option value="ES">ES</option><option value="GO">GO</option>
+                  <option value="MA">MA</option><option value="MG">MG</option><option value="MS">MS</option>
+                  <option value="MT">MT</option><option value="PA">PA</option><option value="PB">PB</option>
+                  <option value="PE">PE</option><option value="PI">PI</option><option value="PR">PR</option>
+                  <option value="RJ">RJ</option><option value="RN">RN</option><option value="RO">RO</option>
+                  <option value="RR">RR</option><option value="RS">RS</option><option value="SC">SC</option>
+                  <option value="SE">SE</option><option value="SP">SP</option><option value="TO">TO</option>
+                </select>
+              </div>
+            </div>
+            <div class="field-row field-2 mb14">
+              <div><div class="field-lbl">Cidade</div><input class="field-inp" id="perfCidade" value=""></div>
+              <div><div class="field-lbl">CRECI</div><input class="field-inp" id="perfCreci" value=""></div>
+            </div>
           </div>
         </div>
         <div>
+          <div class="card mb14">
+            <div class="card-h"><div class="card-title">💳 Dados Bancários</div></div>
+            <div class="card-b">
+              <div class="field-row field-2 mb14">
+                <div><div class="field-lbl">Banco</div><input class="field-inp" id="perfBancoEdit" value=""></div>
+                <div><div class="field-lbl">Agência</div><input class="field-inp" id="perfAgEdit" value=""></div>
+              </div>
+              <div class="field-row field-2 mb14">
+                <div><div class="field-lbl">Conta</div><input class="field-inp" id="perfCtEdit" value=""></div>
+                <div><div class="field-lbl">Tipo</div>
+                  <select class="field-sel" id="perfTipoCtEdit"><option>Conta Corrente</option><option>Conta Poupança</option><option>Pix (CPF)</option></select>
+                </div>
+              </div>
+              <div class="field-row">
+                <div><div class="field-lbl">Chave Pix</div><input class="field-inp" id="perfPixEdit" value=""></div>
+              </div>
+            </div>
+          </div>
           <div class="card">
             <div class="card-h"><div class="card-title">📄 Documentos</div></div>
             <div class="card-b" style="display:flex;flex-direction:column;gap:8px">
@@ -1765,6 +1804,18 @@ async function iniciarApp(){
   document.getElementById('perfCpf').value=_user.cpf||'';
   document.getElementById('perfEmail').value=_user.email;
   document.getElementById('perfTel').value=_user.whatsapp||'';
+  document.getElementById('perfNasc').value=_user.nascimento?_user.nascimento.slice(0,10):'';
+  document.getElementById('perfUf').value=_user.uf||'';
+  document.getElementById('perfCidade').value=_user.cidade||'';
+  document.getElementById('perfCreci').value=_user.creci||'';
+  document.getElementById('perfBancoEdit').value=_user.banco||'';
+  document.getElementById('perfAgEdit').value=_user.agencia||'';
+  document.getElementById('perfCtEdit').value=_user.conta||'';
+  if(_user.tipoConta){
+    const selTc=document.getElementById('perfTipoCtEdit');
+    if([...selTc.options].some(o=>o.value===_user.tipoConta)) selTc.value=_user.tipoConta;
+  }
+  document.getElementById('perfPixEdit').value=_user.pix||'';
   if(_user.profissao){
     const selProf=document.getElementById('perfProf');
     if([...selProf.options].some(o=>o.value===_user.profissao)){
@@ -2565,19 +2616,41 @@ async function salvarPerfil(){
   }
   const btn=document.querySelector('#panel-perfil .btn-teal');
   if(btn){btn.disabled=true;btn.textContent='Salvando...'}
-  const respPerfil = await cadastroApiJsonp('crm_pessoa_atualizar_perfil', {
-    email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
-    nome:document.getElementById('perfNome').value,
-    whatsapp:document.getElementById('perfTel').value,
-    profissao:perfProfissaoAtual_()
-  });
+  const [respPerfil, respBanco] = await Promise.all([
+    cadastroApiJsonp('crm_pessoa_atualizar_perfil', {
+      email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+      nome:document.getElementById('perfNome').value,
+      whatsapp:document.getElementById('perfTel').value,
+      profissao:perfProfissaoAtual_(),
+      nascimento:document.getElementById('perfNasc').value,
+      uf:document.getElementById('perfUf').value,
+      cidade:document.getElementById('perfCidade').value,
+      creci:document.getElementById('perfCreci').value
+    }),
+    cadastroApiJsonp('crm_pessoa_atualizar_bancario', {
+      email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
+      banco:document.getElementById('perfBancoEdit').value,
+      agencia:document.getElementById('perfAgEdit').value,
+      conta:document.getElementById('perfCtEdit').value,
+      tipoConta:document.getElementById('perfTipoCtEdit').value,
+      pix:document.getElementById('perfPixEdit').value
+    })
+  ]);
   if(btn){btn.disabled=false;btn.textContent='💾 Salvar alterações'}
-  if(!respPerfil||respPerfil.status!=='ok'){
-    toast((respPerfil&&respPerfil.message)||'Não foi possível salvar as alterações. Tente novamente.','');return
+  if(!respPerfil||respPerfil.status!=='ok'||!respBanco||respBanco.status!=='ok'){
+    toast((respPerfil&&respPerfil.message)||(respBanco&&respBanco.message)||'Não foi possível salvar todas as alterações. Tente novamente.','');return
   }
   _user.nome=document.getElementById('perfNome').value;
   _user.whatsapp=document.getElementById('perfTel').value;
   _user.profissao=perfProfissaoAtual_();
+  _user.nascimento=document.getElementById('perfNasc').value;
+  _user.uf=document.getElementById('perfUf').value;
+  _user.cidade=document.getElementById('perfCidade').value;
+  _user.creci=document.getElementById('perfCreci').value;
+  _user.banco=document.getElementById('perfBancoEdit').value;
+  _user.agencia=document.getElementById('perfAgEdit').value;
+  _user.conta=document.getElementById('perfCtEdit').value;
+  _user.pix=document.getElementById('perfPixEdit').value;
   document.getElementById('sbNome').textContent=_user.nome;
   document.getElementById('sbNomeFoot').textContent=_user.nome;
   document.getElementById('perfNomeDisplay').textContent=_user.nome;
