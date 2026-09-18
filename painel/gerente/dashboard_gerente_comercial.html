@@ -2773,11 +2773,20 @@ function abrirModalAtendenteDetalhe(id){
       ${campoDetalheLead_('Cidade',a.cidade)}
       ${campoDetalheLead_('Status',a.status)}
       ${campoDetalheLead_('Habilitado',a.habilitado?'✅ Sim':'⛔ Não')}
+      ${campoDetalheLead_('CRECI',a.creci)}
       ${campoDetalheLead_('Termos Aceitos em',a.termosAceitosEm?fmtDtHora_(a.termosAceitosEm):'')}
       ${campoDetalheLead_('Versão dos Termos',a.termosVersao)}
       ${campoDetalheLead_('Criado em',a.criadoEm?fmtDtHora_(a.criadoEm):'')}
       ${campoDetalheLead_('Atualizado em',a.atualizadoEm?fmtDtHora_(a.atualizadoEm):'')}
       ${campoDetalheLead_('Último Acesso',a.ultimoAcesso?fmtDtHora_(a.ultimoAcesso):'')}
+    </div>
+    <div class="sec" style="margin:14px 0 8px">🏦 Dados Bancários</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${campoDetalheLead_('Banco',a.banco)}
+      ${campoDetalheLead_('Agência',a.agencia)}
+      ${campoDetalheLead_('Conta',a.conta)}
+      ${campoDetalheLead_('Tipo de Conta',a.tipoConta)}
+      ${campoDetalheLead_('Pix',a.pix)}
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
       ${campoDetalheLead_('RG/CNH',docLink(a.docRgUrl,'RG/CNH'))}
