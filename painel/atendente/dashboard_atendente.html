@@ -1090,7 +1090,7 @@ a{text-decoration:none;color:inherit}
             </div>
             <div class="field-row field-2 mb14">
               <div><div class="field-lbl">Nome completo</div><input class="field-inp" id="perfNome" value=""></div>
-              <div><div class="field-lbl">CPF</div><input class="field-inp" id="perfCpf" value="" readonly style="opacity:.5"></div>
+              <div><div class="field-lbl">CPF</div><input class="field-inp" id="perfCpf" value=""></div>
             </div>
             <div class="field-row field-2 mb14">
               <div><div class="field-lbl">E-mail</div><input class="field-inp" id="perfEmail" value=""></div>
@@ -2620,6 +2620,7 @@ async function salvarPerfil(){
     cadastroApiJsonp('crm_pessoa_atualizar_perfil', {
       email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA,
       nome:document.getElementById('perfNome').value,
+      cpf:document.getElementById('perfCpf').value,
       whatsapp:document.getElementById('perfTel').value,
       profissao:perfProfissaoAtual_(),
       nascimento:document.getElementById('perfNasc').value,
@@ -2641,6 +2642,7 @@ async function salvarPerfil(){
     toast((respPerfil&&respPerfil.message)||(respBanco&&respBanco.message)||'Não foi possível salvar todas as alterações. Tente novamente.','');return
   }
   _user.nome=document.getElementById('perfNome').value;
+  _user.cpf=document.getElementById('perfCpf').value;
   _user.whatsapp=document.getElementById('perfTel').value;
   _user.profissao=perfProfissaoAtual_();
   _user.nascimento=document.getElementById('perfNasc').value;
