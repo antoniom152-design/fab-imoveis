@@ -575,6 +575,10 @@ header {
 ════════════════════════════════════════════════════════════ */
 const MODO = (new URLSearchParams(location.search).get('modo') || 'lead').toLowerCase();
 const IS_CONSULTOR = MODO === 'consultor';
+/* ?leadId= vem do convite gerado pelo Atendente (dashboard_atendente.html,
+   botão "Convidar pro Chat", pedido 90) — quando presente, evita ter que
+   descobrir o Lead_Id por telefone/e-mail (ver resolverLeadId_ mais abaixo). */
+const LEAD_ID_URL = new URLSearchParams(location.search).get('leadId') || '';
 
 /* ════════════════════════════════════════════════════════════
    SYSTEM PROMPTS
@@ -856,6 +860,10 @@ let isLoading = false;
 
 // Dados do lead coletados no formulário pré-chat
 let leadDados = { nome: '', telefone: '', email: '' };
+// Lead_Id resolvido (pedido 90 — chat ao vivo unificado IA/Atendente).
+// Fica vazio até resolverLeadId_() terminar; pollForHumanMessages() e a
+// gravação da conversa só começam depois disso (ver mais abaixo).
+let leadId = LEAD_ID_URL;
 
 /* ════════════════════════════════════════════════════════════
    PLANILHA WAL IMÓVEIS
@@ -1030,10 +1038,18 @@ window.addEventListener('DOMContentLoaded', () => {
   if (IS_CONSULTOR || (_leadJaIdentificado && _leadJaIdentificado.email)) {
     if (_leadJaIdentificado && _leadJaIdentificado.email) {
       leadDados = { nome: _leadJaIdentificado.nome || '', telefone: '', email: _leadJaIdentificado.email };
+      resolverLeadId_();
+    } else if (leadId) {
+      iniciarChatAoVivo_(); // modo consultor com ?leadId= direto na URL
     }
     document.getElementById('prechat-overlay').style.display = 'none';
     document.getElementById('userInput').focus();
   } else {
+    // Veio do convite do Atendente (?leadId= na URL, pedido 90) mas ainda
+    // não passou pelo pré-chat desta aba/sessão — já dá pra começar a
+    // receber mensagens do Atendente mesmo antes do lead escrever a
+    // primeira palavra.
+    if (leadId) iniciarChatAoVivo_();
     document.getElementById('pc-nome').focus();
     // Enter avança entre campos
     ['pc-nome','pc-tel','pc-email'].forEach((id, i, arr) => {
@@ -1072,6 +1088,7 @@ function prechatSubmit() {
   leadDados = { nome, telefone: tel, email };
   registrarLeadNoCRM({ nome, telefone: tel, email, interesse: '', orcamento: '', area: '' });
   registrarIndicacaoAgente_(nome, tel, email);
+  resolverLeadId_(); // pedido 90 — se não veio ?leadId= na URL, procura agora
 
   // Fecha overlay com fade
   const overlay = document.getElementById('prechat-overlay');
@@ -1157,6 +1174,12 @@ async function sendMessage() {
     conversationHistory.push({ role: 'assistant', content: reply });
 
     appendBotMessage(reply);
+    // pedido 90 — grava os dois lados na thread compartilhada, pro
+    // Atendente ver o que a IA já conversou quando entrar depois.
+    // Aditivo: se leadId ainda não resolveu, gravarMensagemChat_ só não
+    // faz nada (ver guard no início da função) — não afeta o chat com a IA.
+    gravarMensagemChat_('lead', text);
+    gravarMensagemChat_('ia', reply);
 
   } catch (err) {
     typingEl.remove();
@@ -1269,6 +1292,98 @@ function registrarLeadNoCRM(dados) {
    dias, a indicação fica atrelada ao Agente do mesmo jeito que ficaria
    se ela tivesse reservado direto — mesma função/payload de reserva.html. */
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+
+/* JSONP genérico pro CADASTRO_API_URL (pedido 90) — diferente dos POSTs
+   no-cors acima, este lê a resposta de verdade (necessário pra pegar o
+   Lead_Id de volta e pra buscar mensagens novas do Atendente). Mesmo
+   padrão usado em todos os dashboards do Sistema Web. */
+function cadastroApiJsonp(action, params) {
+  return new Promise((resolve) => {
+    const cb = 'chatCb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(() => { cleanup(); resolve(null); }, 12000);
+    function cleanup() { clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data) => { cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({ action, callback: cb }, params || {}));
+    s.onerror = () => { cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL + '?' + qs.toString();
+    document.body.appendChild(s);
+  });
+}
+
+/* Resolve o Lead_Id (pedido 90): se veio ?leadId= na URL (convite do
+   Atendente), já usa direto — senão, procura pelo telefone/e-mail que
+   acabaram de ser capturados no pré-chat (crm_lead_id_publico_ já tem o
+   retry embutido pra correr atrás da criação do lead, que roda em
+   paralelo em outro projeto — ver comentário em
+   crm_lead_evento_publico_ no .gs). Chamado fire-and-forget: se falhar
+   ou demorar, a conversa com a IA continua normalmente, só não fica
+   disponível pro Atendente acompanhar/entrar. */
+async function resolverLeadId_() {
+  if (leadId) { iniciarChatAoVivo_(); return; }
+  if (!leadDados.telefone && !leadDados.email) return;
+  try {
+    const resp = await cadastroApiJsonp('crm_lead_id_publico', { telefone: leadDados.telefone, email: leadDados.email });
+    if (resp && resp.status === 'ok' && resp.leadId) {
+      leadId = resp.leadId;
+      iniciarChatAoVivo_();
+    }
+  } catch (e) { /* silencioso — não interrompe o chat com a IA */ }
+}
+
+/* Grava uma mensagem na thread compartilhada (MENSAGENS_CHAT_LEAD) —
+   fire-and-forget, no-cors: se falhar, a conversa com a IA continua
+   normal, só não fica disponível pro Atendente acompanhar. */
+function gravarMensagemChat_(remetente, texto) {
+  if (!leadId || !texto) return;
+  fetch(CADASTRO_API_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'crm_lead_chat_enviar', leadId, nome: leadDados.nome || '', remetente, texto })
+  }).catch(() => {});
+}
+
+let _chatAoVivoIniciado = false;
+let _chatUltimoTimestamp = '';
+let _chatPollTimer = null;
+/* Começa a checar mensagens do Atendente a cada poucos segundos — só
+   depois do Lead_Id estar resolvido (ver resolverLeadId_ acima).
+   Idempotente (pode ser chamado 2x sem duplicar o timer). */
+function iniciarChatAoVivo_() {
+  if (_chatAoVivoIniciado || !leadId) return;
+  _chatAoVivoIniciado = true;
+  pollForHumanMessages();
+  _chatPollTimer = setInterval(pollForHumanMessages, 4000);
+}
+async function pollForHumanMessages() {
+  if (!leadId) return;
+  try {
+    const resp = await cadastroApiJsonp('crm_lead_chat_buscar', { leadId, since: _chatUltimoTimestamp, leitor: 'lead' });
+    const mensagens = (resp && resp.mensagens) || [];
+    mensagens.forEach(m => {
+      if (m.remetente === 'atendente') appendAtendenteMessage(m.texto);
+      if (!_chatUltimoTimestamp || m.timestamp > _chatUltimoTimestamp) _chatUltimoTimestamp = m.timestamp;
+    });
+  } catch (e) { /* silencioso — só um poll a menos, tenta de novo no próximo */ }
+}
+/* Mesma "bolha" visual do assistente, só com etiqueta "Atendente" e
+   texto puro (escapeHtml, não formatMarkdown — é gente digitando, não
+   a IA formatando markdown) — pro lead perceber que uma pessoa entrou
+   na conversa, sem parecer um canal diferente. */
+function appendAtendenteMessage(text) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.innerHTML = `
+    <div class="msg-avatar bot-av" style="font-size:16px">🧑‍💼</div>
+    <div>
+      <div class="bubble"><b>Atendente:</b><br>${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+      <div class="bubble-time">${now()}</div>
+    </div>`;
+  msgs.appendChild(row);
+  scrollBottom();
+}
+
 function registrarIndicacaoAgente_(nome, telefone, email) {
   try {
     const raw = localStorage.getItem('wal_ref_agente');

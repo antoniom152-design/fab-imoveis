@@ -1247,6 +1247,14 @@ var ABA_MENSAGENS_AGENTES = 'MENSAGENS_AGENTES';
    Reserva_Chave é montada no frontend (Timestamp+E-mail) só pra
    conseguir agrupar as mensagens de uma mesma reserva. */
 var ABA_MENSAGENS_RESERVA = 'MENSAGENS_RESERVA';
+/* Chat ao vivo Lead↔Atendente/IA (pedido 90) — thread única por
+   Lead_Id, com 3 remetentes possíveis ('lead'|'atendente'|'ia'), pra
+   IA e humano dividirem a mesma conversa sem o lead perceber troca de
+   canal. Mesmo padrão de polling do feirao/shared/chat-widget.js
+   (aba CHAT_MENSAGENS lá), copiado (não referenciado — ecossistemas
+   separados) pra shared/chat-widget.js na raiz do repo e adaptado pra
+   Lead_Id + auth do Atendente por sessão OTP em vez de PIN. */
+var ABA_MENSAGENS_CHAT_LEAD = 'MENSAGENS_CHAT_LEAD';
 
 /* SEM "_" no final de propósito (diferente do resto do arquivo) — é a
    única forma de uma função aparecer no menu "Selecionar função" do
@@ -1306,6 +1314,19 @@ function setupMensagensReserva() {
     'Assunto', 'Corpo', 'Criado_em', 'Status', 'Resposta', 'Respondido_em'
   ]);
   var msg = '✅ Aba ' + ABA_MENSAGENS_RESERVA + ' verificada/criada.';
+  Logger.log(msg);
+  try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
+}
+
+/* Cria a aba MENSAGENS_CHAT_LEAD (pedido 90) — mesmo padrão das
+   funções de setup acima. Rodar 1x pelo editor do Apps Script depois
+   de colar este .gs atualizado. */
+function setupChatLead() {
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  criarAbaSeNaoExiste_(ssCrm, ABA_MENSAGENS_CHAT_LEAD, [
+    'Lead_Id', 'Nome', 'Remetente', 'Texto', 'Timestamp', 'Lida'
+  ]);
+  var msg = '✅ Aba ' + ABA_MENSAGENS_CHAT_LEAD + ' verificada/criada.';
   Logger.log(msg);
   try { SpreadsheetApp.getUi().alert(msg); } catch (e) { /* sem UI (rodado pelo editor) */ }
 }
@@ -1598,6 +1619,151 @@ function crm_acharLeadPorContato_(abaLeads, telefone, email) {
     if ((telefone && rowTel === telefone) || (email && rowEmail === email)) return s_(vals[i][colId]);
   }
   return '';
+}
+
+/* ══════════════════ CHAT AO VIVO LEAD↔ATENDENTE/IA (pedido 90) ══════════════════
+   Clone do padrão feirao_chatEnviar_/feirao_chatBuscar_/feirao_chatThreads_
+   (feirao/shared/apps-script-feirao-operacional.gs:1429-1510) — mesmo
+   mecanismo de polling, adaptado pra este projeto:
+   - thread = Lead_Id (não e-mail — consistente com HISTORICO_ATENDIMENTO_LEAD)
+   - 3 remetentes ('lead'|'atendente'|'ia'), não 2 — é isso que deixa a IA
+     e o Atendente humano dividirem a mesma conversa
+   - lado atendente autentica por sessão OTP (crm_atendenteContexto_),
+     não pelo PIN antigo do Feirão
+   - lado lead SEM sessão — mesmo nível de confiança já aceito em
+     crm_lead_evento_publico_ acima (comentário linha ~1550): quem sabe
+     o Lead_Id (só quem recebeu o link do Atendente, ou fez o lookup por
+     telefone/e-mail que ele mesmo informou) pode ler/escrever a própria
+     conversa. Não é regressão de segurança, é igualar ao padrão já
+     aceito nas outras telas públicas deste arquivo. */
+function crm_lead_chat_enviar_(data) {
+  return comLock_(function () {
+    var leadId = s_(data.leadId).trim();
+    if (!leadId) return { status: 'error', message: 'Lead_Id obrigatório.' };
+    var remetente = data.remetente === 'atendente' ? 'atendente' : (data.remetente === 'ia' ? 'ia' : 'lead');
+    if (remetente === 'atendente' && !crm_atendenteContexto_(data.email, data.sessionToken)) {
+      return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+    }
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = criarAbaSeNaoExiste_(ssCrm, ABA_MENSAGENS_CHAT_LEAD, ['Lead_Id', 'Nome', 'Remetente', 'Texto', 'Timestamp', 'Lida']);
+    aba.appendRow([leadId, s_(data.nome), remetente, s_(data.texto), agora_(), false]);
+    return { status: 'ok' };
+  });
+}
+/* Exige sessão OTP quando quem lê é o Atendente; sem checagem quando é
+   o próprio lead lendo a conversa dele (ver comentário acima). */
+function crm_lead_chat_buscar_(p) {
+  var leadId = s_(p.leadId).trim();
+  if (!leadId) return { status: 'ok', mensagens: [] };
+  var leitor = p.leitor === 'atendente' ? 'atendente' : 'lead';
+  if (leitor === 'atendente' && !crm_atendenteContexto_(p.email, p.sessionToken)) {
+    return { status: 'error', message: 'Sessão de e-mail não verificada.', mensagens: [] };
+  }
+  var remetenteAlheio = leitor === 'atendente' ? 'lead' : 'atendente';
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_MENSAGENS_CHAT_LEAD);
+  if (!aba) return { status: 'ok', mensagens: [] };
+
+  var mensagens = [];
+  var linhasParaMarcarLidas = [];
+  lerAbaObjetos_(aba).forEach(function (l) {
+    if (s_(l.Lead_Id) !== leadId) return;
+    if (p.since && s_(l.Timestamp) <= p.since) return;
+    mensagens.push({ remetente: s_(l.Remetente), texto: s_(l.Texto), timestamp: s_(l.Timestamp), nome: s_(l.Nome) });
+    if (s_(l.Remetente) === remetenteAlheio && l.Lida !== true) linhasParaMarcarLidas.push(l._row);
+  });
+  if (linhasParaMarcarLidas.length) {
+    comLock_(function () { linhasParaMarcarLidas.forEach(function (row) { aba.getRange(row, 6).setValue(true); }); });
+  }
+  return { status: 'ok', mensagens: mensagens };
+}
+/* Inbox do Atendente — lista todas as threads com mensagem não lida de
+   lead (filtrar só pelas do Atendente logado fica pra uma iteração
+   futura; por enquanto mostra todas, igual o Feirão faz hoje). */
+function crm_atendente_chat_threads_(p) {
+  if (!crm_atendenteContexto_(p.email, p.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.', threads: [] };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_MENSAGENS_CHAT_LEAD);
+  if (!aba) return { status: 'ok', threads: [] };
+
+  var porLead = {}, naoLidasPorLead = {}, nomeLeadPorLead = {};
+  lerAbaObjetos_(aba).forEach(function (l) {
+    var leadId = s_(l.Lead_Id);
+    if (!leadId) return;
+    if (!porLead[leadId] || s_(l.Timestamp) > porLead[leadId].ultimoTimestamp) {
+      porLead[leadId] = { leadId: leadId, ultimaMensagem: s_(l.Texto), ultimoTimestamp: s_(l.Timestamp) };
+    }
+    if (s_(l.Remetente) === 'lead' && s_(l.Nome)) nomeLeadPorLead[leadId] = s_(l.Nome);
+    if (s_(l.Remetente) === 'lead' && l.Lida !== true) naoLidasPorLead[leadId] = (naoLidasPorLead[leadId] || 0) + 1;
+  });
+  var threads = Object.keys(porLead).map(function (leadId) {
+    var t = porLead[leadId];
+    t.nome = nomeLeadPorLead[leadId] || leadId;
+    t.naoLidas = naoLidasPorLead[leadId] || 0;
+    return t;
+  });
+  threads.sort(function (a, b) { return a.ultimoTimestamp < b.ultimoTimestamp ? 1 : -1; });
+  return { status: 'ok', threads: threads };
+}
+/* chat.html não sabe o próprio Lead_Id (só nome/telefone/email, sem
+   OTP) — usada só quando o lead chega SEM ?leadId= na URL (visita
+   orgânica, não veio de um convite do Atendente). Reaproveita
+   crm_acharLeadPorContato_ com o mesmo retry de crm_lead_evento_publico_
+   acima, pra correr atrás da criação do lead se ainda estiver em voo. */
+function crm_lead_id_publico_(data) {
+  var telefone = String(data.telefone || '').replace(/\D/g, '');
+  var email = normalizarEmail_(data.email);
+  if (!telefone && !email) return { status: 'error', message: 'Telefone ou e-mail obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+  var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
+  for (var tentativa = 1; !idLead && tentativa <= 3; tentativa++) {
+    Utilities.sleep(1500 * tentativa);
+    idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
+  }
+  if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
+  return { status: 'ok', leadId: idLead };
+}
+
+/* ══════════════════ CONVITE AUTOMÁTICO POR WHATSAPP — TWILIO (pedido 90) ══════════════════
+   Peça OPCIONAL e independente do resto do chat ao vivo acima — o
+   convite já funciona hoje por wa.me manual e e-mail sem isso. Só
+   funciona depois que o Antonio criar a conta Twilio e colocar as 3
+   chaves abaixo nas Propriedades do Script (mesmo padrão exato de
+   brevoApiKey_()/anthropicApiKey_() lá em cima, nunca hardcoded aqui). */
+function twilioCredenciais_() {
+  var props = PropertiesService.getScriptProperties();
+  return {
+    sid: props.getProperty('TWILIO_ACCOUNT_SID'),
+    token: props.getProperty('TWILIO_AUTH_TOKEN'),
+    from: props.getProperty('TWILIO_WHATSAPP_FROM') // formato "whatsapp:+14155238886"
+  };
+}
+function enviarWhatsAppTwilio_(numeroE164, texto) {
+  var cred = twilioCredenciais_();
+  if (!cred.sid || !cred.token || !cred.from) {
+    return { status: 'error', message: 'Twilio ainda não configurado (faltam TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_WHATSAPP_FROM nas Propriedades do Script).' };
+  }
+  try {
+    var resp = UrlFetchApp.fetch('https://api.twilio.com/2010-04-01/Accounts/' + cred.sid + '/Messages.json', {
+      method: 'post',
+      muteHttpExceptions: true,
+      headers: { Authorization: 'Basic ' + Utilities.base64Encode(cred.sid + ':' + cred.token) },
+      payload: { From: cred.from, To: 'whatsapp:+' + numeroE164, Body: texto }
+    });
+    var data = JSON.parse(resp.getContentText());
+    if (resp.getResponseCode() >= 400) return { status: 'error', message: (data && data.message) || 'Twilio recusou o envio.' };
+    return { status: 'ok', sid: data.sid };
+  } catch (e) {
+    return { status: 'error', message: 'Falha ao chamar a API do Twilio: ' + e.message };
+  }
+}
+function crm_atendente_convidar_chat_whatsapp_auto_(data) {
+  if (!crm_atendenteContexto_(data.email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var numero = String(data.telefone || '').replace(/\D/g, '');
+  if (!numero) return { status: 'error', message: 'Telefone do lead é obrigatório.' };
+  return enviarWhatsAppTwilio_(numero, s_(data.texto));
 }
 
 /* Migração única (rodar 1x, pelo admin.html, depois de publicar): copia pra
@@ -2311,6 +2477,11 @@ function doGet(e) {
       case 'crm_gerente_reserva_mensagem_criar':  result = crm_gerente_reserva_mensagem_criar_(p); break;
       case 'crm_gerente_reserva_mensagens_listar': result = crm_gerente_reserva_mensagens_listar_(p); break;
       case 'crm_gerente_reserva_mensagem_responder': result = crm_gerente_reserva_mensagem_responder_(p); break;
+      case 'crm_lead_chat_enviar':               result = crm_lead_chat_enviar_(p); break;
+      case 'crm_lead_chat_buscar':                result = crm_lead_chat_buscar_(p); break;
+      case 'crm_atendente_chat_threads':          result = crm_atendente_chat_threads_(p); break;
+      case 'crm_lead_id_publico':                 result = crm_lead_id_publico_(p); break;
+      case 'crm_atendente_convidar_chat_whatsapp_auto': result = crm_atendente_convidar_chat_whatsapp_auto_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
     return jsonpOut_(callback, result);
