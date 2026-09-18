@@ -1429,6 +1429,21 @@ a{text-decoration:none;color:inherit}
 </div>
 
 <!-- MODAL DETALHE DO AGENTE (79.19) -->
+<!-- MODAL DETALHE DO ATENDENTE (pedido 79.20.2) — mesmo padrão do
+     modalAgenteDetalhe abaixo (todos os campos da pessoa, via
+     campoDetalheLead_), reaproveitando os mesmos campos que
+     crm_pessoaParaObjeto_ já devolve pra Agente/Atendente/Corretor —
+     zero mudança de backend. -->
+<div class="modal-ov" id="modalAtendenteDetalhe">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-h">
+      <div class="modal-title" id="atDetalheTitulo">Detalhes do Atendente</div>
+      <button class="modal-close" onclick="fecharModal('modalAtendenteDetalhe')">×</button>
+    </div>
+    <div class="modal-body" id="atDetalheBody" style="max-height:70vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <div class="modal-ov" id="modalAgenteDetalhe">
   <div class="modal-box" style="max-width:560px">
     <div class="modal-h">
@@ -2717,7 +2732,7 @@ function renderEquipe(){
     const conv=meus.length?Math.round(fech/meus.length*100):0;
     const statusAtivo=(a.status||'ativo').toLowerCase()!=='inativo';
     return`<tr>
-      <td><div class="fw6">${a.nome||'—'}</div><div class="fs10 c-muted">${a.email||''}</div></td>
+      <td><div class="fw6" style="cursor:pointer;color:var(--gold)" onclick="abrirModalAtendenteDetalhe('${escAttr_(a.id)}')">${a.nome||'—'}</div><div class="fs10 c-muted">${a.email||''}</div></td>
       <td><span class="bdg ${a.habilitado?'bg':'ba'}">${a.habilitado?'Habilitado':'Pendente'}</span></td>
       <td>
         <select class="field-sel" style="width:auto;padding:4px 8px;font-size:11px" onchange="mudarStatusAtendente('${escAttr_(a.id)}',this.value)">
@@ -2731,6 +2746,47 @@ function renderEquipe(){
       <td class="mono">${conv}%</td>
     </tr>`;
   }).join('')}</tbody></table></div>`;
+}
+/* "Ver detalhes" do Atendente (pedido 79.20.2) — mostra literalmente
+   todo campo que _equipe já carrega (crm_pessoaParaObjeto_, mesmo
+   mapeador usado pra Agente/Corretor — zero mudança de backend, os
+   dados já chegam prontos desde sempre, só ninguém expunha na tela).
+   Mesmo padrão do abrirModalAgenteDetalhe (79.19), com uma seção extra
+   de "Leads atribuídos" no lugar de "Indicações trazidas" (não se
+   aplica a Atendente) — reaproveita _leads já carregado, sem chamada
+   nova ao backend. */
+function abrirModalAtendenteDetalhe(id){
+  const a=_equipe.find(x=>x.id===id); if(!a)return;
+  document.getElementById('atDetalheTitulo').textContent=a.nome||'Detalhes do Atendente';
+  const docLink=(url,label)=>url?`<a href="${url}" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">📄 Ver ${label}</a>`:'<span class="c-muted">Não enviado</span>';
+  const meusLeads=_leads.filter(l=>l.atendenteId===a.id);
+  document.getElementById('atDetalheBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      ${campoDetalheLead_('Id',a.id)}
+      ${campoDetalheLead_('Nome',a.nome)}
+      ${campoDetalheLead_('E-mail',a.email)}
+      ${campoDetalheLead_('CPF',a.cpf)}
+      ${campoDetalheLead_('WhatsApp',a.whatsapp)}
+      ${campoDetalheLead_('Data de Nascimento',a.nascimento?fmtDt(a.nascimento):'')}
+      ${campoDetalheLead_('Profissão',a.profissao)}
+      ${campoDetalheLead_('UF',a.uf)}
+      ${campoDetalheLead_('Cidade',a.cidade)}
+      ${campoDetalheLead_('Status',a.status)}
+      ${campoDetalheLead_('Habilitado',a.habilitado?'✅ Sim':'⛔ Não')}
+      ${campoDetalheLead_('Termos Aceitos em',a.termosAceitosEm?fmtDtHora_(a.termosAceitosEm):'')}
+      ${campoDetalheLead_('Versão dos Termos',a.termosVersao)}
+      ${campoDetalheLead_('Criado em',a.criadoEm?fmtDtHora_(a.criadoEm):'')}
+      ${campoDetalheLead_('Atualizado em',a.atualizadoEm?fmtDtHora_(a.atualizadoEm):'')}
+      ${campoDetalheLead_('Último Acesso',a.ultimoAcesso?fmtDtHora_(a.ultimoAcesso):'')}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
+      ${campoDetalheLead_('RG/CNH',docLink(a.docRgUrl,'RG/CNH'))}
+      ${campoDetalheLead_('Comprovante de Residência',docLink(a.docComprovanteUrl,'comprovante'))}
+    </div>
+    <div class="sec" style="margin:14px 0 8px">📋 Leads atribuídos (${meusLeads.length})</div>
+    ${meusLeads.length?`<div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Lead</th><th>Status</th><th>Atualizado</th></tr></thead><tbody>${meusLeads.map(l=>`<tr class="clk" onclick="fecharModal('modalAtendenteDetalhe');abrirLead('${l.id}')"><td><div class="fw6">${l.nome||'—'}</div><div class="fs10 c-muted">${l.telefone||l.email||''}</div></td><td><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></td><td class="mono fs10 c-muted">${fmtDtHora_(l.atualizadoEm)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="fs12 c-muted">Nenhum lead atribuído ainda.</div>'}
+  `;
+  abrirModal('modalAtendenteDetalhe');
 }
 /* Toggle Ativo/Inativo do Atendente (pedido 79.5, mesmo Status do modo
    Gerente do Feirão) — só mexe em Status, não em Habilitado (aprovação
