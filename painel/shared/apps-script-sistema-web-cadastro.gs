@@ -739,8 +739,8 @@ function crm_pessoa_atualizar_perfil_(data) {
   return comLock_(function () {
     var linha = acharLinhaPorChave_(ctx.aba, 'Email', email);
     if (linha === -1) return { status: 'error', message: 'Cadastro não encontrado.' };
-    var campos = ['Nome', 'WhatsApp', 'Nascimento', 'Profissao', 'UF', 'Cidade', 'CRECI', 'Foto'];
-    var chaves = ['nome', 'whatsapp', 'nascimento', 'profissao', 'uf', 'cidade', 'creci', 'foto'];
+    var campos = ['Nome', 'CPF', 'WhatsApp', 'Nascimento', 'Profissao', 'UF', 'Cidade', 'CRECI', 'Foto'];
+    var chaves = ['nome', 'cpf', 'whatsapp', 'nascimento', 'profissao', 'uf', 'cidade', 'creci', 'foto'];
     var headers = headersDe_(ctx.aba);
     campos.forEach(function (campoHeader, idx) {
       if (data[chaves[idx]] !== undefined) ctx.aba.getRange(linha, headers.indexOf(campoHeader) + 1).setValue(data[chaves[idx]]);
