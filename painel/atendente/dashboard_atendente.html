@@ -1158,6 +1158,7 @@ a{text-decoration:none;color:inherit}
     <div class="modal-body" id="leadModalBody"></div>
     <div class="modal-f">
       <button class="btn" onclick="fecharModal('modalLead')">Fechar</button>
+      <button class="btn-teal btn" onclick="abrirConvidarChat_()">💬 Convidar pro Chat</button>
       <button class="btn btn-gold" onclick="abrirCompartilharReserva()">📋 Confirmar Reserva e Enviar Documentos</button>
       <button class="btn-teal btn" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');fecharModal('modalLead')">🤖 Pedir ajuda à IA</button>
     </div>
@@ -1176,6 +1177,28 @@ a{text-decoration:none;color:inherit}
         <a id="compReservaWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
         <button class="btn-full btn" id="compReservaBtnEmail" onclick="compReservaEnviarEmail()">✉️ Enviar por E-mail</button>
         <button class="btn-full btn" id="compReservaBtnCopiar" onclick="compReservaCopiarLink(this)">🔗 Copiar Link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CONVIDAR LEAD PRO CHAT AO VIVO (pedido 90) — mesmo padrão de
+     3 botões do modalCompReserva acima, só que pro convite de chat em
+     vez do formulário de reserva. O botão "Enviar automático" só some
+     do erro caso o Twilio ainda não esteja configurado (ver
+     convidarChatWhatsappAuto_ mais abaixo). -->
+<div class="modal-ov" id="modalConvidarChat">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-h">
+      <div class="modal-title">Convidar lead pro Chat ao vivo</div>
+      <button class="modal-close" onclick="fecharModal('modalConvidarChat')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a id="convidarChatWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
+        <button class="btn-full btn" id="convidarChatBtnAuto" onclick="convidarChatWhatsappAuto_()">📲 Enviar automático (Twilio)</button>
+        <button class="btn-full btn" id="convidarChatBtnEmail" onclick="convidarChatEnviarEmail_()">✉️ Enviar por E-mail</button>
+        <button class="btn-full btn" id="convidarChatBtnCopiar" onclick="convidarChatCopiarLink_(this)">🔗 Copiar Link</button>
       </div>
     </div>
   </div>
@@ -1760,6 +1783,13 @@ async function iniciarApp(){
   tick();setInterval(tick,1000);
   renderDocumentosPerfil();
   alertaSonoroAtualizarBotao_();
+  // FAB de chat ao vivo com os leads (pedido 90) — inbox com todas as
+  // threads, o Atendente entra na conversa (que a IA já pode estar
+  // tocando) a qualquer momento. shared/chat-widget.js, backend novo
+  // em apps-script-sistema-web-cadastro.gs (crm_lead_chat_*).
+  if(window.WalChatWidget){
+    WalChatWidget.init({apiUrl:CADASTRO_API_URL, role:'atendente', nome:_user.nome||'Atendente', email:_user.email, sessionToken:_user.sessionToken});
+  }
   // IA welcome
   addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Fazer a triagem e o primeiro contato com os leads da sua fila\n• Responder objeções de forma profissional\n• Criar mensagens de WhatsApp e confirmações de visita\n• Indicar a linha de financiamento certa pro perfil de cada lead (FAB, Marinha, Exército, segurança pública, servidor civil...)\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
   iaHistoricoRender_();
@@ -2302,6 +2332,82 @@ async function compReservaEnviarEmail(){
   btn.disabled=false;btn.textContent='✉️ Enviar por E-mail';
 }
 
+/* ═══ CONVIDAR LEAD PRO CHAT AO VIVO (pedido 90) ═══
+   Mesmo padrão de abrirCompartilharReserva() acima, só que o link é
+   pro chat.html (?leadId=) em vez do reserva.html — a IA já responde
+   assim que o lead abrir, e este mesmo Atendente pode entrar na
+   conversa a qualquer momento pelo FAB de chat (shared/chat-widget.js,
+   iniciado em iniciarApp() mais abaixo). Não exige empreendimento
+   selecionado (diferente da reserva) — só precisa do lead já ter Id. */
+let _convidarChatDados=null;
+function abrirConvidarChat_(){
+  const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
+  const link=`${SITE_BASE_URL}chat.html?leadId=${encodeURIComponent(l.id)}`;
+  const texto=
+`Olá, ${l.nome||''}! Tudo bem?
+Preparamos um atendimento personalizado pra você — é só clicar no link abaixo pra conversar com a gente agora:
+🔗 ${link}
+
+WAL Imóveis | WAL Servidor
+comercial@walservidor.com.br
+www.walservidor.com.br`;
+
+  _convidarChatDados={link,texto,email:l.email||'',telefone:l.telefone||''};
+  document.getElementById('convidarChatWpp').href=`https://wa.me/55${(l.telefone||'').replace(/\D/g,'')}?text=${encodeURIComponent(texto)}`;
+  const btnEmail=document.getElementById('convidarChatBtnEmail');
+  btnEmail.disabled=!l.email;
+  btnEmail.title=l.email?'':'Lead sem e-mail cadastrado';
+  btnEmail.textContent='✉️ Enviar por E-mail';
+  const btnAuto=document.getElementById('convidarChatBtnAuto');
+  btnAuto.disabled=!l.telefone;
+  btnAuto.title=l.telefone?'':'Lead sem telefone cadastrado';
+  btnAuto.textContent='📲 Enviar automático (Twilio)';
+  abrirModal('modalConvidarChat');
+}
+function convidarChatCopiarLink_(btn){
+  navigator.clipboard.writeText(_convidarChatDados.link).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent='✅ Link copiado!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  });
+}
+async function convidarChatEnviarEmail_(){
+  if(!_convidarChatDados||!_convidarChatDados.email){toast('Este lead não tem e-mail cadastrado.','');return}
+  const btn=document.getElementById('convidarChatBtnEmail');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:_convidarChatDados.email,assunto:'Fale com a gente agora — WAL Imóveis',corpo:_convidarChatDados.texto})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      toast('✅ E-mail enviado para '+_convidarChatDados.email+'!','green');
+      fecharModal('modalConvidarChat');
+    }else{
+      toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
+    }
+  }catch(e){
+    toast('Falha na conexão. Tente novamente.','');
+  }
+  btn.disabled=false;btn.textContent='✉️ Enviar por E-mail';
+}
+/* Peça opcional (Twilio) — só funciona depois que o Antonio configurar
+   TWILIO_ACCOUNT_SID/TWILIO_AUTH_TOKEN/TWILIO_WHATSAPP_FROM nas
+   Propriedades do Script (ver enviarWhatsAppTwilio_ no .gs). Até lá,
+   o backend devolve uma mensagem de erro clara em vez de quebrar. */
+async function convidarChatWhatsappAuto_(){
+  if(!_convidarChatDados||!_convidarChatDados.telefone){toast('Este lead não tem telefone cadastrado.','');return}
+  const btn=document.getElementById('convidarChatBtnAuto');
+  btn.disabled=true;btn.textContent='Enviando...';
+  const resp=await cadastroApiJsonp('crm_atendente_convidar_chat_whatsapp_auto',{email:_user.email,sessionToken:_user.sessionToken,telefone:_convidarChatDados.telefone,texto:_convidarChatDados.texto});
+  btn.disabled=false;btn.textContent='📲 Enviar automático (Twilio)';
+  if(resp&&resp.status==='ok'){
+    toast('✅ WhatsApp enviado automaticamente!','green');
+    fecharModal('modalConvidarChat');
+  }else{
+    toast((resp&&resp.message)||'Não foi possível enviar agora. Tente novamente.','');
+  }
+}
+
 /* ═══ FILTROS DE EMPREENDIMENTOS (mesmo padrão de imoveis.html) ═══ */
 let _empFiltrados=[];
 const EMP_FAIXAS=[
@@ -2606,5 +2712,6 @@ function limparChat(){
 </script>
 <script src="../shared/compartilhamento-seguro.js"></script>
 <script src="../shared/descricao-inteligente.js"></script>
+<script src="../../shared/chat-widget.js"></script>
 </body>
 </html>
