@@ -502,7 +502,7 @@ header {
       </div>
       <div class="header-info">
         <div class="header-name">
-          Consultor WAL · IA
+          <span id="headerNome">Consultor WAL · IA</span>
           <span class="mode-badge" id="modeBadge">Lead</span>
         </div>
         <div class="header-status">
@@ -550,6 +550,14 @@ header {
         onkeydown="handleKey(event)"
         oninput="autoResize(this); updateCharCount(this)"
       ></textarea>
+      <!-- pedido 90.1.e — anexar documento na conversa (vai pro Drive,
+           o link cai na mesma thread compartilhada com o Atendente) -->
+      <input type="file" id="anexoInput" style="display:none" onchange="enviarAnexo_(this.files[0])" accept="image/*,.pdf,.doc,.docx">
+      <button class="btn-send" id="anexoBtn" onclick="document.getElementById('anexoInput').click()" title="Anexar documento" style="background:var(--navy-mid);border:1px solid var(--border)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--navy)">
+          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
+        </svg>
+      </button>
       <button class="btn-send" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"/>
@@ -1377,6 +1385,57 @@ function registrarLeadHome_(dados) {
    se ela tivesse reservado direto — mesma função/payload de reserva.html. */
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
 
+/* Projeto ISOLADO de upload pro Drive (mesma conta pessoal já usada em
+   dashboard-agente.html/reserva.html — DriveApp é bloqueado na conta
+   Workspace, ver comentário completo no topo do
+   apps-script-upload-documentos-agente.gs). Pedido 90.1.e: anexos do
+   chat ao vivo. */
+const UPLOAD_DOCUMENTOS_API_URL = 'https://script.google.com/macros/s/AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw/exec';
+const ANEXO_TAMANHO_MAX = 8 * 1024 * 1024; // 8MB — base64 infla ~33%, folga confortável pro limite do Apps Script
+
+function anexoNota_(texto) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.style.cssText = 'text-align:center;margin:8px 0';
+  row.innerHTML = `<span style="font-size:11px;color:var(--text-muted);background:rgba(201,168,76,.12);padding:5px 12px;border-radius:12px">${texto}</span>`;
+  msgs.appendChild(row);
+  scrollBottom();
+  return row;
+}
+/* Lê o arquivo em base64, sobe pro Drive (projeto isolado) e grava o
+   link na mesma thread do chat (crm_lead_chat_enviar, já existente —
+   zero mudança no backend principal). Precisa de leadId resolvido —
+   ainda não faz sentido anexar algo antes da conversa virar um lead
+   de verdade (modo livre) ou antes do pré-chat (modo normal). */
+async function enviarAnexo_(file) {
+  document.getElementById('anexoInput').value = '';
+  if (!file) return;
+  if (!leadId) { anexoNota_('⚠️ Continue a conversa mais um pouco antes de anexar um arquivo.'); return; }
+  if (file.size > ANEXO_TAMANHO_MAX) { anexoNota_('⚠️ Arquivo muito grande (máx. 8MB).'); return; }
+  const notaEl = anexoNota_('📎 Enviando ' + escapeHtml(file.name) + '...');
+  try {
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+    const resp = await fetch(UPLOAD_DOCUMENTOS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'crm_chat_upload_anexo', leadId, nomeLead: leadDados.nome || '', nome: file.name, tipo: file.type, base64 })
+    }).then(r => r.json());
+    notaEl.remove();
+    if (!resp || resp.status !== 'ok') { anexoNota_('⚠️ Não foi possível enviar o anexo. Tente novamente.'); return; }
+    const texto = '📎 ' + resp.nome + '\n' + resp.url;
+    gravarMensagemChat_('lead', texto);
+    appendUserMessage(texto);
+  } catch (e) {
+    notaEl.remove();
+    anexoNota_('⚠️ Não foi possível enviar o anexo. Tente novamente.');
+  }
+}
+
 /* JSONP genérico pro CADASTRO_API_URL (pedido 90) — diferente dos POSTs
    no-cors acima, este lê a resposta de verdade (necessário pra pegar o
    Lead_Id de volta e pra buscar mensagens novas do Atendente). Mesmo
@@ -1464,27 +1523,47 @@ async function pollForHumanMessages() {
     const resp = await cadastroApiJsonp('crm_lead_chat_buscar', { leadId, since: _chatUltimoTimestamp, leitor: 'lead' });
     const mensagens = (resp && resp.mensagens) || [];
     mensagens.forEach(m => {
-      if (m.remetente === 'atendente') appendAtendenteMessage(m.texto);
+      if (m.remetente === 'atendente') appendAtendenteMessage(m.texto, m.nome);
       if (!_chatUltimoTimestamp || m.timestamp > _chatUltimoTimestamp) _chatUltimoTimestamp = m.timestamp;
     });
   } catch (e) { /* silencioso — só um poll a menos, tenta de novo no próximo */ }
+}
+/* pedido 90.1.e — deixa bem claro pro lead que uma PESSOA entrou na
+   conversa (não só a etiqueta na bolha): troca o nome/status do
+   cabeçalho pra "modo humano" na 1ª mensagem do atendente. Idempotente
+   (não refaz a troca a cada mensagem seguinte). */
+let _modoHumanoAtivo = false;
+function ativarModoHumano_(nomeAtendente) {
+  if (_modoHumanoAtivo) return;
+  _modoHumanoAtivo = true;
+  const nomeEl = document.getElementById('headerNome');
+  const statusEl = document.getElementById('headerStatusText');
+  if (nomeEl) nomeEl.textContent = '🧑‍💼 ' + (nomeAtendente || 'Atendente WAL');
+  if (statusEl) statusEl.textContent = 'Você está falando com um atendente humano';
 }
 /* Mesma "bolha" visual do assistente, só com etiqueta "Atendente" e
    texto puro (escapeHtml, não formatMarkdown — é gente digitando, não
    a IA formatando markdown) — pro lead perceber que uma pessoa entrou
    na conversa, sem parecer um canal diferente. */
-function appendAtendenteMessage(text) {
+function appendAtendenteMessage(text, nomeAtendente) {
+  ativarModoHumano_(nomeAtendente);
   const msgs = document.getElementById('messages');
   const row = document.createElement('div');
   row.className = 'msg-row bot';
   row.innerHTML = `
     <div class="msg-avatar bot-av" style="font-size:16px">🧑‍💼</div>
     <div>
-      <div class="bubble"><b>Atendente:</b><br>${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+      <div class="bubble"><b>${escapeHtml(nomeAtendente || 'Atendente')}:</b><br>${linkify(escapeHtml(text).replace(/\n/g, '<br>'))}</div>
       <div class="bubble-time">${now()}</div>
     </div>`;
   msgs.appendChild(row);
   scrollBottom();
+}
+/* pedido 90.1.e ("criar links") — mesma ideia do shared/chat-widget.js:
+   qualquer URL na mensagem já vira link clicável. */
+function linkify(safeHtml) {
+  return safeHtml.replace(/(https?:\/\/[^\s<]+)/g, url =>
+    `<a href="${url}" target="_blank" rel="noopener" style="color:var(--gold);text-decoration:underline">${url}</a>`);
 }
 
 function registrarIndicacaoAgente_(nome, telefone, email) {
@@ -1523,7 +1602,7 @@ function appendUserMessage(text) {
   row.innerHTML = `
     <div class="msg-avatar" style="font-size:16px">${cfg.userAvatar}</div>
     <div>
-      <div class="bubble">${escapeHtml(text).replace(/\n/g, '<br>')}</div>
+      <div class="bubble">${linkify(escapeHtml(text).replace(/\n/g, '<br>'))}</div>
       <div class="bubble-time">${now()}</div>
     </div>`;
   msgs.appendChild(row);

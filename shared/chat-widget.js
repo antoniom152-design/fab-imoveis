@@ -56,6 +56,14 @@
     });
   }
 
+  /* pedido 90.1.e ("criar links") — qualquer URL colada na mensagem já vira
+     link clicável; aplicado sempre DEPOIS do escapeHtml (texto já seguro). */
+  function linkify(safeHtml) {
+    return safeHtml.replace(/(https?:\/\/[^\s<]+)/g, function (url) {
+      return '<a href="' + url + '" target="_blank" rel="noopener" style="color:#C9A84C;text-decoration:underline">' + url + '</a>';
+    });
+  }
+
   /* Escrita = POST no-cors, fire-and-forget (não dá pra ler a
      resposta nesse modo, mas o polling seguinte já traz a mensagem). */
   function post(apiUrl, action, payload) {
@@ -95,12 +103,18 @@
     .wal-chat-panel{position:fixed;right:20px;bottom:88px;width:340px;max-width:calc(100vw - 32px);\
       height:480px;max-height:calc(100vh - 120px);background:#0F1E33;border:1px solid #2A3B55;\
       border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.45);z-index:9999;display:none;\
-      flex-direction:column;overflow:hidden;font-family:inherit}\
+      flex-direction:column;overflow:hidden;font-family:inherit;\
+      transition:width .2s,height .2s,right .2s,bottom .2s,border-radius .2s}\
     .wal-chat-panel.open{display:flex}\
+    .wal-chat-panel.expanded{right:20px;bottom:20px;width:min(640px,calc(100vw - 32px));\
+      height:min(80vh,760px);max-height:calc(100vh - 40px);border-radius:14px}\
+    @media (max-width:640px){\
+      .wal-chat-panel.expanded{right:0;bottom:0;width:100vw;height:100dvh;max-height:100dvh;border-radius:0}\
+    }\
     .wal-chat-head{display:flex;align-items:center;gap:8px;padding:12px 14px;background:#0A1628;\
       border-bottom:1px solid #2A3B55;color:#C9A84C;font-weight:700;font-size:14px}\
-    .wal-chat-title{flex:1}\
-    .wal-chat-back,.wal-chat-close{background:none;border:none;color:#C9A84C;font-size:18px;cursor:pointer;padding:0 4px}\
+    .wal-chat-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\
+    .wal-chat-back,.wal-chat-close,.wal-chat-expand{background:none;border:none;color:#C9A84C;font-size:18px;cursor:pointer;padding:0 4px}\
     .wal-chat-threads{flex:1;overflow-y:auto}\
     .wal-chat-thread{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-bottom:1px solid #1B2A42;cursor:pointer}\
     .wal-chat-thread:hover{background:#152436}\
@@ -139,6 +153,9 @@
   function WalChatWidget(opts) {
     opts = opts || {};
     this.apiUrl   = opts.apiUrl || global.CADASTRO_API_URL || '';
+    // pedido 90.1.e — projeto isolado de upload pro Drive (mesmo usado
+    // em dashboard-agente.html/reserva.html), pros anexos do chat.
+    this.uploadApiUrl = opts.uploadApiUrl || global.UPLOAD_DOCUMENTOS_API_URL || '';
     this.role     = opts.role === 'atendente' ? 'atendente' : 'lead';
     this.nome     = opts.nome || (this.role === 'atendente' ? 'Atendente WAL' : 'Você');
     this.mode     = this.role === 'atendente' ? 'inbox' : 'single';
@@ -179,6 +196,16 @@
     if (this.mode === 'inbox') this._renderInboxShell(); else this._renderThreadShell(this.nome);
   };
 
+  /* pedido 90.1.e — amplia o painel (desktop: bem maior; celular: tela
+     cheia) pra facilitar uma conversa de verdade, não só recados curtos. */
+  WalChatWidget.prototype.toggleExpand = function () {
+    this.panel.classList.toggle('expanded');
+    Array.prototype.forEach.call(this.panel.querySelectorAll('.wal-chat-expand'), function (btn) {
+      btn.textContent = this.panel.classList.contains('expanded') ? '⤡' : '⤢';
+      btn.title = this.panel.classList.contains('expanded') ? 'Reduzir' : 'Ampliar';
+    }.bind(this));
+  };
+
   WalChatWidget.prototype.toggle = function () {
     var abrindo = !this.panel.classList.contains('open');
     this.panel.classList.toggle('open', abrindo);
@@ -196,15 +223,18 @@
   /* ── modo INBOX (atendente) ─────────────────────────────────── */
   WalChatWidget.prototype._renderInboxShell = function () {
     var self = this;
+    var expandido = this.panel.classList.contains('expanded');
     this.panel.innerHTML =
       '<div class="wal-chat-head">' +
         '<button class="wal-chat-back" style="display:none">←</button>' +
         '<div class="wal-chat-title">Conversas</div>' +
+        '<button class="wal-chat-expand" title="' + (expandido ? 'Reduzir' : 'Ampliar') + '">' + (expandido ? '⤡' : '⤢') + '</button>' +
         '<button class="wal-chat-close">×</button>' +
       '</div>' +
       '<div class="wal-chat-threads"><div class="wal-chat-empty">Carregando…</div></div>';
     this.panel.querySelector('.wal-chat-close').onclick = function () { self.toggle(); };
     this.panel.querySelector('.wal-chat-back').onclick = function () { self._voltarParaThreads(); };
+    this.panel.querySelector('.wal-chat-expand').onclick = function () { self.toggleExpand(); };
   };
 
   /* pedido 90.1.b — thread cuja última mensagem é o alerta "🆘" que
@@ -278,25 +308,34 @@
     var self = this;
     this._pintadas = {}; // container de mensagens vai ser recriado do zero — nada foi pintado nele ainda
     this._threadCarregado = false; // controla o "wipe" de primeira carga — ver _poll()
+    var expandido = this.panel.classList.contains('expanded');
     this.panel.innerHTML =
       '<div class="wal-chat-head">' +
         (comVoltar ? '<button class="wal-chat-back">←</button>' : '') +
         '<div class="wal-chat-title">' + escapeHtml(titulo || 'Fale com a gente') + '</div>' +
+        '<button class="wal-chat-expand" title="' + (expandido ? 'Reduzir' : 'Ampliar') + '">' + (expandido ? '⤡' : '⤢') + '</button>' +
         '<button class="wal-chat-close">×</button>' +
       '</div>' +
       '<div class="wal-chat-body">' +
         '<div class="wal-chat-messages"><div class="wal-chat-empty">Carregando…</div></div>' +
         '<div class="wal-chat-inputrow">' +
+          '<input type="file" class="wal-chat-anexo-input" style="display:none" accept="image/*,.pdf,.doc,.docx" />' +
+          '<button type="button" class="wal-chat-anexo-btn" title="Anexar documento">📎</button>' +
           '<input type="text" placeholder="Digite uma mensagem..." maxlength="1000" />' +
           '<button type="button">Enviar</button>' +
         '</div>' +
       '</div>';
     this.panel.querySelector('.wal-chat-close').onclick = function () { self.toggle(); };
+    this.panel.querySelector('.wal-chat-expand').onclick = function () { self.toggleExpand(); };
     var back = this.panel.querySelector('.wal-chat-back');
     if (back) back.onclick = function () { self._voltarParaThreads(); };
 
-    var input = this.panel.querySelector('.wal-chat-inputrow input');
-    var sendBtn = this.panel.querySelector('.wal-chat-inputrow button');
+    var anexoInput = this.panel.querySelector('.wal-chat-anexo-input');
+    this.panel.querySelector('.wal-chat-anexo-btn').onclick = function () { anexoInput.click(); };
+    anexoInput.onchange = function () { self._enviarAnexo(anexoInput.files[0]); anexoInput.value = ''; };
+
+    var input = this.panel.querySelector('.wal-chat-inputrow input[type=text]');
+    var sendBtn = this.panel.querySelector('.wal-chat-inputrow button:not(.wal-chat-anexo-btn)');
     var enviar = function () {
       var texto = input.value.trim();
       if (!texto) return;
@@ -344,6 +383,46 @@
     }, 8000);
   };
 
+  /* pedido 90.1.e — sobe o arquivo pro Drive (projeto isolado de upload,
+     mesmo usado em dashboard-agente.html/reserva.html) e manda o link
+     como uma mensagem normal (_enviar), pra cair na mesma thread. */
+  WalChatWidget.prototype._enviarAnexo = function (file) {
+    if (!this.activeThread || !file) return;
+    if (!this.uploadApiUrl) { this._notaSistema('⚠️ Upload de anexos não configurado.'); return; }
+    var TAMANHO_MAX = 8 * 1024 * 1024; // 8MB
+    if (file.size > TAMANHO_MAX) { this._notaSistema('⚠️ Arquivo muito grande (máx. 8MB).'); return; }
+    var self = this;
+    var nota = this._notaSistema('📎 Enviando ' + escapeHtml(file.name) + '...');
+    var reader = new FileReader();
+    reader.onload = function () {
+      var base64 = reader.result.split(',')[1];
+      fetch(self.uploadApiUrl, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'crm_chat_upload_anexo', leadId: self.activeThread, nomeLead: self.activeNome, nome: file.name, tipo: file.type, base64: base64 })
+      }).then(function (r) { return r.json(); }).then(function (resp) {
+        if (nota && nota.remove) nota.remove();
+        if (!resp || resp.status !== 'ok') { self._notaSistema('⚠️ Não foi possível enviar o anexo.'); return; }
+        self._enviar('📎 ' + resp.nome + '\n' + resp.url);
+      }).catch(function () {
+        if (nota && nota.remove) nota.remove();
+        self._notaSistema('⚠️ Não foi possível enviar o anexo.');
+      });
+    };
+    reader.readAsDataURL(file);
+  };
+  WalChatWidget.prototype._notaSistema = function (texto) {
+    var box = this.panel.querySelector('.wal-chat-messages');
+    if (!box) return null;
+    var vazio = box.querySelector('.wal-chat-empty');
+    if (vazio) vazio.remove();
+    var el = document.createElement('div');
+    el.style.cssText = 'text-align:center;margin:6px 0;font-size:11px;color:#8A97AB';
+    el.textContent = texto;
+    box.appendChild(el);
+    box.scrollTop = box.scrollHeight;
+    return el;
+  };
+
   WalChatWidget.prototype._pintarMensagem = function (m, pendingKey) {
     if (!pendingKey) {
       // mensagens "oficiais" (vindas do servidor) podem se repetir quando
@@ -368,7 +447,7 @@
     div.className = 'wal-chat-msg ' + (mine ? 'mine' : 'theirs');
     if (pendingKey) div.setAttribute('data-pending', pendingKey);
     var rotulo = m.remetente === 'ia' ? '🤖 Assistente: ' : (m.remetente === 'atendente' && this.role === 'lead' ? '🧑‍💼 Atendente: ' : '');
-    div.innerHTML = (rotulo ? '<b>' + rotulo + '</b>' : '') + escapeHtml(m.texto) + '<span class="wal-chat-msg-time">' + hora + '</span>';
+    div.innerHTML = (rotulo ? '<b>' + rotulo + '</b>' : '') + linkify(escapeHtml(m.texto)) + '<span class="wal-chat-msg-time">' + hora + '</span>';
     box.appendChild(div);
     box.scrollTop = box.scrollHeight;
     return div;

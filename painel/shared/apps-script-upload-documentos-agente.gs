@@ -2,13 +2,16 @@
    WAL Imóveis — Upload de Documentos (Autocadastro de agente/corretor/
    atendente E formulário de Reserva) pro Google Drive
    Data: 24-08-2026 · Ampliado 14-09-2026 (78.1) pra também atender
-   reserva.html
+   reserva.html · Ampliado 19-09-2026 (90.1.e) pra também atender
+   anexos do chat ao vivo Lead↔Atendente
    Google Sheets URL: https://script.google.com/macros/s/AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw/exec
    Código de implantação: AKfycbwyVnBvuwYL56uLAM0AA86Ioe7q-u9AB7vgg8WUpVeHY4DAJwjPiFvxJIdUpzOTcBisCw
    PASTA_DOCUMENTOS_CADASTRO_ID
    link da pasta: https://drive.google.com/drive/folders/1wCfmfSvoiX9WUMNwiheF156E4CtKvueg?usp=sharing
    PASTA_DOCUMENTOS_RESERVA_ID (nova, 78.1)
    link da pasta: https://drive.google.com/drive/folders/1JVW-dTxsy10z35cledwP9TdaqZ1mgvt0?usp=sharing
+   PASTA_DOCUMENTOS_CHAT_ID (nova, 90.1.e) — AINDA PRECISA SER CRIADA E
+   COMPARTILHADA antes de publicar esta versão, ver passo 2 abaixo.
    ═══════════════════════════════════════════════════════════════════
    Projeto ISOLADO, criado numa conta Google PESSOAL (não Workspace) de
    propósito. Motivo: o projeto principal do cadastro
@@ -40,10 +43,14 @@
       Extensões → Apps Script numa planilha qualquer dessa conta — não
       precisa estar ligado a planilha nenhuma, esse script só usa
       Drive). Cole todo este arquivo.
-   2. Garanta que essa conta pessoal tem acesso de EDITOR nestes 2
+   2. Garanta que essa conta pessoal tem acesso de EDITOR nestes
       recursos (compartilhe se ainda não tiver):
       - A pasta do Drive de destino: PASTA_DOCUMENTOS_CADASTRO_ID
         abaixo (https://drive.google.com/drive/folders/1PheLkFZrPBT-R5zHExtMpTEMSwZyquao)
+      - Crie uma pasta NOVA no Drive dessa mesma conta pessoal pra
+        receber os anexos do chat, copie o ID (o trecho da URL depois
+        de /folders/) e cole em PASTA_DOCUMENTOS_CHAT_ID no topo deste
+        arquivo, no lugar do texto "COLOQUE_AQUI_...".
       - A planilha "WAL — CRM de Leads" (PLANILHA_CRM_LEADS_ID) — só
         precisa poder LER a aba de OTP e ESCREVER na aba da pessoa
         (AGENTES/CORRETOR/ATENDENTES), mas mais simples compartilhar
@@ -75,6 +82,13 @@ var PASTA_DOCUMENTOS_CADASTRO_ID = '1PheLkFZrPBT-R5zHExtMpTEMSwZyquao';
    compartilhada com Editor pra esta MESMA conta pessoal que já tem
    acesso à pasta de cadastro (ver instruções no topo do arquivo). */
 var PASTA_DOCUMENTOS_RESERVA_ID = '1JVW-dTxsy10z35cledwP9TdaqZ1mgvt0';
+/* Anexos trocados no chat ao vivo Lead↔Atendente/IA (pedido 90.1.e) —
+   pasta separada das duas de cima, mesmo raciocínio: eventos diferentes
+   não deveriam se misturar na mesma pasta. PRECISA SER CRIADA: no Drive
+   da MESMA conta pessoal já usada pelas pastas acima, crie uma pasta
+   nova, compartilhe como Editor com essa conta (se ainda não for dela)
+   e cole o ID aqui antes de publicar esta versão. */
+var PASTA_DOCUMENTOS_CHAT_ID = 'COLOQUE_AQUI_O_ID_DA_PASTA_DE_ANEXOS_DO_CHAT';
 var PLANILHA_CADASTRO_ID = '1QKt4iVS_JaFI9Ir_gpOpAUcR4t8rrNJbYwLaH84BUdI';
 var ABA_OTP               = 'OTP_CODES';
 var PLANILHA_CRM_LEADS_ID = '1LeIsShjdVMKuB99cJf_N-eBW3M8lf_uo-la88CQjvH4';
@@ -235,6 +249,31 @@ function crm_reserva_upload_documentos_(data) {
   });
 }
 
+/* Anexo único (não em lote, ao contrário das duas funções acima) —
+   enviado assim que o Lead ou o Atendente escolhe um arquivo no chat
+   (pedido 90.1.e), não junto de um formulário inteiro. Uma pasta por
+   conversa (Lead_Id), reaproveitada se a mesma pessoa mandar mais de um
+   anexo na mesma thread. Sem validação de sessão de propósito — mesmo
+   nível de confiança já aceito em crm_lead_chat_enviar_/
+   crm_reserva_upload_documentos_ (quem sabe o Lead_Id pode escrever na
+   própria conversa; o link do Drive só circula dentro dela). */
+function pastaDocumentosChat_(leadId, nomeLead) {
+  var raiz = DriveApp.getFolderById(PASTA_DOCUMENTOS_CHAT_ID);
+  var nomeLimpo = (s_(nomeLead).trim() || 'Lead') + ' — ' + s_(leadId).trim();
+  var existentes = raiz.getFoldersByName(nomeLimpo);
+  if (existentes.hasNext()) return existentes.next();
+  return raiz.createFolder(nomeLimpo);
+}
+function crm_chat_upload_anexo_(data) {
+  if (!data.base64 || !s_(data.leadId).trim()) return { status: 'error', message: 'Arquivo e Lead_Id são obrigatórios.' };
+  return comLock_(function () {
+    var pasta = pastaDocumentosChat_(data.leadId, data.nomeLead);
+    var blob = Utilities.newBlob(Utilities.base64Decode(data.base64), data.tipo || 'application/octet-stream', data.nome || 'anexo');
+    var arquivo = pasta.createFile(blob);
+    return { status: 'ok', url: arquivo.getUrl(), nome: data.nome || arquivo.getName() };
+  });
+}
+
 function doPost(e) {
   try {
     var data = JSON.parse(e.postData.contents);
@@ -242,6 +281,7 @@ function doPost(e) {
     switch (data.action) {
       case 'crm_pessoa_upload_documentos':  out = crm_pessoa_upload_documentos_(data); break;
       case 'crm_reserva_upload_documentos': out = crm_reserva_upload_documentos_(data); break;
+      case 'crm_chat_upload_anexo':         out = crm_chat_upload_anexo_(data); break;
       default: out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);
