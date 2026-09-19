@@ -104,6 +104,8 @@
     .wal-chat-threads{flex:1;overflow-y:auto}\
     .wal-chat-thread{display:flex;flex-direction:column;gap:2px;padding:10px 14px;border-bottom:1px solid #1B2A42;cursor:pointer}\
     .wal-chat-thread:hover{background:#152436}\
+    .wal-chat-thread-sinal{background:rgba(214,69,69,.12);border-left:3px solid #D64545}\
+    .wal-chat-thread-sinal .wal-chat-thread-name{color:#F3A5A5}\
     .wal-chat-thread-top{display:flex;justify-content:space-between;align-items:center;gap:6px}\
     .wal-chat-thread-name{color:#E7ECF3;font-size:13px;font-weight:600}\
     .wal-chat-thread-prev{color:#8A97AB;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\
@@ -205,6 +207,12 @@
     this.panel.querySelector('.wal-chat-back').onclick = function () { self._voltarParaThreads(); };
   };
 
+  /* pedido 90.1.b — thread cuja última mensagem é o alerta "🆘" que
+     chat.html grava quando o lead pede um atendente humano (ver
+     sinalizarPedidoAtendente_). Reconhecido só pelo prefixo, sem
+     mudança de schema/backend. */
+  function pediuAtendente(t) { return /^🆘/.test(t.ultimaMensagem || ''); }
+
   WalChatWidget.prototype._carregarThreads = function () {
     var self = this;
     return jsonp(this.apiUrl, 'crm_atendente_chat_threads', { email: this.email, sessionToken: this.sessionToken }).then(function (data) {
@@ -213,6 +221,20 @@
       self.unread = self.panel.classList.contains('open') ? 0 : totalNaoLidas;
       self._atualizarBadge();
 
+      // dispara o alerta sonoro (reaproveita alertaSonoroTocar_/
+      // alertaSonoroAtivo_ já usados pra leads novos na página que
+      // hospeda o widget) só na primeira vez que uma thread aparece
+      // pedindo atendente — não a cada poll enquanto ela continuar assim.
+      var pedidosAgora = {};
+      lista.forEach(function (t) { if (pediuAtendente(t)) pedidosAgora[t.leadId] = true; });
+      if (self._pedidosAtendenteConhecidos) {
+        var novoPedido = Object.keys(pedidosAgora).some(function (id) { return !self._pedidosAtendenteConhecidos[id]; });
+        if (novoPedido && typeof global.alertaSonoroAtivo_ === 'function' && global.alertaSonoroAtivo_() && typeof global.alertaSonoroTocar_ === 'function') {
+          global.alertaSonoroTocar_();
+        }
+      }
+      self._pedidosAtendenteConhecidos = pedidosAgora;
+
       var box = self.panel.querySelector('.wal-chat-threads');
       if (!box) return;
       if (!lista.length) {
@@ -220,13 +242,14 @@
         return;
       }
       box.innerHTML = lista.map(function (t) {
+        var sinal = pediuAtendente(t);
         return '' +
-          '<div class="wal-chat-thread" data-leadid="' + escapeHtml(t.leadId) + '" data-nome="' + escapeHtml(t.nome) + '">' +
+          '<div class="wal-chat-thread' + (sinal ? ' wal-chat-thread-sinal' : '') + '" data-leadid="' + escapeHtml(t.leadId) + '" data-nome="' + escapeHtml(t.nome) + '">' +
             '<div class="wal-chat-thread-top">' +
-              '<span class="wal-chat-thread-name">' + escapeHtml(t.nome || t.leadId) + '</span>' +
+              '<span class="wal-chat-thread-name">' + (sinal ? '🆘 ' : '') + escapeHtml(t.nome || t.leadId) + '</span>' +
               (t.naoLidas ? '<span class="wal-chat-thread-badge">' + t.naoLidas + '</span>' : '') +
             '</div>' +
-            '<span class="wal-chat-thread-prev">' + escapeHtml(t.ultimaMensagem || '') + '</span>' +
+            '<span class="wal-chat-thread-prev">' + escapeHtml(sinal ? 'Pediu para falar com um atendente' : (t.ultimaMensagem || '')) + '</span>' +
           '</div>';
       }).join('');
       Array.prototype.forEach.call(box.querySelectorAll('.wal-chat-thread'), function (el) {
