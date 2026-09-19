@@ -50,6 +50,10 @@ body::before {
   display: grid;
   grid-template-rows: auto 1fr auto;
   height: 100vh;
+  height: 100dvh; /* 90.1.f: 100vh no mobile conta a tela cheia com a
+    barra de navegação do Android escondida — empurra o input-area pra
+    baixo da barra real, quase sumindo. 100dvh usa a altura visível de
+    verdade; a linha de cima fica de fallback pra navegador sem dvh. */
   max-width: 820px;
   margin: 0 auto;
 }
@@ -313,7 +317,7 @@ header {
   border-top: 1px solid var(--border);
   background: rgba(10,22,40,0.97);
   backdrop-filter: blur(12px);
-  padding: 14px 20px 18px;
+  padding: 14px 20px calc(18px + env(safe-area-inset-bottom, 0px));
   flex-shrink: 0;
 }
 .input-row { display: flex; gap: 10px; align-items: flex-end; }
@@ -606,6 +610,12 @@ SINAIS DE COMPRA — quando o lead demonstrar interesse concreto, avance para o 
 - Perguntas sobre preço, prazo, documentação → ofereça agendar visita
 - Comparações entre imóveis → ajude a decidir e sugira reserva
 - "Vou pensar" → explore o que falta para a decisão; não deixe sem próximo passo
+
+ATENDIMENTO HUMANO — quando o lead pedir claramente para falar com uma pessoa, um atendente, um corretor ou reclamar que está "falando com um robô":
+- Esta mesma tela de chat já tem um canal ao vivo integrado: ao detectar esse pedido, um atendente humano é avisado automaticamente e pode entrar NA MESMA CONVERSA a qualquer momento — não é necessário trocar de aplicativo, site ou número.
+- Responda de forma acolhedora confirmando isso: diga que já chamou um consultor da WAL pra entrar na conversa e que ele deve aparecer em instantes bem aqui.
+- Continue sendo útil enquanto o atendente não chega — não interrompa o atendimento nem repita a mesma frase depois.
+- Termine OBRIGATORIAMENTE essa resposta (e só essa, não repita nas seguintes) com uma linha própria contendo exatamente o texto: [PEDIU_ATENDENTE]
 
 OBJEÇÕES COMUNS E COMO TRATAR:
 - "Está caro": compare com custo do aluguel a longo prazo; mostre as opções de financiamento aplicáveis ao perfil do lead
@@ -1170,7 +1180,12 @@ async function sendMessage() {
     }
 
     const data = await response.json();
-    const reply = data.content?.[0]?.text || 'Desculpe, não consegui processar sua pergunta.';
+    let reply = data.content?.[0]?.text || 'Desculpe, não consegui processar sua pergunta.';
+    // pedido 90.1.b — a IA termina a resposta com esse marcador (ver
+    // instrução ATENDIMENTO HUMANO no SYSTEM_LEAD) quando o lead pede
+    // pra falar com uma pessoa. Nunca mostrar o marcador cru pro lead.
+    const pediuAtendente = /\[PEDIU_ATENDENTE\]/.test(reply);
+    reply = reply.replace(/\s*\[PEDIU_ATENDENTE\]\s*$/, '').trim();
     conversationHistory.push({ role: 'assistant', content: reply });
 
     appendBotMessage(reply);
@@ -1180,6 +1195,7 @@ async function sendMessage() {
     // faz nada (ver guard no início da função) — não afeta o chat com a IA.
     gravarMensagemChat_('lead', text);
     gravarMensagemChat_('ia', reply);
+    if (pediuAtendente) sinalizarPedidoAtendente_();
 
   } catch (err) {
     typingEl.remove();
@@ -1341,6 +1357,25 @@ function gravarMensagemChat_(remetente, texto) {
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({ action: 'crm_lead_chat_enviar', leadId, nome: leadDados.nome || '', remetente, texto })
   }).catch(() => {});
+}
+let _atendenteJaSinalizado = false;
+/* pedido 90.1.b — grava uma mensagem "🆘" na mesma thread (remetente
+   'ia', já aceito no backend, zero mudança de .gs) só pra virar a
+   última mensagem da conversa na inbox do Atendente (chat-widget.js
+   já ordena as threads pela mais recente) — o widget detecta o prefixo
+   🆘 e toca o alerta sonoro (reaproveita alertaSonoroTocar_ já usado
+   pra leads novos) + destaca a conversa. Só uma vez por sessão de chat
+   pra não repetir o alerta a cada nova mensagem do lead. */
+function sinalizarPedidoAtendente_() {
+  if (_atendenteJaSinalizado) return;
+  _atendenteJaSinalizado = true;
+  gravarMensagemChat_('ia', '🆘 Lead pediu para falar com um atendente humano — entre na conversa.');
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.style.cssText = 'text-align:center;margin:10px 0';
+  row.innerHTML = `<span style="font-size:11px;color:var(--text-muted);background:rgba(201,168,76,.12);padding:5px 12px;border-radius:12px">🧑‍💼 Um atendente foi avisado e vai entrar na conversa em breve</span>`;
+  msgs.appendChild(row);
+  scrollBottom();
 }
 
 let _chatAoVivoIniciado = false;
