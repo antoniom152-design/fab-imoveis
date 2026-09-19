@@ -631,11 +631,22 @@ SINAIS DE COMPRA — quando o lead demonstrar interesse concreto, avance para o 
 - "Vou pensar" → explore o que falta para a decisão; não deixe sem próximo passo
 
 ATENDIMENTO HUMANO — quando o lead pedir claramente para falar com uma pessoa, um atendente, um corretor, clicar no ícone de atendente humano, ou reclamar que está "falando com um robô":
-- Esta mesma tela de chat já tem um canal ao vivo integrado: ao detectar esse pedido, um atendente humano é avisado automaticamente e pode entrar NA MESMA CONVERSA a qualquer momento — não é necessário trocar de aplicativo, site ou número.
-- ANTES de encaminhar de verdade, você PRECISA ter: Nome completo, E-mail, WhatsApp e Posto/Cargo. Se você recebeu uma nota "DADOS JÁ CONHECIDOS" no início desta conversa, ou algum desses já apareceu no que a pessoa escreveu, considere esses como já sabidos — peça SÓ o que ainda estiver faltando, numa frase só ("Antes de chamar o consultor, só preciso confirmar [o que falta] — pode me passar?"). NÃO encaminhe nesta resposta; espere a pessoa responder.
-- Quando já tiver os 4 dados (ou se, depois de perguntado uma vez, o lead claramente não quiser completar algum — nesse caso encaminhe mesmo assim com o que tiver, sem insistir de novo), responda de forma acolhedora confirmando que já chamou um consultor da WAL pra entrar na conversa, que ele deve aparecer em instantes bem aqui, e continue sendo útil enquanto ele não chega.
-- Termine OBRIGATORIAMENTE essa resposta — a que efetivamente encaminha, só essa, não repita nas seguintes — com uma linha própria contendo exatamente este formato, preenchido com os dados reais (inclusive os que já eram conhecidos; "" só no que realmente não conseguiu):
+- Você recebe no início desta conversa uma nota "HORÁRIO DE ATENDIMENTO HUMANO" dizendo se a equipe está DENTRO ou FORA do expediente agora. Confira ela ANTES de decidir o que fazer aqui.
+- Se estiver FORA do expediente: NÃO diga que vai chamar alguém agora — isso seria mentira, ninguém vai aparecer. Em vez disso, explique com cordialidade que a equipe está fora do horário de atendimento nesse momento e siga a seção AGENDAMENTO DE ATENDIMENTO ONLINE logo abaixo.
+- Se estiver DENTRO do expediente, siga normalmente:
+  - Esta mesma tela de chat já tem um canal ao vivo integrado: ao detectar esse pedido, um atendente humano é avisado automaticamente e pode entrar NA MESMA CONVERSA a qualquer momento — não é necessário trocar de aplicativo, site ou número.
+  - ANTES de encaminhar de verdade, você PRECISA ter: Nome completo, E-mail, WhatsApp e Posto/Cargo. Se você recebeu uma nota "DADOS JÁ CONHECIDOS" no início desta conversa, ou algum desses já apareceu no que a pessoa escreveu, considere esses como já sabidos — peça SÓ o que ainda estiver faltando, numa frase só ("Antes de chamar o consultor, só preciso confirmar [o que falta] — pode me passar?"). NÃO encaminhe nesta resposta; espere a pessoa responder.
+  - Quando já tiver os 4 dados (ou se, depois de perguntado uma vez, o lead claramente não quiser completar algum — nesse caso encaminhe mesmo assim com o que tiver, sem insistir de novo), responda de forma acolhedora confirmando que já chamou um consultor da WAL pra entrar na conversa, que ele deve aparecer em instantes bem aqui, e continue sendo útil enquanto ele não chega.
+  - Termine OBRIGATORIAMENTE essa resposta — a que efetivamente encaminha, só essa, não repita nas seguintes — com uma linha própria contendo exatamente este formato, preenchido com os dados reais (inclusive os que já eram conhecidos; "" só no que realmente não conseguiu):
 [PEDIU_ATENDENTE]{"nome":"","telefone":"","email":"","postoCargo":""}
+  - Também mencione, como opção — não obrigatória —, que ela pode preferir agendar um dia/horário específico em vez de esperar agora; se ela topar, siga a seção AGENDAMENTO DE ATENDIMENTO ONLINE abaixo em vez do marcador acima.
+
+AGENDAMENTO DE ATENDIMENTO ONLINE — use quando: (a) a equipe está FORA do expediente e você precisa oferecer uma alternativa, ou (b) o lead pede explicitamente para agendar um dia/horário específico (mesmo dentro do expediente):
+- Explique que ela vai poder marcar o melhor dia e horário pra ser atendida ao vivo por um Corretor/Atendente da WAL, e que vai receber um link pra participar da reunião online assim que a equipe confirmar.
+- Colete: nome completo (se ainda não souber — reaproveite "DADOS JÁ CONHECIDOS" se já tiver), data desejada, horário desejado, e uma breve descrição do que a pessoa está procurando.
+- NÃO invente disponibilidade de dias/horários específicos — apenas registre a preferência da pessoa; a equipe confirma depois.
+- Quando tiver os 4 dados, termine a resposta com uma linha própria contendo exatamente este formato (data no formato AAAA-MM-DD, hora no formato HH:MM):
+[AGENDAR_ATENDIMENTO]{"nome":"","data":"","hora":"","descricao":""}
 
 OBJEÇÕES COMUNS E COMO TRATAR:
 - "Está caro": compare com custo do aluguel a longo prazo; mostre as opções de financiamento aplicáveis ao perfil do lead
@@ -1238,6 +1249,14 @@ async function sendMessage() {
       systemFinal += `\n\nDADOS JÁ CONHECIDOS: ${conhecidos}. Não peça de novo o que já está aqui.`;
       if (leadDados.nome) systemFinal += ` Trate a pessoa pelo primeiro nome durante toda a conversa.`;
     }
+    // pedido 90.3 — diz pra IA se a equipe está dentro/fora do horário
+    // de atendimento agora (ver seção ATENDIMENTO HUMANO/AGENDAMENTO no
+    // prompt), consultando a config que o Gerente mantém (crm_controle).
+    if (!IS_CONSULTOR) {
+      const horarioCfg = await carregarHorarioAtendimento_();
+      const dentro = dentroDoHorarioAtendimento_(horarioCfg);
+      systemFinal += `\n\nHORÁRIO DE ATENDIMENTO HUMANO: expediente seg-sex ${horarioCfg.horario_semana_inicio}-${horarioCfg.horario_semana_fim}, sáb-dom ${horarioCfg.horario_fds_inicio}-${horarioCfg.horario_fds_fim}. Agora está ${dentro ? 'DENTRO' : 'FORA'} do expediente.`;
+    }
     // pedido 90.2.c — veio do imovel.html olhando um empreendimento
     // específico: a 1ª resposta deve puxar algo concreto dele, não
     // começar genérica.
@@ -1322,6 +1341,16 @@ async function sendMessage() {
     }
     if (dadosQualificado && IS_LIVRE && !_leadRegistradoHome) registrarLeadHome_(dadosQualificado);
 
+    // pedido 90.3 — fora do horário (ou por escolha do lead), a IA
+    // termina com esse marcador + os dados do agendamento. Nunca
+    // mostrado ao visitante.
+    const mAgendar = reply.match(/\[AGENDAR_ATENDIMENTO\]\s*(\{[\s\S]*\})\s*$/);
+    let dadosAgendamento = null;
+    if (mAgendar) {
+      reply = reply.slice(0, mAgendar.index).trim();
+      try { dadosAgendamento = JSON.parse(mAgendar[1]); } catch (e) { /* JSON malformado — não registra */ }
+    }
+
     conversationHistory.push({ role: 'assistant', content: reply });
 
     appendBotMessage(reply);
@@ -1332,6 +1361,7 @@ async function sendMessage() {
     gravarMensagemChat_('lead', text);
     gravarMensagemChat_('ia', reply);
     if (pediuAtendente) await sinalizarPedidoAtendente_(dadosAtendente);
+    if (dadosAgendamento) await confirmarAgendamentoOnline_(dadosAgendamento);
 
   } catch (err) {
     typingEl.remove();
@@ -1469,6 +1499,28 @@ function atualizarPostoCargo_(postoCargo) {
     body: JSON.stringify({ action: 'crm_lead_atualizar_campo_publico', leadId, postoCargo })
   }).catch(() => {});
 }
+/* pedido 90.3 — registra o agendamento de Atendimento Online coletado
+   pela IA (fora do horário de expediente, ou por escolha do lead) na
+   MESMA aba AGENDAMENTOS_VISITA_LEAD da visita presencial (decisão do
+   Antonio — reaproveitar, não duplicar estrutura). Sem Atendente_Id
+   ainda — o Gerente atribui depois na tela "Chat IA". O link da
+   reunião é combinado manualmente pela equipe (não gerado aqui) —
+   por isso a confirmação diz "a equipe vai confirmar e te enviar o
+   link", nunca que o link já foi enviado. */
+async function confirmarAgendamentoOnline_(dados) {
+  const nome = dados.nome || leadDados.nome || '';
+  const data = dados.data || '', hora = dados.hora || '';
+  if (!nome || !data || !hora) return; // marcador incompleto — não registra
+  const resp = await cadastroApiJsonp('crm_lead_agendamento_publico', {
+    leadId, nome, telefone: leadDados.telefone || '', email: leadDados.email || '',
+    data, hora, descricao: dados.descricao || ''
+  });
+  if (resp && resp.status === 'ok') {
+    anexoNota_(`📅 Agendamento registrado para ${data} às ${hora}. Nossa equipe vai confirmar e te enviar o link da reunião online.`);
+  } else {
+    anexoNota_('⚠️ Não foi possível registrar o agendamento agora. Tente novamente em instantes.');
+  }
+}
 
 /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
    — usado só pra manter a indicação de Agente Parceiro (ver imovel.html,
@@ -1545,6 +1597,35 @@ function cadastroApiJsonp(action, params) {
     s.src = CADASTRO_API_URL + '?' + qs.toString();
     document.body.appendChild(s);
   });
+}
+
+/* pedido 90.3 — horário de atendimento humano da equipe, configurável
+   pelo Gerente (crm_controle_ler_/crm_controle_salvar_, aba CONTROLE —
+   tela "Chat IA" do dashboard_gerente_comercial.html). Valores padrão
+   aqui só entram em ação se a config ainda não tiver sido salva nem
+   uma vez (aba CONTROLE vazia). */
+const HORARIO_PADRAO_ = { horario_semana_inicio: '09:00', horario_semana_fim: '18:00', horario_fds_inicio: '09:00', horario_fds_fim: '13:00' };
+let _horarioConfig = null;
+async function carregarHorarioAtendimento_() {
+  if (_horarioConfig) return _horarioConfig;
+  try {
+    const resp = await cadastroApiJsonp('crm_controle_ler', {});
+    const v = (resp && resp.valores) || {};
+    _horarioConfig = Object.assign({}, HORARIO_PADRAO_, v);
+  } catch (e) { _horarioConfig = HORARIO_PADRAO_; }
+  return _horarioConfig;
+}
+function parseHM_(s) { const [h, m] = String(s || '0:0').split(':').map(Number); return (h || 0) * 60 + (m || 0); }
+/* Horário do navegador do próprio lead — público majoritariamente no
+   Brasil, mesma simplificação (sem lib de timezone) já usada no resto
+   do site. */
+function dentroDoHorarioAtendimento_(cfg) {
+  const agora = new Date();
+  const fimDeSemana = agora.getDay() === 0 || agora.getDay() === 6;
+  const hm = agora.getHours() * 60 + agora.getMinutes();
+  const inicio = parseHM_(fimDeSemana ? cfg.horario_fds_inicio : cfg.horario_semana_inicio);
+  const fim = parseHM_(fimDeSemana ? cfg.horario_fds_fim : cfg.horario_semana_fim);
+  return hm >= inicio && hm < fim;
 }
 
 /* Resolve o Lead_Id (pedido 90): se veio ?leadId= na URL (convite do
