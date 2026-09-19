@@ -2002,11 +2002,16 @@ function enviarInteresseFinal(data) {
     return;
   }
 
-  mostrarToast('✅ Recebemos seu interesse! Entraremos em contato em breve.');
-  const msg = encodeURIComponent('Olá! Sou ' + data.nome + ' e tenho interesse no ' + imovelAtual.nome + ' em ' + imovelAtual.cidade + '.');
+  // pedido 90.1.d — em vez de abrir o WhatsApp, encaminha direto pro
+  // Assistente IA (chat.html) já identificado, pra aquecer o lead na
+  // hora. Mesmo mecanismo que o index.html já usa depois do gate de
+  // e-mail/OTP (wal_lead_identificado no sessionStorage) — chat.html
+  // pula o pré-chat e resolve o Lead_Id sozinho por e-mail.
+  sessionStorage.setItem('wal_lead_identificado', JSON.stringify({ nome: data.nome, email: data.email }));
+  mostrarToast('✅ Recebemos seu interesse! Te levando pro nosso Assistente...');
   setTimeout(function() {
-    window.open('https://wa.me/' + WPP_NUM + '?text=' + msg, '_blank');
-  }, 1200);
+    window.location.href = 'chat.html';
+  }, 900);
 }
 
 /* ─── GALERIA ─── */

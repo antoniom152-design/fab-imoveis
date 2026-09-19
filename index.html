@@ -1186,7 +1186,10 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
       Acessar meu Dashboard
     </a>
-    <a href="#" onclick="abrirGateLead('Consultor IA','chat.html');return false;" style="
+    <!-- pedido 90.1.c: sem gate de e-mail/OTP de propósito — a IA conduz
+         a conversa livremente e só pede os dados quando fizer sentido
+         (ver SYSTEM_LEAD_HOME em chat.html) -->
+    <a href="chat.html?modo=livre" style="
       display:inline-flex;align-items:center;gap:7px;
       font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
       letter-spacing:.14em;text-transform:uppercase;
@@ -2105,6 +2108,23 @@
     </div>
   </div>
 </div>
+
+<!-- pedido 90.1.c: botão flutuante pro Assistente IA, sem gate — visível
+     em qualquer parte da home, pra aquecer o lead nos primeiros minutos
+     (mesmo raciocínio do central-float/wpp-float já usado em
+     chat.html/imovel.html, mas indo direto pro modo livre). -->
+<a href="chat.html?modo=livre" title="Fale com nosso Assistente 24h" style="
+  position:fixed;right:20px;bottom:20px;z-index:900;
+  display:flex;align-items:center;gap:10px;
+  background:var(--navy);color:var(--gold);border:1.5px solid var(--gold);
+  padding:14px 20px 14px 16px;border-radius:30px;text-decoration:none;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s;
+" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 26px rgba(201,168,76,.35)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(0,0,0,.35)'">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  Fale com o Assistente 24h
+</a>
 
 <!-- GATE DE E-MAIL + OTP (Simulador, E-book, Ver Todos, Consultor IA, Reserva) -->
 <div id="leadGateOverlay" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.9);

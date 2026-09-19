@@ -579,6 +579,11 @@ header {
 ════════════════════════════════════════════════════════════ */
 const MODO = (new URLSearchParams(location.search).get('modo') || 'lead').toLowerCase();
 const IS_CONSULTOR = MODO === 'consultor';
+/* pedido 90.1.c — entrada direto pela home (index.html), sem vir de
+   nenhum formulário: pula o pré-chat e deixa a IA conduzir a conversa
+   livremente, só pedindo os dados quando fizer sentido (ver
+   SYSTEM_LEAD_HOME mais abaixo). */
+const IS_LIVRE = MODO === 'livre';
 /* ?leadId= vem do convite gerado pelo Atendente (dashboard_atendente.html,
    botão "Convidar pro Chat", pedido 90) — quando presente, evita ter que
    descobrir o Lead_Id por telefone/e-mail (ver resolverLeadId_ mais abaixo). */
@@ -685,6 +690,29 @@ LIMITES:
 - Para casos jurídicos, indique consultor Central de Atendimento — comercial@walservidor.com.br
 
 PERSONALIZAÇÃO: o lead já se identificou antes de iniciar o chat. Use o nome dele com naturalidade durante a conversa — não excessivamente, mas de forma cordial e personalizada.`;
+
+/* pedido 90.1.c — variante usada quando o visitante chega direto pela
+   home (index.html, ?modo=livre), sem passar por nenhum formulário.
+   Reaproveita 100% do conhecimento técnico/SPIN/objeções do SYSTEM_LEAD
+   acima (troca só a abertura, que assume identificação prévia, pela
+   condução livre abaixo — ver o .replace() na definição de
+   SYSTEM_LEAD_HOME logo depois). */
+const SYSTEM_LEAD_HOME_INTRO = `Você é o Consultor WAL, falando com alguém que ACABOU DE CHEGAR pelo site institucional (walservidor.com.br) e ainda não se identificou — não veio de formulário nenhum, só clicou em "Fale com nosso Assistente".
+
+PERFIL TÍPICO DESSE PÚBLICO: militares das Forças Armadas, policiais/bombeiros, servidores públicos federais/estaduais/municipais e membros do Ministério Público — em geral com bom nível de instrução (boa parte com ensino superior), renda estável e visão de longo prazo. Converse nesse padrão: culto, direto, sem infantilizar nem usar linguagem de vendedor de loja — como um consultor experiente falando com um par.
+
+CONDUÇÃO INTELIGENTE, SEM FORMULÁRIO:
+- NÃO peça nome/telefone/e-mail nas primeiras mensagens. Comece pela necessidade real: que tipo de imóvel procura, pra morar ou investir, em qual cidade/região.
+- Cada resposta sua deve aprofundar o entendimento do que essa pessoa busca — sem parecer um questionário, como uma conversa mesmo.
+- Ao longo da conversa, vá entendendo (não precisa ser nessa ordem nem tudo de uma vez): nome, telefone/WhatsApp, e-mail, tipo de imóvel/tamanho/padrão desejado, cidade ou região, finalidade (moradia própria ou investimento), e o perfil funcional (força/órgão, posto ou cargo, regime — pra indicar a linha de crédito certa).
+- Só peça telefone e e-mail quando a pessoa já demonstrar interesse real em continuar (perguntou preço, quis saber mais de um imóvel específico, pediu simulação, ou você já entende o perfil o bastante pra oferecer algo concreto). Explique o motivo em uma frase natural ("pra eu já te mandar as opções certas" / "pra um consultor nosso te procurar com a simulação pronta") — nunca peça só porque "é o procedimento".
+- Assim que tiver pelo menos NOME + (TELEFONE ou E-MAIL) + alguma noção do que a pessoa busca, registre o contato: termine essa resposta (só essa vez, não repita depois) com uma linha própria contendo exatamente este formato, preenchendo o que já souber e deixando "" no que ainda não sabe (nunca invente dado que a pessoa não te deu):
+[LEAD_QUALIFICADO]{"nome":"","telefone":"","email":"","interesse":"","cidade":"","finalidade":"","orcamento":""}
+  Essa linha é só pra o sistema registrar o contato — a pessoa nunca vê ela.
+- Depois de registrado, siga o atendimento normalmente com o método de vendas consultivo abaixo.
+
+`;
+const SYSTEM_LEAD_HOME = SYSTEM_LEAD_HOME_INTRO + SYSTEM_LEAD.replace(/\n?PERSONALIZAÇÃO:[\s\S]*$/, '');
 
 const SYSTEM_CONSULTOR = `Você é o Assistente de Vendas WAL, ferramenta interna para consultores da WAL Imóveis.
 
@@ -859,8 +887,9 @@ const CONFIG = {
     ],
   },
 };
+CONFIG.livre = CONFIG.lead; // pedido 90.1.c — mesma tela/sugestões do modo lead, só sem o gate do pré-chat
 
-const cfg = CONFIG[IS_CONSULTOR ? 'consultor' : 'lead'];
+const cfg = CONFIG[IS_CONSULTOR ? 'consultor' : (IS_LIVRE ? 'livre' : 'lead')];
 
 /* ════════════════════════════════════════════════════════════
    ESTADO
@@ -874,6 +903,10 @@ let leadDados = { nome: '', telefone: '', email: '' };
 // Fica vazio até resolverLeadId_() terminar; pollForHumanMessages() e a
 // gravação da conversa só começam depois disso (ver mais abaixo).
 let leadId = LEAD_ID_URL;
+// pedido 90.1.c — true depois que a IA (modo livre) já mandou o
+// [LEAD_QUALIFICADO] e o contato foi registrado; evita registrar de novo
+// a cada resposta seguinte da IA.
+let _leadRegistradoHome = false;
 
 /* ════════════════════════════════════════════════════════════
    PLANILHA WAL IMÓVEIS
@@ -1045,13 +1078,16 @@ window.addEventListener('DOMContentLoaded', () => {
   // passou pelo gate de e-mail+OTP do index.html (nome+e-mail confirmados).
   let _leadJaIdentificado = null;
   try { _leadJaIdentificado = JSON.parse(sessionStorage.getItem('wal_lead_identificado') || 'null'); } catch (e) {}
-  if (IS_CONSULTOR || (_leadJaIdentificado && _leadJaIdentificado.email)) {
+  if (IS_CONSULTOR || IS_LIVRE || (_leadJaIdentificado && _leadJaIdentificado.email)) {
     if (_leadJaIdentificado && _leadJaIdentificado.email) {
       leadDados = { nome: _leadJaIdentificado.nome || '', telefone: '', email: _leadJaIdentificado.email };
       resolverLeadId_();
     } else if (leadId) {
       iniciarChatAoVivo_(); // modo consultor com ?leadId= direto na URL
     }
+    // pedido 90.1.c — modo livre: leadDados fica vazio de propósito até
+    // a IA mandar [LEAD_QUALIFICADO] (ver registrarLeadHome_); sem isso
+    // a IA agiria como se a pessoa já tivesse se identificado.
     document.getElementById('prechat-overlay').style.display = 'none';
     document.getElementById('userInput').focus();
   } else {
@@ -1130,7 +1166,10 @@ async function sendMessage() {
 
   try {
     // Injeta nome do lead no system prompt (modo lead)
-    let systemFinal = IS_CONSULTOR ? SYSTEM_CONSULTOR : SYSTEM_LEAD;
+    // pedido 90.1.c — modo livre usa o prompt de condução aberta até o
+    // contato ser registrado (_leadRegistradoHome); depois disso volta
+    // pro SYSTEM_LEAD normal, igual ao modo lead com formulário.
+    let systemFinal = IS_CONSULTOR ? SYSTEM_CONSULTOR : ((IS_LIVRE && !_leadRegistradoHome) ? SYSTEM_LEAD_HOME : SYSTEM_LEAD);
     if (!IS_CONSULTOR && leadDados.nome) {
       systemFinal = systemFinal + `\n\nLEAD IDENTIFICADO: o usuário se chama ${leadDados.nome}. Trate-o pelo primeiro nome durante toda a conversa.`;
     }
@@ -1186,6 +1225,20 @@ async function sendMessage() {
     // pra falar com uma pessoa. Nunca mostrar o marcador cru pro lead.
     const pediuAtendente = /\[PEDIU_ATENDENTE\]/.test(reply);
     reply = reply.replace(/\s*\[PEDIU_ATENDENTE\]\s*$/, '').trim();
+
+    // pedido 90.1.c — modo livre: a IA sinaliza que já tem dados
+    // suficientes pra virar lead terminando a resposta com esse
+    // marcador + um JSON (ver instrução no SYSTEM_LEAD_HOME_INTRO).
+    // Nunca mostrado ao visitante.
+    const mQualificado = reply.match(/\[LEAD_QUALIFICADO\]\s*(\{[\s\S]*\})\s*$/);
+    if (mQualificado) {
+      reply = reply.slice(0, mQualificado.index).trim();
+      if (IS_LIVRE && !_leadRegistradoHome) {
+        try { registrarLeadHome_(JSON.parse(mQualificado[1])); }
+        catch (e) { /* JSON malformado — não registra, conversa continua normal */ }
+      }
+    }
+
     conversationHistory.push({ role: 'assistant', content: reply });
 
     appendBotMessage(reply);
@@ -1299,6 +1352,21 @@ function registrarLeadNoCRM(dados) {
       tipo: 'Chat IA', texto: nota, origem: 'Chat IA'
     })
   }).catch(() => {});
+}
+
+/* pedido 90.1.c — chamada pelo modo livre (home) quando a IA já
+   coletou dados suficientes ([LEAD_QUALIFICADO], ver sendMessage()).
+   Reaproveita 100% do caminho já validado do pré-chat normal
+   (registrarLeadNoCRM + registrarIndicacaoAgente_ + resolverLeadId_) —
+   só muda O MOMENTO em que é chamado: no meio da conversa em vez de
+   antes dela começar. */
+function registrarLeadHome_(dados) {
+  _leadRegistradoHome = true;
+  leadDados = { nome: dados.nome || '', telefone: dados.telefone || '', email: dados.email || '' };
+  const interesse = [dados.interesse, dados.finalidade].filter(Boolean).join(' — ');
+  registrarLeadNoCRM({ nome: leadDados.nome, telefone: leadDados.telefone, email: leadDados.email, interesse, orcamento: dados.orcamento || '', area: dados.cidade || '' });
+  registrarIndicacaoAgente_(leadDados.nome, leadDados.telefone, leadDados.email);
+  resolverLeadId_();
 }
 
 /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
