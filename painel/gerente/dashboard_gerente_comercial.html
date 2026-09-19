@@ -1188,6 +1188,24 @@ a{text-decoration:none;color:inherit}
           <button class="btn btn-teal" onclick="carregarChatIA_()">🔄 Atualizar</button>
         </div>
       </div>
+      <!-- pedido 90.3 — horário de atendimento humano da equipe, consultado
+           pela IA (chat.html) antes de oferecer "chamar atendente" ou
+           "agendar" quando o lead pede atendimento humano. -->
+      <div class="card mb20">
+        <div class="card-h"><div class="card-title">⚙️ Horário de Atendimento Online</div></div>
+        <div class="card-b">
+          <div class="fs11 c-muted mb14">Fora desses horários, o Assistente IA não promete chamar um atendente na hora — oferece agendar o melhor dia/horário em vez disso.</div>
+          <div class="field-row field-2 mb14">
+            <div><div class="field-lbl">Segunda a Sexta — Início</div><input class="field-inp" type="time" id="horSemanaInicio"></div>
+            <div><div class="field-lbl">Segunda a Sexta — Fim</div><input class="field-inp" type="time" id="horSemanaFim"></div>
+          </div>
+          <div class="field-row field-2 mb14">
+            <div><div class="field-lbl">Sábado e Domingo — Início</div><input class="field-inp" type="time" id="horFdsInicio"></div>
+            <div><div class="field-lbl">Sábado e Domingo — Fim</div><input class="field-inp" type="time" id="horFdsFim"></div>
+          </div>
+          <button class="btn btn-gold btn-sm" onclick="salvarHorarioAtendimento_()">💾 Salvar horário</button>
+        </div>
+      </div>
       <div class="g2" style="align-items:start">
         <div class="card">
           <div class="card-h"><div class="card-title">🆘 Pediram atendente (16h) ou entraram sem pedir (30min)</div></div>
@@ -1197,6 +1215,14 @@ a{text-decoration:none;color:inherit}
           <div class="card-h"><div class="card-title">💬 Todas as conversas ativas</div></div>
           <div class="card-b" style="padding:0;overflow-x:auto" id="chatiaThreadsLista">Carregando...</div>
         </div>
+      </div>
+      <!-- pedido 90.3 — agendamentos de "Atendimento Online" que o Lead
+           marcou direto pelo chat (fora do horário, ou por escolha
+           própria) — reaproveita a mesma aba/ação de Agenda de Visita,
+           filtrado por Tipo. O Gerente atribui um Atendente aqui. -->
+      <div class="card mt20">
+        <div class="card-h"><div class="card-title">📅 Atendimentos Online Agendados pelo Chat</div></div>
+        <div class="card-b" style="padding:0;overflow-x:auto" id="chatiaAgendaLista">Carregando...</div>
       </div>
     </div>
 
@@ -2234,15 +2260,25 @@ function alertaSonoroChecarNovosLeads_(itens){
    conversas ativas, sem filtro de tempo) + botão pra abrir o histórico
    completo (crm_lead_chat_buscar, leitor 'gerente' — só leitura, não
    marca como lida, ver comentário no .gs). */
+const HORARIO_PADRAO_={horario_semana_inicio:'09:00',horario_semana_fim:'18:00',horario_fds_inicio:'09:00',horario_fds_fim:'13:00'};
 async function carregarChatIA_(){
   document.getElementById('chatiaMonitorLista').innerHTML='Carregando...';
   document.getElementById('chatiaThreadsLista').innerHTML='Carregando...';
-  const [respMonitor, respThreads] = await Promise.all([
+  document.getElementById('chatiaAgendaLista').innerHTML='Carregando...';
+  const [respMonitor, respThreads, respHorario, respAgenda] = await Promise.all([
     cadastroApiJsonp('crm_gerente_chat_monitor', {email:_user.email, sessionToken:_user.sessionToken, horasPedido:16, minutosSemPedido:30}),
-    cadastroApiJsonp('crm_gerente_chat_threads', {email:_user.email, sessionToken:_user.sessionToken})
+    cadastroApiJsonp('crm_gerente_chat_threads', {email:_user.email, sessionToken:_user.sessionToken}),
+    cadastroApiJsonp('crm_controle_ler', {}),
+    cadastroApiJsonp('crm_gerente_agendamentos_listar', {email:_user.email, sessionToken:_user.sessionToken})
   ]);
   renderChatIAMonitor_(respMonitor || {pedidosAtendente:[], semPedido:[]});
   renderChatIAThreads_((respThreads && respThreads.threads) || []);
+  const horCfg=Object.assign({},HORARIO_PADRAO_,(respHorario&&respHorario.valores)||{});
+  document.getElementById('horSemanaInicio').value=horCfg.horario_semana_inicio;
+  document.getElementById('horSemanaFim').value=horCfg.horario_semana_fim;
+  document.getElementById('horFdsInicio').value=horCfg.horario_fds_inicio;
+  document.getElementById('horFdsFim').value=horCfg.horario_fds_fim;
+  renderChatIAAgenda_(((respAgenda&&respAgenda.itens)||[]).filter(a=>a.tipo==='atendimento_online'));
 }
 function renderChatIAMonitor_(data){
   const el=document.getElementById('chatiaMonitorLista');
@@ -2277,6 +2313,45 @@ function renderChatIAThreads_(threads){
     </tr>`).join('')}
   </tbody></table>`;
 }
+/* pedido 90.3 — salva o horário de atendimento consultado por chat.html
+   antes de oferecer "chamar atendente" ou "agendar" pro lead. */
+async function salvarHorarioAtendimento_(){
+  const valores={
+    horario_semana_inicio:document.getElementById('horSemanaInicio').value||'09:00',
+    horario_semana_fim:document.getElementById('horSemanaFim').value||'18:00',
+    horario_fds_inicio:document.getElementById('horFdsInicio').value||'09:00',
+    horario_fds_fim:document.getElementById('horFdsFim').value||'13:00'
+  };
+  const resp=await cadastroApiJsonp('crm_controle_salvar',{email:_user.email,sessionToken:_user.sessionToken,valores:JSON.stringify(valores)});
+  if(resp&&resp.status==='ok') toast('✅ Horário de atendimento salvo!','green');
+  else toast((resp&&resp.message)||'Não foi possível salvar. Tente novamente.','');
+}
+function renderChatIAAgenda_(itens){
+  const el=document.getElementById('chatiaAgendaLista');
+  if(!itens.length){el.innerHTML='<div class="fs12 c-muted" style="padding:16px">Nenhum atendimento online agendado ainda.</div>';return}
+  itens.sort((a,b)=> (a.data+a.hora) < (b.data+b.hora) ? 1 : -1);
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Data/Hora</th><th>Nome</th><th>Contato</th><th>Descrição</th><th>Atendente</th><th>Status</th></tr></thead><tbody>
+    ${itens.map(a=>`<tr>
+      <td class="mono fs10 c-muted">${fmtDt(a.data)} ${a.hora}</td>
+      <td class="fw6">${a.nome||'—'}</td>
+      <td class="fs11">${a.telefone||a.email||'—'}</td>
+      <td class="fs11">${a.descricao||a.obs||'—'}</td>
+      <td>
+        <select class="field-sel" style="font-size:11px;padding:4px 6px" onchange="atribuirAtendenteAgendamento_('${a.id}', this.value)">
+          <option value="">— Sem atendente —</option>
+          ${_equipe.map(at=>`<option value="${at.id}" ${a.atendenteId===at.id?'selected':''}>${escAttr_(at.nome)}</option>`).join('')}
+        </select>
+      </td>
+      <td><span class="bdg ${a.status==='agendado'?'ba':'bg'}">${a.status||'agendado'}</span></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+async function atribuirAtendenteAgendamento_(id, atendenteId){
+  const resp=await cadastroApiJsonp('crm_gerente_agendamento_atribuir',{email:_user.email,sessionToken:_user.sessionToken,id,atendenteId});
+  if(resp&&resp.status==='ok') toast(atendenteId?'✅ Atendente atribuído!':'Atendente removido.','green');
+  else toast((resp&&resp.message)||'Não foi possível atribuir agora. Tente novamente.','');
+}
+
 async function abrirHistoricoChatIA_(leadId, nome){
   document.getElementById('histChatIATitulo').textContent='Conversa — '+(nome||leadId);
   document.getElementById('histChatIABody').innerHTML='Carregando...';

@@ -1130,6 +1130,32 @@ function crm_controle_ler_(p) {
   if (p && p.chave) return { status: 'ok', valor: valores[p.chave] !== undefined ? valores[p.chave] : null };
   return { status: 'ok', valores: valores };
 }
+/* Grava/atualiza pares Chave|Valor na CONTROLE (pedido 90.3 — horário
+   de atendimento online da equipe, mas serve pra qualquer config
+   futura do mesmo tipo). Exige sessão de Gerente — é config
+   operacional, não deveria ser gravável por qualquer um. data.valores
+   = {chave: valor, ...}, pode mandar vários de uma vez. */
+function crm_controle_salvar_(data) {
+  if (!crm_gerenteContexto_(data.email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  // data.valores pode chegar como objeto (POST, corpo JSON de verdade)
+  // ou como string JSON (GET/JSONP, onde vira um parâmetro de query) —
+  // aceita os dois.
+  var valores = data.valores || {};
+  if (typeof valores === 'string') {
+    try { valores = JSON.parse(valores); } catch (e) { valores = {}; }
+  }
+  if (!Object.keys(valores).length) return { status: 'error', message: 'Nenhum valor informado.' };
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = criarAbaSeNaoExiste_(ssCrm, ABA_CONTROLE, ['Chave', 'Valor']);
+    Object.keys(valores).forEach(function (chave) {
+      var linha = acharLinhaPorChave_(aba, 'Chave', chave);
+      if (linha === -1) aba.appendRow([chave, s_(valores[chave])]);
+      else aba.getRange(linha, 2).setValue(s_(valores[chave]));
+    });
+    return { status: 'ok' };
+  });
+}
 
 /* ══════════════════ ADMIN — Agentes/Corretor/Atendentes/Indicações ══
    Tela da Diretoria em admin.html pra ver todo mundo cadastrado nas 3
@@ -2022,6 +2048,79 @@ function crm_atendente_listar_agendamentos_(p) {
     });
   return { status: 'ok', itens: itens };
 }
+/* Pedido 90.3 — o Lead agenda um "Atendimento Online" direto pelo chat
+   (fora do horário de expediente, ou por opção própria mesmo dentro
+   dele — ver SYSTEM_LEAD em chat.html). Reaproveita a MESMA aba
+   AGENDAMENTOS_VISITA_LEAD da visita presencial (Antonio pediu
+   explicitamente pra não duplicar estrutura) — só sem Atendente_Id
+   ainda (fica "sem atendente" até o Gerente atribuir alguém, ver
+   crm_gerente_agendamento_atribuir_) e com Tipo='atendimento_online'.
+   Sem sessão — mesmo nível de confiança de crm_lead_chat_enviar_/
+   crm_lead_evento_publico_ (o chat já validou a identidade básica
+   antes de chegar aqui). Tipo/Descricao só gravam SE as colunas
+   existirem na planilha (mesmo padrão defensivo de
+   crm_lead_atualizar_campo_publico_) — não quebra se ainda não
+   existirem. */
+function crm_lead_agendamento_publico_(data) {
+  var nome = s_(data.nome).trim();
+  var dataAgenda = s_(data.data).trim();
+  var hora = s_(data.hora).trim();
+  if (!nome || !dataAgenda || !hora) return { status: 'error', message: 'Nome, data e hora são obrigatórios.' };
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_AGENDAMENTOS_VISITA_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_AGENDAMENTOS_VISITA_LEAD + ' não encontrada.' };
+    var headers = headersDe_(aba);
+    var id = gerarId_(aba, 'VIS');
+    var campos = {
+      Id: id, Lead_Id: s_(data.leadId), Atendente_Id: '', Nome: nome, Telefone: s_(data.telefone),
+      Email: s_(data.email), Emp_Id: '', Data: dataAgenda, Hora: hora,
+      Status: 'agendado', Obs: s_(data.descricao), Criado_em: agora_(),
+      Tipo: 'atendimento_online', Descricao: s_(data.descricao)
+    };
+    aba.appendRow(headers.map(function (h) { return campos[h] !== undefined ? campos[h] : ''; }));
+    return { status: 'ok', id: id };
+  });
+}
+/* Painel "Chat IA" / agenda do Gerente (pedido 90.3) — todos os
+   agendamentos, sem filtro de Atendente_Id (papel de supervisão, ele
+   quem direciona pra um Atendente depois — ver
+   crm_gerente_agendamento_atribuir_ abaixo). */
+function crm_gerente_agendamentos_listar_(p) {
+  if (!crm_gerenteContexto_(p.email, p.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.', itens: [] };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_AGENDAMENTOS_VISITA_LEAD);
+  if (!aba) return { status: 'ok', itens: [] };
+  var itens = lerAbaObjetos_(aba).map(function (a) {
+    return {
+      id: s_(a.Id), leadId: s_(a.Lead_Id), atendenteId: s_(a.Atendente_Id), nome: s_(a.Nome),
+      telefone: s_(a.Telefone), email: s_(a.Email), empId: s_(a.Emp_Id),
+      data: dataSomenteStr_(a.Data), hora: horaSomenteStr_(a.Hora), status: s_(a.Status) || 'agendado',
+      obs: s_(a.Obs), tipo: s_(a.Tipo) || 'visita', descricao: s_(a.Descricao || a.Obs), criadoEm: dataStr_(a.Criado_em)
+    };
+  });
+  return { status: 'ok', itens: itens };
+}
+/* Gerente atribui (ou reatribui) um Atendente a um agendamento já
+   existente — separado de crm_atendente_agendamento_ de propósito
+   (aquele exige que o agendamento já seja do próprio Atendente
+   logado; este é exatamente o caso contrário, o Gerente designando
+   alguém pela primeira vez). */
+function crm_gerente_agendamento_atribuir_(data) {
+  if (!crm_gerenteContexto_(data.email, data.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var id = s_(data.id).trim();
+  if (!id) return { status: 'error', message: 'Id do agendamento é obrigatório.' };
+  return comLock_(function () {
+    var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+    var aba = ssCrm.getSheetByName(ABA_AGENDAMENTOS_VISITA_LEAD);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_AGENDAMENTOS_VISITA_LEAD + ' não encontrada.' };
+    var linha = acharLinhaPorChave_(aba, 'Id', id);
+    if (linha === -1) return { status: 'error', message: 'Agendamento não encontrado.' };
+    var headers = headersDe_(aba);
+    aba.getRange(linha, headers.indexOf('Atendente_Id') + 1).setValue(s_(data.atendenteId));
+    return { status: 'ok' };
+  });
+}
 
 /* Proxy do "Assistente IA" do dashboard_atendente.html pra API da
    Anthropic — o front-end chamava fetch direto pra api.anthropic.com
@@ -2603,6 +2702,10 @@ function doGet(e) {
       case 'crm_atendente_leads_listar':        result = crm_atendente_leads_listar_(p); break;
       case 'crm_atendente_listar_historico':    result = crm_atendente_listar_historico_(p); break;
       case 'crm_atendente_listar_agendamentos': result = crm_atendente_listar_agendamentos_(p); break;
+      case 'crm_gerente_agendamentos_listar':   result = crm_gerente_agendamentos_listar_(p); break;
+      case 'crm_lead_agendamento_publico':      result = crm_lead_agendamento_publico_(p); break;
+      case 'crm_gerente_agendamento_atribuir':  result = crm_gerente_agendamento_atribuir_(p); break;
+      case 'crm_controle_salvar':               result = crm_controle_salvar_(p); break;
       case 'crm_atendente_lead_atribuir':       result = crm_atendente_lead_atribuir_(p); break;
       case 'crm_atendente_lead_status':         result = crm_atendente_lead_status_(p); break;
       case 'crm_atendente_historico_evento':    result = crm_atendente_historico_evento_(p); break;
@@ -2676,6 +2779,8 @@ function doPost(e) {
       case 'crm_gerente_atendente_status':    out = crm_gerente_atendente_status_(data); break;
       case 'crm_lead_chat_enviar':             out = crm_lead_chat_enviar_(data); break;
       case 'crm_lead_atualizar_campo_publico': out = crm_lead_atualizar_campo_publico_(data); break;
+      case 'crm_controle_salvar':              out = crm_controle_salvar_(data); break;
+      case 'crm_gerente_agendamento_atribuir': out = crm_gerente_agendamento_atribuir_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);
