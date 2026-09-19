@@ -504,6 +504,8 @@ header {
         <div class="header-name">
           <span id="headerNome">Consultor WAL · IA</span>
           <span class="mode-badge" id="modeBadge">Lead</span>
+          <!-- pedido 90.2.e — versão do chat visível no cabeçalho -->
+          <span style="font-size:9px;color:var(--text-muted);font-family:'Barlow Condensed',sans-serif;letter-spacing:.06em;margin-left:2px">V 1.01</span>
         </div>
         <div class="header-status">
           <span class="status-dot"></span>
@@ -558,6 +560,10 @@ header {
           <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
         </svg>
       </button>
+      <!-- pedido 90.2.a — atalho pra pedir atendente humano sem precisar
+           digitar; manda a mesma frase que a IA já reconhece (ver seção
+           ATENDIMENTO HUMANO do prompt) -->
+      <button class="btn-send" id="atendenteBtn" onclick="sendSuggestion('Quero falar com um atendente humano')" title="Falar com atendente humano" style="background:var(--navy-mid);border:1px solid var(--border);font-size:18px">🧑‍💼</button>
       <button class="btn-send" id="sendBtn" onclick="sendMessage()" title="Enviar (Enter)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <line x1="22" y1="2" x2="11" y2="13"/>
@@ -624,11 +630,12 @@ SINAIS DE COMPRA — quando o lead demonstrar interesse concreto, avance para o 
 - Comparações entre imóveis → ajude a decidir e sugira reserva
 - "Vou pensar" → explore o que falta para a decisão; não deixe sem próximo passo
 
-ATENDIMENTO HUMANO — quando o lead pedir claramente para falar com uma pessoa, um atendente, um corretor ou reclamar que está "falando com um robô":
+ATENDIMENTO HUMANO — quando o lead pedir claramente para falar com uma pessoa, um atendente, um corretor, clicar no ícone de atendente humano, ou reclamar que está "falando com um robô":
 - Esta mesma tela de chat já tem um canal ao vivo integrado: ao detectar esse pedido, um atendente humano é avisado automaticamente e pode entrar NA MESMA CONVERSA a qualquer momento — não é necessário trocar de aplicativo, site ou número.
-- Responda de forma acolhedora confirmando isso: diga que já chamou um consultor da WAL pra entrar na conversa e que ele deve aparecer em instantes bem aqui.
-- Continue sendo útil enquanto o atendente não chega — não interrompa o atendimento nem repita a mesma frase depois.
-- Termine OBRIGATORIAMENTE essa resposta (e só essa, não repita nas seguintes) com uma linha própria contendo exatamente o texto: [PEDIU_ATENDENTE]
+- ANTES de encaminhar de verdade, você PRECISA ter: Nome completo, E-mail, WhatsApp e Posto/Cargo. Se você recebeu uma nota "DADOS JÁ CONHECIDOS" no início desta conversa, ou algum desses já apareceu no que a pessoa escreveu, considere esses como já sabidos — peça SÓ o que ainda estiver faltando, numa frase só ("Antes de chamar o consultor, só preciso confirmar [o que falta] — pode me passar?"). NÃO encaminhe nesta resposta; espere a pessoa responder.
+- Quando já tiver os 4 dados (ou se, depois de perguntado uma vez, o lead claramente não quiser completar algum — nesse caso encaminhe mesmo assim com o que tiver, sem insistir de novo), responda de forma acolhedora confirmando que já chamou um consultor da WAL pra entrar na conversa, que ele deve aparecer em instantes bem aqui, e continue sendo útil enquanto ele não chega.
+- Termine OBRIGATORIAMENTE essa resposta — a que efetivamente encaminha, só essa, não repita nas seguintes — com uma linha própria contendo exatamente este formato, preenchido com os dados reais (inclusive os que já eram conhecidos; "" só no que realmente não conseguiu):
+[PEDIU_ATENDENTE]{"nome":"","telefone":"","email":"","postoCargo":""}
 
 OBJEÇÕES COMUNS E COMO TRATAR:
 - "Está caro": compare com custo do aluguel a longo prazo; mostre as opções de financiamento aplicáveis ao perfil do lead
@@ -692,10 +699,18 @@ DOCUMENTAÇÃO típica: RG, CPF, certidão estado civil, comprovante de residên
 
 FORMATO: use **negrito** para termos, listas para múltiplos itens, seja conciso e direto. Ao final de temas complexos, ofereça próximos passos.
 
+FERRAMENTA — MAPA DE EMPREENDIMENTOS:
+Temos um mapa interativo com todos os empreendimentos da carteira (mapa-empreendimentos.html) — ofereça esse link quando o lead quiser visualizar localização, comparar opções por região, ou quando fizer sentido no fluxo da conversa (ex.: depois de listar 2+ imóveis). Formato do link: https://walservidor.com.br/mapa-empreendimentos.html
+
 LIMITES:
 - Não prometa aprovação de crédito; não cite taxas como definitivas.
 - Para Polícia Militar, Bombeiros, servidores estaduais/municipais e Ministério Público: os benefícios variam por estado/órgão — NUNCA generalize como se fosse regra nacional (diferente do POUPEX, que é federal e uniforme). Sempre oriente a confirmar com o RH/órgão específico.
 - Para casos jurídicos, indique consultor Central de Atendimento — comercial@walservidor.com.br
+
+ESCOPO DA CONVERSA — só responda dentro do contexto imobiliário da WAL:
+- Pode responder sobre: empreendimentos da carteira WAL, localização/região, simulação de financiamento, linhas de crédito e instituições que financiam imóveis (POUPEX, CFIAe, CCCPM, bancos com convênio servidor público), documentação, agendamento de visita, reserva de unidade, e a nossa ferramenta mapa-empreendimentos.html.
+- NUNCA forneça site, telefone, dados de contato ou qualquer informação sobre outra imobiliária, corretora ou incorporadora que não seja parceira da WAL — mesmo que o lead pergunte diretamente. Responda algo como: "Trabalho só com o portfólio da WAL Imóveis — posso te ajudar a encontrar algo aqui que atenda o que você procura?"
+- Para qualquer pergunta fora do contexto imobiliário/financiamento (ex.: assuntos gerais, outros produtos, curiosidades sem relação), recuse com cordialidade e traga de volta pro assunto: "Essa eu não consigo ajudar por aqui — mas se quiser, posso te mostrar as opções de imóvel que temos disponíveis."
 
 PERSONALIZAÇÃO: o lead já se identificou antes de iniciar o chat. Use o nome dele com naturalidade durante a conversa — não excessivamente, mas de forma cordial e personalizada.`;
 
@@ -715,7 +730,7 @@ CONDUÇÃO INTELIGENTE, SEM FORMULÁRIO:
 - Ao longo da conversa, vá entendendo (não precisa ser nessa ordem nem tudo de uma vez): nome, telefone/WhatsApp, e-mail, tipo de imóvel/tamanho/padrão desejado, cidade ou região, finalidade (moradia própria ou investimento), e o perfil funcional (força/órgão, posto ou cargo, regime — pra indicar a linha de crédito certa).
 - Só peça telefone e e-mail quando a pessoa já demonstrar interesse real em continuar (perguntou preço, quis saber mais de um imóvel específico, pediu simulação, ou você já entende o perfil o bastante pra oferecer algo concreto). Explique o motivo em uma frase natural ("pra eu já te mandar as opções certas" / "pra um consultor nosso te procurar com a simulação pronta") — nunca peça só porque "é o procedimento".
 - Assim que tiver pelo menos NOME + (TELEFONE ou E-MAIL) + alguma noção do que a pessoa busca, registre o contato: termine essa resposta (só essa vez, não repita depois) com uma linha própria contendo exatamente este formato, preenchendo o que já souber e deixando "" no que ainda não sabe (nunca invente dado que a pessoa não te deu):
-[LEAD_QUALIFICADO]{"nome":"","telefone":"","email":"","interesse":"","cidade":"","finalidade":"","orcamento":""}
+[LEAD_QUALIFICADO]{"nome":"","telefone":"","email":"","interesse":"","cidade":"","finalidade":"","orcamento":"","postoCargo":""}
   Essa linha é só pra o sistema registrar o contato — a pessoa nunca vê ela.
 - Depois de registrado, siga o atendimento normalmente com o método de vendas consultivo abaixo.
 
@@ -915,6 +930,9 @@ let leadId = LEAD_ID_URL;
 // [LEAD_QUALIFICADO] e o contato foi registrado; evita registrar de novo
 // a cada resposta seguinte da IA.
 let _leadRegistradoHome = false;
+// pedido 90.2.c — preenchido só quando o lead vem do "Quero ser
+// Contactado" do imovel.html; injetado no prompt em sendMessage().
+let _imovelInteresseContexto = null;
 
 /* ════════════════════════════════════════════════════════════
    PLANILHA WAL IMÓVEIS
@@ -1053,7 +1071,7 @@ function referenciasParaTexto(lista) {
 /* ════════════════════════════════════════════════════════════
    INIT
 ════════════════════════════════════════════════════════════ */
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
   // Aplica modo no DOM
   document.getElementById('modeBadge').textContent    = cfg.badgeText;
   document.getElementById('modeBadge').className      = 'mode-badge ' + cfg.badgeClass;
@@ -1067,6 +1085,7 @@ window.addEventListener('DOMContentLoaded', () => {
   if (IS_CONSULTOR) {
     document.getElementById('app').classList.add('consultor-mode');
     document.getElementById('centralFloat').style.display = 'none';
+    document.getElementById('atendenteBtn').style.display = 'none';
   }
 
   // Welcome message
@@ -1086,10 +1105,38 @@ window.addEventListener('DOMContentLoaded', () => {
   // passou pelo gate de e-mail+OTP do index.html (nome+e-mail confirmados).
   let _leadJaIdentificado = null;
   try { _leadJaIdentificado = JSON.parse(sessionStorage.getItem('wal_lead_identificado') || 'null'); } catch (e) {}
-  if (IS_CONSULTOR || IS_LIVRE || (_leadJaIdentificado && _leadJaIdentificado.email)) {
-    if (_leadJaIdentificado && _leadJaIdentificado.email) {
+
+  // pedido 90.2.a — chegou por um link de convite (?leadId= na URL,
+  // mandado pelo Atendente/Gerente a partir da própria ficha do lead)
+  // — busca nome/telefone/e-mail já cadastrados na aba LEADS, pra não
+  // pedir de novo o que a pessoa já informou. Silencioso se falhar (cai
+  // pro comportamento antigo: pede no pré-chat mesmo com leadId na URL).
+  let _leadPorLinkConvite = null;
+  if (LEAD_ID_URL && !IS_CONSULTOR) {
+    try {
+      const resp = await cadastroApiJsonp('crm_lead_lookup_publico', { leadId: LEAD_ID_URL });
+      if (resp && resp.status === 'ok' && resp.lead) _leadPorLinkConvite = resp.lead;
+    } catch (e) {}
+  }
+
+  if (IS_CONSULTOR || IS_LIVRE || _leadPorLinkConvite || (_leadJaIdentificado && _leadJaIdentificado.email)) {
+    if (_leadPorLinkConvite) {
+      leadDados = { nome: _leadPorLinkConvite.nome || '', telefone: _leadPorLinkConvite.telefone || '', email: _leadPorLinkConvite.email || '' };
+      iniciarChatAoVivo_(); // leadId já veio da URL, não precisa resolver
+    } else if (_leadJaIdentificado && _leadJaIdentificado.email) {
       leadDados = { nome: _leadJaIdentificado.nome || '', telefone: '', email: _leadJaIdentificado.email };
-      resolverLeadId_();
+      // pedido 90.2.c — veio do "Quero ser Contactado" do imovel.html:
+      // Posto/Cargo já coletado lá, e o empreendimento que a pessoa
+      // estava vendo pra IA puxar algo específico na saudação.
+      if (_leadJaIdentificado.imovelNome) {
+        _imovelInteresseContexto = {
+          nome: _leadJaIdentificado.imovelNome, cidade: _leadJaIdentificado.imovelCidade,
+          bairro: _leadJaIdentificado.imovelBairro, faixa: _leadJaIdentificado.imovelFaixa,
+          construtora: _leadJaIdentificado.imovelConstrutora
+        };
+      }
+      await resolverLeadId_();
+      if (_leadJaIdentificado.postoCargo) atualizarPostoCargo_(_leadJaIdentificado.postoCargo);
     } else if (leadId) {
       iniciarChatAoVivo_(); // modo consultor com ?leadId= direto na URL
     }
@@ -1178,8 +1225,28 @@ async function sendMessage() {
     // contato ser registrado (_leadRegistradoHome); depois disso volta
     // pro SYSTEM_LEAD normal, igual ao modo lead com formulário.
     let systemFinal = IS_CONSULTOR ? SYSTEM_CONSULTOR : ((IS_LIVRE && !_leadRegistradoHome) ? SYSTEM_LEAD_HOME : SYSTEM_LEAD);
-    if (!IS_CONSULTOR && leadDados.nome) {
-      systemFinal = systemFinal + `\n\nLEAD IDENTIFICADO: o usuário se chama ${leadDados.nome}. Trate-o pelo primeiro nome durante toda a conversa.`;
+    // pedido 90.2.b — avisa a IA quais dados já são conhecidos (pré-chat,
+    // link de convite, ou já capturados antes nesta mesma conversa), pra
+    // ela nunca perguntar de novo o que já tem — usado tanto pra
+    // personalização quanto pela seção ATENDIMENTO HUMANO acima.
+    if (!IS_CONSULTOR && (leadDados.nome || leadDados.telefone || leadDados.email)) {
+      const conhecidos = [
+        leadDados.nome ? `nome: ${leadDados.nome}` : '',
+        leadDados.telefone ? `WhatsApp: ${leadDados.telefone}` : '',
+        leadDados.email ? `e-mail: ${leadDados.email}` : ''
+      ].filter(Boolean).join(', ');
+      systemFinal += `\n\nDADOS JÁ CONHECIDOS: ${conhecidos}. Não peça de novo o que já está aqui.`;
+      if (leadDados.nome) systemFinal += ` Trate a pessoa pelo primeiro nome durante toda a conversa.`;
+    }
+    // pedido 90.2.c — veio do imovel.html olhando um empreendimento
+    // específico: a 1ª resposta deve puxar algo concreto dele, não
+    // começar genérica.
+    if (_imovelInteresseContexto && conversationHistory.length <= 1) {
+      const ic = _imovelInteresseContexto;
+      systemFinal += `\n\nEMPREENDIMENTO DE INTERESSE: a pessoa acabou de sair da página do "${ic.nome}"` +
+        (ic.construtora ? ` (${ic.construtora})` : '') + (ic.bairro || ic.cidade ? `, em ${[ic.bairro, ic.cidade].filter(Boolean).join(', ')}` : '') +
+        (ic.faixa ? `, faixa de valor ${ic.faixa}` : '') +
+        `. Nesta PRIMEIRA resposta, cumprimente pelo nome e já mencione algo concreto e positivo sobre ESSE empreendimento antes de qualquer outra coisa — mostre que você sabe o que ela estava vendo.`;
     }
     if (perguntaSobreImoveis(text)) {
       const lista = await carregarImoveis();
@@ -1228,24 +1295,32 @@ async function sendMessage() {
 
     const data = await response.json();
     let reply = data.content?.[0]?.text || 'Desculpe, não consegui processar sua pergunta.';
-    // pedido 90.1.b — a IA termina a resposta com esse marcador (ver
-    // instrução ATENDIMENTO HUMANO no SYSTEM_LEAD) quando o lead pede
-    // pra falar com uma pessoa. Nunca mostrar o marcador cru pro lead.
-    const pediuAtendente = /\[PEDIU_ATENDENTE\]/.test(reply);
-    reply = reply.replace(/\s*\[PEDIU_ATENDENTE\]\s*$/, '').trim();
+    // pedido 90.1.b / 90.2.b — a IA termina a resposta com esse marcador
+    // (ver instrução ATENDIMENTO HUMANO no SYSTEM_LEAD) quando o lead
+    // pede pra falar com uma pessoa, com um JSON trazendo nome/telefone/
+    // email/postoCargo (o que ela já coletou até aqui — em modo normal
+    // nome/telefone/email já eram conhecidos, só postoCargo é novidade;
+    // em modo livre sem qualificação prévia pode vir tudo de uma vez).
+    // Nunca mostrar o marcador cru pro lead.
+    const mAtendente = reply.match(/\[PEDIU_ATENDENTE\]\s*(\{[\s\S]*?\})?\s*$/);
+    const pediuAtendente = !!mAtendente;
+    let dadosAtendente = null;
+    if (mAtendente) {
+      reply = reply.slice(0, mAtendente.index).trim();
+      if (mAtendente[1]) { try { dadosAtendente = JSON.parse(mAtendente[1]); } catch (e) {} }
+    }
 
     // pedido 90.1.c — modo livre: a IA sinaliza que já tem dados
     // suficientes pra virar lead terminando a resposta com esse
     // marcador + um JSON (ver instrução no SYSTEM_LEAD_HOME_INTRO).
     // Nunca mostrado ao visitante.
     const mQualificado = reply.match(/\[LEAD_QUALIFICADO\]\s*(\{[\s\S]*\})\s*$/);
+    let dadosQualificado = null;
     if (mQualificado) {
       reply = reply.slice(0, mQualificado.index).trim();
-      if (IS_LIVRE && !_leadRegistradoHome) {
-        try { registrarLeadHome_(JSON.parse(mQualificado[1])); }
-        catch (e) { /* JSON malformado — não registra, conversa continua normal */ }
-      }
+      try { dadosQualificado = JSON.parse(mQualificado[1]); } catch (e) { /* JSON malformado — não registra */ }
     }
+    if (dadosQualificado && IS_LIVRE && !_leadRegistradoHome) registrarLeadHome_(dadosQualificado);
 
     conversationHistory.push({ role: 'assistant', content: reply });
 
@@ -1256,7 +1331,7 @@ async function sendMessage() {
     // faz nada (ver guard no início da função) — não afeta o chat com a IA.
     gravarMensagemChat_('lead', text);
     gravarMensagemChat_('ia', reply);
-    if (pediuAtendente) sinalizarPedidoAtendente_();
+    if (pediuAtendente) await sinalizarPedidoAtendente_(dadosAtendente);
 
   } catch (err) {
     typingEl.remove();
@@ -1368,13 +1443,31 @@ function registrarLeadNoCRM(dados) {
    (registrarLeadNoCRM + registrarIndicacaoAgente_ + resolverLeadId_) —
    só muda O MOMENTO em que é chamado: no meio da conversa em vez de
    antes dela começar. */
-function registrarLeadHome_(dados) {
+async function registrarLeadHome_(dados) {
   _leadRegistradoHome = true;
-  leadDados = { nome: dados.nome || '', telefone: dados.telefone || '', email: dados.email || '' };
+  leadDados = { nome: dados.nome || leadDados.nome || '', telefone: dados.telefone || leadDados.telefone || '', email: dados.email || leadDados.email || '' };
   const interesse = [dados.interesse, dados.finalidade].filter(Boolean).join(' — ');
   registrarLeadNoCRM({ nome: leadDados.nome, telefone: leadDados.telefone, email: leadDados.email, interesse, orcamento: dados.orcamento || '', area: dados.cidade || '' });
   registrarIndicacaoAgente_(leadDados.nome, leadDados.telefone, leadDados.email);
-  resolverLeadId_();
+  await resolverLeadId_();
+  // pedido 90.2.b — se o Posto/Cargo já veio junto (ex.: pediu atendente
+  // antes de ter sido qualificado no modo livre), grava assim que o
+  // Lead_Id existir (ver atualizarPostoCargo_ mais abaixo).
+  if (dados.postoCargo) atualizarPostoCargo_(dados.postoCargo);
+}
+/* pedido 90.2.b — Posto_Cargo é coletado pela IA (seção ATENDIMENTO
+   HUMANO ou LEAD_QUALIFICADO do prompt) mas não existe ação de criação
+   de lead (CRM_SCRIPT_URL) que grave esse campo — grava direto na linha
+   já existente via o backend principal (crm_lead_atualizar_campo_publico,
+   zero mudança de schema além da coluna Posto_Cargo em LEADS).
+   Fire-and-forget, precisa de leadId já resolvido. */
+function atualizarPostoCargo_(postoCargo) {
+  if (!leadId || !postoCargo) return;
+  fetch(CADASTRO_API_URL, {
+    method: 'POST', mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'crm_lead_atualizar_campo_publico', leadId, postoCargo })
+  }).catch(() => {});
 }
 
 /* Backend do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs)
@@ -1493,9 +1586,18 @@ let _atendenteJaSinalizado = false;
    🆘 e toca o alerta sonoro (reaproveita alertaSonoroTocar_ já usado
    pra leads novos) + destaca a conversa. Só uma vez por sessão de chat
    pra não repetir o alerta a cada nova mensagem do lead. */
-function sinalizarPedidoAtendente_() {
+async function sinalizarPedidoAtendente_(dadosAtendente) {
   if (_atendenteJaSinalizado) return;
   _atendenteJaSinalizado = true;
+  // pedido 90.2.b — modo livre: se o lead pediu atendente ANTES de já
+  // ter sido qualificado (LEAD_QUALIFICADO nunca disparou), a própria
+  // resposta de ATENDIMENTO HUMANO já trouxe nome/telefone/email —
+  // registra o lead agora com esses dados, pra não perder o pedido.
+  if (dadosAtendente && IS_LIVRE && !_leadRegistradoHome && dadosAtendente.nome && (dadosAtendente.telefone || dadosAtendente.email)) {
+    await registrarLeadHome_(dadosAtendente);
+  } else if (dadosAtendente && dadosAtendente.postoCargo) {
+    atualizarPostoCargo_(dadosAtendente.postoCargo);
+  }
   gravarMensagemChat_('ia', '🆘 Lead pediu para falar com um atendente humano — entre na conversa.');
   const msgs = document.getElementById('messages');
   const row = document.createElement('div');
@@ -1523,7 +1625,7 @@ async function pollForHumanMessages() {
     const resp = await cadastroApiJsonp('crm_lead_chat_buscar', { leadId, since: _chatUltimoTimestamp, leitor: 'lead' });
     const mensagens = (resp && resp.mensagens) || [];
     mensagens.forEach(m => {
-      if (m.remetente === 'atendente') appendAtendenteMessage(m.texto, m.nome);
+      if (m.remetente === 'atendente' || m.remetente === 'gerente') appendAtendenteMessage(m.texto, m.nome);
       if (!_chatUltimoTimestamp || m.timestamp > _chatUltimoTimestamp) _chatUltimoTimestamp = m.timestamp;
     });
   } catch (e) { /* silencioso — só um poll a menos, tenta de novo no próximo */ }

@@ -793,6 +793,7 @@ a{text-decoration:none;color:inherit}
       <div class="nav-item" onclick="nav(this,'simulador')"><span class="nav-ico">🧮</span>Simulador Financeiro</div>
       <div class="nav-item" onclick="nav(this,'viabilizador')"><span class="nav-ico">🏦</span>Solicitação ao Viabilizador</div>
       <div class="nav-item" onclick="nav(this,'reserva')"><span class="nav-ico">🔑</span>Reserva de Unidade</div>
+      <div class="nav-item" onclick="nav(this,'chatia')"><span class="nav-ico">💬</span>Chat IA</div>
       <div class="nav-item" onclick="nav(this,'ia')"><span class="nav-ico">🤖</span>Assistente IA</div>
     </div>
 
@@ -1174,6 +1175,31 @@ a{text-decoration:none;color:inherit}
       <div id="reservaLista">Carregando...</div>
     </div>
 
+    <!-- ══ CHAT IA (pedido 90.2.f) — monitoramento das conversas do
+         Assistente IA com os leads, em 2 janelas lado a lado. ══ -->
+    <div class="panel" id="panel-chatia">
+      <div class="ph">
+        <div>
+          <div class="ph-eye">💬 Monitoramento</div>
+          <div class="ph-title">Chat IA</div>
+          <div class="ph-sub">Acompanhe as conversas do Assistente IA com os leads, em tempo real</div>
+        </div>
+        <div class="ph-acts">
+          <button class="btn btn-teal" onclick="carregarChatIA_()">🔄 Atualizar</button>
+        </div>
+      </div>
+      <div class="g2" style="align-items:start">
+        <div class="card">
+          <div class="card-h"><div class="card-title">🆘 Pediram atendente (16h) ou entraram sem pedir (30min)</div></div>
+          <div class="card-b" style="padding:0;overflow-x:auto" id="chatiaMonitorLista">Carregando...</div>
+        </div>
+        <div class="card">
+          <div class="card-h"><div class="card-title">💬 Todas as conversas ativas</div></div>
+          <div class="card-b" style="padding:0;overflow-x:auto" id="chatiaThreadsLista">Carregando...</div>
+        </div>
+      </div>
+    </div>
+
     <!-- ══ ASSISTENTE IA ══ -->
     <div class="panel" id="panel-ia">
       <div class="ph">
@@ -1358,9 +1384,42 @@ a{text-decoration:none;color:inherit}
     <div class="modal-body" id="leadModalBody"></div>
     <div class="modal-f">
       <button class="btn" onclick="fecharModal('modalLead')">Fechar</button>
+      <button class="btn-teal btn" onclick="abrirConvidarChatIA_()">💬 Convidar pro Chat IA</button>
       <button class="btn btn-gold" onclick="abrirCompartilharReserva()">📋 Enviar Formulário de Reserva</button>
       <button class="btn-teal btn" onclick="nav(document.querySelector('[onclick*=ia]'),'ia');fecharModal('modalLead')">🤖 Pedir ajuda à IA</button>
     </div>
+  </div>
+</div>
+
+<!-- MODAL CONVIDAR LEAD PRO CHAT IA (pedido 90.2.d) — mesmo padrão de
+     3 botões do modal de reserva logo abaixo, só que pro convite do
+     chat com a IA. Sem o botão de envio automático por WhatsApp
+     (Twilio) que o Atendente tem — ação isolada pra sessão de
+     Atendente, fora de escopo aqui. -->
+<div class="modal-ov" id="modalConvidarChatIA">
+  <div class="modal-box" style="max-width:380px">
+    <div class="modal-h">
+      <div class="modal-title">Convidar lead pro Chat IA</div>
+      <button class="modal-close" onclick="fecharModal('modalConvidarChatIA')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <a id="convidarChatIAWpp" href="#" target="_blank" rel="noopener" class="btn-full btn" style="background:#25D366;color:#fff;border-color:transparent;font-weight:700">📱 Enviar por WhatsApp</a>
+        <button class="btn-full btn" id="convidarChatIABtnEmail" onclick="convidarChatIAEnviarEmail_()">✉️ Enviar por E-mail</button>
+        <button class="btn-full btn" id="convidarChatIABtnCopiar" onclick="convidarChatIACopiarLink_(this)">🔗 Copiar Link</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTÓRICO DA CONVERSA DO CHAT IA (pedido 90.2.f) -->
+<div class="modal-ov" id="modalHistoricoChatIA">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-h">
+      <div class="modal-title" id="histChatIATitulo">Conversa</div>
+      <button class="modal-close" onclick="fecharModal('modalHistoricoChatIA')">×</button>
+    </div>
+    <div class="modal-body" id="histChatIABody" style="max-height:65vh;overflow-y:auto"></div>
   </div>
 </div>
 
@@ -2081,6 +2140,12 @@ async function iniciarApp(){
   tick();setInterval(tick,1000);
   renderDocumentosPerfil();
   alertaSonoroAtualizarBotao_();
+  // pedido 90.2.d — FAB de chat ao vivo, igual dashboard_atendente.html,
+  // mas role:'gerente' — vê TODAS as conversas (crm_gerente_chat_threads,
+  // sem filtro por Atendente_Id), não só as próprias.
+  if(window.WalChatWidget){
+    WalChatWidget.init({apiUrl:CADASTRO_API_URL, role:'gerente', nome:_user.nome||'Gerente', email:_user.email, sessionToken:_user.sessionToken});
+  }
   // IA welcome
   addAiMsg('ai',`Olá, ${primeiroNome}! 👋 Sou seu Assistente IA da WAL Consultoria.\n\nEstou aqui para ajudar você a:\n• Decidir pra qual Atendente encaminhar um lead\n• Revisar argumentos e linhas de financiamento antes de aprovar\n• Redigir e-mails de solicitação ao Viabilizador\n• Ler os números do funil e da equipe\n\nEscolha uma pergunta rápida abaixo ou escreva a sua!`);
   iaHistoricoRender_();
@@ -2159,6 +2224,73 @@ function alertaSonoroChecarNovosLeads_(itens){
     }
   }
   _leadsIdsConhecidos=idsAgora;
+}
+
+/* ═══ CHAT IA — monitoramento (pedido 90.2.f) ═══
+   Janela esquerda: crm_gerente_chat_monitor_ (2 buckets já filtrados
+   no backend — pediu atendente nas últimas 16h, OU entrou/saiu nos
+   últimos 30min sem pedir — mesclados aqui numa lista só, mais recente
+   primeiro). Janela direita: crm_gerente_chat_threads_ (todas as
+   conversas ativas, sem filtro de tempo) + botão pra abrir o histórico
+   completo (crm_lead_chat_buscar, leitor 'gerente' — só leitura, não
+   marca como lida, ver comentário no .gs). */
+async function carregarChatIA_(){
+  document.getElementById('chatiaMonitorLista').innerHTML='Carregando...';
+  document.getElementById('chatiaThreadsLista').innerHTML='Carregando...';
+  const [respMonitor, respThreads] = await Promise.all([
+    cadastroApiJsonp('crm_gerente_chat_monitor', {email:_user.email, sessionToken:_user.sessionToken, horasPedido:16, minutosSemPedido:30}),
+    cadastroApiJsonp('crm_gerente_chat_threads', {email:_user.email, sessionToken:_user.sessionToken})
+  ]);
+  renderChatIAMonitor_(respMonitor || {pedidosAtendente:[], semPedido:[]});
+  renderChatIAThreads_((respThreads && respThreads.threads) || []);
+}
+function renderChatIAMonitor_(data){
+  const el=document.getElementById('chatiaMonitorLista');
+  const itens=[
+    ...(data.pedidosAtendente||[]).map(x=>({...x, solicitou:true, quando:x.pedidoTimestamp})),
+    ...(data.semPedido||[]).map(x=>({...x, solicitou:false, quando:x.primeiroTimestamp}))
+  ].sort((a,b)=> a.quando<b.quando?1:-1);
+  if(!itens.length){el.innerHTML='<div class="fs12 c-muted" style="padding:16px">Nenhuma atividade recente.</div>';return}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Data/Hora</th><th>Nome</th><th>Zap</th><th>E-mail</th><th>Interesse</th><th>Solicitou Atendente</th><th>Encaminhamento</th></tr></thead><tbody>
+    ${itens.map(it=>`<tr class="clk" onclick="abrirHistoricoChatIA_('${it.leadId}','${escAttr_(it.nome)}')">
+      <td class="mono fs10 c-muted">${fmtDtHora_(it.quando)}</td>
+      <td class="fw6">${it.nome||'—'}</td>
+      <td>${it.whatsapp||'—'}</td>
+      <td>${it.email||'—'}</td>
+      <td class="fs11">${it.interesse||'—'}</td>
+      <td>${it.solicitou?`<span class="bdg br">🆘 Sim, ${fmtDtHora_(it.pedidoTimestamp)}</span>`:'<span class="bdg bc">— Não</span>'}</td>
+      <td>${it.atendenteId?`<span class="bdg bg">${nomeAtendente_(it.atendenteId)||it.atendenteId}</span>`:'<span class="bdg ba">⏳ Aguardando</span>'}</td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+function renderChatIAThreads_(threads){
+  const el=document.getElementById('chatiaThreadsLista');
+  if(!threads.length){el.innerHTML='<div class="fs12 c-muted" style="padding:16px">Nenhuma conversa ainda.</div>';return}
+  el.innerHTML=`<table class="tbl"><thead><tr><th>Lead</th><th>WhatsApp</th><th>E-mail</th><th>Atendente</th><th>Início</th><th></th></tr></thead><tbody>
+    ${threads.map(t=>`<tr>
+      <td class="fw6">${t.nome||t.leadId}</td>
+      <td>${t.telefone||'—'}</td>
+      <td>${t.email||'—'}</td>
+      <td>${t.atendenteId?(nomeAtendente_(t.atendenteId)||t.atendenteId):'<span class="c-muted">—</span>'}</td>
+      <td class="mono fs10 c-muted">${fmtDtHora_(t.primeiroTimestamp)}</td>
+      <td><button class="btn btn-sm" onclick="abrirHistoricoChatIA_('${t.leadId}','${escAttr_(t.nome)}')">📜 Histórico</button></td>
+    </tr>`).join('')}
+  </tbody></table>`;
+}
+async function abrirHistoricoChatIA_(leadId, nome){
+  document.getElementById('histChatIATitulo').textContent='Conversa — '+(nome||leadId);
+  document.getElementById('histChatIABody').innerHTML='Carregando...';
+  abrirModal('modalHistoricoChatIA');
+  const resp=await cadastroApiJsonp('crm_lead_chat_buscar',{leadId, leitor:'gerente', email:_user.email, sessionToken:_user.sessionToken});
+  const msgs=(resp&&resp.mensagens)||[];
+  if(!msgs.length){document.getElementById('histChatIABody').innerHTML='<div class="fs12 c-muted">Nenhuma mensagem registrada.</div>';return}
+  const rotulo=r=>r==='ia'?'🤖 Assistente':r==='atendente'?'🧑‍💼 Atendente':r==='gerente'?'🧑‍💼 Gerente':'👤 Lead';
+  document.getElementById('histChatIABody').innerHTML=msgs.map(m=>`
+    <div style="margin-bottom:12px">
+      <div class="fs11 fw6" style="color:var(--gold)">${rotulo(m.remetente)}${m.nome?' — '+escAttr_(m.nome):''}</div>
+      <div class="fs12" style="white-space:pre-wrap">${(m.texto||'').replace(/</g,'&lt;')}</div>
+      <div class="fs10 c-muted mono">${fmtDtHora_(m.timestamp)}</div>
+    </div>`).join('');
 }
 
 async function carregarDadosIniciais(){
@@ -2242,7 +2374,7 @@ function fixDriveUrl(url) {
 }
 
 /* ═══ NAV ═══ */
-const TITLES={visaogeral:'Visão Geral',equipe:'Equipe',agentes:'Agentes',leads:'Leads',funil:'Funil de Atendimento',acompanhar:'Acompanhar Atendimento',empreendimentos:'Empreendimentos & Unidades',simulador:'Simulador Financeiro',viabilizador:'Solicitação ao Viabilizador',reserva:'Reserva de Unidade',ia:'Assistente IA',perfil:'Meu Perfil'};
+const TITLES={visaogeral:'Visão Geral',equipe:'Equipe',agentes:'Agentes',leads:'Leads',funil:'Funil de Atendimento',acompanhar:'Acompanhar Atendimento',empreendimentos:'Empreendimentos & Unidades',simulador:'Simulador Financeiro',viabilizador:'Solicitação ao Viabilizador',reserva:'Reserva de Unidade',chatia:'Chat IA',ia:'Assistente IA',perfil:'Meu Perfil'};
 function nav(el,id){
   document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
   if(el?.classList)el.classList.add('active');
@@ -2253,6 +2385,7 @@ function nav(el,id){
   const _bd=document.getElementById('sidebarBackdrop'); if(_bd) _bd.classList.remove('show');
   if(id==='viabilizador') renderViabLista();
   if(id==='reserva'&&!_reservas.length) carregarReservas();
+  if(id==='chatia') carregarChatIA_();
   // Cards de Empreendimentos podem ter sido montados enquanto este painel
   // ainda estava escondido (dados chegam em segundo plano antes do usuário
   // clicar aqui) — recalcula agora que o painel está visível, pra aplicar
@@ -2399,7 +2532,10 @@ function campoDetalheLead_(label,valor){
    campos até agora). Só leitura, sem edição — mudar esses campos
    continua sendo pelos controles da aba "Atendimento" ao lado. */
 function renderLeadModal(l,historico,nomeAgenteIndicador){
-  const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':h.tipo==='gerente'?'📣':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div></div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
+  // pedido 90.2.e — evento "Chat IA" ganha um botão pra abrir a conversa
+  // completa (reaproveita o mesmo modal/ação da tela "Chat IA", ver
+  // abrirHistoricoChatIA_ mais abaixo), em vez de só o texto resumido.
+  const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':h.tipo==='gerente'?'📣':h.tipo==='Chat IA'?'💬':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div>${h.tipo==='Chat IA'?`<button class="btn btn-sm" style="margin-top:6px" onclick="abrirHistoricoChatIA_('${l.id}','${escAttr_(l.nome)}')">📜 Ver conversa completa</button>`:''}</div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
   const nomeAt=l.atendenteId?(nomeAtendente_(l.atendenteId)||l.atendenteId):'';
   document.getElementById('leadModalBody').innerHTML=`
     <div class="flex-bet mb14"><div><div class="fs14 fw6">${l.nome||'—'}</div><div class="fs11 c-muted">${l.telefone||''}${l.email?' · '+l.email:''}</div></div><span class="bdg ${statusLeadBdg(l.status)}">${statusLeadLabel(l.status)}</span></div>
@@ -2966,6 +3102,60 @@ async function compEmpEnviarEmail(){
    do lead — por isso o WhatsApp já abre direto na conversa com ele, e o
    e-mail sai sem precisar digitar destinatário. */
 let _compReservaDados = null;
+let _convidarChatIADados = null;
+/* pedido 90.2.d — convite pro Chat IA, mesmo padrão de link do
+   Atendente (dashboard_atendente.html/abrirConvidarChat_), mas
+   disponível também pro Gerente — útil sobretudo pra leads sem
+   Atendente ainda (vindos do imovel.html, por exemplo), já que o
+   Gerente vê TODAS as conversas no balãozinho (crm_gerente_chat_threads,
+   sem filtro), diferente do Atendente (só as dele). */
+function abrirConvidarChatIA_(){
+  const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
+  const link=`${SITE_BASE_URL}chat.html?leadId=${encodeURIComponent(l.id)}`;
+  const texto=
+`Olá, ${l.nome||''}! Tudo bem?
+Preparamos um atendimento personalizado pra você — é só clicar no link abaixo pra conversar com a gente agora:
+🔗 ${link}
+
+WAL Imóveis | WAL Servidor
+comercial@walservidor.com.br
+www.walservidor.com.br`;
+
+  _convidarChatIADados={link,texto,email:l.email||''};
+  document.getElementById('convidarChatIAWpp').href=`https://wa.me/55${(l.telefone||'').replace(/\D/g,'')}?text=${encodeURIComponent(texto)}`;
+  const btnEmail=document.getElementById('convidarChatIABtnEmail');
+  btnEmail.disabled=!l.email;
+  btnEmail.title=l.email?'':'Lead sem e-mail cadastrado';
+  btnEmail.textContent='✉️ Enviar por E-mail';
+  abrirModal('modalConvidarChatIA');
+}
+function convidarChatIACopiarLink_(btn){
+  navigator.clipboard.writeText(_convidarChatIADados.link).then(()=>{
+    const orig=btn.textContent;
+    btn.textContent='✅ Link copiado!';
+    setTimeout(()=>{btn.textContent=orig;},2000);
+  });
+}
+async function convidarChatIAEnviarEmail_(){
+  if(!_convidarChatIADados||!_convidarChatIADados.email){toast('Este lead não tem e-mail cadastrado.','');return}
+  const btn=document.getElementById('convidarChatIABtnEmail');
+  btn.disabled=true;btn.textContent='Enviando...';
+  try{
+    const res=await fetch(SCRIPT_URL_LEADS,{method:'POST',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify({tipo:'compartilhar_email',destinatario:_convidarChatIADados.email,assunto:'Fale com a gente agora — WAL Imóveis',corpo:_convidarChatIADados.texto})});
+    const data=await res.json();
+    if(data.status==='ok'){
+      toast('✅ E-mail enviado para '+_convidarChatIADados.email+'!','green');
+      fecharModal('modalConvidarChatIA');
+    }else{
+      toast(data.message||'Não foi possível enviar agora. Tente novamente.','');
+    }
+  }catch(e){
+    toast('Falha na conexão. Tente novamente.','');
+  }
+  btn.disabled=false;btn.textContent='✉️ Enviar por E-mail';
+}
+
 function abrirCompartilharReserva(){
   const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
   const empNome=(document.getElementById('leadVisitaEmp')?.value||'').trim();
@@ -3793,5 +3983,6 @@ function limparChat(){
 </script>
 <script src="../shared/compartilhamento-seguro.js"></script>
 <script src="../shared/descricao-inteligente.js"></script>
+<script src="../../shared/chat-widget.js"></script>
 </body>
 </html>

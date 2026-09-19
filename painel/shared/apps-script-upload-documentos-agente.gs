@@ -10,8 +10,8 @@
    link da pasta: https://drive.google.com/drive/folders/1wCfmfSvoiX9WUMNwiheF156E4CtKvueg?usp=sharing
    PASTA_DOCUMENTOS_RESERVA_ID (nova, 78.1)
    link da pasta: https://drive.google.com/drive/folders/1JVW-dTxsy10z35cledwP9TdaqZ1mgvt0?usp=sharing
-   PASTA_DOCUMENTOS_CHAT_ID (nova, 90.1.e) — AINDA PRECISA SER CRIADA E
-   COMPARTILHADA antes de publicar esta versão, ver passo 2 abaixo.
+   PASTA_DOCUMENTOS_CHAT_ID (nova, 90.1.e) — criada e validada em 19/09
+   link da pasta: https://drive.google.com/drive/folders/1kIoF0FEOBXP_IUqBJCE9OQMueMw8WdR_?usp=sharing
    ═══════════════════════════════════════════════════════════════════
    Projeto ISOLADO, criado numa conta Google PESSOAL (não Workspace) de
    propósito. Motivo: o projeto principal do cadastro
@@ -88,7 +88,7 @@ var PASTA_DOCUMENTOS_RESERVA_ID = '1JVW-dTxsy10z35cledwP9TdaqZ1mgvt0';
    da MESMA conta pessoal já usada pelas pastas acima, crie uma pasta
    nova, compartilhe como Editor com essa conta (se ainda não for dela)
    e cole o ID aqui antes de publicar esta versão. */
-var PASTA_DOCUMENTOS_CHAT_ID = 'COLOQUE_AQUI_O_ID_DA_PASTA_DE_ANEXOS_DO_CHAT';
+var PASTA_DOCUMENTOS_CHAT_ID = '1kIoF0FEOBXP_IUqBJCE9OQMueMw8WdR_';
 var PLANILHA_CADASTRO_ID = '1QKt4iVS_JaFI9Ir_gpOpAUcR4t8rrNJbYwLaH84BUdI';
 var ABA_OTP               = 'OTP_CODES';
 var PLANILHA_CRM_LEADS_ID = '1LeIsShjdVMKuB99cJf_N-eBW3M8lf_uo-la88CQjvH4';
