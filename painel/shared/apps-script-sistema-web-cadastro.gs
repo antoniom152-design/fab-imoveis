@@ -1640,8 +1640,15 @@ function crm_lead_chat_enviar_(data) {
   return comLock_(function () {
     var leadId = s_(data.leadId).trim();
     if (!leadId) return { status: 'error', message: 'Lead_Id obrigatório.' };
-    var remetente = data.remetente === 'atendente' ? 'atendente' : (data.remetente === 'ia' ? 'ia' : 'lead');
+    // 'gerente' acrescentado no pedido 90.2.d — Gerente também pode
+    // entrar numa conversa (ex.: leads sem Atendente ainda, vindos do
+    // imovel.html). Do lado do lead é tratado igual 'atendente' (ver
+    // ativarModoHumano_ em chat.html).
+    var remetente = (data.remetente === 'atendente' || data.remetente === 'gerente' || data.remetente === 'ia') ? data.remetente : 'lead';
     if (remetente === 'atendente' && !crm_atendenteContexto_(data.email, data.sessionToken)) {
+      return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+    }
+    if (remetente === 'gerente' && !crm_gerenteContexto_(data.email, data.sessionToken)) {
       return { status: 'error', message: 'Sessão de e-mail não verificada.' };
     }
     var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
@@ -1650,16 +1657,24 @@ function crm_lead_chat_enviar_(data) {
     return { status: 'ok' };
   });
 }
-/* Exige sessão OTP quando quem lê é o Atendente; sem checagem quando é
-   o próprio lead lendo a conversa dele (ver comentário acima). */
+/* Exige sessão OTP quando quem lê é o Atendente ou o Gerente; sem
+   checagem quando é o próprio lead lendo a conversa dele (ver
+   comentário acima). 'gerente' foi acrescentado no pedido 90.2 (botão
+   "Ver conversa" nas telas do Gerente) — mesma lógica do 'atendente',
+   só troca o contexto validado. */
 function crm_lead_chat_buscar_(p) {
   var leadId = s_(p.leadId).trim();
   if (!leadId) return { status: 'ok', mensagens: [] };
-  var leitor = p.leitor === 'atendente' ? 'atendente' : 'lead';
+  var leitor = (p.leitor === 'atendente' || p.leitor === 'gerente') ? p.leitor : 'lead';
   if (leitor === 'atendente' && !crm_atendenteContexto_(p.email, p.sessionToken)) {
     return { status: 'error', message: 'Sessão de e-mail não verificada.', mensagens: [] };
   }
-  var remetenteAlheio = leitor === 'atendente' ? 'lead' : 'atendente';
+  if (leitor === 'gerente' && !crm_gerenteContexto_(p.email, p.sessionToken)) {
+    return { status: 'error', message: 'Sessão de e-mail não verificada.', mensagens: [] };
+  }
+  // Gerente só acompanha (nunca marca como lido nem tem "remetente alheio"
+  // próprio — ele não é parte da conversa, só espectador/auditoria).
+  var remetenteAlheio = leitor === 'atendente' ? 'lead' : (leitor === 'lead' ? 'atendente' : null);
   var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
   var aba = ssCrm.getSheetByName(ABA_MENSAGENS_CHAT_LEAD);
   if (!aba) return { status: 'ok', mensagens: [] };
@@ -1670,40 +1685,72 @@ function crm_lead_chat_buscar_(p) {
     if (s_(l.Lead_Id) !== leadId) return;
     if (p.since && s_(l.Timestamp) <= p.since) return;
     mensagens.push({ remetente: s_(l.Remetente), texto: s_(l.Texto), timestamp: s_(l.Timestamp), nome: s_(l.Nome) });
-    if (s_(l.Remetente) === remetenteAlheio && l.Lida !== true) linhasParaMarcarLidas.push(l._row);
+    if (remetenteAlheio && s_(l.Remetente) === remetenteAlheio && l.Lida !== true) linhasParaMarcarLidas.push(l._row);
   });
   if (linhasParaMarcarLidas.length) {
     comLock_(function () { linhasParaMarcarLidas.forEach(function (row) { aba.getRange(row, 6).setValue(true); }); });
   }
   return { status: 'ok', mensagens: mensagens };
 }
-/* Inbox do Atendente — lista todas as threads com mensagem não lida de
-   lead (filtrar só pelas do Atendente logado fica pra uma iteração
-   futura; por enquanto mostra todas, igual o Feirão faz hoje). */
-function crm_atendente_chat_threads_(p) {
-  if (!crm_atendenteContexto_(p.email, p.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.', threads: [] };
+/* Monta a lista de threads (1 por Lead_Id, com a última mensagem e
+   contagem de não lidas) a partir de MENSAGENS_CHAT_LEAD — usada tanto
+   pelo Atendente (filtrada só pros leads dele) quanto pelo Gerente
+   (sem filtro, vê tudo). filtroAtendenteId=null = sem filtro.
+   Junta com a aba LEADS só quando precisa filtrar, pra não pagar esse
+   custo à toa na visão do Gerente (pedido 90.2 — antes não filtrava
+   nem pro Atendente, e isso fazia o alerta de "pediu atendente" (🆘)
+   aparecer pra QUALQUER Atendente logado, não só pro dono do lead). */
+function crm_chat_threads_montar_(filtroAtendenteId) {
   var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
   var aba = ssCrm.getSheetByName(ABA_MENSAGENS_CHAT_LEAD);
-  if (!aba) return { status: 'ok', threads: [] };
+  if (!aba) return [];
 
-  var porLead = {}, naoLidasPorLead = {}, nomeLeadPorLead = {};
+  // Sempre junta com LEADS (não só quando filtra) — pedido 90.2.f
+  // precisa do Atendente_Id/telefone/e-mail em toda thread, pra tela
+  // "Chat IA" do Gerente mostrar quem já responde por cada lead.
+  var leadsPorId = {};
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (abaLeads) lerAbaObjetos_(abaLeads).forEach(function (l) { leadsPorId[s_(l.ID)] = l; });
+
+  var porLead = {}, naoLidasPorLead = {}, nomeLeadPorLead = {}, primeiroPorLead = {};
   lerAbaObjetos_(aba).forEach(function (l) {
     var leadId = s_(l.Lead_Id);
     if (!leadId) return;
+    var atendenteDoLead = leadsPorId[leadId] ? s_(leadsPorId[leadId].Atendente_Id) : '';
+    if (filtroAtendenteId && atendenteDoLead !== filtroAtendenteId) return;
     if (!porLead[leadId] || s_(l.Timestamp) > porLead[leadId].ultimoTimestamp) {
-      porLead[leadId] = { leadId: leadId, ultimaMensagem: s_(l.Texto), ultimoTimestamp: s_(l.Timestamp) };
+      porLead[leadId] = { leadId: leadId, ultimaMensagem: s_(l.Texto), ultimoTimestamp: s_(l.Timestamp), atendenteId: atendenteDoLead };
     }
+    if (!primeiroPorLead[leadId] || s_(l.Timestamp) < primeiroPorLead[leadId]) primeiroPorLead[leadId] = s_(l.Timestamp);
     if (s_(l.Remetente) === 'lead' && s_(l.Nome)) nomeLeadPorLead[leadId] = s_(l.Nome);
     if (s_(l.Remetente) === 'lead' && l.Lida !== true) naoLidasPorLead[leadId] = (naoLidasPorLead[leadId] || 0) + 1;
   });
   var threads = Object.keys(porLead).map(function (leadId) {
     var t = porLead[leadId];
-    t.nome = nomeLeadPorLead[leadId] || leadId;
+    var leadRow = leadsPorId[leadId];
+    t.nome = nomeLeadPorLead[leadId] || (leadRow && s_(leadRow.Nome)) || leadId;
+    t.telefone = leadRow ? s_(leadRow.Telefone) : '';
+    t.email = leadRow ? s_(leadRow.Email) : '';
     t.naoLidas = naoLidasPorLead[leadId] || 0;
+    t.primeiroTimestamp = primeiroPorLead[leadId];
     return t;
   });
   threads.sort(function (a, b) { return a.ultimoTimestamp < b.ultimoTimestamp ? 1 : -1; });
-  return { status: 'ok', threads: threads };
+  return threads;
+}
+/* Inbox do Atendente — só as threads dos leads DELE (pedido 90.2.a:
+   antes mostrava tudo pra qualquer Atendente, o que não dizia pra quem
+   realmente avisar quando um lead pedia atendimento humano). */
+function crm_atendente_chat_threads_(p) {
+  var pessoa = crm_atendenteContexto_(p.email, p.sessionToken);
+  if (!pessoa) return { status: 'error', message: 'Sessão de e-mail não verificada.', threads: [] };
+  return { status: 'ok', threads: crm_chat_threads_montar_(s_(pessoa.Id)) };
+}
+/* Inbox do Gerente (pedido 90.2.d) — sem filtro, vê todas as
+   conversas (papel de supervisão/roteamento). */
+function crm_gerente_chat_threads_(p) {
+  if (!crm_gerenteContexto_(p.email, p.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.', threads: [] };
+  return { status: 'ok', threads: crm_chat_threads_montar_(null) };
 }
 /* chat.html não sabe o próprio Lead_Id (só nome/telefone/email, sem
    OTP) — usada só quando o lead chega SEM ?leadId= na URL (visita
@@ -1724,6 +1771,111 @@ function crm_lead_id_publico_(data) {
   }
   if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
   return { status: 'ok', leadId: idLead };
+}
+/* Pedido 90.2.a — quando o lead chega pelo LINK do convite (?leadId= na
+   URL, mandado por um Atendente/Gerente a partir da própria ficha dele
+   na aba LEADS), o chat já sabe o Lead_Id — só falta buscar os dados
+   (nome/telefone/e-mail/Atendente_Id/Gerente_Id) pra não pedir de novo
+   o que a pessoa já preencheu antes. Mesmo nível de confiança já aceito
+   em crm_lead_chat_buscar_/crm_lead_chat_enviar_ (quem tem o Lead_Id —
+   só quem recebeu o link — pode ler os dados básicos dele). */
+function crm_lead_lookup_publico_(data) {
+  var leadId = s_(data.leadId).trim();
+  if (!leadId) return { status: 'error', message: 'Lead_Id obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+  var lead = lerAbaObjetos_(abaLeads).find(function (l) { return s_(l.ID) === leadId; });
+  if (!lead) return { status: 'error', message: 'Lead não encontrado.' };
+  return { status: 'ok', lead: crm_leadParaObjeto_(lead) };
+}
+/* Pedido 90.2.b/c — grava campos complementares que o Assistente vai
+   coletando ao longo da conversa (por enquanto só Posto_Cargo) direto
+   na linha do lead já criado, sem precisar mexer no backend separado
+   que cria o lead (CRM_SCRIPT_URL/"criar"). Mesmo padrão dos outros
+   endpoints públicos desta seção — fire-and-forget, sem sessão, só
+   funciona se a coluna já existir na aba (senão ignora em silêncio). */
+function crm_lead_atualizar_campo_publico_(data) {
+  var leadId = s_(data.leadId).trim();
+  if (!leadId) return { status: 'error', message: 'Lead_Id obrigatório.' };
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
+  return comLock_(function () {
+    var linha = acharLinhaPorChave_(abaLeads, 'ID', leadId);
+    if (linha === -1) return { status: 'error', message: 'Lead não encontrado.' };
+    var headers = headersDe_(abaLeads);
+    if (data.postoCargo !== undefined) {
+      var col = headers.indexOf('Posto_Cargo');
+      if (col !== -1) abaLeads.getRange(linha, col + 1).setValue(data.postoCargo);
+    }
+    return { status: 'ok' };
+  });
+}
+/* Painel "Chat IA" do Gerente (pedido 90.2.f) — 2 listas temporais a
+   partir das mesmas threads de crm_chat_threads_montar_(null):
+   - pedidosAtendente: threads com uma mensagem "🆘" (ver
+     sinalizarPedidoAtendente_ em chat.html) dentro da janela de horas
+     pedida (padrão 16h).
+   - semPedido: threads SEM nenhum "🆘" cuja primeira mensagem caiu
+     dentro da janela de minutos pedida (padrão 30min) — "entrou e saiu
+     sem pedir atendente".
+   Preço de ler TODA a aba MENSAGENS_CHAT_LEAD 2x (aqui e dentro de
+   crm_chat_threads_montar_) é aceitável pro volume esperado desta
+   tela — ela é só pro Gerente monitorar, não faz parte de nenhum
+   polling de alta frequência. */
+function crm_gerente_chat_monitor_(p) {
+  if (!crm_gerenteContexto_(p.email, p.sessionToken)) return { status: 'error', message: 'Sessão de e-mail não verificada.' };
+  var horasPedido = Number(p.horasPedido) || 16;
+  var minutosSemPedido = Number(p.minutosSemPedido) || 30;
+  var agora = new Date();
+  var limitePedido = new Date(agora.getTime() - horasPedido * 3600000);
+  var limiteSemPedido = new Date(agora.getTime() - minutosSemPedido * 60000);
+
+  var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
+  var aba = ssCrm.getSheetByName(ABA_MENSAGENS_CHAT_LEAD);
+  if (!aba) return { status: 'ok', pedidosAtendente: [], semPedido: [] };
+
+  var porLead = {}; // leadId -> { nome, telefone, email, primeiroTs, ultimoTs, pedidoTs }
+  lerAbaObjetos_(aba).forEach(function (l) {
+    var leadId = s_(l.Lead_Id);
+    if (!leadId) return;
+    if (!porLead[leadId]) porLead[leadId] = { leadId: leadId, nome: '', primeiroTs: s_(l.Timestamp), ultimoTs: s_(l.Timestamp), pedidoTs: '' };
+    var t = porLead[leadId];
+    if (s_(l.Timestamp) < t.primeiroTs) t.primeiroTs = s_(l.Timestamp);
+    if (s_(l.Timestamp) > t.ultimoTs) t.ultimoTs = s_(l.Timestamp);
+    if (s_(l.Remetente) === 'lead' && s_(l.Nome)) t.nome = s_(l.Nome);
+    if (/^🆘/.test(s_(l.Texto)) && (!t.pedidoTs || s_(l.Timestamp) < t.pedidoTs)) t.pedidoTs = s_(l.Timestamp);
+  });
+
+  // Telefone/e-mail/interesse/atendente responsável vêm da aba LEADS
+  // (a de mensagens não tem esses campos).
+  var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
+  var leadsPorId = {};
+  if (abaLeads) lerAbaObjetos_(abaLeads).forEach(function (l) { leadsPorId[s_(l.ID)] = l; });
+
+  var pedidosAtendente = [], semPedido = [];
+  Object.keys(porLead).forEach(function (leadId) {
+    var t = porLead[leadId];
+    var lead = leadsPorId[leadId] || {};
+    var item = {
+      leadId: leadId, nome: t.nome || s_(lead.Nome) || leadId,
+      whatsapp: s_(lead.Telefone), email: s_(lead.Email),
+      interesse: s_(lead['Solicitação']), atendenteId: s_(lead.Atendente_Id),
+      primeiroTimestamp: t.primeiroTs, ultimoTimestamp: t.ultimoTs
+    };
+    if (t.pedidoTs) {
+      if (new Date(t.pedidoTs) >= limitePedido) {
+        item.pedidoTimestamp = t.pedidoTs;
+        pedidosAtendente.push(item);
+      }
+    } else if (new Date(t.primeiroTs) >= limiteSemPedido) {
+      semPedido.push(item);
+    }
+  });
+  pedidosAtendente.sort(function (a, b) { return a.pedidoTimestamp < b.pedidoTimestamp ? 1 : -1; });
+  semPedido.sort(function (a, b) { return a.primeiroTimestamp < b.primeiroTimestamp ? 1 : -1; });
+  return { status: 'ok', pedidosAtendente: pedidosAtendente, semPedido: semPedido };
 }
 
 /* ══════════════════ CONVITE AUTOMÁTICO POR WHATSAPP — TWILIO (pedido 90) ══════════════════
@@ -2479,7 +2631,10 @@ function doGet(e) {
       case 'crm_gerente_reserva_mensagem_responder': result = crm_gerente_reserva_mensagem_responder_(p); break;
       case 'crm_lead_chat_buscar':                result = crm_lead_chat_buscar_(p); break;
       case 'crm_atendente_chat_threads':          result = crm_atendente_chat_threads_(p); break;
+      case 'crm_gerente_chat_threads':            result = crm_gerente_chat_threads_(p); break;
+      case 'crm_gerente_chat_monitor':            result = crm_gerente_chat_monitor_(p); break;
       case 'crm_lead_id_publico':                 result = crm_lead_id_publico_(p); break;
+      case 'crm_lead_lookup_publico':             result = crm_lead_lookup_publico_(p); break;
       case 'crm_atendente_convidar_chat_whatsapp_auto': result = crm_atendente_convidar_chat_whatsapp_auto_(p); break;
       default:                           result = { ok: false, erro: 'Ação desconhecida: ' + action };
     }
@@ -2520,6 +2675,7 @@ function doPost(e) {
       case 'crm_gerente_ia_chat':             out = crm_gerente_ia_chat_(data); break;
       case 'crm_gerente_atendente_status':    out = crm_gerente_atendente_status_(data); break;
       case 'crm_lead_chat_enviar':             out = crm_lead_chat_enviar_(data); break;
+      case 'crm_lead_atualizar_campo_publico': out = crm_lead_atualizar_campo_publico_(data); break;
       default:                   out = { status: 'error', message: 'Ação desconhecida: ' + data.action };
     }
     return jsonOut_(out);

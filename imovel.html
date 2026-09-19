@@ -2007,7 +2007,15 @@ function enviarInteresseFinal(data) {
   // hora. Mesmo mecanismo que o index.html já usa depois do gate de
   // e-mail/OTP (wal_lead_identificado no sessionStorage) — chat.html
   // pula o pré-chat e resolve o Lead_Id sozinho por e-mail.
-  sessionStorage.setItem('wal_lead_identificado', JSON.stringify({ nome: data.nome, email: data.email }));
+  // pedido 90.2.c — vai junto o Posto/Cargo (já coletado e validado
+  // neste form) e o empreendimento que a pessoa estava vendo, pra IA
+  // saudar pelo nome E já puxar algo específico dele na 1ª resposta.
+  sessionStorage.setItem('wal_lead_identificado', JSON.stringify({
+    nome: data.nome, email: data.email, postoCargo: data.posto,
+    imovelNome: imovelAtual.nome, imovelCidade: imovelAtual.cidade,
+    imovelBairro: imovelAtual.bairro, imovelFaixa: imovelAtual.faixa,
+    imovelConstrutora: imovelAtual.construtora
+  }));
   mostrarToast('✅ Recebemos seu interesse! Te levando pro nosso Assistente...');
   setTimeout(function() {
     window.location.href = 'chat.html';

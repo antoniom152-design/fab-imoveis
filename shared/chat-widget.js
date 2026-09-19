@@ -156,12 +156,17 @@
     // pedido 90.1.e — projeto isolado de upload pro Drive (mesmo usado
     // em dashboard-agente.html/reserva.html), pros anexos do chat.
     this.uploadApiUrl = opts.uploadApiUrl || global.UPLOAD_DOCUMENTOS_API_URL || '';
-    this.role     = opts.role === 'atendente' ? 'atendente' : 'lead';
-    this.nome     = opts.nome || (this.role === 'atendente' ? 'Atendente WAL' : 'Você');
-    this.mode     = this.role === 'atendente' ? 'inbox' : 'single';
+    // pedido 90.2.d — 'gerente' é um 3º papel possível, além de
+    // 'atendente'/'lead': mesma inbox do atendente, mas sem filtro (vê
+    // todas as conversas — crm_gerente_chat_threads/leitor 'gerente' no
+    // backend) e pode responder também (remetente 'gerente', tratado
+    // como "humano" do lado do lead, ver chat.html).
+    this.role     = (opts.role === 'atendente' || opts.role === 'gerente') ? opts.role : 'lead';
+    this.nome     = opts.nome || (this.role !== 'lead' ? 'Atendente WAL' : 'Você');
+    this.mode     = this.role !== 'lead' ? 'inbox' : 'single';
     this.threadId = opts.threadId ? normalizarId(opts.threadId) : '';
-    this.email        = opts.email || '';        // atendente: sessão OTP já verificada
-    this.sessionToken = opts.sessionToken || '';  // atendente: idem; lead: sempre vazio (sem gate de OTP)
+    this.email        = opts.email || '';        // atendente/gerente: sessão OTP já verificada
+    this.sessionToken = opts.sessionToken || '';  // idem; lead: sempre vazio (sem gate de OTP)
     this.pollMs   = opts.pollMs || 5000;
 
     this.activeThread  = this.mode === 'single' ? this.threadId : null;
@@ -245,7 +250,8 @@
 
   WalChatWidget.prototype._carregarThreads = function () {
     var self = this;
-    return jsonp(this.apiUrl, 'crm_atendente_chat_threads', { email: this.email, sessionToken: this.sessionToken }).then(function (data) {
+    var acao = this.role === 'gerente' ? 'crm_gerente_chat_threads' : 'crm_atendente_chat_threads';
+    return jsonp(this.apiUrl, acao, { email: this.email, sessionToken: this.sessionToken }).then(function (data) {
       var lista = (data && data.threads) || [];
       var totalNaoLidas = lista.reduce(function (acc, t) { return acc + (t.naoLidas || 0); }, 0);
       self.unread = self.panel.classList.contains('open') ? 0 : totalNaoLidas;
@@ -440,7 +446,7 @@
     // do lado do Atendente (role 'atendente'), tanto 'atendente' quanto
     // 'ia' são "nossas" mensagens (mesmo lado da conversa) — só 'lead' é
     // do outro lado. Do lado do lead (role 'lead'), só 'lead' é "minha".
-    var mine = m.remetente === this.role || (this.role === 'atendente' && m.remetente === 'ia');
+    var mine = m.remetente === this.role || ((this.role === 'atendente' || this.role === 'gerente') && m.remetente === 'ia');
     var hora = '';
     try { hora = new Date(m.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (e) {}
     var div = document.createElement('div');

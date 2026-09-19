@@ -1221,6 +1221,17 @@ a{text-decoration:none;color:inherit}
   </div>
 </div>
 
+<!-- MODAL HISTÓRICO DA CONVERSA DO CHAT IA (pedido 90.2.e) -->
+<div class="modal-ov" id="modalHistoricoChatIA">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-h">
+      <div class="modal-title" id="histChatIATitulo">Conversa</div>
+      <button class="modal-close" onclick="fecharModal('modalHistoricoChatIA')">×</button>
+    </div>
+    <div class="modal-body" id="histChatIABody" style="max-height:65vh;overflow-y:auto"></div>
+  </div>
+</div>
+
 <!-- MODAL CONVIDAR LEAD PRO CHAT AO VIVO (pedido 90) — mesmo padrão de
      3 botões do modalCompReserva acima, só que pro convite de chat em
      vez do formulário de reserva. O botão "Enviar automático" só some
@@ -2104,7 +2115,9 @@ async function abrirLead(id){
   renderLeadModal(l,(resp&&resp.itens)||[],nomeAgenteIndicador);
 }
 function renderLeadModal(l,historico,nomeAgenteIndicador){
-  const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div></div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
+  // pedido 90.2.e — evento "Chat IA" ganha um botão pra abrir a conversa
+  // completa (crm_lead_chat_buscar, leitor 'atendente' — só leitura).
+  const tl=historico.map(h=>`<div class="tl-item"><div class="tl-dot">${h.tipo==='visita'?'📅':h.tipo==='status'?'🔄':h.tipo==='Chat IA'?'💬':'📝'}</div><div><div class="tl-tipo">${h.autor||'Atendente'}</div><div class="tl-data">${fmtDt((h.timestamp||'').split('T')[0])} ${(h.timestamp||'').split('T')[1]?.slice(0,5)||''}</div><div class="tl-nota">${h.texto}</div>${h.tipo==='Chat IA'?`<button class="btn btn-sm" style="margin-top:6px" onclick="abrirHistoricoChatIA_('${l.id}','${escAttr_(l.nome)}')">📜 Ver conversa completa</button>`:''}</div></div>`).join('')||'<div class="fs11 c-muted">Nenhum evento registrado ainda.</div>';
   document.getElementById('leadModalBody').innerHTML=`
     <div style="display:grid;grid-template-columns:1fr 280px;gap:20px">
       <div>
@@ -2391,6 +2404,23 @@ async function compReservaEnviarEmail(){
    iniciado em iniciarApp() mais abaixo). Não exige empreendimento
    selecionado (diferente da reserva) — só precisa do lead já ter Id. */
 let _convidarChatDados=null;
+/* pedido 90.2.e — abre a conversa completa do Chat IA a partir do
+   evento "💬" no Histórico do lead (ver renderLeadModal acima). */
+async function abrirHistoricoChatIA_(leadId, nome){
+  document.getElementById('histChatIATitulo').textContent='Conversa — '+(nome||leadId);
+  document.getElementById('histChatIABody').innerHTML='Carregando...';
+  abrirModal('modalHistoricoChatIA');
+  const resp=await cadastroApiJsonp('crm_lead_chat_buscar',{leadId, leitor:'atendente', email:_user.email, sessionToken:_user.sessionToken});
+  const msgs=(resp&&resp.mensagens)||[];
+  if(!msgs.length){document.getElementById('histChatIABody').innerHTML='<div class="fs12 c-muted">Nenhuma mensagem registrada.</div>';return}
+  const rotulo=r=>r==='ia'?'🤖 Assistente':r==='atendente'?'🧑‍💼 Atendente':r==='gerente'?'🧑‍💼 Gerente':'👤 Lead';
+  document.getElementById('histChatIABody').innerHTML=msgs.map(m=>`
+    <div style="margin-bottom:12px">
+      <div class="fs11 fw6" style="color:var(--gold)">${rotulo(m.remetente)}${m.nome?' — '+escAttr_(m.nome):''}</div>
+      <div class="fs12" style="white-space:pre-wrap">${(m.texto||'').replace(/</g,'&lt;')}</div>
+      <div class="fs10 c-muted mono">${fmtDtHora_(m.timestamp)}</div>
+    </div>`).join('');
+}
 function abrirConvidarChat_(){
   const l=_leads.find(x=>x.id===_leadAtualId); if(!l)return;
   const link=`${SITE_BASE_URL}chat.html?leadId=${encodeURIComponent(l.id)}`;
