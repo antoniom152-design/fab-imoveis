@@ -1126,7 +1126,12 @@ function crm_controle_ler_(p) {
   if (!aba) return { status: 'ok', valores: {} };
   var linhas = lerAbaObjetos_(aba);
   var valores = {};
-  linhas.forEach(function (l) { valores[s_(l.Chave)] = s_(l.Valor); });
+  // horaSomenteStr_ (já existente, ver comentário original na função)
+  // resolve um Valor tipo "09:00" que o Sheets converteu sozinho pra
+  // hora (célula vira Date 30/12/1899 09:00 por baixo dos panos) —
+  // sem isso, s_() devolvia o Date.toString() inteiro. Pra qualquer
+  // outro tipo de Valor (texto normal), passa direto sem alterar.
+  linhas.forEach(function (l) { valores[s_(l.Chave)] = horaSomenteStr_(l.Valor); });
   if (p && p.chave) return { status: 'ok', valor: valores[p.chave] !== undefined ? valores[p.chave] : null };
   return { status: 'ok', valores: valores };
 }
@@ -1150,8 +1155,12 @@ function crm_controle_salvar_(data) {
     var aba = criarAbaSeNaoExiste_(ssCrm, ABA_CONTROLE, ['Chave', 'Valor']);
     Object.keys(valores).forEach(function (chave) {
       var linha = acharLinhaPorChave_(aba, 'Chave', chave);
-      if (linha === -1) aba.appendRow([chave, s_(valores[chave])]);
-      else aba.getRange(linha, 2).setValue(s_(valores[chave]));
+      if (linha === -1) { aba.appendRow([chave, '']); linha = aba.getLastRow(); }
+      // Formato "@" (texto simples) ANTES de gravar — sem isso, um
+      // valor tipo "09:00" vira hora sozinho (Sheets infere pelo
+      // formato da célula), e a leitura seguinte vem errada mesmo já
+      // com horaSomenteStr_ tentando compensar do outro lado.
+      aba.getRange(linha, 2).setNumberFormat('@').setValue(s_(valores[chave]));
     });
     return { status: 'ok' };
   });
@@ -1406,6 +1415,7 @@ function crm_leadParaObjeto_(l) {
     consultor: s_(l.Consultor), atendenteId: s_(l.Atendente_Id),
     agenteId: s_(l.Agente_Id), gerenteId: s_(l.Gerente_Id),
     solicitacao: s_(l['Solicitação']), orcamento: s_(l['Orçamento']), area: s_(l['Área']),
+    postoCargo: s_(l.Posto_Cargo), // pedido 90.2.b — só existe se a coluna já tiver sido criada
     // proxData usa dataSomenteStr_ (não s_) — o Sheets converte sozinho
     // uma célula tipo "2026-09-20" pra objeto Date, e s_() devolveria o
     // Date.toString() cheio ("Thu Sep 03 2026 00:00:00 GMT-0300...") em
@@ -1709,8 +1719,13 @@ function crm_lead_chat_buscar_(p) {
   var linhasParaMarcarLidas = [];
   lerAbaObjetos_(aba).forEach(function (l) {
     if (s_(l.Lead_Id) !== leadId) return;
-    if (p.since && s_(l.Timestamp) <= p.since) return;
-    mensagens.push({ remetente: s_(l.Remetente), texto: s_(l.Texto), timestamp: s_(l.Timestamp), nome: s_(l.Nome) });
+    // dataStr_ (não s_) — o Sheets converte sozinho o Timestamp que
+    // agora_() grava (string "2026-09-19T17:50:46") pra objeto Date;
+    // s_() nesse caso devolveria o Date.toString() cheio, quebrando
+    // tanto a comparação "since" quanto a ordenação em quem lê depois
+    // (achado ao testar 90.2/90.3 ao vivo — bug antigo do item 90).
+    if (p.since && dataStr_(l.Timestamp) <= p.since) return;
+    mensagens.push({ remetente: s_(l.Remetente), texto: s_(l.Texto), timestamp: dataStr_(l.Timestamp), nome: s_(l.Nome) });
     if (remetenteAlheio && s_(l.Remetente) === remetenteAlheio && l.Lida !== true) linhasParaMarcarLidas.push(l._row);
   });
   if (linhasParaMarcarLidas.length) {
@@ -1744,10 +1759,11 @@ function crm_chat_threads_montar_(filtroAtendenteId) {
     if (!leadId) return;
     var atendenteDoLead = leadsPorId[leadId] ? s_(leadsPorId[leadId].Atendente_Id) : '';
     if (filtroAtendenteId && atendenteDoLead !== filtroAtendenteId) return;
-    if (!porLead[leadId] || s_(l.Timestamp) > porLead[leadId].ultimoTimestamp) {
-      porLead[leadId] = { leadId: leadId, ultimaMensagem: s_(l.Texto), ultimoTimestamp: s_(l.Timestamp), atendenteId: atendenteDoLead };
+    var ts = dataStr_(l.Timestamp); // não s_ — ver comentário em crm_lead_chat_buscar_
+    if (!porLead[leadId] || ts > porLead[leadId].ultimoTimestamp) {
+      porLead[leadId] = { leadId: leadId, ultimaMensagem: s_(l.Texto), ultimoTimestamp: ts, atendenteId: atendenteDoLead };
     }
-    if (!primeiroPorLead[leadId] || s_(l.Timestamp) < primeiroPorLead[leadId]) primeiroPorLead[leadId] = s_(l.Timestamp);
+    if (!primeiroPorLead[leadId] || ts < primeiroPorLead[leadId]) primeiroPorLead[leadId] = ts;
     if (s_(l.Remetente) === 'lead' && s_(l.Nome)) nomeLeadPorLead[leadId] = s_(l.Nome);
     if (s_(l.Remetente) === 'lead' && l.Lida !== true) naoLidasPorLead[leadId] = (naoLidasPorLead[leadId] || 0) + 1;
   });
@@ -1866,12 +1882,13 @@ function crm_gerente_chat_monitor_(p) {
   lerAbaObjetos_(aba).forEach(function (l) {
     var leadId = s_(l.Lead_Id);
     if (!leadId) return;
-    if (!porLead[leadId]) porLead[leadId] = { leadId: leadId, nome: '', primeiroTs: s_(l.Timestamp), ultimoTs: s_(l.Timestamp), pedidoTs: '' };
+    var ts = dataStr_(l.Timestamp); // não s_ — ver comentário em crm_lead_chat_buscar_
+    if (!porLead[leadId]) porLead[leadId] = { leadId: leadId, nome: '', primeiroTs: ts, ultimoTs: ts, pedidoTs: '' };
     var t = porLead[leadId];
-    if (s_(l.Timestamp) < t.primeiroTs) t.primeiroTs = s_(l.Timestamp);
-    if (s_(l.Timestamp) > t.ultimoTs) t.ultimoTs = s_(l.Timestamp);
+    if (ts < t.primeiroTs) t.primeiroTs = ts;
+    if (ts > t.ultimoTs) t.ultimoTs = ts;
     if (s_(l.Remetente) === 'lead' && s_(l.Nome)) t.nome = s_(l.Nome);
-    if (/^🆘/.test(s_(l.Texto)) && (!t.pedidoTs || s_(l.Timestamp) < t.pedidoTs)) t.pedidoTs = s_(l.Timestamp);
+    if (/^🆘/.test(s_(l.Texto)) && (!t.pedidoTs || ts < t.pedidoTs)) t.pedidoTs = ts;
   });
 
   // Telefone/e-mail/interesse/atendente responsável vêm da aba LEADS
