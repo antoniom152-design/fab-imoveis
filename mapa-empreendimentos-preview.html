@@ -569,12 +569,28 @@
     animation: pulseGlowGold 2.4s ease-in-out infinite;
   }
   #banner-novo .bn-cta:hover { filter: brightness(1.08); }
+  #banner-novo .bn-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #banner-novo .bn-icon-btn {
+    background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
+    padding: 8px 12px; border-radius: 18px; font-size: 0.82em; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  #banner-novo .bn-icon-btn:hover { background: rgba(201,168,76,.28); }
+  #banner-novo .bn-icon-btn.tem-perfil { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.35); }
+  #banner-novo .bn-perfil-actions { display: none; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  #banner-novo .bn-perfil-actions.show { display: flex; }
+  #banner-novo .bn-perfil-actions button {
+    background: transparent; border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
+    padding: 5px 12px; border-radius: 14px; font-size: 0.8em; font-weight: 700; cursor: pointer;
+  }
+  #banner-novo .bn-tagline { margin-top: 10px; font-size: 0.78em; color: #b9c2d0; line-height: 1.4; max-width: 640px; }
 
   #toolbar-novo {
     flex-direction: column; align-items: stretch; gap: 10px;
     margin: 12px 14px 0; padding: 0; background: transparent; border: none;
   }
   #toolbar-novo .tn-busca-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  #toolbar-novo .tn-acoes-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  #toolbar-novo .tn-acoes-row .tn-pill.ativo { background: #C9A84C; color: #0A1628; border-color: #C9A84C; }
   #toolbar-novo #fn-busca {
     flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 24px; border: 1px solid var(--n-border);
     background: var(--n-card); font-size: 0.92em; font-family: inherit; color: var(--n-ink);
@@ -607,13 +623,30 @@
   }
 
   body[data-skin="novo"] #sidebar { width: 300px; border-left: none; border-right: 1px solid var(--n-border); background: var(--n-bg); }
+  body[data-skin="novo"] #sidebar.collapsed { width: 0; }
   body[data-skin="novo"] #sidebar-header { background: transparent; color: var(--n-ink); padding: 14px 14px 6px; display: block; }
   .sbh-classico { display: block; }
   .sbh-novo { display: none; }
   body[data-skin="novo"] .sbh-classico { display: none; }
   body[data-skin="novo"] .sbh-novo { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  body[data-skin="novo"] .sbh-novo-title { display: flex; align-items: center; gap: 8px; }
   body[data-skin="novo"] .sbh-novo strong { font-size: 1.05em; color: var(--n-ink); }
-  body[data-skin="novo"] .sbh-novo span { font-size: 0.75em; color: var(--n-muted); }
+  body[data-skin="novo"] .sbh-novo-sub { font-size: 0.75em; color: var(--n-muted); }
+  #btn-toggle-sidebar-novo {
+    background: transparent; border: 1px solid var(--n-border); color: var(--n-ink);
+    width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  /* Continua existindo (não display:none) mesmo no skin novo: é o único
+     controle que sobra visível quando a lista está recolhida, já que o
+     botão ao lado de "Melhores para você" fica DENTRO da própria lista
+     e desaparece junto com ela. Reposicionado pra ficar colado na borda
+     da lista (que no novo fica à esquerda, mapa à direita). */
+  body[data-skin="novo"] #btn-toggle-sidebar,
+  body[data-skin="novo"] #sidebar.collapsed ~ #btn-toggle-sidebar,
+  body[data-skin="novo"] #main-layout:has(#sidebar.collapsed) #btn-toggle-sidebar {
+    left: auto; right: 12px; top: 12px;
+  }
   body[data-skin="novo"] #f-ordenar {
     background: transparent; border: 1px solid var(--n-border); color: var(--n-ink); border-radius: 16px;
     padding: 4px 8px; font-size: 0.78em;
@@ -703,8 +736,18 @@
       <div><strong>WAL Imóveis</strong><span>Mapa Inteligente</span></div>
     </div>
     <div class="bn-perfil">✨ <span id="perfil-resumo-novo">Complete o Meu imóvel ideal pra ver os mais compatíveis</span></div>
-    <button type="button" class="bn-cta" id="btn-crm-lead-novo">🎧 Quero atendimento</button>
+    <div class="bn-actions">
+      <button type="button" class="bn-icon-btn" id="btn-perfil-ideal-novo">✨ Meu imóvel ideal</button>
+      <button type="button" class="bn-icon-btn" id="btn-tela-cheia-novo" title="Tela Cheia">⛶ Tela Cheia</button>
+      <button type="button" class="bn-icon-btn" id="btn-como-usar-novo" title="O que este mapa oferece">❓ O que este mapa oferece</button>
+      <button type="button" class="bn-cta" id="btn-crm-lead-novo">🎧 Quero atendimento</button>
+    </div>
   </div>
+  <div class="bn-perfil-actions" id="bn-perfil-actions">
+    <button type="button" id="btn-perfil-editar-novo">Editar perfil</button>
+    <button type="button" id="btn-perfil-limpar-novo">Limpar perfil</button>
+  </div>
+  <p class="bn-tagline">Encontre os empreendimentos mais compatíveis com seu perfil, sua localização e seu momento de vida.</p>
 </div>
 
 <div class="proto-banner">
@@ -712,7 +755,7 @@
     <img src="logo%20novo%20wal.jpeg" alt="WAL Imóveis">
     <div class="brand-text">
       <strong>WAL Imóveis</strong>
-      <span>Especialistas em imóveis para Funcionário Público</span>
+      <span>Encontre os empreendimentos mais compatíveis com seu perfil, sua localização e seu momento de vida.</span>
     </div>
   </div>
   <div class="proto-banner-top">
@@ -849,6 +892,12 @@
     <button type="button" class="tn-pill" id="tn-filtros-btn">☰ Filtros <span id="fn-filtros-badge">0</span></button>
   </div>
   <div id="fn-filtros-panel"></div>
+  <div class="tn-acoes-row">
+    <button type="button" class="tn-pill" id="btn-filtrar-novo">🔍 Filtrar</button>
+    <button type="button" class="tn-pill" id="btn-limpar-novo">✕ Limpar</button>
+    <button type="button" class="tn-pill" id="btn-fav-novo">☆ Só Favoritos</button>
+    <button type="button" class="tn-pill" id="btn-compartilhar-novo">📲 Compartilhar</button>
+  </div>
 </div>
 
 <div id="main-layout">
@@ -871,7 +920,10 @@
   <aside id="sidebar">
     <div id="sidebar-header">
       <div class="sbh-classico"><span>Resultados</span></div>
-      <div class="sbh-novo"><strong>Melhores para você</strong><span>Ordenados por compatibilidade</span></div>
+      <div class="sbh-novo">
+        <span class="sbh-novo-title"><strong>Melhores para você</strong><button type="button" id="btn-toggle-sidebar-novo" title="Mostrar/ocultar lista">☰</button></span>
+        <span class="sbh-novo-sub">Ordenados por compatibilidade</span>
+      </div>
       <select id="f-ordenar" title="Ordenar por">
         <option value="fit">✨ Mais compatível</option>
         <option value="nome">Nome A–Z</option>
@@ -2009,8 +2061,8 @@ function popularSelect(id, valores, label) {
   mapRef = map;
 
   const tileLayers = {
-    roadmap: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
+    roadmap: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20, subdomains: 'abcd'
     }),
     satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri', maxZoom: 19
@@ -2031,6 +2083,13 @@ function popularSelect(id, valores, label) {
     map.removeLayer(tileAtivo);
     tileAtivo = tileLayers[this.value].addTo(map);
   });
+  // O container do mapa pode ainda não ter o tamanho final no momento
+  // deste addTo (banner/toolbar acima dele ainda ajustando altura) —
+  // sem isso os tiles da 1ª carga somem até o usuário mexer em algo
+  // que force o Leaflet a redesenhar (ex.: trocar o tipo de mapa).
+  window.addEventListener('load', () => map.invalidateSize());
+  setTimeout(() => map.invalidateSize(), 300);
+  setTimeout(() => map.invalidateSize(), 1000);
 
   let base = [];
   let markersById = {}; // para abrir popup a partir da lista
@@ -2477,6 +2536,24 @@ function popularSelect(id, valores, label) {
   document.getElementById('btn-marcar-novo').addEventListener('click', () => document.getElementById('btn-marcar').click());
   document.getElementById('btn-crm-lead-novo').addEventListener('click', abrirModalLeadCRM);
   document.querySelector('#banner-novo .bn-perfil').addEventListener('click', () => document.getElementById('btn-perfil-ideal').click());
+  document.getElementById('btn-perfil-ideal-novo').addEventListener('click', () => document.getElementById('btn-perfil-ideal').click());
+  document.getElementById('btn-tela-cheia-novo').addEventListener('click', () => document.getElementById('btn-tela-cheia').click());
+  document.getElementById('btn-como-usar-novo').addEventListener('click', () => document.getElementById('btn-como-usar').click());
+  document.getElementById('btn-perfil-editar-novo').addEventListener('click', () => document.getElementById('btn-perfil-editar').click());
+  document.getElementById('btn-perfil-limpar-novo').addEventListener('click', () => document.getElementById('btn-perfil-limpar').click());
+  document.getElementById('btn-toggle-sidebar-novo').addEventListener('click', () => document.getElementById('btn-toggle-sidebar').click());
+  document.getElementById('btn-filtrar-novo').addEventListener('click', () => document.getElementById('btn-filtrar').click());
+  document.getElementById('btn-limpar-novo').addEventListener('click', () => {
+    document.getElementById('btn-limpar').click();
+    sincronizarNovoDeClassico();
+  });
+  document.getElementById('btn-fav-novo').addEventListener('click', () => {
+    document.getElementById('btn-fav-toggle').click();
+    const ativo = document.getElementById('btn-fav-toggle').classList.contains('ativo');
+    document.getElementById('btn-fav-novo').classList.toggle('ativo', ativo);
+    document.getElementById('btn-fav-novo').textContent = ativo ? '★ Só Favoritos' : '☆ Só Favoritos';
+  });
+  document.getElementById('btn-compartilhar-novo').addEventListener('click', () => document.getElementById('btn-compartilhar-mapa').click());
 
   /* Decide qual camada de tiles deveria estar ativa dado o skin + tema
      atuais, respeitando uma escolha explícita do Lead em "Tipo de Mapa"
@@ -2932,6 +3009,9 @@ function popularSelect(id, valores, label) {
       document.getElementById('perfil-resumo-novo').textContent = textoPerfilResumo(p);
       btn.classList.add('tem-perfil');
       btn.textContent = '✨ Perfil ativo';
+      document.getElementById('btn-perfil-ideal-novo').classList.add('tem-perfil');
+      document.getElementById('btn-perfil-ideal-novo').textContent = '✨ Perfil ativo';
+      document.getElementById('bn-perfil-actions').classList.add('show');
       // Ajusta seletor de distância conforme a força
       if (p.forca && p.forca !== 'civil' && CATEGORIAS_REFERENCIA[p.forca]) {
         document.getElementById('f-categoria-ref').value = p.forca;
@@ -2950,6 +3030,9 @@ function popularSelect(id, valores, label) {
       btn.classList.remove('tem-perfil');
       btn.textContent = '✨ Meu imóvel ideal';
       document.getElementById('perfil-resumo-novo').textContent = 'Complete o Meu imóvel ideal pra ver os mais compatíveis';
+      document.getElementById('btn-perfil-ideal-novo').classList.remove('tem-perfil');
+      document.getElementById('btn-perfil-ideal-novo').textContent = '✨ Meu imóvel ideal';
+      document.getElementById('bn-perfil-actions').classList.remove('show');
     }
     if (typeof sincronizarNovoDeClassico === 'function') sincronizarNovoDeClassico();
   }

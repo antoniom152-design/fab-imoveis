@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mapa de Empreendimentos Disponíveis V3.1 | WAL Imóveis</title>
+<title>[PREVIEW] Mapa de Empreendimentos Disponíveis V3.1 | WAL Imóveis</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
 <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
@@ -332,7 +332,7 @@
   .map-pin {
     width: 34px; height: 34px; border-radius: 50%;
     background: var(--pin-color);
-    border: 3px solid #fff;
+    border: 3px solid var(--pin-border-color, #fff);
     box-shadow: 0 3px 10px rgba(0,0,0,.5);
     position: relative;
   }
@@ -479,16 +479,283 @@
     .toolbar.recolhida { gap: 8px; }
     .toolbar.recolhida > *:not(#btn-toggle-filtros) { display: none; }
   }
+
+  /* ══════════════════════════════════════════════════════════
+     TEMA CLARO do skin Clássico — alternância independente do
+     skin escolhido pelo Lead. Reaproveita a mesma paleta dourada,
+     só inverte fundo/texto dos blocos que hoje são escuros.
+     ══════════════════════════════════════════════════════════ */
+  body[data-tema="claro"] {
+    --c-bg: #F7F6F3; --c-panel: #FFFFFF; --c-ink: #1A2332; --c-muted: #6B7684; --c-border: #E4E1D8; --c-gold: #B8873A;
+  }
+  body[data-tema="claro"] .proto-banner {
+    background: linear-gradient(135deg, #F7F6F3 0%, #EFEAE0 100%);
+    border-bottom-color: var(--c-gold);
+  }
+  body[data-tema="claro"] .brand-text strong { color: var(--c-ink); }
+  body[data-tema="claro"] .brand-text span { color: var(--c-gold); }
+  body[data-tema="claro"] .proto-banner h1 { color: var(--c-gold); }
+  body[data-tema="claro"] .proto-banner p { color: var(--c-muted); }
+  body[data-tema="claro"] .proto-banner p strong { color: var(--c-ink); }
+  body[data-tema="claro"] .btn-como-usar { background: rgba(184,135,58,.10); border-color: var(--c-gold); color: var(--c-gold); }
+  body[data-tema="claro"] .legend-strip { border-top-color: rgba(184,135,58,.35); }
+  body[data-tema="claro"] .legend-strip .lg-title { color: var(--c-gold); }
+  body[data-tema="claro"] .legend-strip .lg-item { color: var(--c-ink); }
+  body[data-tema="claro"] #f-categoria-ref { background: #fff; color: var(--c-ink); border-color: rgba(184,135,58,.4) !important; }
+  body[data-tema="claro"] #ref-agente-banner { background: rgba(184,135,58,.08); color: var(--c-ink); border-bottom-color: var(--c-gold); }
+  body[data-tema="claro"] #ref-agente-banner strong { color: var(--c-gold); }
+  body[data-tema="claro"] #perfil-banner {
+    background: linear-gradient(90deg, rgba(184,135,58,.14), rgba(247,246,243,.9));
+    border-bottom-color: var(--c-gold); color: var(--c-ink);
+  }
+  body[data-tema="claro"] #perfil-banner strong { color: var(--c-gold); }
+  body[data-tema="claro"] #perfil-banner button { border-color: rgba(184,135,58,.5); color: var(--c-gold); }
+  body[data-tema="claro"] #perfil-banner .btn-crm-lead { background: var(--c-gold); color: #fff; }
+  body[data-tema="claro"] #sidebar-header { background: var(--c-panel); color: var(--c-gold); border-bottom: 1px solid var(--c-border); }
+  body[data-tema="claro"] #contador-mapa { background: var(--c-panel); color: var(--c-gold); border-color: var(--c-gold); }
+  body[data-tema="claro"] #btn-toggle-sidebar, body[data-tema="claro"] #btn-limpar-entorno {
+    background: var(--c-panel); color: var(--c-gold); border: 2px solid var(--c-gold);
+  }
+  body[data-tema="claro"] { --pin-border-color: #12213A; }
+
+  /* ══════════════════════════════════════════════════════════
+     SKIN "NOVO" — visual alternativo escolhível pelo Lead.
+     Reaproveita os mesmos dados/lógica; só troca a apresentação.
+     Por padrão tudo aqui fica oculto; body[data-skin="novo"] liga.
+     ══════════════════════════════════════════════════════════ */
+  #skin-switch-bar {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: #0A1628; padding: 7px 12px; font-size: 0.78em; color: #b9c2d0;
+  }
+  #skin-switch-bar span.lbl { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 0.85em; }
+  .skin-opt {
+    background: transparent; border: 1px solid rgba(201,168,76,.4); color: #C9A84C;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.92em; font-weight: 700; cursor: pointer;
+  }
+  .skin-opt.ativo { background: #C9A84C; color: #0A1628; }
+  #tema-switch-group { display: inline-flex; align-items: center; gap: 10px; margin-left: 16px; padding-left: 16px; border-left: 1px solid rgba(201,168,76,.3); }
+  body[data-skin="novo"] #tema-switch-group { display: none; }
+
+  #banner-novo, #toolbar-novo { display: none; }
+  body[data-skin="novo"] .proto-banner,
+  body[data-skin="novo"] #perfil-banner,
+  body[data-skin="novo"] .toolbar { display: none !important; }
+  body[data-skin="novo"] #banner-novo { display: block; }
+  body[data-skin="novo"] #toolbar-novo { display: flex; }
+
+  body[data-skin="novo"] {
+    --n-bg:#F2F5F0; --n-card:#FFFFFF; --n-border:#E6EAE3; --n-ink:#12213A; --n-muted:#7C8894;
+  }
+  body[data-skin="novo"] #main-layout { flex-direction: row-reverse; background: var(--n-bg); }
+
+  #banner-novo {
+    background: #0A1628; color: #fff; margin: 10px 14px 0; border-radius: 16px;
+    padding: 14px 18px; box-shadow: 0 6px 18px rgba(10,22,40,.25);
+  }
+  #banner-novo .bn-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  #banner-novo .bn-brand { display: flex; align-items: center; gap: 10px; }
+  #banner-novo .bn-mark {
+    width: 34px; height: 34px; border-radius: 8px; background: #C9A84C; color: #0A1628;
+    display: flex; align-items: center; justify-content: center; font-weight: 800; flex-shrink: 0;
+  }
+  #banner-novo .bn-brand strong { display: block; font-size: 0.98em; }
+  #banner-novo .bn-brand span { display: block; font-size: 0.68em; color: #C9A84C; text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
+  #banner-novo .bn-perfil { font-size: 0.85em; color: #d8dee6; flex: 1; min-width: 180px; cursor: pointer; }
+  #banner-novo .bn-perfil:hover { color: #fff; text-decoration: underline; }
+  #banner-novo .bn-perfil strong { color: #fff; }
+  #banner-novo .bn-cta {
+    background: #C9A84C; color: #0A1628; border: none; font-weight: 800; padding: 9px 16px;
+    border-radius: 22px; cursor: pointer; font-size: 0.88em; display: flex; align-items: center; gap: 6px;
+    animation: pulseGlowGold 2.4s ease-in-out infinite;
+  }
+  #banner-novo .bn-cta:hover { filter: brightness(1.08); }
+  #banner-novo .bn-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #banner-novo .bn-icon-btn {
+    background: rgba(201,168,76,.15); border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
+    padding: 8px 12px; border-radius: 18px; font-size: 0.82em; font-weight: 700; cursor: pointer; white-space: nowrap;
+  }
+  #banner-novo .bn-icon-btn:hover { background: rgba(201,168,76,.28); }
+  #banner-novo .bn-icon-btn.tem-perfil { background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.35); }
+  #banner-novo .bn-perfil-actions { display: none; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  #banner-novo .bn-perfil-actions.show { display: flex; }
+  #banner-novo .bn-perfil-actions button {
+    background: transparent; border: 1px solid rgba(201,168,76,.5); color: #C9A84C;
+    padding: 5px 12px; border-radius: 14px; font-size: 0.8em; font-weight: 700; cursor: pointer;
+  }
+  #banner-novo .bn-tagline { margin-top: 10px; font-size: 0.78em; color: #b9c2d0; line-height: 1.4; max-width: 640px; }
+
+  #toolbar-novo {
+    flex-direction: column; align-items: stretch; gap: 10px;
+    margin: 12px 14px 0; padding: 0; background: transparent; border: none;
+  }
+  #toolbar-novo .tn-busca-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  #toolbar-novo .tn-acoes-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  #toolbar-novo .tn-acoes-row .tn-pill.ativo { background: #C9A84C; color: #0A1628; border-color: #C9A84C; }
+  #toolbar-novo #fn-busca {
+    flex: 1; min-width: 220px; padding: 12px 16px; border-radius: 24px; border: 1px solid var(--n-border);
+    background: var(--n-card); font-size: 0.92em; font-family: inherit; color: var(--n-ink);
+    box-shadow: 0 2px 6px rgba(18,33,58,.06);
+  }
+  .tn-pill {
+    padding: 10px 14px; border-radius: 22px; border: 1px solid var(--n-border); background: var(--n-card);
+    font-size: 0.86em; font-family: inherit; color: var(--n-ink); cursor: pointer;
+    box-shadow: 0 2px 6px rgba(18,33,58,.06); font-weight: 600;
+  }
+  .tn-pill.ativo { border-color: #C9A84C; }
+  #tn-filtros-btn {
+    position: relative; display: flex; align-items: center; gap: 6px;
+  }
+  #fn-filtros-badge {
+    background: #0A1628; color: #C9A84C; font-size: 0.72em; font-weight: 800;
+    border-radius: 10px; padding: 1px 7px; display: none;
+  }
+  #fn-filtros-badge.show { display: inline-block; }
+  #fn-filtros-panel {
+    display: none; flex-wrap: wrap; gap: 10px; background: var(--n-card); border: 1px solid var(--n-border);
+    border-radius: 12px; padding: 12px; box-shadow: 0 4px 14px rgba(18,33,58,.08);
+  }
+  #fn-filtros-panel.show { display: flex; }
+  #fn-filtros-panel > div { min-width: 130px; }
+  #fn-filtros-panel label { font-size: 0.68em; color: var(--n-muted); text-transform: uppercase; letter-spacing: .04em; display: block; margin-bottom: 3px; }
+  #fn-filtros-panel select, #fn-filtros-panel input {
+    padding: 7px 9px; border: 1px solid var(--n-border); border-radius: 8px; font-size: 0.85em;
+    font-family: inherit; background: #fbfcfa; color: var(--n-ink); width: 100%;
+  }
+
+  body[data-skin="novo"] #sidebar { width: 300px; border-left: none; border-right: 1px solid var(--n-border); background: var(--n-bg); }
+  body[data-skin="novo"] #sidebar.collapsed { width: 0; }
+  body[data-skin="novo"] #sidebar-header { background: transparent; color: var(--n-ink); padding: 14px 14px 6px; display: block; }
+  .sbh-classico { display: block; }
+  .sbh-novo { display: none; }
+  body[data-skin="novo"] .sbh-classico { display: none; }
+  body[data-skin="novo"] .sbh-novo { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  body[data-skin="novo"] .sbh-novo-title { display: flex; align-items: center; gap: 8px; }
+  body[data-skin="novo"] .sbh-novo strong { font-size: 1.05em; color: var(--n-ink); }
+  body[data-skin="novo"] .sbh-novo-sub { font-size: 0.75em; color: var(--n-muted); }
+  #btn-toggle-sidebar-novo {
+    background: transparent; border: 1px solid var(--n-border); color: var(--n-ink);
+    width: 24px; height: 24px; border-radius: 6px; cursor: pointer; font-size: 0.85em;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  /* Continua existindo (não display:none) mesmo no skin novo: é o único
+     controle que sobra visível quando a lista está recolhida, já que o
+     botão ao lado de "Melhores para você" fica DENTRO da própria lista
+     e desaparece junto com ela. Reposicionado pra ficar colado na borda
+     da lista (que no novo fica à esquerda, mapa à direita). */
+  body[data-skin="novo"] #btn-toggle-sidebar,
+  body[data-skin="novo"] #sidebar.collapsed ~ #btn-toggle-sidebar,
+  body[data-skin="novo"] #main-layout:has(#sidebar.collapsed) #btn-toggle-sidebar {
+    left: auto; right: 12px; top: 12px;
+  }
+  body[data-skin="novo"] #f-ordenar {
+    background: transparent; border: 1px solid var(--n-border); color: var(--n-ink); border-radius: 16px;
+    padding: 4px 8px; font-size: 0.78em;
+  }
+  body[data-skin="novo"] #sidebar-list { padding: 6px 14px 14px; }
+
+  body[data-skin="novo"] .side-card {
+    background: var(--n-card); border: 1px solid var(--n-border); border-radius: 14px; overflow: hidden;
+    padding: 0; box-shadow: 0 2px 10px rgba(18,33,58,.06);
+  }
+  body[data-skin="novo"] .side-card:hover, body[data-skin="novo"] .side-card.active {
+    border-color: #C9A84C; box-shadow: 0 4px 14px rgba(201,168,76,.22);
+  }
+  .sc-novo-img {
+    height: 84px; position: relative;
+    background: linear-gradient(135deg, #cfd9e0, #aab9c4);
+  }
+  .sc-novo-img .sc-novo-badge {
+    position: absolute; top: 8px; left: 8px; font-size: 0.68em; font-weight: 700; color: #fff;
+    padding: 3px 10px; border-radius: 12px;
+  }
+  .sc-novo-img .sc-novo-fav {
+    position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(255,255,255,.92); border: none; font-size: 0.95em; display: flex; align-items: center; justify-content: center; cursor: pointer;
+  }
+  .sc-novo-body { padding: 10px 12px 12px; }
+  .sc-novo-fit { font-size: 0.72em; font-weight: 700; margin-bottom: 3px; }
+  .sc-novo-fit.alto { color: #1E8E5A; } .sc-novo-fit.medio { color: #C9772E; } .sc-novo-fit.baixo { color: var(--n-muted); }
+  .sc-novo-body h4 { font-size: 0.95em; color: var(--n-ink); margin: 0 0 3px; }
+  .sc-novo-body .sc-novo-loc { font-size: 0.76em; color: var(--n-muted); margin-bottom: 8px; }
+  .sc-novo-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .sc-novo-foot .sc-novo-preco { font-size: 0.86em; font-weight: 800; color: var(--n-ink); }
+  .sc-novo-ver {
+    background: #0A1628; color: #C9A84C; border: none; font-weight: 700; font-size: 0.78em;
+    padding: 7px 12px; border-radius: 8px; cursor: pointer;
+  }
+
+  body[data-skin="novo"] #map-wrap { border-radius: 0 16px 16px 0; overflow: hidden; }
+  body[data-skin="novo"] #map {
+    background: linear-gradient(135deg, #EAF0E4, #DCE9EA);
+  }
+  #map-acoes-novo { display: none; position: absolute; top: 12px; left: 12px; z-index: 800; gap: 8px; flex-wrap: wrap; }
+  body[data-skin="novo"] #map-acoes-novo { display: flex; }
+  .ma-pill {
+    background: #fff; border: none; padding: 8px 14px; border-radius: 20px; font-size: 0.82em; font-weight: 700;
+    color: var(--n-ink); cursor: pointer; box-shadow: 0 2px 8px rgba(18,33,58,.18); display: flex; align-items: center; gap: 6px;
+  }
+  #contador-novo {
+    display: none; position: absolute; bottom: 12px; left: 12px; z-index: 800;
+    background: #0A1628; color: #C9A84C; font-weight: 800; font-size: 0.82em; padding: 8px 14px; border-radius: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.25);
+  }
+  body[data-skin="novo"] #contador-novo { display: block; }
+  body[data-skin="novo"] #contador-mapa { display: none !important; }
+
+  .map-pin-novo {
+    width: 28px; height: 28px; border-radius: 9px; background: var(--pin-color, #4f46e5);
+    border: 2.5px solid #C9A84C; box-shadow: 0 3px 8px rgba(0,0,0,.35);
+    display: flex; align-items: center; justify-content: center; font-size: 13px;
+  }
+  .map-pin-novo.is-fav { box-shadow: 0 0 0 3px #C9A84C, 0 3px 8px rgba(0,0,0,.35); }
+
+  @media (max-width: 900px) {
+    body[data-skin="novo"] #main-layout { flex-direction: column; }
+    body[data-skin="novo"] #sidebar { width: auto; max-height: 240px; border-right: none; border-top: 1px solid var(--n-border); }
+    #banner-novo .bn-perfil { order: 3; width: 100%; }
+  }
 </style>
 </head>
 <body>
+
+<div id="skin-switch-bar">
+  <span class="lbl">Visual do mapa:</span>
+  <button type="button" class="skin-opt ativo" id="skin-btn-classico" data-skin-opt="classico">🗺️ Clássico</button>
+  <button type="button" class="skin-opt" id="skin-btn-novo" data-skin-opt="novo">✨ Novo</button>
+  <span id="tema-switch-group">
+    <span class="lbl">Tema:</span>
+    <button type="button" class="skin-opt ativo" id="tema-btn-escuro" data-tema-opt="escuro">🌙 Escuro</button>
+    <button type="button" class="skin-opt" id="tema-btn-claro" data-tema-opt="claro">☀️ Claro</button>
+  </span>
+</div>
+
+<div id="banner-novo">
+  <div class="bn-row">
+    <div class="bn-brand">
+      <div class="bn-mark">W</div>
+      <div><strong>WAL Imóveis</strong><span>Mapa Inteligente</span></div>
+    </div>
+    <div class="bn-perfil">✨ <span id="perfil-resumo-novo">Complete o Meu imóvel ideal pra ver os mais compatíveis</span></div>
+    <div class="bn-actions">
+      <button type="button" class="bn-icon-btn" id="btn-perfil-ideal-novo">✨ Meu imóvel ideal</button>
+      <button type="button" class="bn-icon-btn" id="btn-tela-cheia-novo" title="Tela Cheia">⛶ Tela Cheia</button>
+      <button type="button" class="bn-icon-btn" id="btn-como-usar-novo" title="O que este mapa oferece">❓ O que este mapa oferece</button>
+      <button type="button" class="bn-cta" id="btn-crm-lead-novo">🎧 Quero atendimento</button>
+    </div>
+  </div>
+  <div class="bn-perfil-actions" id="bn-perfil-actions">
+    <button type="button" id="btn-perfil-editar-novo">Editar perfil</button>
+    <button type="button" id="btn-perfil-limpar-novo">Limpar perfil</button>
+  </div>
+  <p class="bn-tagline">Encontre os empreendimentos mais compatíveis com seu perfil, sua localização e seu momento de vida.</p>
+</div>
 
 <div class="proto-banner">
   <div class="brand-row">
     <img src="logo%20novo%20wal.jpeg" alt="WAL Imóveis">
     <div class="brand-text">
       <strong>WAL Imóveis</strong>
-      <span>Especialistas em imóveis para Funcionário Público</span>
+      <span>Encontre os empreendimentos mais compatíveis com seu perfil, sua localização e seu momento de vida.</span>
     </div>
   </div>
   <div class="proto-banner-top">
@@ -593,6 +860,7 @@
       <option value="terreno">Terreno</option>
     </select>
   </div>
+  <span id="anchor-secundarios" style="display:none"></span>
   <button class="btn-filtrar" id="btn-filtrar">🔍 Filtrar</button>
   <button class="btn-limpar" id="btn-limpar">✕ Limpar</button>
   <button class="btn-fav-toggle" id="btn-fav-toggle">☆ Só Favoritos</button>
@@ -601,6 +869,35 @@
   <button class="btn-limpar" id="btn-limpar-pos" title="Remove a posição definida" style="display:none">✕ Posição</button>
   <button class="btn-limpar" id="btn-compartilhar-mapa">📲 Compartilhar</button>
   <span id="contador-mapa">—</span>
+</div>
+
+<div id="toolbar-novo">
+  <div class="tn-busca-row">
+    <input type="text" id="fn-busca" placeholder="🔎 Empreendimento ou bairro">
+    <select class="tn-pill" id="fn-uf"></select>
+    <select class="tn-pill" id="fn-preco-max">
+      <option value="">Qualquer preço</option>
+      <option value="300">Até R$ 300 mil</option>
+      <option value="400">Até R$ 400 mil</option>
+      <option value="600">Até R$ 600 mil</option>
+      <option value="1000">Até R$ 1 milhão</option>
+    </select>
+    <select class="tn-pill" id="fn-ref">
+      <option value="cidade">Centro da Cidade</option>
+      <option value="aeronautica">Aeronáutica</option>
+      <option value="marinha">Marinha</option>
+      <option value="exercito">Exército</option>
+      <option value="seguranca">Polícia/Bombeiros</option>
+    </select>
+    <button type="button" class="tn-pill" id="tn-filtros-btn">☰ Filtros <span id="fn-filtros-badge">0</span></button>
+  </div>
+  <div id="fn-filtros-panel"></div>
+  <div class="tn-acoes-row">
+    <button type="button" class="tn-pill" id="btn-filtrar-novo">🔍 Filtrar</button>
+    <button type="button" class="tn-pill" id="btn-limpar-novo">✕ Limpar</button>
+    <button type="button" class="tn-pill" id="btn-fav-novo">☆ Só Favoritos</button>
+    <button type="button" class="tn-pill" id="btn-compartilhar-novo">📲 Compartilhar</button>
+  </div>
 </div>
 
 <div id="main-layout">
@@ -614,10 +911,19 @@
     <div id="marcar-hint">Clique em qualquer ponto do mapa para definir sua posição</div>
     <button id="btn-limpar-entorno" type="button" title="Remove os pontos do entorno do mapa">✕ Limpar entorno</button>
     <button id="btn-toggle-sidebar" title="Mostrar/ocultar lista">☰</button>
+    <div id="map-acoes-novo">
+      <button type="button" class="ma-pill" id="btn-geo-novo">📍 Minha localização</button>
+      <button type="button" class="ma-pill" id="btn-marcar-novo">📌 Marcar ponto</button>
+    </div>
+    <span id="contador-novo">—</span>
   </div>
   <aside id="sidebar">
     <div id="sidebar-header">
-      <span>Resultados</span>
+      <div class="sbh-classico"><span>Resultados</span></div>
+      <div class="sbh-novo">
+        <span class="sbh-novo-title"><strong>Melhores para você</strong><button type="button" id="btn-toggle-sidebar-novo" title="Mostrar/ocultar lista">☰</button></span>
+        <span class="sbh-novo-sub">Ordenados por compatibilidade</span>
+      </div>
       <select id="f-ordenar" title="Ordenar por">
         <option value="fit">✨ Mais compatível</option>
         <option value="nome">Nome A–Z</option>
@@ -1552,7 +1858,18 @@ function referenciaMaisProxima(lat, lng, cidade) {
   return melhor;
 }
 
+let skinAtual = 'classico';
+
 function criarIcone(cor, favorito) {
+  if (skinAtual === 'novo') {
+    return L.divIcon({
+      className: '',
+      html: `<div class="map-pin-novo${favorito ? ' is-fav' : ''}" style="--pin-color:${cor}">🏢</div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
+    });
+  }
   return L.divIcon({
     className: '',
     html: `<div class="map-pin${favorito ? ' is-fav' : ''}" style="--pin-color:${cor}"><span class="pin-pulse"></span></div>`,
@@ -1731,6 +2048,8 @@ function popularSelect(id, valores, label) {
   const emptyMsg = document.getElementById('map-empty-msg');
   const loading = document.getElementById('loading-overlay');
   const sidebarList = document.getElementById('sidebar-list');
+  const contadorNovo = document.getElementById('contador-novo');
+  new MutationObserver(() => { contadorNovo.textContent = contador.textContent; }).observe(contador, { childList: true, characterData: true, subtree: true });
 
   // tap:false — desliga o simulador de clique por toque do próprio Leaflet
   // (herança de iOS Safari antigo). Em celular, ele às vezes dispara um
@@ -1742,8 +2061,8 @@ function popularSelect(id, valores, label) {
   mapRef = map;
 
   const tileLayers = {
-    roadmap: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
+    roadmap: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20, subdomains: 'abcd'
     }),
     satelite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri', maxZoom: 19
@@ -1754,6 +2073,9 @@ function popularSelect(id, valores, label) {
     ]),
     terreno: L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenTopoMap (CC-BY-SA)', maxZoom: 17
+    }),
+    claro: L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 20, subdomains: 'abcd'
     })
   };
   let tileAtivo = tileLayers.roadmap.addTo(map);
@@ -1761,6 +2083,13 @@ function popularSelect(id, valores, label) {
     map.removeLayer(tileAtivo);
     tileAtivo = tileLayers[this.value].addTo(map);
   });
+  // O container do mapa pode ainda não ter o tamanho final no momento
+  // deste addTo (banner/toolbar acima dele ainda ajustando altura) —
+  // sem isso os tiles da 1ª carga somem até o usuário mexer em algo
+  // que force o Leaflet a redesenhar (ex.: trocar o tipo de mapa).
+  window.addEventListener('load', () => map.invalidateSize());
+  setTimeout(() => map.invalidateSize(), 300);
+  setTimeout(() => map.invalidateSize(), 1000);
 
   let base = [];
   let markersById = {}; // para abrir popup a partir da lista
@@ -1780,6 +2109,7 @@ function popularSelect(id, valores, label) {
 
   popularSelect('f-uf', [...new Set(base.map(im => im.uf).filter(Boolean))].sort(), 'Todas');
   popularSelect('f-construtora', [...new Set(base.map(im => im.construtora).filter(Boolean))].sort(), 'Todas');
+  document.getElementById('fn-uf').innerHTML = document.getElementById('f-uf').innerHTML;
 
   const paramsURL = new URLSearchParams(location.search);
   let temFiltroNaURL = false;
@@ -1943,6 +2273,30 @@ function popularSelect(id, valores, label) {
       const fitHtml = fit != null
         ? `<div class="fit-row"><span class="fit-badge ${classeFit(fit)}">✨ ${fit}%</span></div>`
         : '';
+
+      if (skinAtual === 'novo') {
+        const fitTexto = { alto: 'Alta compatibilidade', medio: 'Média compatibilidade', baixo: 'Baixa compatibilidade' };
+        const fitNovoHtml = fit != null
+          ? `<div class="sc-novo-fit ${classeFit(fit)}">✨ ${fitTexto[classeFit(fit)]} (${fit}%)</div>` : '';
+        return `
+          <div class="side-card" data-id="${im.id}">
+            <div class="sc-novo-img" style="background:linear-gradient(135deg, ${corPorStatus(im.tipo)}99, #12213A99)">
+              <span class="sc-novo-badge" style="background:${corPorStatus(im.tipo)}">${im.tipo}</span>
+              <button class="sc-novo-fav" onclick="event.stopPropagation();alternarFavorito('${im.id}', this)">${fav ? '❤️' : '🤍'}</button>
+            </div>
+            <div class="sc-novo-body">
+              ${fitNovoHtml}
+              <h4>${im.nome}</h4>
+              <div class="sc-novo-loc">${[im.bairro, im.cidade].filter(Boolean).join(', ')}${distTxt ? ' · ' + distTxt : ''}</div>
+              <div class="sc-novo-foot">
+                <span class="sc-novo-preco">${precoTexto(im.valor)}</span>
+                <button class="sc-novo-ver">Ver imóvel</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
       return `
         <div class="side-card" data-id="${im.id}">
           <div class="sc-badges">
@@ -2107,6 +2461,158 @@ function popularSelect(id, valores, label) {
       renderSidebar(lastFiltrados);
     }
   });
+
+  /* ── Skin visual alternativo (escolha do Lead: Clássico x Novo) ──
+     Reaproveita toda a engine acima (filtros, marcadores, sidebar).
+     Os campos secundários (cidade, bairro, tipo, construtora, preço
+     mín, status, tipo de mapa) são os MESMOS elementos do toolbar
+     clássico, apenas reencaixados dentro do painel "Filtros" do
+     visual novo — sem duplicar lógica nem estado. */
+  const idsFiltrosSecundarios = ['f-cidade', 'f-bairro', 'f-tipo', 'f-construtora', 'f-preco-min', 'f-status', 'f-tipomapa'];
+  let elsFiltrosSecundarios = null;
+
+  function moverFiltrosSecundarios(destino) {
+    if (!elsFiltrosSecundarios) {
+      elsFiltrosSecundarios = idsFiltrosSecundarios.map(id => document.getElementById(id).parentElement);
+    }
+    const painel = document.getElementById('fn-filtros-panel');
+    const anchor = document.getElementById('anchor-secundarios');
+    elsFiltrosSecundarios.forEach(el => {
+      if (destino === 'novo') painel.appendChild(el);
+      else anchor.parentElement.insertBefore(el, anchor);
+    });
+  }
+
+  function atualizarBadgeFiltrosNovo() {
+    let n = 0;
+    if (document.getElementById('f-bairro').value) n++;
+    if (document.getElementById('f-tipo').value) n++;
+    if (document.getElementById('f-construtora').value) n++;
+    if (document.getElementById('f-preco-min').value) n++;
+    if (document.getElementById('f-status').value !== 'ativo') n++;
+    const badge = document.getElementById('fn-filtros-badge');
+    badge.textContent = n;
+    badge.classList.toggle('show', n > 0);
+  }
+
+  function sincronizarNovoDeClassico() {
+    document.getElementById('fn-busca').value = document.getElementById('f-busca').value;
+    if (document.getElementById('fn-uf').options.length) document.getElementById('fn-uf').value = document.getElementById('f-uf').value;
+    document.getElementById('fn-preco-max').value = document.getElementById('f-preco-max').value;
+    document.getElementById('fn-ref').value = document.getElementById('f-categoria-ref').value;
+    atualizarBadgeFiltrosNovo();
+  }
+
+  document.getElementById('fn-uf').addEventListener('change', function() {
+    document.getElementById('f-uf').value = this.value;
+    document.getElementById('f-uf').dispatchEvent(new Event('change'));
+    filtrarErenderizar();
+  });
+  document.getElementById('fn-preco-max').addEventListener('change', function() {
+    document.getElementById('f-preco-max').value = this.value;
+    filtrarErenderizar();
+  });
+  document.getElementById('fn-ref').addEventListener('change', function() {
+    document.getElementById('f-categoria-ref').value = this.value;
+    document.getElementById('f-categoria-ref').dispatchEvent(new Event('change'));
+  });
+  let debounceBuscaNovo;
+  document.getElementById('fn-busca').addEventListener('input', function() {
+    document.getElementById('f-busca').value = this.value;
+    clearTimeout(debounceBuscaNovo);
+    debounceBuscaNovo = setTimeout(filtrarErenderizar, 300);
+  });
+  document.getElementById('tn-filtros-btn').addEventListener('click', function() {
+    document.getElementById('fn-filtros-panel').classList.toggle('show');
+  });
+  idsFiltrosSecundarios.forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+      atualizarBadgeFiltrosNovo();
+      if (skinAtual === 'novo') filtrarErenderizar();
+    });
+  });
+
+  document.getElementById('btn-geo-novo').addEventListener('click', () => document.getElementById('btn-geo').click());
+  document.getElementById('btn-marcar-novo').addEventListener('click', () => document.getElementById('btn-marcar').click());
+  document.getElementById('btn-crm-lead-novo').addEventListener('click', abrirModalLeadCRM);
+  document.querySelector('#banner-novo .bn-perfil').addEventListener('click', () => document.getElementById('btn-perfil-ideal').click());
+  document.getElementById('btn-perfil-ideal-novo').addEventListener('click', () => document.getElementById('btn-perfil-ideal').click());
+  document.getElementById('btn-tela-cheia-novo').addEventListener('click', () => document.getElementById('btn-tela-cheia').click());
+  document.getElementById('btn-como-usar-novo').addEventListener('click', () => document.getElementById('btn-como-usar').click());
+  document.getElementById('btn-perfil-editar-novo').addEventListener('click', () => document.getElementById('btn-perfil-editar').click());
+  document.getElementById('btn-perfil-limpar-novo').addEventListener('click', () => document.getElementById('btn-perfil-limpar').click());
+  document.getElementById('btn-toggle-sidebar-novo').addEventListener('click', () => document.getElementById('btn-toggle-sidebar').click());
+  document.getElementById('btn-filtrar-novo').addEventListener('click', () => document.getElementById('btn-filtrar').click());
+  document.getElementById('btn-limpar-novo').addEventListener('click', () => {
+    document.getElementById('btn-limpar').click();
+    sincronizarNovoDeClassico();
+  });
+  document.getElementById('btn-fav-novo').addEventListener('click', () => {
+    document.getElementById('btn-fav-toggle').click();
+    const ativo = document.getElementById('btn-fav-toggle').classList.contains('ativo');
+    document.getElementById('btn-fav-novo').classList.toggle('ativo', ativo);
+    document.getElementById('btn-fav-novo').textContent = ativo ? '★ Só Favoritos' : '☆ Só Favoritos';
+  });
+  document.getElementById('btn-compartilhar-novo').addEventListener('click', () => document.getElementById('btn-compartilhar-mapa').click());
+
+  /* Decide qual camada de tiles deveria estar ativa dado o skin + tema
+     atuais, respeitando uma escolha explícita do Lead em "Tipo de Mapa"
+     (Satélite/Híbrido/Terreno) — só troca automaticamente quando o
+     valor ainda é o padrão "roadmap". */
+  function tileDesejado() {
+    const tipoMapa = document.getElementById('f-tipomapa').value;
+    if (tipoMapa !== 'roadmap') return tileLayers[tipoMapa];
+    if (skinAtual === 'novo') return tileLayers.claro;
+    return temaAtual === 'claro' ? tileLayers.claro : tileLayers.roadmap;
+  }
+  function sincronizarTile() {
+    const alvo = tileDesejado();
+    if (alvo && alvo !== tileAtivo) {
+      map.removeLayer(tileAtivo);
+      tileAtivo = alvo.addTo(map);
+    }
+  }
+
+  function aplicarSkin(skin) {
+    skinAtual = skin;
+    document.body.dataset.skin = skin;
+    document.getElementById('skin-btn-classico').classList.toggle('ativo', skin === 'classico');
+    document.getElementById('skin-btn-novo').classList.toggle('ativo', skin === 'novo');
+    if (skin === 'novo') {
+      moverFiltrosSecundarios('novo');
+      sincronizarNovoDeClassico();
+    } else {
+      moverFiltrosSecundarios('classico');
+      document.getElementById('fn-filtros-panel').classList.remove('show');
+    }
+    sincronizarTile();
+    setTimeout(() => map.invalidateSize(), 260);
+    if (clusterGroup) filtrarErenderizar();
+    try { localStorage.setItem('mapa-skin-lead', skin); } catch (e) {}
+  }
+
+  document.getElementById('skin-btn-classico').addEventListener('click', () => aplicarSkin('classico'));
+  document.getElementById('skin-btn-novo').addEventListener('click', () => aplicarSkin('novo'));
+
+  /* ── Tema claro/escuro (só afeta o skin Clássico) ── */
+  let temaAtual = 'escuro';
+  function aplicarTema(tema) {
+    temaAtual = tema;
+    document.body.dataset.tema = tema;
+    document.getElementById('tema-btn-escuro').classList.toggle('ativo', tema === 'escuro');
+    document.getElementById('tema-btn-claro').classList.toggle('ativo', tema === 'claro');
+    sincronizarTile();
+    try { localStorage.setItem('mapa-tema-lead', tema); } catch (e) {}
+  }
+  document.getElementById('tema-btn-escuro').addEventListener('click', () => aplicarTema('escuro'));
+  document.getElementById('tema-btn-claro').addEventListener('click', () => aplicarTema('claro'));
+
+  let skinInicial = 'classico';
+  try { skinInicial = localStorage.getItem('mapa-skin-lead') || 'classico'; } catch (e) {}
+  let temaInicial = 'escuro';
+  try { temaInicial = localStorage.getItem('mapa-tema-lead') || 'escuro'; } catch (e) {}
+  if (temaInicial === 'claro') aplicarTema('claro');
+  if (skinInicial === 'novo') aplicarSkin('novo');
 
   /* ── Posição do usuário (GPS ou clique no mapa) ── */
   function aplicarPosicaoUsuario(lat, lng, origem) {
@@ -2500,8 +3006,12 @@ function popularSelect(id, valores, label) {
     if (p) {
       banner.classList.add('show');
       document.getElementById('perfil-resumo').textContent = textoPerfilResumo(p);
+      document.getElementById('perfil-resumo-novo').textContent = textoPerfilResumo(p);
       btn.classList.add('tem-perfil');
       btn.textContent = '✨ Perfil ativo';
+      document.getElementById('btn-perfil-ideal-novo').classList.add('tem-perfil');
+      document.getElementById('btn-perfil-ideal-novo').textContent = '✨ Perfil ativo';
+      document.getElementById('bn-perfil-actions').classList.add('show');
       // Ajusta seletor de distância conforme a força
       if (p.forca && p.forca !== 'civil' && CATEGORIAS_REFERENCIA[p.forca]) {
         document.getElementById('f-categoria-ref').value = p.forca;
@@ -2519,7 +3029,12 @@ function popularSelect(id, valores, label) {
       banner.classList.remove('show');
       btn.classList.remove('tem-perfil');
       btn.textContent = '✨ Meu imóvel ideal';
+      document.getElementById('perfil-resumo-novo').textContent = 'Complete o Meu imóvel ideal pra ver os mais compatíveis';
+      document.getElementById('btn-perfil-ideal-novo').classList.remove('tem-perfil');
+      document.getElementById('btn-perfil-ideal-novo').textContent = '✨ Meu imóvel ideal';
+      document.getElementById('bn-perfil-actions').classList.remove('show');
     }
+    if (typeof sincronizarNovoDeClassico === 'function') sincronizarNovoDeClassico();
   }
 
   function irParaWizard(passo) {
