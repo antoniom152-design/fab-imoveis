@@ -905,6 +905,12 @@ a{text-decoration:none;color:inherit}
           <div class="ph-title">Leads</div>
           <div class="ph-sub">Todos os leads do Sistema Web — encaminhe para o Atendente mais adequado</div>
         </div>
+        <div class="ph-acts">
+          <!-- pedido 79.30 — só existia na Visão Geral; o Antonio estava
+               exatamente nesta tela quando um lead novo não apareceu,
+               e não tinha como atualizar sem trocar de tela. -->
+          <button class="btn-teal btn" onclick="atualizarLeadsGerente(this)">🔄 Atualizar</button>
+        </div>
       </div>
 
       <div class="flex-bet mb14" style="gap:10px;flex-wrap:wrap">
@@ -2518,8 +2524,10 @@ function irParaLeadsSemAtendente(){
    avisa se alguma das 5 chamadas não respondeu a tempo (ver comentário
    em carregarDadosIniciais) — o poll automático fica silencioso pra não
    gerar toast a cada 30s, só o clique manual mostra o aviso. */
-async function atualizarLeadsGerente(){
-  const btn=document.getElementById('btnAtualizarLeadsGerente');
+async function atualizarLeadsGerente(btnEl){
+  // pedido 79.30 — agora chamado de 2 lugares (Visão Geral e Leads),
+  // cada botão passa a si mesmo (this); sem argumento cai no de sempre.
+  const btn=btnEl||document.getElementById('btnAtualizarLeadsGerente');
   const orig=btn.innerHTML;
   btn.disabled=true;btn.innerHTML='⏳ Atualizando...';
   try{
