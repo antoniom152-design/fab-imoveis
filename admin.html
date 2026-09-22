@@ -2231,21 +2231,10 @@ function excluirLead(sheet, id) {
 }
 
 function criarOuAtualizarLead(sheet, lead, interacao) {
-  // Chave = E-mail (05/08/2026). Antes tambem casava por Telefone (OR);
-  // agora so casa por E-mail, a pedido do Antonio.
-  var emailBusca = String(lead.email || '').toLowerCase().trim();
-  var vals = sheet.getDataRange().getValues();
-  for (var i = 1; i < vals.length; i++) {
-    var rowEmail = String(vals[i][5] || '').toLowerCase().trim();
-    if (emailBusca && rowEmail === emailBusca) {
-      var hist = [];
-      try { hist = JSON.parse(String(vals[i][16]||'[]')); } catch(x){}
-      if (interacao) hist.push(interacao);
-      sheet.getRange(i+1, 16).setValue(new Date().toISOString());
-      sheet.getRange(i+1, 17).setValue(JSON.stringify(hist));
-      return {ok:true, acao:'interacao', id:String(vals[i][0])};
-    }
-  }
+  // 22/09/2026: sempre cria um Lead NOVO, mesmo com e-mail repetido —
+  // o mesmo visitante pode estar perguntando sobre outro
+  // empreendimento, a pedido do Antonio.
+  if (interacao) lead = Object.assign({}, lead, { historico: [interacao] });
   return criarLead(sheet, lead);
 }
 

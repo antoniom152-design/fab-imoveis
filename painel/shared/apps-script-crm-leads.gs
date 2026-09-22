@@ -190,29 +190,16 @@ function criarLead(sheet, lead) {
 }
 
 function criarOuAtualizarLead(sheet, lead, interacao) {
-  var emailBusca = String(lead.email || '').toLowerCase().trim();
-  var vals = sheet.getDataRange().getValues();
-  for (var i = 1; i < vals.length; i++) {
-    var rowEmail = String(vals[i][5] || '').toLowerCase().trim();
-    if (emailBusca && rowEmail === emailBusca) {
-      var hist = [];
-      try { hist = JSON.parse(String(vals[i][16]||'[]')); } catch(x){}
-      if (interacao) hist.push(interacao);
-      sheet.getRange(i+1, 16).setValue(agoraBR());
-      sheet.getRange(i+1, 17).setValue(JSON.stringify(hist));
-      // Só preenche Agente_Id se ainda estiver vazio — quem indicou
-      // primeiro mantém o crédito, uma submissão posterior sem link não
-      // sobrescreve uma indicação já registrada.
-      if (lead.agenteId) {
-        var colAgente = headerColIndex_(sheet, 'Agente_Id');
-        if (colAgente !== -1) {
-          var atual = sheet.getRange(i+1, colAgente+1).getValue();
-          if (!atual) sheet.getRange(i+1, colAgente+1).setValue(lead.agenteId);
-        }
-      }
-      return {ok:true, acao:'interacao', id:String(vals[i][0])};
-    }
-  }
+  // 22/09/2026, a pedido do Antonio: cada submissão vira um Lead NOVO,
+  // mesmo com e-mail repetido — o mesmo visitante pode estar
+  // perguntando sobre outro empreendimento, e o comportamento antigo
+  // (achar pelo e-mail e só atualizar data/histórico da linha velha)
+  // deixava Solicitação/Origem/Imóvel de interesse desatualizados e
+  // escondia a nova solicitação no meio da planilha. Nome mantido
+  // ("criarOuAtualizar") só por compatibilidade com quem já chama essa
+  // action (index.html, imovel.html, reserva.html, simulador.html) —
+  // na prática hoje é sempre "criar".
+  if (interacao) lead = Object.assign({}, lead, { historico: [interacao] });
   return criarLead(sheet, lead);
 }
 

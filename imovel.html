@@ -1968,6 +1968,15 @@ async function registrarNoCRMImovel_(data) {
     String(amanha.getMonth() + 1).padStart(2, '0') + '-' +
     String(amanha.getDate()).padStart(2, '0');
 
+  // interacao pro histórico do lead na aba LEADS — o index.html já manda
+  // isso, aqui estava faltando (achado no 79.31b: o registro chegava no
+  // CRM mas não aparecia nada no histórico da linha).
+  const interacao = {
+    tipo: 'Página do Imóvel',
+    data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
+    nota: notaSolicitacao
+  };
+
   // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
   // admin.html e dashboard_atendente.html leem/gravam) — em paralelo,
   // mas ambas esperadas antes de seguir (ver comentário acima).
@@ -1984,7 +1993,8 @@ async function registrarNoCRMImovel_(data) {
         area: localizacao,
         proxacao: 'Contatar lead interessado no imóvel',
         proxdata: dataProxAcao
-      }
+      },
+      interacao
     }),
     fetchSeguro_(CADASTRO_API_URL, {
       action: 'crm_lead_evento_publico',
