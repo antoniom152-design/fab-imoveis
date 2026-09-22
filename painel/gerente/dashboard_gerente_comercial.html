@@ -910,6 +910,12 @@ a{text-decoration:none;color:inherit}
                exatamente nesta tela quando um lead novo não apareceu,
                e não tinha como atualizar sem trocar de tela. -->
           <button class="btn-teal btn" onclick="atualizarLeadsGerente(this)">🔄 Atualizar</button>
+          <!-- pedido 22/09 — comparar o que o site tem carregado contra a
+               planilha real (investigando leads recém-criados que não
+               apareciam mesmo após Atualizar). Lista TUDO que está em
+               _leads no momento, sem aplicar os filtros da tela, com
+               timestamp de geração — Ctrl+P / Salvar como PDF. -->
+          <button class="btn btn-sm" onclick="gerarRelatorioLeads()">🖨️ Gerar Relatório</button>
         </div>
       </div>
 
@@ -2578,6 +2584,38 @@ function renderLeads(){
     <td style="min-width:100px"><div class="prog-bar"><div class="pf pf-teal" style="width:${statusLeadPct(l.status)}%"></div></div></td>
     <td><button class="btn btn-sm btn-teal" onclick="event.stopPropagation();abrirLead('${l.id}')">Ver ›</button></td>
   </tr>`).join('')}</tbody></table></div>`;
+}
+
+/* Relatório imprimível de TODOS os leads que o site tem carregado em
+   _leads neste momento (ignora os filtros da tela de propósito — o
+   objetivo é comparar o total real contra a planilha, não uma visão
+   filtrada). Abre numa aba nova em vez de usar window.print() na
+   própria tela, pra não interferir no dashboard. Pedido 22/09, achado
+   investigando leads recém-criados que não apareciam após "Atualizar". */
+function gerarRelatorioLeads(){
+  const agora=new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'});
+  const linhas=[..._leads].sort((a,b)=>String(b.atualizadoEm||'').localeCompare(String(a.atualizadoEm||'')));
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório de Leads — ${agora}</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;padding:24px}
+    h1{font-size:16px;margin:0 0 4px}
+    .sub{color:#555;margin-bottom:16px}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}
+    th{background:#f0f0f0}
+    td.mono{font-family:monospace;font-size:10px;white-space:nowrap}
+    @media print{ .no-print{display:none} }
+  </style></head><body>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:14px;padding:8px 16px;cursor:pointer">🖨️ Imprimir / Salvar como PDF</button>
+  <h1>Relatório de Leads — WAL Consultoria</h1>
+  <div class="sub">Gerado em ${agora} — total carregado no site: <strong>${linhas.length}</strong> lead${linhas.length===1?'':'s'} (compare com o total real de linhas na aba LEADS da planilha "WAL — CRM de Leads")</div>
+  <table><thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Email</th><th>Origem</th><th>Status</th><th>Atendente</th><th>Criado em</th><th>Atualizado em</th></tr></thead><tbody>
+  ${linhas.map(l=>`<tr><td class="mono">${escHtml_(l.id)}</td><td>${escHtml_(l.nome)}</td><td>${escHtml_(l.telefone)}</td><td>${escHtml_(l.email)}</td><td>${escHtml_(l.origem)}</td><td>${escHtml_(statusLeadLabel(l.status))}</td><td>${escHtml_(l.atendenteId?(nomeAtendente_(l.atendenteId)||l.atendenteId):'Sem atendente')}</td><td class="mono">${escHtml_(fmtDtHora_(l.criadoEm))}</td><td class="mono">${escHtml_(fmtDtHora_(l.atualizadoEm))}</td></tr>`).join('')}
+  </tbody></table>
+  </body></html>`;
+  const w=window.open('','_blank');
+  if(!w){ toast('Seu navegador bloqueou a nova aba — permita pop-ups pra este site.','amber'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
 }
 
 /* Cache de nome de Agente por id (crm_agente_publico, mesma ação pública
