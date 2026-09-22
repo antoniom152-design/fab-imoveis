@@ -1936,6 +1936,18 @@ function trocarEmailInteresse() {
    Campos que a aba LEADS não tem coluna própria (posto/cargo, imóvel
    específico visto) ficam condensados em "Solicitação", pro corretor
    já abrir o lead sabendo o que fazer. */
+// sendBeacon garante a entrega mesmo se a aba navegar logo em seguida
+// (enviarInteresseFinal faz window.location.href pouco depois) — um fetch
+// comum sem await pode ser cancelado nessa navegação (mesmo bug do 79.31
+// no index.html, ver [PADRAO_BEACON_LEAD] lá).
+function enviarBeacon_(url, payload) {
+  const body = JSON.stringify(payload);
+  try {
+    if (navigator.sendBeacon && navigator.sendBeacon(url, new Blob([body], {type:'text/plain'}))) return;
+  } catch(e) {}
+  fetch(url, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body }).catch(() => {});
+}
+
 function registrarNoCRMImovel_(data) {
   const ref = lerReferenciaAgente_();
   const localizacao = [data.bairro_desejado, [data.cidade, data.estado].filter(Boolean).join('/')]
@@ -1951,44 +1963,32 @@ function registrarNoCRMImovel_(data) {
     String(amanha.getMonth() + 1).padStart(2, '0') + '-' +
     String(amanha.getDate()).padStart(2, '0');
 
-  fetch(CRM_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action: 'criarOuAtualizar',
-      lead: {
-        status: 'novo', prioridade: 'alta',
-        nome: data.nome, telefone: data.whatsapp, email: data.email,
-        origem: 'Página do Imóvel — ' + (data.imovel_interesse || ''),
-        consultor: (ref && ref.nome) || '',
-        solicitacao: notaSolicitacao,
-        orcamento: data.faixa_valor || '',
-        area: localizacao,
-        proxacao: 'Contatar lead interessado no imóvel',
-        proxdata: dataProxAcao
-      }
-    })
-  }).catch(() => {});
+  enviarBeacon_(CRM_URL, {
+    action: 'criarOuAtualizar',
+    lead: {
+      status: 'novo', prioridade: 'alta',
+      nome: data.nome, telefone: data.whatsapp, email: data.email,
+      origem: 'Página do Imóvel — ' + (data.imovel_interesse || ''),
+      consultor: (ref && ref.nome) || '',
+      solicitacao: notaSolicitacao,
+      orcamento: data.faixa_valor || '',
+      area: localizacao,
+      proxacao: 'Contatar lead interessado no imóvel',
+      proxdata: dataProxAcao
+    }
+  });
 
   // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
   // admin.html e dashboard_atendente.html leem/gravam).
-  fetch(CADASTRO_API_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action: 'crm_lead_evento_publico',
-      telefone: data.whatsapp, email: data.email,
-      tipo: '🏠 Página do Imóvel', texto: notaSolicitacao, origem: 'Página do Imóvel'
-    })
-  }).catch(() => {});
+  enviarBeacon_(CADASTRO_API_URL, {
+    action: 'crm_lead_evento_publico',
+    telefone: data.whatsapp, email: data.email,
+    tipo: '🏠 Página do Imóvel', texto: notaSolicitacao, origem: 'Página do Imóvel'
+  });
 }
 
 function enviarInteresseFinal(data) {
-  fetch(SCRIPT_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(data)
-  });
+  enviarBeacon_(SCRIPT_URL, data);
   registrarNoCRMImovel_(data);
 
   if (_interesseDestino === 'simulador') {
