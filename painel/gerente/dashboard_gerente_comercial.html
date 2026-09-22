@@ -1719,7 +1719,11 @@ function cadastroApiJsonp(action, params){
   return new Promise((resolve)=>{
     const cb = 'crmAgCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
     const s = document.createElement('script');
-    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    // 12s -> 18s (22/09) — carregarDadosIniciais dispara 5 chamadas
+    // simultâneas pro mesmo backend; sob concorrência, uma pode demorar
+    // mais que 12s e falhar mesmo sem estar realmente com problema,
+    // deixando a tela com dado velho (ver atualizarLeadsGerente).
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 18000);
     function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
     window[cb] = (data)=>{ cleanup(); resolve(data); };
     const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
@@ -2537,9 +2541,22 @@ async function atualizarLeadsGerente(btnEl){
   const orig=btn.innerHTML;
   btn.disabled=true;btn.innerHTML='⏳ Atualizando...';
   try{
-    const falhas=await carregarDadosIniciais();
+    let falhas=await carregarDadosIniciais();
+    // pedido 22/09 — leads recém-criados às vezes não apareciam mesmo
+    // depois de clicar Atualizar: a causa provável é as 5 chamadas
+    // concorrentes ocasionalmente estourando o timeout sob concorrência
+    // (ver comentário em carregarDadosIniciais), e antes só avisava e
+    // ficava com o dado velho. Agora tenta de novo automaticamente
+    // (até 2x) antes de desistir.
+    let tentativas=0;
+    while(falhas&&falhas.length&&tentativas<2){
+      tentativas++;
+      btn.innerHTML=`⏳ Tentando de novo (${tentativas}/2)...`;
+      await new Promise(r=>setTimeout(r,1500));
+      falhas=await carregarDadosIniciais();
+    }
     if(falhas&&falhas.length){
-      toast(`⚠️ Atualizado, mas ${falhas.join('/')} não respondeu a tempo — tente de novo em instantes.`,'amber');
+      toast(`⚠️ Atualizado, mas ${falhas.join('/')} não respondeu a tempo mesmo após tentar de novo — tente mais uma vez em instantes.`,'amber');
     }else{
       toast(`✅ Dados atualizados — ${_leads.length} lead${_leads.length===1?'':'s'} no sistema.`,'green');
     }
