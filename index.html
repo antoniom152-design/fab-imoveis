@@ -2295,36 +2295,46 @@
       return ref.id;
     } catch(e) { return ''; }
   }
-  // sendBeacon garante a entrega mesmo se a aba perder foco ou for
-  // trocada logo em seguida (ex: window.open do WhatsApp em showSuccess) —
-  // um fetch comum sem await pode ser cancelado nessa troca (79.31).
-  function enviarBeaconCRM_(payload) {
-    const body = JSON.stringify(payload);
-    try {
-      if (navigator.sendBeacon && navigator.sendBeacon(CRM_URL, new Blob([body], {type:'text/plain'}))) return;
-    } catch(e) {}
-    fetch(CRM_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body }).catch(() => {});
+  // 79.31b: sendBeacon (tentativa anterior) ainda deixava a gravação
+  // sumir em alguns navegadores/computadores — bloqueio de extensão de
+  // privacidade/ad-block trata sendBeacon como rastreamento com mais
+  // agressividade que um fetch comum. Agora AWAIT de verdade antes de
+  // abrir o WhatsApp: só sabemos com certeza que a requisição chegou ao
+  // fim se esperarmos a resposta (mesmo padrão que já garante 100% de
+  // acerto na gravação da planilha "Leads Landing Page FAB" acima).
+  // AbortController com timeout evita travar a tela pra sempre se o
+  // Apps Script demorar demais ou a rede cair.
+  function fetchSeguro_(url, body, timeoutMs) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs || 8000);
+    return fetch(url, {
+      method: 'POST', mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain' },
+      body, signal: controller.signal
+    }).catch(() => {}).finally(() => clearTimeout(timer));
   }
 
-  function registrarNoCRM(lead, notaHistorico) {
+  async function registrarNoCRM(lead, notaHistorico) {
     const interacao = {
       tipo: lead.origem,
       data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
       nota: notaHistorico
     };
-    enviarBeaconCRM_({
-      action: 'criarOuAtualizar',
-      lead: Object.assign({ prioridade: 'alta', status: 'novo', agenteId: lerRefAgenteId_() }, lead),
-      interacao
-    });
-
     // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
-    // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
-    // não trava o cadastro do lead.
-    enviarBeaconCadastro('crm_lead_evento_publico', {
-      telefone: lead.telefone, email: lead.email,
-      tipo: lead.origem, texto: notaHistorico, origem: lead.origem
-    });
+    // admin.html e dashboard_atendente.html leem/gravam) — em paralelo,
+    // mas ambas esperadas antes de seguir (ver comentário acima).
+    await Promise.all([
+      fetchSeguro_(CRM_URL, JSON.stringify({
+        action: 'criarOuAtualizar',
+        lead: Object.assign({ prioridade: 'alta', status: 'novo', agenteId: lerRefAgenteId_() }, lead),
+        interacao
+      })),
+      fetchSeguro_(CADASTRO_API_URL, JSON.stringify({
+        action: 'crm_lead_evento_publico',
+        telefone: lead.telefone, email: lead.email,
+        tipo: lead.origem, texto: notaHistorico, origem: lead.origem
+      }))
+    ]);
   }
 
   // ─── CONTADOR DE VISITAS ───
@@ -2632,7 +2642,7 @@
       'Solicitou conhecer as opções de imóveis'
     ].filter(Boolean).join('\n');
 
-    registrarNoCRM(
+    await registrarNoCRM(
       {
         nome: data.nome, telefone: data.whatsapp, email: data.email,
         origem: 'Conhecer Opções',
