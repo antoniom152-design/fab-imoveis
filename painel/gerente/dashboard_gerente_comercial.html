@@ -2597,21 +2597,23 @@ function gerarRelatorioLeads(){
   const linhas=[..._leads].sort((a,b)=>String(b.atualizadoEm||'').localeCompare(String(a.atualizadoEm||'')));
   const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Relatório de Leads — ${agora}</title>
   <style>
-    body{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111;padding:24px}
-    h1{font-size:16px;margin:0 0 4px}
-    .sub{color:#555;margin-bottom:16px}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid #ccc;padding:5px 7px;text-align:left;vertical-align:top}
-    th{background:#f0f0f0}
-    td.mono{font-family:monospace;font-size:10px;white-space:nowrap}
-    @media print{ .no-print{display:none} }
+    @page{ size:landscape; margin:14mm }
+    body{font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#111;padding:24px}
+    h1{font-size:22px;margin:0 0 6px}
+    .sub{color:#555;margin-bottom:18px;font-size:14px}
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;min-width:1150px;border-collapse:collapse}
+    th,td{border:1px solid #ccc;padding:9px 11px;text-align:left;vertical-align:top;white-space:nowrap}
+    th{background:#f0f0f0;font-size:14px}
+    td.mono{font-family:monospace;font-size:13px}
+    @media print{ .no-print{display:none} table{min-width:0} }
   </style></head><body>
   <button class="no-print" onclick="window.print()" style="margin-bottom:14px;padding:8px 16px;cursor:pointer">🖨️ Imprimir / Salvar como PDF</button>
   <h1>Relatório de Leads — WAL Consultoria</h1>
   <div class="sub">Gerado em ${agora} — total carregado no site: <strong>${linhas.length}</strong> lead${linhas.length===1?'':'s'} (compare com o total real de linhas na aba LEADS da planilha "WAL — CRM de Leads")</div>
-  <table><thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Email</th><th>Origem</th><th>Status</th><th>Atendente</th><th>Criado em</th><th>Atualizado em</th></tr></thead><tbody>
+  <div class="tbl-wrap"><table><thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>Email</th><th>Origem</th><th>Status</th><th>Atendente</th><th>Criado em</th><th>Atualizado em</th></tr></thead><tbody>
   ${linhas.map(l=>`<tr><td class="mono">${escHtml_(l.id)}</td><td>${escHtml_(l.nome)}</td><td>${escHtml_(l.telefone)}</td><td>${escHtml_(l.email)}</td><td>${escHtml_(l.origem)}</td><td>${escHtml_(statusLeadLabel(l.status))}</td><td>${escHtml_(l.atendenteId?(nomeAtendente_(l.atendenteId)||l.atendenteId):'Sem atendente')}</td><td class="mono">${escHtml_(fmtDtHora_(l.criadoEm))}</td><td class="mono">${escHtml_(fmtDtHora_(l.atualizadoEm))}</td></tr>`).join('')}
-  </tbody></table>
+  </tbody></table></div>
   </body></html>`;
   const w=window.open('','_blank');
   if(!w){ toast('Seu navegador bloqueou a nova aba — permita pop-ups pra este site.','amber'); return; }
