@@ -948,6 +948,24 @@
   .wa-float:hover { transform: scale(1.08); }
   .wa-float svg { width: 28px; fill: white; }
 
+  /* botão flutuante do Assistente IA, ao lado do WhatsApp (pedido) —
+     em telas estreitas não cabem os dois lado a lado, então empilha
+     acima do WhatsApp (ver @media 640px). */
+  .assistente-float-btn {
+    position: fixed; right: 98px; bottom: 28px; z-index: 900;
+    display: flex; align-items: center; gap: 10px;
+    background: var(--navy); color: var(--gold); border: 1.5px solid var(--gold);
+    padding: 14px 20px 14px 16px; border-radius: 30px; text-decoration: none;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    box-shadow: 0 4px 20px rgba(0,0,0,.35);
+    transition: transform .2s, box-shadow .2s;
+  }
+  .assistente-float-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 26px rgba(201,168,76,.35);
+  }
+
   /* ─── ANIMATIONS ─── */
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(24px); }
@@ -1124,6 +1142,9 @@
     nav { padding: 14px 16px; }
     .nav-cta { font-size: 11px; padding: 8px 14px; letter-spacing: .08em; }
     .logo-emblem { height: 38px; }
+
+    /* não cabe ao lado do WhatsApp em tela estreita — volta a empilhar acima */
+    .assistente-float-btn { right: 24px; bottom: 100px; }
 
     .hero { padding-top: 70px; min-height: auto; }
     .hero-content { padding: 40px 16px 48px; grid-template-columns: 1fr; gap: 32px; }
@@ -2113,15 +2134,7 @@
      em qualquer parte da home, pra aquecer o lead nos primeiros minutos
      (mesmo raciocínio do central-float/wpp-float já usado em
      chat.html/imovel.html, mas indo direto pro modo livre). -->
-<a href="chat.html?modo=livre" title="Fale com nosso Assistente 24h" style="
-  position:fixed;right:24px;bottom:100px;z-index:900;
-  display:flex;align-items:center;gap:10px;
-  background:var(--navy);color:var(--gold);border:1.5px solid var(--gold);
-  padding:14px 20px 14px 16px;border-radius:30px;text-decoration:none;
-  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;
-  box-shadow:0 4px 20px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s;
-" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 26px rgba(201,168,76,.35)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 20px rgba(0,0,0,.35)'">
+<a href="chat.html?modo=livre" title="Fale com nosso Assistente 24h" class="assistente-float-btn">
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   Fale com o Assistente 24h
 </a>
