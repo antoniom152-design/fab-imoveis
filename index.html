@@ -2295,34 +2295,36 @@
       return ref.id;
     } catch(e) { return ''; }
   }
+  // sendBeacon garante a entrega mesmo se a aba perder foco ou for
+  // trocada logo em seguida (ex: window.open do WhatsApp em showSuccess) —
+  // um fetch comum sem await pode ser cancelado nessa troca (79.31).
+  function enviarBeaconCRM_(payload) {
+    const body = JSON.stringify(payload);
+    try {
+      if (navigator.sendBeacon && navigator.sendBeacon(CRM_URL, new Blob([body], {type:'text/plain'}))) return;
+    } catch(e) {}
+    fetch(CRM_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body }).catch(() => {});
+  }
+
   function registrarNoCRM(lead, notaHistorico) {
     const interacao = {
       tipo: lead.origem,
       data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
       nota: notaHistorico
     };
-    fetch(CRM_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'criarOuAtualizar',
-        lead: Object.assign({ prioridade: 'alta', status: 'novo', agenteId: lerRefAgenteId_() }, lead),
-        interacao
-      })
-    }).catch(() => {});
+    enviarBeaconCRM_({
+      action: 'criarOuAtualizar',
+      lead: Object.assign({ prioridade: 'alta', status: 'novo', agenteId: lerRefAgenteId_() }, lead),
+      interacao
+    });
 
     // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
     // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
     // não trava o cadastro do lead.
-    fetch(CADASTRO_API_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'crm_lead_evento_publico',
-        telefone: lead.telefone, email: lead.email,
-        tipo: lead.origem, texto: notaHistorico, origem: lead.origem
-      })
-    }).catch(() => {});
+    enviarBeaconCadastro('crm_lead_evento_publico', {
+      telefone: lead.telefone, email: lead.email,
+      tipo: lead.origem, texto: notaHistorico, origem: lead.origem
+    });
   }
 
   // ─── CONTADOR DE VISITAS ───
