@@ -124,7 +124,12 @@
   #main-layout {
     display: flex;
     flex: 1 1 auto;
-    min-height: 0;
+    /* min-height:0 (padrão flex) deixava isso ir a zero quando o banner +
+       filtros acima ocupavam mais altura que a tela (visto no Painel do
+       CFIAe, iframe estreito) — mapa some e marcadores ficam com posição
+       inválida mesmo depois. 280px garante que o mapa nunca desapareça;
+       se ainda faltar espaço, o body passa a rolar (ver @media 700px). */
+    min-height: 280px;
     position: relative;
   }
   #map-wrap {
@@ -466,6 +471,13 @@
      quebram em várias linhas numa tela estreita. */
   #btn-toggle-filtros { display: none; }
   @media (max-width: 700px) {
+    /* Reserva final: mesmo com filtros recolhidos e o min-height do
+       #main-layout, um banner de topo muito alto (ex.: logo + legenda +
+       botões, num iframe bem estreito) ainda pode não caber tudo na
+       tela. Em vez de continuar cortando o mapa (overflow:hidden),
+       deixa a página rolar — só nessa faixa de largura, sem mudar nada
+       no desktop. */
+    body { overflow-y: auto; }
     #sidebar { position: absolute; right: 0; top: 0; bottom: 0; z-index: 700; width: 85%; max-width: 320px; box-shadow: -4px 0 16px rgba(0,0,0,.25); }
     #sidebar.collapsed { width: 0; }
     .toolbar select, .toolbar input[type="text"], .toolbar input[type="number"] { min-width: 90px; max-width: 130px; }
@@ -2060,6 +2072,22 @@ function popularSelect(id, valores, label) {
   const map = L.map('map', { center: [-23.1, -44.6], zoom: 7, tap: false });
   mapRef = map;
 
+  // Em telas estreitas, o painel de filtros expandido por padrão (todos
+  // os campos empilhados numa coluna só) pode ocupar mais altura que a
+  // tela inteira, empurrando o mapa pra altura zero (ver #main-layout
+  // com min-height:0 + flex:1 vs .toolbar com flex-shrink:0). Marcadores
+  // plotados nesse estado ficam com posição inválida mesmo depois do
+  // mapa "reaparecer" — invalidateSize() sozinho não corrige, porque o
+  // fitBounds já rodou contra um viewport de tamanho zero. Recolhe o
+  // painel de cara em telas estreitas, ANTES de qualquer plotagem,
+  // prevenindo o problema em vez de tentar corrigir depois (achado
+  // verificando o Painel do CFIAe, 24/09/2026 — o mapa fica num iframe
+  // estreito lá).
+  if (window.innerWidth <= 700 && toolbarEl && !toolbarEl.classList.contains('recolhida')) {
+    toolbarEl.classList.add('recolhida');
+    if (btnToggleFiltros) btnToggleFiltros.textContent = '🔍 Filtros ▾';
+  }
+
   const tileLayers = {
     roadmap: L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors', maxZoom: 19
@@ -2356,6 +2384,19 @@ function popularSelect(id, valores, label) {
   }
 
   function filtrarErenderizar() {
+    // Rede de segurança: se por algum motivo o mapa ainda estiver com
+    // altura zero neste momento (ex.: filtros reabertos manualmente numa
+    // tela estreita, ou uma largura intermediária que a checagem inicial
+    // não cobriu), recolhe o painel e força o Leaflet a recalcular ANTES
+    // de plotar — evita marcadores com posição inválida (ver comentário
+    // maior perto de "mapRef = map").
+    if (document.getElementById('map').getBoundingClientRect().height < 10) {
+      if (toolbarEl && !toolbarEl.classList.contains('recolhida')) {
+        toolbarEl.classList.add('recolhida');
+        if (btnToggleFiltros) btnToggleFiltros.textContent = '🔍 Filtros ▾';
+      }
+      map.invalidateSize();
+    }
     const busca        = document.getElementById('f-busca').value.trim().toLowerCase();
     const uf            = document.getElementById('f-uf').value;
     const cidade         = document.getElementById('f-cidade').value;
