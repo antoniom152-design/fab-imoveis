@@ -132,13 +132,38 @@
   .bt-construcao { background: #fff4e0; color: #a15c00; }
   .btn-tbl-link { background: #0A1628; color: #C9A84C; border: none; padding: 7px 13px; border-radius: 5px; font-size: 0.78em; font-weight: 700; cursor: pointer; white-space: nowrap; }
   .btn-tbl-link:hover { background: #16233a; }
+  .tr-clicavel { cursor: pointer; }
+  .tr-clicavel:hover { background: #f7f4ea; }
 
-  /* ── MODAIS (Criar Link / Relatório) ── */
+  /* ── MODAIS (Criar Link / Relatório / Detalhe do Empreendimento) ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,22,40,.62); align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
   .modal-overlay.show { display: flex; }
   .modal-box { background: #fff; border-radius: 10px; padding: 26px 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .modal-box.modal-box-wide { max-width: 620px; }
   .modal-close { position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #7f8c9a; line-height: 1; }
   .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 1.1em; margin-bottom: 6px; padding-right: 22px; }
+
+  /* ── Detalhe do Empreendimento: descrição (7 linhas) + Fotos e Vídeos (96.2) ── */
+  #detalheImg { width: 100%; height: 180px; object-fit: cover; border-radius: 8px; margin-bottom: 14px; background: #eee; }
+  #modalDetalhe .descricao-wrapper { position: relative; width: 100%; }
+  #modalDetalhe .descricao-wrapper.descricao-recolhida { max-height: calc(1.6em * 7); overflow: hidden; }
+  #modalDetalhe .descricao-wrapper.descricao-expandida { max-height: none; overflow: visible; }
+  #modalDetalhe .descricao-wrapper.descricao-com-excedente::after {
+    content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 36px;
+    pointer-events: none; background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 90%);
+  }
+  #modalDetalhe .descricao-wrapper.descricao-expandida::after { display: none; }
+  #modalDetalhe .descricao-imovel { font-size: 0.88em; color: #445; line-height: 1.6; overflow-wrap: anywhere; }
+  #modalDetalhe .descricao-imovel h2, #modalDetalhe .descricao-imovel h3 { color: #0A1628; font-size: 1em; font-weight: 700; margin: 0 0 6px; }
+  #modalDetalhe .descricao-imovel p { margin: 0 0 10px; }
+  #modalDetalhe .descricao-imovel ul, #modalDetalhe .descricao-imovel ol { margin: 4px 0 10px; padding-left: 18px; }
+  #modalDetalhe .descricao-imovel li { margin-bottom: 4px; }
+  #modalDetalhe .descricao-imovel strong { color: #0A1628; font-weight: 600; }
+  #modalDetalhe .descricao-imovel a { color: #b8973f; font-weight: 600; text-decoration: underline; }
+  #modalDetalhe .descricao-indisponivel { color: #8a97a8; font-style: italic; }
+  #modalDetalhe .botao-detalhes-descricao { display: inline-flex; align-items: center; margin-top: 6px; padding: 0; border: none; background: none; color: #b8973f; font: inherit; font-size: 0.82em; font-weight: 700; text-decoration: underline; cursor: pointer; }
+  #modalDetalhe .botao-detalhes-descricao[hidden] { display: none; }
+  #detalheAcoes { margin-top: 18px; display: flex; gap: 10px; flex-wrap: wrap; }
 
   #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0A1628; color: #fff; padding: 11px 18px; border-radius: 8px; font-size: 0.85em; opacity: 0; pointer-events: none; transition: all .25s; z-index: 999; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
@@ -351,6 +376,22 @@
   </main>
 </div>
 
+<!-- ═══ MODAL — DETALHE DO EMPREENDIMENTO (Descrição + Fotos e Vídeos — 96.2) ═══ -->
+<div class="modal-overlay" id="modalDetalhe" onclick="if(event.target===this) fecharModalDetalhe()">
+  <div class="modal-box modal-box-wide">
+    <button class="modal-close" onclick="fecharModalDetalhe()">&times;</button>
+    <h2 id="detalheNome">—</h2>
+    <img id="detalheImg" src="" alt="" onerror="this.style.display='none'">
+    <div id="detalheDescWrapper" class="descricao-wrapper descricao-recolhida">
+      <div id="detalheDesc" class="descricao-imovel"></div>
+    </div>
+    <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
+    <div id="detalheAcoes">
+      <button class="btn-gold" id="btnDetalheGaleria" onclick="abrirGaleriaDetalhe()" style="display:none">📷 Fotos e Vídeos</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ MODAL — CRIAR LINK (a partir da Lista de Empreendimentos) ═══ -->
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) fecharModal()">
   <div class="modal-box">
@@ -383,6 +424,9 @@
 
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+<script src="../shared/descricao-inteligente.js"></script>
 <script>
 /* ════════════════════════════════════════════════════════════════
    Painel do Parceiro CFIAe — 1ª visita entra direto (sem pedir nada);
@@ -438,9 +482,10 @@ function parseImoveis(table){
       id: g(0),
       ativo: row.c && row.c[1] && row.c[1].v === true,
       tipo: g(2), construtora: g(3), cidade: g(4), nome: g(5),
+      descricao: g(6),
       imagem: g(7), faixa: g(8), qtd: g(10), blog: g(11),
       destaque: row.c && row.c[14] && row.c[14].v === true,
-      uf: g(15), bairro: g(16)
+      uf: g(15), bairro: g(16), linkDrive: g(17)
     };
   }).filter(r=>r.nome);
 }
@@ -733,7 +778,7 @@ function renderTabelaImoveis(){
     return;
   }
   corpo.innerHTML = data.map(d=>`
-    <tr>
+    <tr class="tr-clicavel" onclick="abrirModalDetalheEmpreendimento('${String(d.id).replace(/'/g,"\\'")}')">
       <td class="td-img"><img src="${d.imagem||''}" onerror="this.style.display='none'" alt=""></td>
       <td class="td-nome">${d.nome}</td>
       <td><span class="badge-tipo ${tipoClasseCfiae_(d.tipo)}">${d.tipo||'—'}</span></td>
@@ -742,10 +787,56 @@ function renderTabelaImoveis(){
       <td>${d.bairro||'—'}</td>
       <td class="td-valor">${d.faixa||'—'}</td>
       <td>${d.qtd||'—'}</td>
-      <td>${d.blog ? `<a href="${d.blog}" target="_blank" rel="noopener">Blog ↗</a>` : '—'}</td>
-      <td><button class="btn-tbl-link" onclick="abrirModalGerarLink('${String(d.id).replace(/'/g,"\\'")}')">🔗 Gerar Link</button></td>
+      <td>${d.blog ? `<a href="${d.blog}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Blog ↗</a>` : '—'}</td>
+      <td><button class="btn-tbl-link" onclick="event.stopPropagation(); abrirModalGerarLink('${String(d.id).replace(/'/g,"\\'")}')">🔗 Gerar Link</button></td>
     </tr>
   `).join('');
+}
+
+/* ═══ MODAL — DETALHE DO EMPREENDIMENTO (Descrição + Fotos e Vídeos — 96.2)
+   Mesmo comportamento do botão "Fotos e Vídeos" do imovel.html: se o Link
+   Drive (coluna R da IMOVEISDISPONIVEIS) for um Google Slides, abre embed
+   dentro do próprio modal; senão, abre o link (pasta/arquivo do Drive) em
+   nova aba. ═══ */
+let _detalheEmp = null;
+function abrirModalDetalheEmpreendimento(id){
+  const emp = _imoveis.find(x=>String(x.id)===String(id));
+  if (!emp){ toast('Empreendimento não encontrado.', 'red'); return; }
+  _detalheEmp = emp;
+  document.getElementById('detalheNome').textContent = emp.nome;
+  const img = document.getElementById('detalheImg');
+  img.style.display = emp.imagem ? '' : 'none';
+  img.src = emp.imagem || '';
+  preencherDescricaoInteligente(document.getElementById('detalheDesc'), emp.descricao, 'Descrição não disponível para este empreendimento.');
+  document.getElementById('btnDetalheGaleria').style.display = emp.linkDrive ? '' : 'none';
+  document.getElementById('modalDetalhe').classList.add('show');
+  recalcularDescricoesInteligentes();
+}
+function fecharModalDetalhe(){
+  document.getElementById('modalDetalhe').classList.remove('show');
+  _detalheEmp = null;
+}
+function abrirGaleriaDetalhe(){
+  if (!_detalheEmp || !_detalheEmp.linkDrive) return;
+  const link = _detalheEmp.linkDrive.trim();
+
+  // Google Slides → abre a versão de exibição (embed), não a de edição
+  if (link.includes('docs.google.com/presentation')) {
+    let urlAbrir;
+    if (link.includes('pubembed') || link.includes('/pub?')) {
+      urlAbrir = link.replace('/pub?', '/embed?').replace('pubembed', 'embed');
+    } else {
+      const m = link.match(/presentation\/d\/(?:e\/)?([a-zA-Z0-9_-]+)/);
+      urlAbrir = m
+        ? 'https://docs.google.com/presentation/d/' + m[1] + '/embed?start=false&loop=false&delayms=5000&rm=minimal'
+        : link;
+    }
+    window.open(urlAbrir, '_blank', 'noopener');
+    return;
+  }
+
+  // Drive (pasta ou arquivo) → abre em nova aba
+  window.open(link, '_blank', 'noopener');
 }
 
 /* ═══ MODAL — CRIAR LINK (a partir de um imóvel da Lista) ═══ */
