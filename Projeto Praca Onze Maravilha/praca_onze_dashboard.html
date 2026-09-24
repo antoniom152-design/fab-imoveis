@@ -283,9 +283,50 @@
         .card-description {
             color: #7f8c8d;
             font-size: 0.95em;
-            margin-bottom: 15px;
             line-height: 1.5;
         }
+
+        /* Clamp de 7 linhas + "+ detalhes" — mesmo recurso do imoveis.html
+           (painel/shared/descricao-inteligente.js). */
+        .descricao-wrapper { position: relative; width: 100%; margin-bottom: 6px; }
+
+        .descricao-wrapper.descricao-recolhida { max-height: calc(1.5em * 7); overflow: hidden; }
+
+        .descricao-wrapper.descricao-expandida { max-height: none; overflow: visible; }
+
+        .descricao-wrapper.descricao-com-excedente::after {
+            content: ""; position: absolute; right: 0; bottom: 0; left: 0; height: 30px;
+            pointer-events: none;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), #fff 90%);
+        }
+
+        .descricao-wrapper.descricao-expandida::after { display: none; }
+
+        .descricao-imovel h2, .descricao-imovel h3 {
+            color: #2c3e50; font-size: 1em; font-weight: 600; margin: 0 0 6px;
+        }
+
+        .descricao-imovel p { margin: 0 0 8px; }
+
+        .descricao-imovel ul, .descricao-imovel ol { margin: 4px 0 8px; padding-left: 16px; }
+
+        .descricao-imovel li { margin-bottom: 4px; }
+
+        .descricao-imovel strong { color: #2c3e50; font-weight: 600; }
+
+        .descricao-imovel a { color: #06b6d4; font-weight: 600; text-decoration: underline; }
+
+        .descricao-indisponivel { color: #7f8c8d; font-style: italic; margin: 0; }
+
+        .botao-detalhes-descricao {
+            display: inline-flex; align-items: center; margin-bottom: 15px; padding: 0;
+            border: none; background: none; color: #06b6d4; font: inherit;
+            font-size: 0.85em; font-weight: 700; text-decoration: underline; cursor: pointer;
+        }
+
+        .botao-detalhes-descricao:hover { color: #2c3e50; }
+
+        .botao-detalhes-descricao[hidden] { display: none; }
         
         .card-meta {
             display: grid;
@@ -1439,7 +1480,10 @@
             </div>
         </div>
     </div>
-    
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+    <script src="../painel/shared/descricao-inteligente.js"></script>
     <script>
         function openForm(type) {
             const modal = document.getElementById('formModal');
@@ -1748,7 +1792,10 @@
                     <div class="card-content">
                         <div class="card-region">${im.projeto}</div>
                         <div class="card-title">${im.nome}</div>
-                        <div class="card-description">${im.descricao || ''}</div>
+                        <div class="descricao-wrapper descricao-recolhida" data-desc-id="${im.id}">
+                            <div class="descricao-imovel"></div>
+                        </div>
+                        <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
                         <div class="card-meta">
                             <div class="meta-item">
                                 <span class="meta-label">Tipo</span>
@@ -1766,6 +1813,11 @@
                     </div>
                 </div>
             `).join('');
+            lista.forEach(im => {
+                const wrapper = grid.querySelector('.descricao-wrapper[data-desc-id="' + im.id + '"]');
+                if (wrapper) preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), im.descricao);
+            });
+            recalcularDescricoesInteligentes();
         }
 
         function filtrarEmpreendimentos() {
