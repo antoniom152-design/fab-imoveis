@@ -196,26 +196,56 @@
     animation: fadeUp 0.8s 0.3s ease both;
   }
 
-  .hero-banner {
-    display: block;
+  /* 97) 2 banners revezando no mesmo lugar (Porto/Praça Onze e Parque Una
+     SJC), cada um com seu próprio link — troca sozinha a cada ~6s (ver JS
+     "CARROSSEL DO HERO"). aspect-ratio trava a altura pelo 1º banner
+     (as duas imagens já vêm quase na mesma proporção, ~1750x898) pra não
+     pular de tamanho na troca. */
+  .hero-banner-carousel {
+    position: relative;
     margin-bottom: 8px;
     border: 1px solid var(--border);
     border-radius: 4px;
     overflow: hidden;
+    aspect-ratio: 1752 / 898;
     animation: fadeUp 0.8s 0.32s ease both;
     transition: border-color .2s, transform .2s;
   }
 
-  .hero-banner:hover {
+  .hero-banner-carousel:hover {
     border-color: var(--gold);
     transform: translateY(-2px);
+  }
+
+  .hero-banner {
+    display: block;
+    position: absolute; inset: 0;
+    opacity: 0;
+    transition: opacity .8s ease;
+    pointer-events: none;
+  }
+
+  .hero-banner.active {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .hero-banner img {
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
+    object-fit: cover;
   }
+
+  .hero-banner-dots {
+    position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%);
+    display: flex; gap: 7px; z-index: 2;
+  }
+  .hero-banner-dots button {
+    width: 8px; height: 8px; border-radius: 50%; border: none; padding: 0;
+    background: rgba(255,255,255,.45); cursor: pointer; transition: background .2s, transform .2s;
+  }
+  .hero-banner-dots button.active { background: var(--gold); transform: scale(1.2); }
 
   .stat {
     border-left: 2px solid var(--gold);
@@ -1263,9 +1293,18 @@
           <div class="stat-label">Atendimento<br>disponível</div>
         </div>
       </div>
-      <a href="Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html" target="_blank" rel="noopener" class="hero-banner">
-        <img src="capa-projetos-rio-de-janeiro.png" alt="Os grandes projetos que estão redesenhando o Porto e o Centro do Rio — Praça Onze Maravilha">
-      </a>
+      <div class="hero-banner-carousel" id="heroBannerCarousel">
+        <a href="Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html" target="_blank" rel="noopener" class="hero-banner active" data-banner-index="0">
+          <img src="capa-projetos-rio-de-janeiro.png" alt="Os grandes projetos que estão redesenhando o Porto e o Centro do Rio — Praça Onze Maravilha">
+        </a>
+        <a href="Projeto%20SJC%20e%20SP/WAL_Parque_Una_SJC_site_completo.html" target="_blank" rel="noopener" class="hero-banner" data-banner-index="1">
+          <img src="IMG-PARQUE-UNA-SJC.webp" alt="Parque Una São José dos Campos — um novo capítulo para viver e investir na região">
+        </a>
+        <div class="hero-banner-dots">
+          <button type="button" class="active" onclick="irParaBannerHero(0)" aria-label="Mostrar banner Porto Maravilha / Praça Onze"></button>
+          <button type="button" onclick="irParaBannerHero(1)" aria-label="Mostrar banner Parque Una São José dos Campos"></button>
+        </div>
+      </div>
       <!-- 34) Botões "Quero Reservar" e "Simular Financiamento" desativados a pedido do Antonio (05/08/2026) — por enquanto, não remover -->
       <div style="animation: fadeUp 0.8s 0.35s ease both; display:none; flex-wrap:wrap; gap:12px; align-items:center;">
         <a href="#" class="btn-reserva" onclick="abrirGateLead('Reserva','reserva.html');return false;" style="margin:0;">Quero Reservar o meu Imóvel Agora.</a>
@@ -2283,6 +2322,40 @@
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // ─── CARROSSEL DO HERO (pedido 97) — 2 banners revezando no mesmo
+  // lugar, cada um com seu próprio link (Porto Maravilha/Praça Onze e
+  // Parque Una SJC). Troca sozinha a cada 6s; pausa ao passar o mouse
+  // (evita trocar debaixo do cursor bem na hora do clique) e os pontinhos
+  // deixam pular pra um banner específico manualmente. ───
+  (function () {
+    const banners = Array.from(document.querySelectorAll('.hero-banner[data-banner-index]'));
+    const dots = Array.from(document.querySelectorAll('.hero-banner-dots button'));
+    const wrap = document.getElementById('heroBannerCarousel');
+    if (!banners.length || !wrap) return;
+    let indiceAtual = 0;
+    let timerHero = null;
+
+    function mostrarBannerHero(indice) {
+      indiceAtual = indice;
+      banners.forEach((b, i) => b.classList.toggle('active', i === indice));
+      dots.forEach((d, i) => d.classList.toggle('active', i === indice));
+    }
+    window.irParaBannerHero = function (indice) {
+      mostrarBannerHero(indice);
+      reiniciarAutoTrocaHero();
+    };
+    function proximoBannerHero() {
+      mostrarBannerHero((indiceAtual + 1) % banners.length);
+    }
+    function reiniciarAutoTrocaHero() {
+      clearInterval(timerHero);
+      timerHero = setInterval(proximoBannerHero, 6000);
+    }
+    reiniciarAutoTrocaHero();
+    wrap.addEventListener('mouseenter', () => clearInterval(timerHero));
+    wrap.addEventListener('mouseleave', reiniciarAutoTrocaHero);
+  })();
 
   // ─── GOOGLE SHEETS INTEGRATION ───
   // PASSO 1: Substitua a URL abaixo pela URL do seu Google Apps Script (veja instruções no README)
