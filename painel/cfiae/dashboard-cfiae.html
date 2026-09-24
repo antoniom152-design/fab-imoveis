@@ -8,79 +8,71 @@
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { min-height: 100%; }
-  body {
-    font-family: 'Barlow', Arial, sans-serif;
-    background: #f4f5f7; color: #1a2332;
-  }
+  body { font-family: 'Barlow', Arial, sans-serif; background: #f4f5f7; color: #1a2332; }
   a { color: inherit; }
-  .gold { color: #C9A84C; }
 
-  /* ── LOGIN ── */
-  #tela-login {
-    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  /* ── GATE — 1ª visita entra direto; da 2ª em diante pede e-mail/OTP
+     (ver bloco JS "GATE DE ACESSO"). Reaproveita crm_pessoa_verificar_codigo_/
+     crm_pessoa_cadastrar_ (tipo 'agente') já existentes no backend — sem
+     mudança nenhuma no .gs. ── */
+  #tela-gate {
+    min-height: 100vh; display: none; align-items: center; justify-content: center;
     background: linear-gradient(135deg, #0A1628 0%, #16233a 100%); padding: 20px;
   }
-  .login-box { background: #fff; border-radius: 10px; padding: 34px 30px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
-  .login-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
-  .login-brand img { height: 38px; width: 38px; object-fit: contain; border-radius: 4px; }
-  .login-brand strong { display: block; font-size: 1.05em; }
-  .login-brand span { display: block; font-size: 0.72em; color: #7f8c9a; text-transform: uppercase; letter-spacing: .05em; }
-  .login-box h1 { font-family: 'Playfair Display', serif; font-size: 1.25em; margin-bottom: 6px; }
-  .login-box p.sub { font-size: 0.85em; color: #667; line-height: 1.5; margin-bottom: 18px; }
-  .login-box label { display: block; font-size: 0.72em; text-transform: uppercase; letter-spacing: .05em; color: #7f8c9a; margin-bottom: 4px; }
-  .login-box input { width: 100%; padding: 11px 12px; border: 1px solid #d5dae2; border-radius: 6px; font-size: 0.95em; font-family: inherit; margin-bottom: 14px; }
-  .login-box input:focus { outline: none; border-color: #C9A84C; }
-  .btn-primary {
-    width: 100%; padding: 12px; border: none; border-radius: 6px; background: #0A1628; color: #C9A84C;
-    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
-    font-size: 0.9em; cursor: pointer; transition: background .2s;
-  }
-  .btn-primary:hover { background: #16233a; }
-  .btn-primary:disabled { opacity: .6; cursor: default; }
-  .btn-link { background: none; border: none; color: #7f8c9a; font-size: 0.82em; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; }
-  .err-box { background: #fdecea; border: 1px solid #f5c2bd; color: #b3261e; font-size: 0.82em; padding: 9px 11px; border-radius: 6px; margin-bottom: 12px; display: none; }
-  .info-box { background: #eef4fb; border: 1px solid #bcd8f2; color: #0A4D8C; font-size: 0.8em; padding: 10px 12px; border-radius: 6px; margin-top: 14px; line-height: 1.5; }
+  #tela-gate.show { display: flex; }
+  .gate-box { background: #fff; border-radius: 10px; padding: 34px 30px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .gate-brand { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+  .gate-brand img { height: 38px; width: 38px; object-fit: contain; border-radius: 4px; }
+  .gate-brand strong { display: block; font-size: 1.05em; }
+  .gate-brand span { display: block; font-size: 0.72em; color: #7f8c9a; text-transform: uppercase; letter-spacing: .05em; }
+  .gate-box h1 { font-family: 'Playfair Display', serif; font-size: 1.25em; margin-bottom: 6px; }
+  .gate-box p.sub { font-size: 0.85em; color: #667; line-height: 1.5; margin-bottom: 18px; }
+  .gate-step { display: none; }
+  .gate-step.show { display: block; }
+  .gate-err { background: #fdecea; border: 1px solid #f5c2bd; color: #b3261e; font-size: 0.82em; padding: 9px 11px; border-radius: 6px; margin-bottom: 12px; display: none; }
+  .gate-link { background: none; border: none; color: #7f8c9a; font-size: 0.82em; cursor: pointer; text-decoration: underline; margin-top: 10px; display: block; text-align: left; padding: 0; }
 
-  /* ── APP ── */
+  /* ── APP (some por padrão — só aparece depois do gate liberar) ── */
   #app { display: none; min-height: 100vh; flex-direction: column; }
   header.top {
     background: linear-gradient(135deg, #0A1628 0%, #16233a 100%); color: #fff;
-    padding: 14px 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    padding: 14px 22px; display: flex; align-items: center; gap: 10px;
     border-bottom: 3px solid #C9A84C;
   }
   header.top .brand { display: flex; align-items: center; gap: 10px; }
   header.top .brand img { height: 36px; width: 36px; object-fit: contain; border-radius: 4px; }
   header.top .brand strong { display: block; font-size: 1em; }
   header.top .brand span { display: block; font-size: 0.7em; color: #C9A84C; text-transform: uppercase; letter-spacing: .06em; }
-  header.top .who { font-size: 0.82em; color: #cfd6e2; text-align: right; }
-  header.top .who strong { color: #fff; }
-  .btn-sair { background: none; border: 1px solid rgba(255,255,255,.35); color: #fff; padding: 6px 12px; border-radius: 5px; font-size: 0.78em; cursor: pointer; margin-left: 10px; }
-  .btn-sair:hover { border-color: #C9A84C; color: #C9A84C; }
 
-  nav.tabs { background: #fff; display: flex; gap: 4px; padding: 0 22px; border-bottom: 1px solid #e2e6ec; flex-wrap: wrap; }
+  /* ── NAV PRINCIPAL / MEUS DISPAROS / RELATÓRIOS + DATA/HORA ── */
+  nav.tabs { background: #fff; display: flex; align-items: center; gap: 4px; padding: 0 22px; border-bottom: 1px solid #e2e6ec; flex-wrap: wrap; }
   nav.tabs button {
     background: none; border: none; padding: 13px 16px; font-family: 'Barlow Condensed', sans-serif;
     font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-size: 0.82em; color: #7f8c9a; cursor: pointer;
     border-bottom: 3px solid transparent;
   }
   nav.tabs button.active { color: #0A1628; border-bottom-color: #C9A84C; }
+  .nav-right { margin-left: auto; display: flex; align-items: center; }
+  .relogio { font-size: 0.78em; color: #556b7a; font-weight: 600; letter-spacing: .03em; white-space: nowrap; }
 
-  main { flex: 1; padding: 22px; max-width: 980px; width: 100%; margin: 0 auto; }
+  main { flex: 1; padding: 22px; max-width: 1400px; width: 100%; margin: 0 auto; }
   .painel-view { display: none; }
   .painel-view.active { display: block; }
+  .page-title { font-family: 'Playfair Display', serif; font-size: 1.3em; margin-bottom: 16px; }
 
   .card { background: #fff; border-radius: 10px; padding: 20px; margin-bottom: 18px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-  .card h2 { font-family: 'Playfair Display', serif; font-size: 1.1em; margin-bottom: 4px; }
+  .card h2 { font-family: 'Playfair Display', serif; font-size: 1.05em; margin-bottom: 4px; }
   .card p.desc { font-size: 0.85em; color: #667; margin-bottom: 16px; line-height: 1.5; }
 
   .campo { margin-bottom: 14px; }
   .campo label { display: block; font-size: 0.72em; text-transform: uppercase; letter-spacing: .05em; color: #7f8c9a; margin-bottom: 4px; }
-  .campo select, .campo input[type="text"] {
+  .campo select, .campo input[type="text"], .campo input[type="email"], .campo input[type="date"] {
     width: 100%; padding: 10px 11px; border: 1px solid #d5dae2; border-radius: 6px; font-size: 0.92em; font-family: inherit; background: #fbfbfc;
   }
   .campo select:focus, .campo input:focus { outline: none; border-color: #C9A84C; background: #fff; }
-  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 620px) { .row-2 { grid-template-columns: 1fr; } }
+  .campo input:disabled { background: #eef0f3; color: #556b7a; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 720px) { .row-2 { grid-template-columns: 1fr; } }
 
   .btn-gold { background: #C9A84C; color: #0A1628; border: none; padding: 11px 18px; border-radius: 6px; font-weight: 700; font-size: 0.88em; cursor: pointer; }
   .btn-gold:hover { background: #b8973f; }
@@ -96,21 +88,11 @@
   .share-btns .wpp { background: #25D366; color: #fff; border-color: #25D366; }
   .share-btns .mapa-link { background: #0A1628; color: #C9A84C; border-color: #0A1628; }
 
-  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 18px; }
   .kpi { background: #fff; border-radius: 10px; padding: 16px; text-align: center; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
   .kpi .num { font-family: 'Playfair Display', serif; font-size: 1.7em; color: #0A1628; }
   .kpi .lbl { font-size: 0.72em; color: #7f8c9a; text-transform: uppercase; letter-spacing: .04em; margin-top: 2px; }
 
-  .camp-card { background: #fff; border-radius: 10px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,.06); overflow: hidden; }
-  .camp-head { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; flex-wrap: wrap; }
-  .camp-head .nome { font-weight: 700; font-size: 0.95em; }
-  .camp-head .nums { display: flex; gap: 16px; font-size: 0.8em; color: #556; }
-  .camp-head .nums b { color: #0A1628; }
-  .camp-body { display: none; padding: 0 18px 16px; }
-  .camp-body.show { display: block; }
-  table.tbl-lead { width: 100%; border-collapse: collapse; font-size: 0.82em; }
-  table.tbl-lead th { text-align: left; color: #7f8c9a; text-transform: uppercase; font-size: 0.72em; letter-spacing: .04em; padding: 6px 8px; border-bottom: 1px solid #e2e6ec; }
-  table.tbl-lead td { padding: 7px 8px; border-bottom: 1px solid #f0f2f5; }
   .bdg { padding: 2px 9px; border-radius: 20px; font-size: 0.72em; font-weight: 700; white-space: nowrap; }
   .bdg-novo { background: #eef4fb; color: #0A4D8C; }
   .bdg-contato { background: #fff4e0; color: #a15c00; }
@@ -120,6 +102,44 @@
 
   .empty { text-align: center; padding: 30px 10px; color: #96a0ab; font-size: 0.88em; }
 
+  /* ── PRINCIPAL: sub-abas MAPA DE EMPREENDIMENTOS / LISTA DE EMPREENDIMENTOS ── */
+  .subtabs { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+  .subtab-btn {
+    background: #fff; border: 2px solid #0A1628; color: #0A1628; padding: 10px 22px; border-radius: 6px;
+    font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    font-size: 0.85em; cursor: pointer;
+  }
+  .subtab-btn.active { background: #0A1628; color: #C9A84C; border-color: #0A1628; }
+  .sub-principal-view { display: none; }
+  .sub-principal-view.active { display: block; }
+
+  .iframe-mapa { width: 100%; height: 78vh; min-height: 520px; border: 0; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.08); background: #fff; display: block; }
+
+  .filtros-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+
+  .tbl-count { font-size: 0.8em; color: #7f8c9a; margin-bottom: 10px; }
+  .tbl-wrap { overflow-x: auto; background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+  table.tbl-basic { width: 100%; border-collapse: collapse; font-size: 0.82em; min-width: 720px; }
+  table.tbl-basic th { text-align: left; color: #7f8c9a; text-transform: uppercase; font-size: 0.7em; letter-spacing: .04em; padding: 10px; border-bottom: 1px solid #e2e6ec; background: #f8f9fb; white-space: nowrap; }
+  table.tbl-basic td { padding: 8px 10px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
+  .td-img img { width: 52px; height: 40px; object-fit: cover; border-radius: 4px; background: #eee; display: block; }
+  .td-nome { font-weight: 600; }
+  .td-valor { color: #0A1628; font-weight: 600; white-space: nowrap; }
+  .badge-tipo { padding: 3px 9px; border-radius: 20px; font-size: 0.72em; font-weight: 700; white-space: nowrap; }
+  .bt-novo { background: #e6f7ec; color: #157347; }
+  .bt-usado { background: #eef4fb; color: #0A4D8C; }
+  .bt-lancamento { background: #fdecea; color: #b3261e; }
+  .bt-construcao { background: #fff4e0; color: #a15c00; }
+  .btn-tbl-link { background: #0A1628; color: #C9A84C; border: none; padding: 7px 13px; border-radius: 5px; font-size: 0.78em; font-weight: 700; cursor: pointer; white-space: nowrap; }
+  .btn-tbl-link:hover { background: #16233a; }
+
+  /* ── MODAIS (Criar Link / Relatório) ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,22,40,.62); align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
+  .modal-overlay.show { display: flex; }
+  .modal-box { background: #fff; border-radius: 10px; padding: 26px 24px; width: 100%; max-width: 480px; max-height: 90vh; overflow-y: auto; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+  .modal-close { position: absolute; top: 10px; right: 12px; background: none; border: none; font-size: 1.5em; cursor: pointer; color: #7f8c9a; line-height: 1; }
+  .modal-box h2 { font-family: 'Playfair Display', serif; font-size: 1.1em; margin-bottom: 6px; padding-right: 22px; }
+
   #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px); background: #0A1628; color: #fff; padding: 11px 18px; border-radius: 8px; font-size: 0.85em; opacity: 0; pointer-events: none; transition: all .25s; z-index: 999; }
   #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #toast.t-green { background: #157347; }
@@ -128,41 +148,50 @@
 </head>
 <body>
 
-<!-- ═══ LOGIN ═══ -->
-<div id="tela-login">
-  <div class="login-box">
-    <div class="login-brand">
+<!-- ═══ GATE DE ACESSO — 1ª visita entra direto; da 2ª em diante pede e-mail/OTP ═══ -->
+<div id="tela-gate">
+  <div class="gate-box">
+    <div class="gate-brand">
       <img src="../../logo%20novo%20wal.jpeg" alt="WAL Imóveis">
       <div>
-        <strong>WAL Imóveis</strong>
-        <span>Especialistas em imóveis para Funcionário Público</span>
+        <strong>Painel do Parceiro CFIAe</strong>
+        <span>WAL Imóveis</span>
       </div>
     </div>
 
-    <div id="loginStep1">
-      <h1>Painel do Parceiro CFIAe</h1>
-      <p class="sub">Informe o e-mail já cadastrado junto à WAL. Vamos enviar um código de acesso de 6 dígitos.</p>
-      <div class="err-box" id="loginErr"></div>
-      <label>E-mail</label>
-      <input type="email" id="loginEmail" placeholder="seuemail@exemplo.com" autocomplete="email">
-      <button class="btn-primary" id="loginBtnEnviar" onclick="doLoginEnviarCodigo()">Enviar código de acesso</button>
-      <div class="info-box">Este painel é de uso exclusivo do CFIAe, cadastrado como parceiro institucional da WAL Imóveis. Se ainda não tem acesso, fale com a Diretoria WAL.</div>
+    <!-- Passo 1: e-mail -->
+    <div class="gate-step show" id="gateStepEmail">
+      <h1>Bem-vindo de volta</h1>
+      <p class="sub">Informe seu e-mail. Vamos enviar um código de acesso de 6 dígitos.</p>
+      <div class="gate-err" id="gateErrEmail"></div>
+      <div class="campo"><label>E-mail</label><input type="email" id="gateEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')gateEnviarCodigo()"></div>
+      <button class="btn-gold" id="gateBtnEnviar" onclick="gateEnviarCodigo()" style="width:100%">Enviar código de acesso →</button>
     </div>
 
-    <div id="loginStep2" style="display:none">
-      <h1>Confirmar código</h1>
-      <p class="sub" id="loginSub"></p>
-      <div class="err-box" id="loginErr2"></div>
-      <label>Código de 6 dígitos</label>
-      <input type="text" id="loginCodigo" inputmode="numeric" maxlength="6" placeholder="000000">
-      <button class="btn-primary" id="loginBtnConfirmar" onclick="doLoginConfirmarCodigo()">Confirmar e entrar</button>
-      <button class="btn-link" onclick="doLoginReenviarCodigo()">Reenviar código</button>
-      <button class="btn-link" onclick="voltarLoginStep1()">← Usar outro e-mail</button>
+    <!-- Passo 2: código -->
+    <div class="gate-step" id="gateStepCodigo">
+      <h1>Confira seu e-mail</h1>
+      <p class="sub">Enviamos um código de 6 dígitos para <strong id="gateEmailAlvo"></strong>. Vale por 10 minutos.</p>
+      <div class="gate-err" id="gateErrCodigo"></div>
+      <div class="campo"><label>Código de acesso</label><input type="text" id="gateCodigo" inputmode="numeric" maxlength="6" placeholder="000000" onkeydown="if(event.key==='Enter')gateVerificarCodigo()"></div>
+      <button class="btn-gold" id="gateBtnConfirmar" onclick="gateVerificarCodigo()" style="width:100%">Confirmar →</button>
+      <button class="gate-link" onclick="gateReenviarCodigo()">Reenviar código</button>
+      <button class="gate-link" onclick="gateVoltarEmail()">Trocar e-mail</button>
+    </div>
+
+    <!-- Passo 3: cadastro simplificado (e-mail não encontrado na base de Agentes) -->
+    <div class="gate-step" id="gateStepCadastro">
+      <h1>Quase lá!</h1>
+      <p class="sub">Não encontramos esse e-mail cadastrado. Complete rapidinho pra acessar o painel.</p>
+      <div class="gate-err" id="gateErrCadastro"></div>
+      <div class="campo"><label>Nome completo</label><input type="text" id="gateNome" placeholder="Seu nome completo"></div>
+      <div class="campo"><label>WhatsApp</label><input type="text" id="gateWhatsapp" placeholder="(21) 99999-9999"></div>
+      <button class="btn-gold" id="gateBtnCadastrar" onclick="gateConfirmarCadastro()" style="width:100%">Concluir e entrar →</button>
     </div>
   </div>
 </div>
 
-<!-- ═══ APP ═══ -->
+<!-- ═══ APP (some por padrão — só aparece depois do gate liberar) ═══ -->
 <div id="app">
   <header class="top">
     <div class="brand">
@@ -172,88 +201,230 @@
         <span>WAL Imóveis</span>
       </div>
     </div>
-    <div class="who">
-      Logado como <strong id="whoNome">—</strong>
-      <button class="btn-sair" onclick="doLogout()">Sair</button>
-    </div>
   </header>
 
   <nav class="tabs">
-    <button class="active" data-view="gerar" onclick="mudarView('gerar')">🔗 Gerar Link</button>
-    <button data-view="campanhas" onclick="mudarView('campanhas')">📊 Minhas Campanhas</button>
-    <a href="../../mapa-empreendimentos.html" target="_blank" rel="noopener" style="display:flex;align-items:center;padding:13px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:.04em;text-transform:uppercase;font-size:0.82em;color:#7f8c9a;text-decoration:none">🗺️ Abrir Mapa de Empreendimentos ↗</a>
+    <button class="active" data-view="principal" onclick="mudarView('principal')">🏠 Principal</button>
+    <button data-view="disparos" onclick="mudarView('disparos')">📊 Meus Disparos</button>
+    <button data-view="relatorios" onclick="mudarView('relatorios')">📈 Relatórios</button>
+    <div class="nav-right"><span class="relogio" id="relogioTexto">—</span></div>
   </nav>
 
   <main>
-    <!-- ── GERAR LINK ── -->
-    <section class="painel-view active" id="view-gerar">
-      <div class="card">
-        <h2>Gerar link de indicação</h2>
-        <p class="desc">Escolha o empreendimento e dê um nome para o disparo (ex.: "Disparo Setembro 2026"). O link já sai com a identificação do CFIAe, e toda pessoa que se cadastrar por ele fica registrada nesse disparo em "Minhas Campanhas".</p>
-        <div class="row-2">
-          <div class="campo">
-            <label>Empreendimento</label>
-            <select id="selEmpreendimento"><option value="">Carregando…</option></select>
-          </div>
-          <div class="campo">
-            <label>Nome do disparo / campanha</label>
-            <input type="text" id="inputCampanha" placeholder="Ex.: Disparo Setembro 2026" maxlength="60">
-          </div>
-        </div>
-        <button class="btn-gold" id="btnGerarLink" onclick="gerarLinkCfiae()">Gerar link</button>
+    <!-- ═══ PRINCIPAL (Mapa de Empreendimentos / Lista de Empreendimentos) ═══ -->
+    <section class="painel-view active" id="view-principal">
+      <div class="subtabs">
+        <button class="subtab-btn active" data-sub="mapa" onclick="mudarSubPrincipal('mapa')">🗺️ Mapa de Empreendimentos</button>
+        <button class="subtab-btn" data-sub="lista" onclick="mudarSubPrincipal('lista')">📋 Lista de Empreendimentos</button>
+      </div>
 
-        <div class="link-out" id="linkOut">
-          <div class="url-box" id="linkGerado">—</div>
-          <div class="share-btns">
-            <button onclick="copiarLinkGerado()">📋 Copiar link</button>
-            <a href="#" id="btnWpp" target="_blank" rel="noopener" class="wpp">📱 WhatsApp</a>
-            <button onclick="mostrarFormEmail()">✉️ E-mail</button>
-            <a href="#" id="btnMapaComLink" target="_blank" rel="noopener" class="mapa-link">🗺️ Ver mapa com este link</a>
-          </div>
-          <div id="formEmail" style="display:none;margin-top:12px">
-            <div class="campo">
-              <label>Enviar para o e-mail</label>
-              <input type="email" id="emailDestino" placeholder="destino@exemplo.com">
-            </div>
-            <button class="btn-gold" id="btnEnviarEmail" onclick="enviarLinkPorEmail()">Enviar →</button>
-          </div>
+      <!-- ── MAPA DE EMPREENDIMENTOS ── -->
+      <div class="sub-principal-view active" id="sub-mapa">
+        <iframe class="iframe-mapa" id="iframeMapa" title="Mapa de Empreendimentos WAL"></iframe>
+      </div>
+
+      <!-- ── LISTA DE EMPREENDIMENTOS ── -->
+      <div class="sub-principal-view" id="sub-lista">
+        <div class="kpis" id="kpisImoveis">
+          <div class="kpi"><div class="num" id="kpiTotalImoveis">—</div><div class="lbl">Disponíveis</div></div>
+          <div class="kpi"><div class="num" id="kpiLancamento">—</div><div class="lbl">Lançamento</div></div>
+          <div class="kpi"><div class="num" id="kpiNovo">—</div><div class="lbl">Novo</div></div>
+          <div class="kpi"><div class="num" id="kpiUsado">—</div><div class="lbl">Usado</div></div>
+          <div class="kpi"><div class="num" id="kpiConstrucao">—</div><div class="lbl">Em Construção</div></div>
+          <div class="kpi"><div class="num" id="kpiRJ">—</div><div class="lbl">Rio de Janeiro</div></div>
+          <div class="kpi"><div class="num" id="kpiSP">—</div><div class="lbl">São Paulo</div></div>
+          <div class="kpi"><div class="num" id="kpiF1">—</div><div class="lbl">Até R$ 300 mil</div></div>
+          <div class="kpi"><div class="num" id="kpiF2">—</div><div class="lbl">R$ 300–500 mil</div></div>
+          <div class="kpi"><div class="num" id="kpiF3">—</div><div class="lbl">R$ 500–700 mil</div></div>
+          <div class="kpi"><div class="num" id="kpiF4">—</div><div class="lbl">R$ 700–900 mil</div></div>
+          <div class="kpi"><div class="num" id="kpiF5">—</div><div class="lbl">R$ 900 mil–1,25 mi</div></div>
+          <div class="kpi"><div class="num" id="kpiF6">—</div><div class="lbl">Acima R$ 1,25 mi</div></div>
+        </div>
+
+        <div class="filtros-grid">
+          <div class="campo"><label>Buscar</label><input type="text" id="flBusca" placeholder="Nome, bairro..." oninput="renderTabelaImoveis()"></div>
+          <div class="campo"><label>UF</label><select id="flUF" onchange="renderTabelaImoveis()"><option value="">Todas</option></select></div>
+          <div class="campo"><label>Cidade</label><select id="flCidade" onchange="renderTabelaImoveis()"><option value="">Todas</option></select></div>
+          <div class="campo"><label>Bairro</label><select id="flBairro" onchange="renderTabelaImoveis()"><option value="">Todos</option></select></div>
+          <div class="campo"><label>Tipo</label><select id="flTipo" onchange="renderTabelaImoveis()"><option value="">Todos</option></select></div>
+          <div class="campo"><label>Construtora</label><select id="flConstrutora" onchange="renderTabelaImoveis()"><option value="">Todas</option></select></div>
+        </div>
+
+        <div class="tbl-count" id="tblImoveisCount">—</div>
+        <div class="tbl-wrap">
+          <table class="tbl-basic">
+            <thead>
+              <tr>
+                <th>Imagem</th><th>Empreendimento</th><th>Tipo</th><th>Construtora</th>
+                <th>Cidade</th><th>Bairro</th><th>Faixa de Valor</th><th>Unid.</th><th>Blog</th><th>Ação</th>
+              </tr>
+            </thead>
+            <tbody id="tblImoveisBody">
+              <tr><td colspan="10"><div class="empty">Carregando empreendimentos…</div></td></tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <!-- ── CAMPANHAS ── -->
-    <section class="painel-view" id="view-campanhas">
-      <div class="kpis">
-        <div class="kpi"><div class="num" id="kpiTotalCad">—</div><div class="lbl">Total cadastrados</div></div>
-        <div class="kpi"><div class="num" id="kpiTotalFechado">—</div><div class="lbl">Vendas fechadas</div></div>
-        <div class="kpi"><div class="num" id="kpiTotalCampanhas">—</div><div class="lbl">Disparos/campanhas</div></div>
+    <!-- ═══ MEUS DISPAROS ═══ -->
+    <section class="painel-view" id="view-disparos">
+      <h1 class="page-title">Meus Disparos</h1>
+
+      <div class="card">
+        <h2>Links Gerados</h2>
+        <div class="tbl-wrap">
+          <table class="tbl-basic">
+            <thead><tr><th>Id_Link</th><th>Empreendimento</th><th>Data/Hora</th><th>Agente</th><th>Observação</th><th>Disparo</th></tr></thead>
+            <tbody id="tblLinksBody"><tr><td colspan="6"><div class="empty">Carregando…</div></td></tr></tbody>
+          </table>
+        </div>
       </div>
-      <div id="listaCampanhas"></div>
+
+      <div class="card" id="cardCriarDisparo" style="display:none">
+        <h2>Disparos</h2>
+        <div class="row-2">
+          <div>
+            <div class="campo"><label>Id_Link</label><input type="text" id="dspIdLink" disabled></div>
+            <div class="campo"><label>Empreendimento</label><input type="text" id="dspEmpreendimento" disabled></div>
+            <div class="campo"><label>Data do Link</label><input type="text" id="dspDataLink" disabled></div>
+            <div class="campo"><label>Observação</label><input type="text" id="dspObservacao" disabled></div>
+          </div>
+          <div>
+            <div class="campo"><label>Data do Disparo</label><input type="date" id="dspDataDisparo"></div>
+            <button class="btn-gold" id="btnCriarDisparo" onclick="criarDisparo()">Criar Disparo</button>
+
+            <div class="link-out" id="dspLinkOut">
+              <div class="url-box" id="dspLinkGerado">—</div>
+              <div class="share-btns">
+                <button onclick="copiarLink('dsp')">📋 Copiar link</button>
+                <a href="#" id="dspBtnWpp" target="_blank" rel="noopener" class="wpp">📱 WhatsApp</a>
+                <button onclick="mostrarFormEmail('dsp')">✉️ E-mail</button>
+                <a href="#" id="dspBtnMapa" target="_blank" rel="noopener" class="mapa-link">🗺️ Ver mapa com este link</a>
+              </div>
+              <div id="dspFormEmail" style="display:none;margin-top:12px">
+                <div class="campo"><label>Enviar para o e-mail</label><input type="email" id="dspEmailDestino" placeholder="destino@exemplo.com"></div>
+                <button class="btn-gold" id="dspBtnEnviarEmail" onclick="enviarLinkPorEmail('dsp')">Enviar →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Disparos Gerados</h2>
+        <div class="tbl-wrap">
+          <table class="tbl-basic">
+            <thead><tr><th>Id_Disparo</th><th>Empreendimento</th><th>Dt-Hora Disparo</th><th>Agente</th><th>Relatório</th></tr></thead>
+            <tbody id="tblDisparosBody"><tr><td colspan="5"><div class="empty">Carregando…</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ RELATÓRIOS (placeholder — conteúdo a definir) ═══ -->
+    <section class="painel-view" id="view-relatorios">
+      <div class="card">
+        <h2>Relatórios</h2>
+        <p class="desc">Esta seção está em construção. Em breve você terá aqui os relatórios completos de desempenho do CFIAe.</p>
+      </div>
     </section>
   </main>
+</div>
+
+<!-- ═══ MODAL — CRIAR LINK (a partir da Lista de Empreendimentos) ═══ -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this) fecharModal()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModal()">&times;</button>
+    <h2>Criar Link</h2>
+    <p class="desc" id="modalDesc">Preencha a observação (opcional) e confirme para gerar o link. Depois, na tela "Meus Disparos", você registra a data de envio e pega o link para compartilhar.</p>
+    <div class="campo"><label>Link_Id</label><input type="text" id="clLinkId" disabled></div>
+    <div class="campo"><label>Empreendimento</label><input type="text" id="clEmpreendimento" disabled></div>
+    <div class="campo"><label>Data</label><input type="text" id="clData" disabled></div>
+    <div class="campo"><label>Agente-Id</label><input type="text" id="clAgenteId" disabled></div>
+    <div class="campo"><label>Observação</label><input type="text" id="clObservacao" placeholder="Ex.: Turma CFIAe — setembro/2026" maxlength="120"></div>
+    <button class="btn-gold" id="modalBtnCriarLink" onclick="confirmarCriarLink()">Criar Link</button>
+  </div>
+</div>
+
+<!-- ═══ MODAL — RELATÓRIO DE UM DISPARO ═══ -->
+<div class="modal-overlay" id="modalRelatorio" onclick="if(event.target===this) fecharModalRelatorio()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalRelatorio()">&times;</button>
+    <h2 id="relTitulo">Relatório</h2>
+    <p class="desc" id="relResumo">—</p>
+    <div class="tbl-wrap">
+      <table class="tbl-basic" style="min-width:0">
+        <thead><tr><th>Nome</th><th>Status</th><th>Cadastro</th></tr></thead>
+        <tbody id="relCorpo"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
 
 <script>
-const TIPO_PESSOA = 'agente';
-let _user = null;
-let _empreendimentos = [];
-let _indicacoes = [];
+/* ════════════════════════════════════════════════════════════════
+   Painel do Parceiro CFIAe — 1ª visita entra direto (sem pedir nada);
+   da 2ª em diante, o GATE DE ACESSO (mais abaixo) exige e-mail + OTP
+   antes de mostrar o #app, e cadastra quem ainda não tem e-mail
+   conhecido (cadastro simplificado — só nome + WhatsApp). Pedido do
+   Antonio, 24/09/2026: 1ª vez sem fricção, retorno com identificação.
+   Os dados operacionais (Meus Disparos, links, KPIs) continuam todos
+   amarrados no AG0005 fixo do CFIAe, independente de quem faz login —
+   o gate é só controle de acesso, não personalização por pessoa.
+   ════════════════════════════════════════════════════════════════ */
 
-/* ═══ API do cadastro único (painel/shared/apps-script-sistema-web-cadastro.gs) ═══
-   Mesma URL/instância usada por index.html/imovel.html/reserva.html/
-   painel/agente/dashboard-agente.html — o CFIAe é um registro normal
-   na aba AGENTES (tipo 'agente'), só o dashboard é diferente. */
+const TIPO_PESSOA   = 'agente';
+const AGENTE_ID_FIXO = 'AG0005'; // ID fixo do CFIAe no cadastro único — confirmado por Antonio
+
+let _imoveis   = [];  // fonte única de empreendimentos (leitura direta da planilha)
+let _indicacoes = []; // leads/cadastros vindos dos links do agente AG0005
+let _links     = [];  // registros da aba CFIAE_LINKS (ver bloco de backend abaixo)
+let _disparos  = [];  // registros da aba CFIAE_DISPAROS
+let _linkSelecionado = null;
+
 const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
-/* E-mail de compartilhamento usa o mesmo endpoint "Leads Landing Page"
-   que painel/agente/dashboard-agente.html já usa em compEmpEnviarEmail(). */
 const SCRIPT_URL_LEADS = 'https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
 const SITE_BASE_URL = (function(){
   const o = window.location.origin;
   if (!o || o === 'null' || o.startsWith('file')) return '';
   return o + window.location.pathname.replace(/painel\/cfiae\/.*$/, '');
 })();
+
+/* ═══ IMÓVEIS — leitura direta da planilha (mesmo padrão do admin.html) ═══
+   ⚠️ Confirmar se esta é a planilha em uso (ver DEFAULT_SHEET_URL do
+   admin.html — ele permite trocar via localStorage 'fab_sheet_url'). */
+const IMOVEIS_SHEET_ID   = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+const IMOVEIS_SHEET_NAME = 'IMOVEISDISPONIVEIS';
+
+function sheetGvizJsonp(sheetId, sheetName){
+  return new Promise((resolve)=>{
+    const cb = 'gvizCfiae_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;
+    document.head.appendChild(s);
+  });
+}
+function parseImoveis(table){
+  if (!table || !table.rows) return [];
+  return table.rows.map(row=>{
+    const g = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
+    return {
+      id: g(0),
+      ativo: row.c && row.c[1] && row.c[1].v === true,
+      tipo: g(2), construtora: g(3), cidade: g(4), nome: g(5),
+      imagem: g(7), faixa: g(8), qtd: g(10), blog: g(11),
+      destaque: row.c && row.c[14] && row.c[14].v === true,
+      uf: g(15), bairro: g(16)
+    };
+  }).filter(r=>r.nome);
+}
 
 function cadastroApiJsonp(action, params){
   return new Promise((resolve)=>{
@@ -268,10 +439,117 @@ function cadastroApiJsonp(action, params){
     document.body.appendChild(s);
   });
 }
-function chamarCadastroApi(action, payload){
+
+/* ═══ GATE DE ACESSO — 1ª visita (localStorage) entra direto; da 2ª em
+   diante pede e-mail/OTP. Reaproveita crm_pessoa_verificar_codigo_ e
+   crm_pessoa_cadastrar_ já existentes no backend (tipo 'agente') — zero
+   mudança no .gs. Cadastro fica simplificado a pedido do Antonio (só
+   nome + WhatsApp, sem termos/CPF/CRECI/dados bancários) — aqui não é
+   fluxo de virar Agente Parceiro comissionado, é só identificar quem
+   está usando o painel; termosAceitos vai true automaticamente pro
+   backend aceitar o registro mesmo sem checkbox visível. ═══ */
+const CFIAE_VISITADO_KEY = 'cfiae_ja_visitou';
+let _gateEmailPendente = '';
+let _gateSessionToken  = '';
+
+function chamarCadastroApiPost_(action, payload){
   try{
-    fetch(CADASTRO_API_URL, { method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body:JSON.stringify(Object.assign({action}, payload)) }).catch(()=>{});
+    fetch(CADASTRO_API_URL, {
+      method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify(Object.assign({action}, payload))
+    }).catch(()=>{});
   }catch(e){}
+}
+function gateMostrarPasso_(id){
+  document.querySelectorAll('.gate-step').forEach(el => el.classList.toggle('show', el.id === id));
+}
+function gateErro_(id, msg){
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+function gateLimparErros_(){
+  document.querySelectorAll('.gate-err').forEach(el => { el.style.display = 'none'; el.textContent = ''; });
+}
+async function gateEnviarCodigo(){
+  const email = document.getElementById('gateEmail').value.trim().toLowerCase();
+  gateLimparErros_();
+  if (!email || !email.includes('@')){ gateErro_('gateErrEmail','Digite um e-mail válido.'); return; }
+  _gateEmailPendente = email;
+  const btn = document.getElementById('gateBtnEnviar');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  chamarCadastroApiPost_('cadastro_login_solicitar_codigo', { email });
+  setTimeout(()=>{
+    btn.disabled = false; btn.textContent = 'Enviar código de acesso →';
+    document.getElementById('gateEmailAlvo').textContent = email;
+    document.getElementById('gateCodigo').value = '';
+    gateMostrarPasso_('gateStepCodigo');
+    document.getElementById('gateCodigo').focus();
+  }, 700);
+}
+function gateReenviarCodigo(){
+  chamarCadastroApiPost_('cadastro_login_solicitar_codigo', { email: _gateEmailPendente });
+  toast('Código reenviado!', 'green');
+}
+function gateVoltarEmail(){
+  gateLimparErros_();
+  gateMostrarPasso_('gateStepEmail');
+}
+async function gateVerificarCodigo(){
+  const codigo = document.getElementById('gateCodigo').value.trim();
+  gateLimparErros_();
+  if (!/^[0-9]{6}$/.test(codigo)){ gateErro_('gateErrCodigo','Digite os 6 dígitos do código.'); return; }
+  const btn = document.getElementById('gateBtnConfirmar');
+  btn.disabled = true; btn.textContent = 'Confirmando...';
+  const resp = await cadastroApiJsonp('crm_pessoa_verificar_codigo', { email:_gateEmailPendente, codigo, tipo:'agente' });
+  btn.disabled = false; btn.textContent = 'Confirmar →';
+  if (!resp || resp.status !== 'ok'){
+    gateErro_('gateErrCodigo', (resp && resp.message) || 'Não foi possível verificar agora. Tente novamente.');
+    return;
+  }
+  _gateSessionToken = resp.sessionToken;
+  if (resp.cadastrado){
+    gateLiberarAcesso_();
+  } else {
+    document.getElementById('gateNome').value = '';
+    document.getElementById('gateWhatsapp').value = '';
+    gateMostrarPasso_('gateStepCadastro');
+  }
+}
+async function gateConfirmarCadastro(){
+  const nome = document.getElementById('gateNome').value.trim();
+  const whatsapp = document.getElementById('gateWhatsapp').value.trim();
+  gateLimparErros_();
+  if (nome.length < 3){ gateErro_('gateErrCadastro','Informe seu nome completo.'); return; }
+  if (!whatsapp){ gateErro_('gateErrCadastro','Informe seu WhatsApp.'); return; }
+  const btn = document.getElementById('gateBtnCadastrar');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  const resp = await cadastroApiJsonp('crm_pessoa_cadastrar', {
+    email: _gateEmailPendente, sessionToken: _gateSessionToken, tipo: 'agente',
+    nome, whatsapp, termosAceitos: true, termosVersao: 'cfiae-simplificado-v1'
+  });
+  btn.disabled = false; btn.textContent = 'Concluir e entrar →';
+  if (!resp || resp.status !== 'ok'){
+    gateErro_('gateErrCadastro', (resp && resp.message) || 'Não foi possível concluir agora. Tente novamente.');
+    return;
+  }
+  gateLiberarAcesso_();
+}
+function gateLiberarAcesso_(){
+  document.getElementById('tela-gate').classList.remove('show');
+  document.getElementById('app').style.display = 'flex';
+  init();
+}
+function iniciarGate(){
+  const jaVisitou = (function(){ try { return localStorage.getItem(CFIAE_VISITADO_KEY) === '1'; } catch(e){ return false; } })();
+  if (!jaVisitou){
+    try { localStorage.setItem(CFIAE_VISITADO_KEY, '1'); } catch(e){}
+    document.getElementById('app').style.display = 'flex';
+    init();
+  } else {
+    document.getElementById('tela-gate').classList.add('show');
+    setTimeout(()=>document.getElementById('gateEmail').focus(), 50);
+  }
 }
 
 function toast(msg, tipo){
@@ -281,190 +559,325 @@ function toast(msg, tipo){
   clearTimeout(t._t);
   t._t = setTimeout(()=>{ t.className=''; }, 3800);
 }
+function fmtDtHora_(v){
+  if (!v) return '—';
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return String(v);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+}
+function fmtDt_(iso){ if(!iso) return '—'; const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso); }
 
-/* ═══ LOGIN (OTP por e-mail, mesmo fluxo de painel/agente/dashboard-agente.html) ═══ */
-let _loginEmailAtual = '';
-function doLoginEnviarCodigo(){
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const err = document.getElementById('loginErr');
-  err.style.display = 'none';
-  if (!email || email.indexOf('@') === -1){ err.textContent = 'Informe um e-mail válido.'; err.style.display = 'block'; return; }
-  const btn = document.getElementById('loginBtnEnviar');
-  btn.disabled = true; btn.textContent = 'Enviando...';
-  chamarCadastroApi('cadastro_login_solicitar_codigo', { email });
-  _loginEmailAtual = email;
-  setTimeout(()=>{ btn.disabled = false; btn.textContent = 'Enviar código de acesso'; }, 600);
-  document.getElementById('loginStep1').style.display = 'none';
-  document.getElementById('loginStep2').style.display = 'block';
-  document.getElementById('loginSub').innerHTML = `Enviamos um código de 6 dígitos para <strong>${email}</strong>.`;
-  document.getElementById('loginCodigo').value = '';
-  document.getElementById('loginCodigo').focus();
+/* ═══ RELÓGIO (DATA/HORA no topo) ═══ */
+function atualizarRelogio(){
+  const agora = new Date();
+  document.getElementById('relogioTexto').textContent =
+    agora.toLocaleDateString('pt-BR') + ' · ' + agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
 }
-function doLoginReenviarCodigo(){
-  chamarCadastroApi('cadastro_login_solicitar_codigo', { email: _loginEmailAtual });
-  toast('Código reenviado.', 'green');
-}
-function voltarLoginStep1(){
-  document.getElementById('loginStep1').style.display = 'block';
-  document.getElementById('loginStep2').style.display = 'none';
-  document.getElementById('loginErr2').style.display = 'none';
-}
-async function doLoginConfirmarCodigo(){
-  const codigo = document.getElementById('loginCodigo').value.trim();
-  const err = document.getElementById('loginErr2');
-  err.style.display = 'none';
-  if (!codigo){ err.textContent = 'Informe o código recebido.'; err.style.display = 'block'; return; }
-  const btn = document.getElementById('loginBtnConfirmar');
-  btn.disabled = true; btn.textContent = 'Verificando...';
-  const resp = await cadastroApiJsonp('crm_pessoa_verificar_codigo', { email:_loginEmailAtual, codigo, tipo:TIPO_PESSOA });
-  btn.disabled = false; btn.textContent = 'Confirmar e entrar';
-  if (!resp || resp.status !== 'ok'){ err.textContent = (resp && resp.message) || 'Não foi possível confirmar o código. Tente novamente.'; err.style.display = 'block'; return; }
-  if (!resp.cadastrado){
-    // Este painel não tem autocadastro de propósito — o CFIAe é
-    // provisionado manualmente pela Diretoria (ver plano/memória do
-    // projeto), diferente de painel/agente/dashboard-agente.html.
-    err.textContent = 'E-mail ainda não habilitado neste painel. Fale com a Diretoria WAL para liberar o acesso.';
-    err.style.display = 'block';
-    return;
-  }
-  _user = Object.assign({ email:_loginEmailAtual, sessionToken:resp.sessionToken, tipo:TIPO_PESSOA }, resp.pessoa);
-  iniciarApp();
-}
-function doLogout(){
-  _user = null;
-  document.getElementById('app').style.display = 'none';
-  document.getElementById('tela-login').style.display = 'flex';
-  voltarLoginStep1();
-  document.getElementById('loginEmail').value = '';
-}
+setInterval(atualizarRelogio, 30000);
 
-/* ═══ APP ═══ */
+/* ═══ NAVEGAÇÃO ═══ */
 function mudarView(view){
   document.querySelectorAll('nav.tabs button[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.querySelectorAll('.painel-view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
 }
+function mudarSubPrincipal(sub){
+  document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
+  document.getElementById('sub-mapa').classList.toggle('active', sub==='mapa');
+  document.getElementById('sub-lista').classList.toggle('active', sub==='lista');
+}
 
-async function iniciarApp(){
-  document.getElementById('tela-login').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('whoNome').textContent = _user.nome || _user.email;
+/* ═══ INÍCIO — chamado pelo gate (1ª visita direto, ou depois do
+   e-mail/OTP confirmado) ═══ */
+async function init(){
+  atualizarRelogio();
+  document.getElementById('iframeMapa').src =
+    `${SITE_BASE_URL}mapa-empreendimentos.html?agente=${encodeURIComponent(AGENTE_ID_FIXO)}`;
 
-  const [respEmp, respInd] = await Promise.all([
-    cadastroApiJsonp('crm_empreendimentos_listar', {}),
-    cadastroApiJsonp('crm_indicacao_listar', { email:_user.email, sessionToken:_user.sessionToken, tipo:TIPO_PESSOA })
+  const [gvizResp, respInd, respLinks, respDisparos] = await Promise.all([
+    sheetGvizJsonp(IMOVEIS_SHEET_ID, IMOVEIS_SHEET_NAME),
+    // ⚠️ Antes usava email+sessionToken do login. Sem login, precisa que
+    // o backend aceite filtrar por agenteId direto (ver observações).
+    cadastroApiJsonp('crm_indicacao_listar', { agenteId: AGENTE_ID_FIXO, tipo: TIPO_PESSOA }),
+    // ⚠️ Ações novas — ainda não existem no backend, ver bloco .gs proposto.
+    cadastroApiJsonp('crm_cfiae_link_listar', {}),
+    cadastroApiJsonp('crm_cfiae_disparo_listar', {})
   ]);
-  _empreendimentos = (respEmp && respEmp.itens) || [];
+  _imoveis   = (gvizResp && gvizResp.table) ? parseImoveis(gvizResp.table) : [];
   _indicacoes = (respInd && respInd.itens) || [];
-  popularSelectEmpreendimentos();
-  renderCampanhas();
+  _links     = (respLinks && respLinks.itens) || [];
+  _disparos  = (respDisparos && respDisparos.itens) || [];
+
+  if (!_imoveis.length){
+    document.getElementById('tblImoveisBody').innerHTML =
+      '<tr><td colspan="10"><div class="empty">Não foi possível carregar os empreendimentos agora. Recarregue a página em instantes.</div></td></tr>';
+  }
+
+  renderKpisImoveis();
+  popularFiltrosLista();
+  renderTabelaImoveis();
+  renderLinksGerados();
+  renderDisparosGerados();
+}
+document.addEventListener('DOMContentLoaded', iniciarGate);
+
+/* ═══ LISTA DE EMPREENDIMENTOS — KPIs, filtros e tabela ═══ */
+function renderKpisImoveis(){
+  const ativos = _imoveis.filter(d=>d.ativo);
+  document.getElementById('kpiTotalImoveis').textContent = ativos.length;
+  const tipoCount = t => ativos.filter(d=>d.tipo===t).length;
+  document.getElementById('kpiLancamento').textContent = tipoCount('Lançamento');
+  document.getElementById('kpiNovo').textContent = tipoCount('Novo');
+  document.getElementById('kpiUsado').textContent = tipoCount('Usado');
+  document.getElementById('kpiConstrucao').textContent = tipoCount('Em Construção');
+  document.getElementById('kpiRJ').textContent = ativos.filter(d=>(d.uf||'').toUpperCase()==='RJ').length;
+  document.getElementById('kpiSP').textContent = ativos.filter(d=>(d.uf||'').toUpperCase()==='SP').length;
+  const faixaCount = f => ativos.filter(d=>d.faixa===f).length;
+  document.getElementById('kpiF1').textContent = faixaCount('Até R$ 300.000');
+  document.getElementById('kpiF2').textContent = faixaCount('De R$ 300.000 a R$ 500.000');
+  document.getElementById('kpiF3').textContent = faixaCount('De R$ 500.000 a R$ 700.000');
+  document.getElementById('kpiF4').textContent = faixaCount('De R$ 700.000 a R$ 900.000');
+  document.getElementById('kpiF5').textContent = faixaCount('De R$ 900.000 a R$ 1.250.000');
+  document.getElementById('kpiF6').textContent = faixaCount('Acima de R$ 1.250.000');
+}
+function setSelectOptions_(id, arr, placeholder){
+  const sel = document.getElementById(id);
+  const atual = sel.value;
+  sel.innerHTML = `<option value="">${placeholder}</option>` + arr.map(v=>`<option value="${v}">${v}</option>`).join('');
+  if (arr.includes(atual)) sel.value = atual;
+}
+function popularFiltrosLista(){
+  const ativos = _imoveis.filter(d=>d.ativo);
+  setSelectOptions_('flUF', [...new Set(ativos.map(d=>(d.uf||'').toUpperCase()).filter(Boolean))].sort(), 'Todas');
+  setSelectOptions_('flTipo', [...new Set(ativos.map(d=>d.tipo).filter(Boolean))].sort(), 'Todos');
+  setSelectOptions_('flCidade', [...new Set(ativos.map(d=>d.cidade).filter(Boolean))].sort(), 'Todas');
+  setSelectOptions_('flConstrutora', [...new Set(ativos.map(d=>d.construtora).filter(Boolean))].sort(), 'Todas');
+  atualizarBairrosLista_();
+}
+function atualizarBairrosLista_(){
+  const uf = document.getElementById('flUF').value;
+  const cidade = document.getElementById('flCidade').value;
+  const bairros = [...new Set(_imoveis.filter(d=>d.ativo &&
+    (!uf || (d.uf||'').toUpperCase()===uf) &&
+    (!cidade || d.cidade===cidade) && d.bairro
+  ).map(d=>d.bairro))].sort();
+  setSelectOptions_('flBairro', bairros, 'Todos');
+}
+function tipoClasseCfiae_(t){ return { Novo:'bt-novo', Usado:'bt-usado', 'Lançamento':'bt-lancamento', 'Em Construção':'bt-construcao' }[t] || 'bt-novo'; }
+
+function renderTabelaImoveis(){
+  atualizarBairrosLista_();
+  const uf = document.getElementById('flUF').value;
+  const tipo = document.getElementById('flTipo').value;
+  const cidade = document.getElementById('flCidade').value;
+  const bairro = document.getElementById('flBairro').value;
+  const construtora = document.getElementById('flConstrutora').value;
+  const busca = document.getElementById('flBusca').value.trim().toLowerCase();
+
+  let data = _imoveis.filter(d=>d.ativo);
+  if (uf) data = data.filter(d=>(d.uf||'').toUpperCase()===uf);
+  if (tipo) data = data.filter(d=>d.tipo===tipo);
+  if (cidade) data = data.filter(d=>d.cidade===cidade);
+  if (bairro) data = data.filter(d=>d.bairro===bairro);
+  if (construtora) data = data.filter(d=>d.construtora===construtora);
+  if (busca) data = data.filter(d=>(d.nome||'').toLowerCase().includes(busca) || (d.bairro||'').toLowerCase().includes(busca));
+
+  document.getElementById('tblImoveisCount').textContent =
+    data.length + (data.length===1 ? ' empreendimento encontrado' : ' empreendimentos encontrados');
+
+  const corpo = document.getElementById('tblImoveisBody');
+  if (!data.length){
+    corpo.innerHTML = '<tr><td colspan="10"><div class="empty">Nenhum empreendimento encontrado para os filtros selecionados.</div></td></tr>';
+    return;
+  }
+  corpo.innerHTML = data.map(d=>`
+    <tr>
+      <td class="td-img"><img src="${d.imagem||''}" onerror="this.style.display='none'" alt=""></td>
+      <td class="td-nome">${d.nome}</td>
+      <td><span class="badge-tipo ${tipoClasseCfiae_(d.tipo)}">${d.tipo||'—'}</span></td>
+      <td>${d.construtora||'—'}</td>
+      <td>${d.cidade||'—'}</td>
+      <td>${d.bairro||'—'}</td>
+      <td class="td-valor">${d.faixa||'—'}</td>
+      <td>${d.qtd||'—'}</td>
+      <td>${d.blog ? `<a href="${d.blog}" target="_blank" rel="noopener">Blog ↗</a>` : '—'}</td>
+      <td><button class="btn-tbl-link" onclick="abrirModalGerarLink('${String(d.id).replace(/'/g,"\\'")}')">🔗 Gerar Link</button></td>
+    </tr>
+  `).join('');
 }
 
-function popularSelectEmpreendimentos(){
-  const sel = document.getElementById('selEmpreendimento');
-  if (!_empreendimentos.length){ sel.innerHTML = '<option value="">Nenhum empreendimento disponível</option>'; return; }
-  sel.innerHTML = '<option value="">Selecione...</option>' + _empreendimentos
-    .slice()
-    .sort((a,b)=>(a.nome||'').localeCompare(b.nome||''))
-    .map(e=>`<option value="${e.id}">${e.nome}${e.cidade?' — '+e.cidade+'/'+e.uf:''}</option>`).join('');
+/* ═══ MODAL — CRIAR LINK (a partir de um imóvel da Lista) ═══ */
+let _modalEmp = null;
+function abrirModalGerarLink(id){
+  const emp = _imoveis.find(x=>String(x.id)===String(id));
+  if (!emp){ toast('Empreendimento não encontrado.', 'red'); return; }
+  _modalEmp = emp;
+  document.getElementById('clLinkId').value = 'gerado automaticamente';
+  document.getElementById('clEmpreendimento').value = emp.nome;
+  document.getElementById('clData').value = fmtDtHora_(new Date());
+  document.getElementById('clAgenteId').value = AGENTE_ID_FIXO;
+  document.getElementById('clObservacao').value = '';
+  document.getElementById('modalOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('clObservacao').focus(), 50);
+}
+function fecharModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+  _modalEmp = null;
+}
+async function confirmarCriarLink(){
+  if (!_modalEmp) return;
+  const observacao = document.getElementById('clObservacao').value.trim();
+  const btn = document.getElementById('modalBtnCriarLink');
+  btn.disabled = true; btn.textContent = 'Criando...';
+  const resp = await cadastroApiJsonp('crm_cfiae_link_criar', {
+    empId: _modalEmp.id, empNome: _modalEmp.nome, agenteId: AGENTE_ID_FIXO, observacao
+  });
+  btn.disabled = false; btn.textContent = 'Criar Link';
+  if (!resp || resp.status !== 'ok'){
+    toast((resp && resp.message) || 'Não foi possível criar o link agora. Confirme se a ação crm_cfiae_link_criar já está publicada no backend.', 'red');
+    return;
+  }
+  const novo = {
+    idLink: resp.idLink, empId: _modalEmp.id, empNome: _modalEmp.nome,
+    dataHora: resp.dataHora || new Date().toISOString(), agenteId: AGENTE_ID_FIXO, observacao
+  };
+  _links.unshift(novo);
+  renderLinksGerados();
+  fecharModal();
+  toast('Link criado! Agora registre o disparo.', 'green');
+  mudarView('disparos');
+  selecionarLinkParaDisparo(novo.idLink);
 }
 
-/* ═══ GERADOR DE LINK ═══ */
-let _linkAtual = null;
-function gerarLinkCfiae(){
-  const empId = document.getElementById('selEmpreendimento').value;
-  const campanha = document.getElementById('inputCampanha').value.trim();
-  if (!empId){ toast('Escolha um empreendimento.', 'red'); return; }
-  if (!campanha){ toast('Dê um nome para o disparo/campanha.', 'red'); return; }
-  const emp = _empreendimentos.find(e=>e.id===empId);
-  const params = new URLSearchParams({ id: empId, agente: _user.id, campanha });
+/* ═══ MEUS DISPAROS — Links Gerados / Disparos / Disparos Gerados ═══ */
+function renderLinksGerados(){
+  const corpo = document.getElementById('tblLinksBody');
+  if (!_links.length){
+    corpo.innerHTML = '<tr><td colspan="6"><div class="empty">Nenhum link gerado ainda. Vá em Principal → Lista de Empreendimentos e clique em "Gerar Link".</div></td></tr>';
+    return;
+  }
+  corpo.innerHTML = _links.map(l=>{
+    const qtd = _disparos.filter(d=>d.idLink===l.idLink).length;
+    return `
+    <tr>
+      <td>${l.idLink}</td>
+      <td>${l.empNome}</td>
+      <td>${fmtDtHora_(l.dataHora)}</td>
+      <td>${l.agenteId}</td>
+      <td>${l.observacao||'—'}</td>
+      <td><button class="btn-tbl-link" onclick="selecionarLinkParaDisparo('${String(l.idLink).replace(/'/g,"\\'")}')">+ Criar Disparo${qtd ? ` (${qtd})` : ''}</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function selecionarLinkParaDisparo(idLink){
+  const l = _links.find(x=>x.idLink===idLink);
+  if (!l){ toast('Link não encontrado.', 'red'); return; }
+  _linkSelecionado = l;
+  document.getElementById('dspIdLink').value = l.idLink;
+  document.getElementById('dspEmpreendimento').value = l.empNome;
+  document.getElementById('dspDataLink').value = fmtDtHora_(l.dataHora);
+  document.getElementById('dspObservacao').value = l.observacao || '—';
+  document.getElementById('dspDataDisparo').value = new Date().toISOString().slice(0,10);
+  document.getElementById('dspLinkOut').style.display = 'none';
+  const card = document.getElementById('cardCriarDisparo');
+  card.style.display = 'block';
+  card.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+async function criarDisparo(){
+  if (!_linkSelecionado){ toast('Selecione um link primeiro.', 'red'); return; }
+  const dataDisparo = document.getElementById('dspDataDisparo').value;
+  if (!dataDisparo){ toast('Escolha a data do disparo.', 'red'); return; }
+  const btn = document.getElementById('btnCriarDisparo');
+  btn.disabled = true; btn.textContent = 'Criando...';
+  const resp = await cadastroApiJsonp('crm_cfiae_disparo_criar', {
+    idLink: _linkSelecionado.idLink, empId: _linkSelecionado.empId, empNome: _linkSelecionado.empNome,
+    dataDisparo, agenteId: AGENTE_ID_FIXO
+  });
+  btn.disabled = false; btn.textContent = 'Criar Disparo';
+  if (!resp || resp.status !== 'ok'){
+    toast((resp && resp.message) || 'Não foi possível criar o disparo agora. Confirme se a ação crm_cfiae_disparo_criar já está publicada no backend.', 'red');
+    return;
+  }
+  const idDisparo = resp.idDisparo;
+  _disparos.unshift({ idDisparo, idLink:_linkSelecionado.idLink, empId:_linkSelecionado.empId, empNome:_linkSelecionado.empNome, dataDisparo, agenteId:AGENTE_ID_FIXO });
+  renderDisparosGerados();
+  renderLinksGerados();
+
+  const params = new URLSearchParams({ id:_linkSelecionado.empId, agente:AGENTE_ID_FIXO, campanha:idDisparo });
   const link = `${SITE_BASE_URL}imovel.html?${params.toString()}`;
-  const mapaParams = new URLSearchParams({ agente: _user.id, campanha });
+  const mapaParams = new URLSearchParams({ agente:AGENTE_ID_FIXO, campanha:idDisparo });
   const linkMapa = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
-  const texto = `🏗️ *${emp ? emp.nome : 'Empreendimento WAL Imóveis'}*\n\nCondições especiais para militares FAB, indicação CFIAe.\n\nConfira: ${link}`;
+  montarShareBox('dsp', _linkSelecionado.empNome, link, linkMapa);
+  toast('Disparo criado!', 'green');
+}
 
-  _linkAtual = { link, linkMapa, texto, assunto: `WAL Imóveis — ${emp ? emp.nome : 'Empreendimento'} (indicação CFIAe)` };
-  document.getElementById('linkGerado').textContent = link;
-  document.getElementById('btnWpp').href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
-  document.getElementById('btnMapaComLink').href = linkMapa;
-  document.getElementById('formEmail').style.display = 'none';
-  document.getElementById('linkOut').style.display = 'block';
+function renderDisparosGerados(){
+  const corpo = document.getElementById('tblDisparosBody');
+  if (!_disparos.length){
+    corpo.innerHTML = '<tr><td colspan="5"><div class="empty">Nenhum disparo gerado ainda.</div></td></tr>';
+    return;
+  }
+  corpo.innerHTML = _disparos.map(d=>`
+    <tr>
+      <td>${d.idDisparo}</td>
+      <td>${d.empNome}</td>
+      <td>${fmtDtHora_(d.dataDisparo)}</td>
+      <td>${d.agenteId}</td>
+      <td><button class="btn-tbl-link" onclick="abrirRelatorioDisparo('${String(d.idDisparo).replace(/'/g,"\\'")}','${String(d.empNome||'').replace(/'/g,"\\'")}')">📊 Relatório</button></td>
+    </tr>`).join('');
 }
-function copiarLinkGerado(){
-  if (!_linkAtual) return;
-  navigator.clipboard.writeText(_linkAtual.link).then(()=>toast('Link copiado!', 'green'));
+
+/* ═══ RELATÓRIO DE UM DISPARO (contagem de cadastros vindos dele) ═══ */
+const STATUS_LABEL = { agente:'Novo cadastro', contato:'Em contato', proposta:'Proposta', fechado:'Venda fechada', perdido:'Perdido' };
+const STATUS_BDG = { agente:'bdg-novo', contato:'bdg-contato', proposta:'bdg-proposta', fechado:'bdg-fechado', perdido:'bdg-perdido' };
+function abrirRelatorioDisparo(idDisparo, empNome){
+  const itens = _indicacoes.filter(i=>i.campanhaId===idDisparo);
+  const fechados = itens.filter(i=>i.status==='fechado').length;
+  document.getElementById('relTitulo').textContent = 'Relatório — ' + empNome;
+  document.getElementById('relResumo').textContent = `${itens.length} cadastro(s) · ${fechados} venda(s) fechada(s)`;
+  document.getElementById('relCorpo').innerHTML = itens.length
+    ? itens.map(i=>`<tr><td>${i.nomeCliente||'—'}</td><td><span class="bdg ${STATUS_BDG[i.status]||'bdg-novo'}">${STATUS_LABEL[i.status]||i.status}</span></td><td>${fmtDt_(i.criadoEm)}</td></tr>`).join('')
+    : '<tr><td colspan="3"><div class="empty">Ainda não há cadastros por este disparo.</div></td></tr>';
+  document.getElementById('modalRelatorio').classList.add('show');
 }
-function mostrarFormEmail(){
-  document.getElementById('formEmail').style.display = 'block';
-  document.getElementById('emailDestino').value = '';
-  document.getElementById('emailDestino').focus();
+function fecharModalRelatorio(){ document.getElementById('modalRelatorio').classList.remove('show'); }
+
+/* ═══ CAIXA DE COMPARTILHAMENTO (reutilizável por prefixo de id) ═══ */
+let _shareState = {};
+function montarShareBox(prefix, empNome, link, linkMapa){
+  const texto = `🏗️ *${empNome}*\n\nCondições especiais para militares FAB, indicação CFIAe.\n\nConfira: ${link}`;
+  _shareState[prefix] = { link, linkMapa, texto, assunto: `WAL Imóveis — ${empNome} (indicação CFIAe)` };
+  document.getElementById(prefix+'LinkGerado').textContent = link;
+  document.getElementById(prefix+'BtnWpp').href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  document.getElementById(prefix+'BtnMapa').href = linkMapa;
+  document.getElementById(prefix+'FormEmail').style.display = 'none';
+  document.getElementById(prefix+'LinkOut').style.display = 'block';
 }
-async function enviarLinkPorEmail(){
-  const destino = document.getElementById('emailDestino').value.trim();
+function copiarLink(prefix){
+  const st = _shareState[prefix]; if (!st) return;
+  navigator.clipboard.writeText(st.link).then(()=>toast('Link copiado!', 'green'));
+}
+function mostrarFormEmail(prefix){
+  document.getElementById(prefix+'FormEmail').style.display = 'block';
+  document.getElementById(prefix+'EmailDestino').value = '';
+  document.getElementById(prefix+'EmailDestino').focus();
+}
+async function enviarLinkPorEmail(prefix){
+  const st = _shareState[prefix]; if (!st) return;
+  const destino = document.getElementById(prefix+'EmailDestino').value.trim();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(destino)){ toast('Digite um e-mail válido.', 'red'); return; }
-  const btn = document.getElementById('btnEnviarEmail');
+  const btn = document.getElementById(prefix+'BtnEnviarEmail');
   btn.disabled = true; btn.textContent = 'Enviando...';
   try{
     const res = await fetch(SCRIPT_URL_LEADS, { method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ tipo:'compartilhar_email', destinatario:destino, assunto:_linkAtual.assunto, corpo:_linkAtual.texto }) });
+      body: JSON.stringify({ tipo:'compartilhar_email', destinatario:destino, assunto:st.assunto, corpo:st.texto }) });
     const data = await res.json();
-    if (data.status === 'ok'){ toast('E-mail enviado para '+destino+'!', 'green'); document.getElementById('formEmail').style.display='none'; }
+    if (data.status === 'ok'){ toast('E-mail enviado para '+destino+'!', 'green'); document.getElementById(prefix+'FormEmail').style.display='none'; }
     else { toast(data.message || 'Não foi possível enviar agora.', 'red'); }
   }catch(e){ toast('Falha na conexão. Tente novamente.', 'red'); }
   btn.disabled = false; btn.textContent = 'Enviar →';
-}
-
-/* ═══ MINHAS CAMPANHAS ═══
-   Reaproveita a ação crm_indicacao_listar (já usada por
-   painel/agente/dashboard-agente.html) sem mudança nenhuma no
-   backend — o agrupamento por campanhaId é feito aqui no front,
-   já que hoje não existe entidade de campanha, só o rótulo livre
-   gravado em Campanha_Id (ver crm_indicacao_publica_criar_). */
-const STATUS_LABEL = { agente:'Novo cadastro', contato:'Em contato', proposta:'Proposta', fechado:'Venda fechada', perdido:'Perdido' };
-const STATUS_BDG = { agente:'bdg-novo', contato:'bdg-contato', proposta:'bdg-proposta', fechado:'bdg-fechado', perdido:'bdg-perdido' };
-function nomeEmp_(empId){ const e = _empreendimentos.find(x=>x.id===empId); return e ? e.nome : (empId ? '—' : 'Não informado'); }
-function fmtDt_(iso){ if(!iso) return '—'; const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso); }
-
-function renderCampanhas(){
-  const totalCad = _indicacoes.length;
-  const totalFechado = _indicacoes.filter(i=>i.status==='fechado').length;
-  const grupos = {};
-  _indicacoes.forEach(i=>{
-    const chave = (i.campanhaId || '').trim() || '(sem campanha — link antigo ou geral)';
-    if (!grupos[chave]) grupos[chave] = [];
-    grupos[chave].push(i);
-  });
-  const nomesCampanhas = Object.keys(grupos).sort((a,b)=>grupos[b].length-grupos[a].length);
-
-  document.getElementById('kpiTotalCad').textContent = totalCad;
-  document.getElementById('kpiTotalFechado').textContent = totalFechado;
-  document.getElementById('kpiTotalCampanhas').textContent = nomesCampanhas.length;
-
-  const cont = document.getElementById('listaCampanhas');
-  if (!nomesCampanhas.length){
-    cont.innerHTML = '<div class="card"><div class="empty">Nenhuma indicação registrada ainda. Gere um link na aba "Gerar Link" e compartilhe para começar a ver os resultados aqui.</div></div>';
-    return;
-  }
-  cont.innerHTML = nomesCampanhas.map((nome, idx)=>{
-    const itens = grupos[nome].slice().sort((a,b)=>(b.criadoEm||'').localeCompare(a.criadoEm||''));
-    const fechados = itens.filter(i=>i.status==='fechado').length;
-    const bodyId = 'campBody'+idx;
-    return `
-      <div class="camp-card">
-        <div class="camp-head" onclick="document.getElementById('${bodyId}').classList.toggle('show')">
-          <div class="nome">📣 ${nome}</div>
-          <div class="nums"><span><b>${itens.length}</b> cadastrados</span><span><b>${fechados}</b> vendas</span></div>
-        </div>
-        <div class="camp-body" id="${bodyId}">
-          <table class="tbl-lead">
-            <thead><tr><th>Nome</th><th>Empreendimento</th><th>Status</th><th>Cadastro</th></tr></thead>
-            <tbody>
-              ${itens.map(i=>`<tr><td>${i.nomeCliente||'—'}</td><td>${nomeEmp_(i.empId)}</td><td><span class="bdg ${STATUS_BDG[i.status]||'bdg-novo'}">${STATUS_LABEL[i.status]||i.status}</span></td><td>${fmtDt_(i.criadoEm)}</td></tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>`;
-  }).join('');
 }
 </script>
 </body>
