@@ -207,6 +207,7 @@
     <button class="active" data-view="principal" onclick="mudarView('principal')">🏠 Principal</button>
     <button data-view="disparos" onclick="mudarView('disparos')">📊 Meus Disparos</button>
     <button data-view="relatorios" onclick="mudarView('relatorios')">📈 Relatórios</button>
+    <button data-view="projetos" onclick="mudarView('projetos')">🏗️ Projetos</button>
     <div class="nav-right"><span class="relogio" id="relogioTexto">—</span></div>
   </nav>
 
@@ -327,6 +328,24 @@
       <div class="card">
         <h2>Relatórios</h2>
         <p class="desc">Esta seção está em construção. Em breve você terá aqui os relatórios completos de desempenho do CFIAe.</p>
+      </div>
+    </section>
+
+    <!-- ═══ PROJETOS (Rio / SJC e Região — pedido 96.1) ═══ -->
+    <section class="painel-view" id="view-projetos">
+      <div class="subtabs">
+        <button class="subtab-btn active" data-subproj="rio" onclick="mudarSubProjeto('rio')">Rio</button>
+        <button class="subtab-btn" data-subproj="sjc" onclick="mudarSubProjeto('sjc')">SJC e Região</button>
+      </div>
+
+      <!-- ── RIO (Porto Maravilha / Praça Onze) ── -->
+      <div class="sub-principal-view active" id="sub-projeto-rio">
+        <iframe class="iframe-mapa" id="iframeProjetoRio" title="Projeto Praça Onze Maravilha"></iframe>
+      </div>
+
+      <!-- ── SJC E REGIÃO (Parque Una) ── -->
+      <div class="sub-principal-view" id="sub-projeto-sjc">
+        <iframe class="iframe-mapa" id="iframeProjetoSjc" title="Projeto Parque Una SJC"></iframe>
       </div>
     </section>
   </main>
@@ -580,11 +599,34 @@ function mudarView(view){
   document.querySelectorAll('nav.tabs button[data-view]').forEach(b=>b.classList.toggle('active', b.dataset.view===view));
   document.querySelectorAll('.painel-view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
+  if (view === 'projetos') carregarIframeProjetoSeVazio_(_subProjetoAtual);
 }
 function mudarSubPrincipal(sub){
   document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
   document.getElementById('sub-mapa').classList.toggle('active', sub==='mapa');
   document.getElementById('sub-lista').classList.toggle('active', sub==='lista');
+}
+
+/* ═══ PROJETOS (pedido 96.1) — Rio (Praça Onze) / SJC e Região (Parque
+   Una). Cada aba é um iframe pra uma página já publicada e mantida à
+   parte; src só é preenchido na 1ª vez que a aba é aberta (evita
+   carregar as duas páginas — a do SJC é pesada, ~3,5MB — sem o CFIAe
+   nunca ter clicado nelas). ═══ */
+const URL_PROJETO_RIO = `${SITE_BASE_URL}Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html`;
+const URL_PROJETO_SJC = `${SITE_BASE_URL}Projeto%20SJC%20e%20SP/WAL_Parque_Una_SJC_site_completo.html#riza`;
+let _subProjetoAtual = 'rio';
+function carregarIframeProjetoSeVazio_(sub){
+  const id = sub === 'sjc' ? 'iframeProjetoSjc' : 'iframeProjetoRio';
+  const url = sub === 'sjc' ? URL_PROJETO_SJC : URL_PROJETO_RIO;
+  const iframe = document.getElementById(id);
+  if (iframe && !iframe.src) iframe.src = url;
+}
+function mudarSubProjeto(sub){
+  _subProjetoAtual = sub;
+  document.querySelectorAll('#view-projetos .subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.subproj===sub));
+  document.getElementById('sub-projeto-rio').classList.toggle('active', sub==='rio');
+  document.getElementById('sub-projeto-sjc').classList.toggle('active', sub==='sjc');
+  carregarIframeProjetoSeVazio_(sub);
 }
 
 /* ═══ INÍCIO — chamado pelo gate (1ª visita direto, ou depois do
