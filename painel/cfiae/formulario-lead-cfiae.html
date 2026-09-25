@@ -283,6 +283,20 @@ function fixDriveUrl(url){
   return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
 }
 
+function cadastroApiJsonp(action, params){
+  return new Promise((resolve)=>{
+    const cb = 'crmFlCb_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    const qs = new URLSearchParams(Object.assign({action, callback:cb}, params||{}));
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = CADASTRO_API_URL+'?'+qs.toString();
+    document.body.appendChild(s);
+  });
+}
+
 function sheetGvizJsonp(sheetId, sheetName){
   return new Promise((resolve)=>{
     const cb = 'gvizFl_'+Date.now()+'_'+Math.floor(Math.random()*10000);
@@ -395,6 +409,31 @@ function fetchSeguro_(url, payload, timeoutMs){
   }).catch(()=>{}).finally(()=>clearTimeout(timer));
 }
 
+/* ═══ CONFIRMAÇÃO REAL DA GRAVAÇÃO (pedido 96.10) ═══
+   O envio é "às cegas" (fetch no-cors pro Apps Script — não dá pra ler
+   se gravou ou deu erro). Em vez de confiar cegamente, procura o
+   registro recém-criado na aba INDICACOES (por nome + campanha), com
+   espera crescente — mesmo padrão já usado em outros pontos do site
+   pra corrida entre gravação e leitura (ex.: crm_lead_evento_publico_
+   no backend). Casa por nome porque crm_cfiae_indicacoes_listar não
+   devolve telefone; nome completo já passou pela validação anti-lixo,
+   então é um casamento seguro o bastante pra essa checagem. */
+async function verificarGravacaoIndicacao_(nomeEsperado, campanhaEsperada){
+  const nomeNorm = nomeEsperado.trim().toLowerCase();
+  const esperasMs = [1500, 3000, 4500];
+  for (let i = 0; i < esperasMs.length; i++){
+    await new Promise(r=>setTimeout(r, esperasMs[i]));
+    const resp = await cadastroApiJsonp('crm_cfiae_indicacoes_listar', { agenteId: AGENTE_ID });
+    const itens = (resp && resp.itens) || [];
+    const achou = itens.some(it =>
+      (it.nomeCliente||'').trim().toLowerCase() === nomeNorm &&
+      (!campanhaEsperada || it.campanhaId === campanhaEsperada)
+    );
+    if (achou) return true;
+  }
+  return false;
+}
+
 async function enviarFormularioLead_(){
   const nome        = document.getElementById('fl-nome').value.trim();
   const posto       = document.getElementById('fl-posto').value;
@@ -454,7 +493,23 @@ async function enviarFormularioLead_(){
     // OUTROS formulários — imovel.html etc. — de reenvio por timeout/duplo
     // clique) barrava silenciosamente qualquer reenvio com o mesmo WhatsApp.
     sempreNovo: true
-  });
+  }, 15000);
+
+  // 96.10: o envio acima é "às cegas" (fetch com mode:no-cors — não dá pra
+  // ler se o Apps Script realmente gravou ou deu erro/timeout). Antonio
+  // relatou um cadastro que sumiu sem deixar rastro (2 envios em ~15s, só
+  // o 2º gravou) — sem essa conferência, o formulário mostrava "enviado"
+  // mesmo quando a gravação falhava em silêncio. Confere de verdade antes
+  // de comemorar: procura pelo nome+campanha na aba INDICACOES, com
+  // retentativa (mesmo padrão de espera crescente já usado em outros
+  // pontos do site pra corrida entre gravação e leitura).
+  btn.textContent = 'Confirmando...';
+  const gravou = await verificarGravacaoIndicacao_(nome, CAMPANHA_ID);
+  if (!gravou) {
+    btn.disabled = false; btn.textContent = 'Enviar →';
+    mostrarToast_('⚠️ Não conseguimos confirmar o cadastro. Verifique sua internet e tente enviar de novo.');
+    return;
+  }
 
   document.getElementById('conteudo').style.display = 'none';
   document.getElementById('tela-enviado').style.display = 'block';
