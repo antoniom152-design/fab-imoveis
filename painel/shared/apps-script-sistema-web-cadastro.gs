@@ -910,7 +910,11 @@ function crm_share_evento_registrar_(data) {
    (INDICACOES + espelho em LEADS) de crm_indicacao_criar_, mas sem
    sessão, e sem sobrescrever aquela função já em produção. Dedupe por
    Agente_Id+Telefone pra não duplicar se reserva.html reenviar por
-   engano (timeout, duplo clique). */
+   engano (timeout, duplo clique) — 96.6/96.6b: formulario-lead-cfiae.html
+   manda sempreNovo=true de propósito (regra do Antonio: cada envio dali
+   é sempre um registro novo, mesmo repetindo telefone), então pula esse
+   dedupe só nesse caso; os outros chamadores (imovel.html,
+   mapa-empreendimentos.html) continuam protegidos como sempre. */
 function crm_indicacao_publica_criar_(data) {
   var agenteId = s_(data.agenteId).trim().toUpperCase();
   if (!agenteId) return { status: 'error', message: 'Id do agente não informado.' };
@@ -928,22 +932,29 @@ function crm_indicacao_publica_criar_(data) {
     if (!abaInd) return { status: 'error', message: 'Aba INDICACOES não encontrada.' };
 
     var telNormalizado = telefone.replace(/\D/g, '');
-    var jaExiste = lerAbaObjetos_(abaInd).some(function (i) {
-      return s_(i.Agente_Id) === s_(agente.Id) && s_(i.Telefone).replace(/\D/g, '') === telNormalizado;
-    });
-    if (jaExiste) return { status: 'ok', duplicado: true };
+    var sempreNovo = data.sempreNovo === true || data.sempreNovo === 'true';
+    if (!sempreNovo) {
+      var jaExiste = lerAbaObjetos_(abaInd).some(function (i) {
+        return s_(i.Agente_Id) === s_(agente.Id) && s_(i.Telefone).replace(/\D/g, '') === telNormalizado;
+      });
+      if (jaExiste) return { status: 'ok', duplicado: true };
+    }
 
     var id = gerarId_(abaInd, 'IND');
     var agoraStr = agora_();
     var camposInd = {
       Id: id, Nome_Cliente: nomeCliente, Telefone: telefone, Email: s_(data.emailCliente),
       Emp_Id: s_(data.empId), Status: 'agente', Criado_em: agoraStr, Ultima_atualizacao: agoraStr,
-      Obs_Do_Indicador: 'Indicação automática via link compartilhado (' + (s_(data.origem) || 'site') + ')',
+      // 96.5: se quem chamou já mandar "obs" pronto (formulario-lead-cfiae.html,
+      // com Empreendimento/Unidade/Órgão/melhor dia/agendamento etc.), usa esse
+      // texto; senão mantém a mensagem automática de sempre.
+      Obs_Do_Indicador: s_(data.obs) || ('Indicação automática via link compartilhado (' + (s_(data.origem) || 'site') + ')'),
       Obs_Gerencia_Comercial: '', Agente_Id: s_(agente.Id),
-      // Rótulo livre de campanha/disparo (link ...&campanha=X) — só é
-      // gravado se a coluna Campanha_Id existir na aba (ver mapeamento
-      // por headersInd.map abaixo); nunca quebra se a coluna não existir.
-      Campanha_Id: s_(data.campanhaId).trim()
+      Campanha_Id: s_(data.campanhaId).trim(),
+      // 96.5: opcionais — só preenchem se o chamador mandar, e só gravam
+      // se a coluna já existir (headersInd.map abaixo protege sozinho).
+      Posto_Cargo: s_(data.postoCargo),
+      Residencia_Atual: s_(data.residenciaAtual)
     };
     var headersInd = headersDe_(abaInd);
     abaInd.appendRow(headersInd.map(function (h) { return camposInd[h] !== undefined ? camposInd[h] : ''; }));
@@ -954,9 +965,23 @@ function crm_indicacao_publica_criar_(data) {
       var camposLead = {
         ID: id, Status: 'novo', Prioridade: 'media', Nome: nomeCliente, Telefone: telefone,
         Email: s_(data.emailCliente), Origem: 'Indicação · agente (link)', Consultor: s_(agente.Nome),
-        'Criado em': agoraStr, 'Atualizado em': agoraStr, Agente_Id: s_(agente.Id)
+        // 96.13: "Solicitação" (mostrado no CRM do admin.html) nunca era
+        // preenchido por esta função — usa o mesmo texto de Obs_Do_Indicador
+        // (já descreve empreendimento/pedido do cliente quando vem do
+        // formulario-lead-cfiae.html; cai na mensagem automática senão).
+        'Solicitação': camposInd.Obs_Do_Indicador,
+        'Criado em': agoraStr, 'Atualizado em': agoraStr, Agente_Id: s_(agente.Id),
+        Posto_Cargo: s_(data.postoCargo)
       };
       abaLeads.appendRow(headersLeads.map(function (h) { return camposLead[h] !== undefined ? camposLead[h] : ''; }));
+    }
+
+    // 96.13: registra também no Histórico de Atendimento (mesma aba que
+    // admin.html/dashboard_atendente.html leem) — antes esta função nunca
+    // gravava nada lá, então o Lead chegava sem nenhuma interação inicial.
+    var abaHist = ssCrm.getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+    if (abaHist) {
+      abaHist.appendRow([id, s_(data.emailCliente), '📋 Cadastro via link', camposInd.Obs_Do_Indicador, s_(agente.Nome) || 'Sistema', agoraStr]);
     }
     return { status: 'ok', id: id };
   });
