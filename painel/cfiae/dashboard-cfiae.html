@@ -975,7 +975,7 @@ async function criarDisparo(){
   renderRelatorios();
 
   const params = new URLSearchParams({ id:_linkSelecionado.empId, agente:AGENTE_ID_FIXO, campanha:idDisparo });
-  const link = `${SITE_BASE_URL}imovel.html?${params.toString()}`;
+  const link = `${SITE_BASE_URL}painel/cfiae/formulario-lead-cfiae.html?${params.toString()}`;
   const mapaParams = new URLSearchParams({ agente:AGENTE_ID_FIXO, campanha:idDisparo });
   const linkMapa = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
   montarShareBox('dsp', _linkSelecionado.empNome, link, linkMapa);
