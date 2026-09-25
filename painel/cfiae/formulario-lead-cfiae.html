@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cadastro — Efetivo da FAB | CFIAe · WAL Imóveis</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1628; --navy2:#16233a; --gold:#C9A84C; --gold2:#b8973f;
+    --bg:#f4f5f7; --card:#fff; --txt:#1a2332; --muted:#667085; --line:#e2e6ec;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{min-height:100%}
+  body{font-family:'Barlow',Arial,sans-serif;background:var(--bg);color:var(--txt);line-height:1.55}
+  a{color:inherit}
+
+  header.top{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;
+    padding:16px 22px;display:flex;align-items:center;gap:10px;border-bottom:3px solid var(--gold);
+  }
+  header.top img{height:38px;width:38px;object-fit:contain;border-radius:4px}
+  header.top strong{display:block;font-size:1.02em}
+  header.top span{display:block;font-size:.72em;color:var(--gold);text-transform:uppercase;letter-spacing:.06em}
+
+  main{max-width:760px;margin:0 auto;padding:22px 16px 60px}
+
+  #loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:80px 20px;color:var(--muted)}
+  .spinner{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:girar 0.8s linear infinite}
+  @keyframes girar{to{transform:rotate(360deg)}}
+
+  #erro-emp{display:none;text-align:center;padding:60px 20px;color:var(--muted)}
+  #erro-emp h1{font-family:'Playfair Display',serif;color:var(--navy);margin-bottom:10px;font-size:1.3em}
+
+  #conteudo{display:none}
+
+  .card{background:var(--card);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.07);overflow:hidden;margin-bottom:20px}
+
+  .hero-img{width:100%;height:220px;object-fit:cover;background:#eee;display:block}
+  .hero-body{padding:22px 24px}
+  .hero-tag{font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:.1em;color:var(--gold2);font-size:.8em;font-weight:700;margin-bottom:6px}
+  .hero-body h1{font-family:'Playfair Display',serif;font-size:1.55em;color:var(--navy);margin-bottom:6px;line-height:1.2}
+  .hero-local{color:var(--muted);font-size:.92em;margin-bottom:16px}
+
+  .descricao-wrapper{position:relative;width:100%}
+  .descricao-wrapper.descricao-recolhida{max-height:calc(1.6em*7);overflow:hidden}
+  .descricao-wrapper.descricao-expandida{max-height:none;overflow:visible}
+  .descricao-wrapper.descricao-com-excedente::after{
+    content:"";position:absolute;right:0;bottom:0;left:0;height:36px;pointer-events:none;
+    background:linear-gradient(to bottom,rgba(255,255,255,0),#fff 90%);
+  }
+  .descricao-wrapper.descricao-expandida::after{display:none}
+  .descricao-imovel{font-size:.92em;color:#445;line-height:1.65}
+  .descricao-imovel h2,.descricao-imovel h3{color:var(--navy);font-size:1.05em;margin:0 0 6px}
+  .descricao-imovel p{margin:0 0 10px}
+  .descricao-imovel ul,.descricao-imovel ol{margin:4px 0 10px;padding-left:18px}
+  .descricao-imovel li{margin-bottom:4px}
+  .descricao-imovel strong{color:var(--navy);font-weight:600}
+  .botao-detalhes-descricao{display:inline-flex;align-items:center;margin-top:8px;padding:0;border:none;background:none;color:var(--gold2);font:inherit;font-size:.85em;font-weight:700;text-decoration:underline;cursor:pointer}
+  .botao-detalhes-descricao[hidden]{display:none}
+
+  .form-card{padding:26px 24px}
+  .form-card h2{font-family:'Playfair Display',serif;font-size:1.25em;color:var(--navy);margin-bottom:6px}
+  .form-card p.sub{color:var(--muted);font-size:.9em;margin-bottom:22px}
+
+  .campo{margin-bottom:16px}
+  .campo label{display:block;font-size:.78em;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:600;margin-bottom:5px}
+  .campo input[type=text],.campo input[type=email],.campo input[type=tel],.campo input[type=number],
+  .campo select,.campo textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:7px;font-size:.95em;font-family:inherit;background:#fbfbfc;
+  }
+  .campo input:focus,.campo select:focus,.campo textarea:focus{outline:none;border-color:var(--gold);background:#fff}
+  .campo textarea{resize:vertical;min-height:70px}
+  .campo-erro{display:none;font-size:.78em;color:#DC2626;margin-top:5px}
+
+  .radio-row{display:flex;gap:16px;flex-wrap:wrap}
+  .radio-row label{display:flex;align-items:center;gap:6px;font-size:.92em;font-weight:400;text-transform:none;letter-spacing:0;color:var(--txt);cursor:pointer}
+  .radio-row input{width:auto}
+
+  .row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:520px){.row-2{grid-template-columns:1fr}}
+
+  .btn-enviar{
+    width:100%;background:var(--gold);color:var(--navy);border:none;padding:15px;border-radius:8px;
+    font-weight:700;font-size:1em;cursor:pointer;margin-top:6px;
+  }
+  .btn-enviar:hover{background:var(--gold2)}
+  .btn-enviar:disabled{opacity:.6;cursor:default}
+
+  .aviso-privacidade{font-size:.75em;color:var(--muted);margin-top:12px;text-align:center}
+
+  #toast{
+    position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--navy);color:#fff;padding:12px 18px;border-radius:8px;font-size:.88em;
+    opacity:0;pointer-events:none;transition:all .25s;z-index:999;max-width:90vw;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  #tela-enviado{display:none;text-align:center;padding:70px 20px}
+  #tela-enviado .check{font-size:2.4em;margin-bottom:12px}
+  #tela-enviado h1{font-family:'Playfair Display',serif;color:var(--navy);margin-bottom:8px}
+  #tela-enviado p{color:var(--muted)}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+<script src="../shared/descricao-inteligente.js"></script>
+</head>
+<body>
+
+<header class="top">
+  <img src="../../logo%20novo%20wal.jpeg" alt="WAL Imóveis">
+  <div>
+    <strong>WAL Imóveis</strong>
+    <span>Cadastro — Exclusivo para o Efetivo da FAB · CFIAe</span>
+  </div>
+</header>
+
+<main>
+  <div id="loading">
+    <div class="spinner"></div>
+    <div>Carregando empreendimento…</div>
+  </div>
+
+  <div id="erro-emp">
+    <h1>Link inválido</h1>
+    <p>Não encontramos o empreendimento deste link. Peça um novo link ao CFIAe ou fale com a WAL Imóveis.</p>
+  </div>
+
+  <div id="conteudo">
+    <div class="card">
+      <img class="hero-img" id="empImg" src="" alt="" onerror="this.style.display='none'">
+      <div class="hero-body">
+        <div class="hero-tag" id="empTag">—</div>
+        <h1 id="empNome">—</h1>
+        <div class="hero-local" id="empLocal"></div>
+        <div class="descricao-wrapper descricao-recolhida" id="empDescWrapper">
+          <div class="descricao-imovel" id="empDesc"></div>
+        </div>
+        <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
+      </div>
+    </div>
+
+    <div class="card form-card">
+      <h2>Cadastro — Exclusivo para o Efetivo da FAB</h2>
+      <p class="sub">Preencha seus dados abaixo. Nossa equipe entrará em contato com condições especiais pra você, militar ou civil do efetivo da FAB.</p>
+
+      <form id="formLead" onsubmit="return false">
+        <div class="campo">
+          <label>Nome completo *</label>
+          <input type="text" id="fl-nome" placeholder="Seu nome completo" oninput="limparErroCampo_('fl-nome')">
+          <div class="campo-erro" id="fl-nome-erro">⚠ Informe nome e sobrenome.</div>
+        </div>
+
+        <div class="row-2">
+          <div class="campo">
+            <label>Posto/Graduação ou Cargo na FAB *</label>
+            <select id="fl-posto" onchange="limparErroCampo_('fl-posto')">
+              <option value="">Selecione...</option>
+              <optgroup label="Oficiais">
+                <option>Oficial General</option>
+                <option>Oficial Superior</option>
+                <option>Oficial Intermediário</option>
+                <option>Oficial Subalterno</option>
+              </optgroup>
+              <optgroup label="Praças">
+                <option>Sargento / Suboficial</option>
+                <option>Cabo / Soldado</option>
+              </optgroup>
+              <optgroup label="Civil / Outros">
+                <option>Servidor Público Federal</option>
+                <option>Servidor Público Estadual</option>
+                <option>Servidor Público Municipal</option>
+                <option>Pensionista / Aposentado</option>
+                <option>Ministério Público</option>
+                <option>Outro</option>
+              </optgroup>
+            </select>
+            <div class="campo-erro" id="fl-posto-erro">⚠ Selecione seu posto/cargo.</div>
+          </div>
+          <div class="campo">
+            <label>Unidade ou Órgão da FAB *</label>
+            <input type="text" id="fl-unidade" placeholder="Ex.: Base Aérea de..." oninput="limparErroCampo_('fl-unidade')">
+            <div class="campo-erro" id="fl-unidade-erro">⚠ Informe sua unidade ou órgão.</div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="campo">
+            <label>Telefone (WhatsApp) *</label>
+            <input type="tel" id="fl-whatsapp" placeholder="(21) 99999-9999" maxlength="15"
+                   oninput="mascaraTelefone_(this);limparErroCampo_('fl-whatsapp')">
+            <div class="campo-erro" id="fl-whatsapp-erro">⚠ Informe um WhatsApp válido com DDD.</div>
+          </div>
+          <div class="campo">
+            <label>E-mail *</label>
+            <input type="email" id="fl-email" placeholder="seu@email.com" oninput="limparErroCampo_('fl-email')">
+            <div class="campo-erro" id="fl-email-erro">⚠ Informe um e-mail válido.</div>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Cidade/Estado onde reside *</label>
+          <input type="text" id="fl-residencia" placeholder="Ex.: São José dos Campos/SP" oninput="limparErroCampo_('fl-residencia')">
+          <div class="campo-erro" id="fl-residencia-erro">⚠ Informe cidade e estado onde reside.</div>
+        </div>
+
+        <div class="campo">
+          <label>Melhor dia da semana *</label>
+          <select id="fl-dia" onchange="limparErroCampo_('fl-dia')">
+            <option value="">Selecione...</option>
+            <option>Segunda</option>
+            <option>Terça</option>
+            <option>Quarta</option>
+            <option>Quinta</option>
+            <option>Sexta</option>
+            <option>Final de Semana</option>
+          </select>
+          <div class="campo-erro" id="fl-dia-erro">⚠ Selecione o melhor dia.</div>
+        </div>
+
+        <div class="campo">
+          <label>Deseja agendar um horário específico para atendimento personalizado? *</label>
+          <div class="radio-row">
+            <label><input type="radio" name="fl-agendar" value="Sim" onchange="alternarHorario_()"> Sim</label>
+            <label><input type="radio" name="fl-agendar" value="Não" onchange="alternarHorario_()"> Não</label>
+          </div>
+          <div class="campo-erro" id="fl-agendar-erro">⚠ Escolha uma opção.</div>
+        </div>
+
+        <div class="campo" id="fl-horario-campo" style="display:none">
+          <label>Informe o melhor horário</label>
+          <input type="text" id="fl-horario" placeholder="Ex.: 14h" oninput="limparErroCampo_('fl-horario')">
+        </div>
+
+        <div class="row-2">
+          <div class="campo">
+            <label>Número de acompanhantes (se houver)</label>
+            <input type="number" id="fl-acompanhantes" min="0" placeholder="0">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label>Mensagem ou observação adicional</label>
+          <textarea id="fl-mensagem" placeholder="Se quiser, deixe aqui alguma observação..."></textarea>
+        </div>
+
+        <button class="btn-enviar" id="btnEnviar" onclick="enviarFormularioLead_()">Enviar →</button>
+        <p class="aviso-privacidade">Seus dados são usados só pela WAL Imóveis para contato sobre este empreendimento.</p>
+      </form>
+    </div>
+  </div>
+
+  <div id="tela-enviado">
+    <div class="check">✅</div>
+    <h1>Cadastro enviado!</h1>
+    <p>Já estamos te levando pro mapa de empreendimentos…</p>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+const AGENTE_ID_FIXO = 'AG0005';
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+const SITE_BASE_URL = (function(){
+  const o = window.location.origin;
+  if (!o || o === 'null' || o.startsWith('file')) return '';
+  return o + window.location.pathname.replace(/painel\/cfiae\/.*$/, '');
+})();
+const IMOVEIS_SHEET_ID   = '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk';
+const IMOVEIS_SHEET_NAME = 'IMOVEISDISPONIVEIS';
+
+const params = new URLSearchParams(location.search);
+const EMP_ID    = params.get('id') || '';
+const AGENTE_ID = params.get('agente') || AGENTE_ID_FIXO;
+const CAMPANHA_ID = params.get('campanha') || '';
+
+function fixDriveUrl(url){
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
+
+function sheetGvizJsonp(sheetId, sheetName){
+  return new Promise((resolve)=>{
+    const cb = 'gvizFl_'+Date.now()+'_'+Math.floor(Math.random()*10000);
+    const s = document.createElement('script');
+    const timeout = setTimeout(()=>{ cleanup(); resolve(null); }, 12000);
+    function cleanup(){ clearTimeout(timeout); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = (data)=>{ cleanup(); resolve(data); };
+    s.onerror = ()=>{ cleanup(); resolve(null); };
+    s.src = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json;responseHandler:${cb}&sheet=${encodeURIComponent(sheetName)}`;
+    document.head.appendChild(s);
+  });
+}
+function parseImoveis(table){
+  if (!table || !table.rows) return [];
+  return table.rows.map(row=>{
+    const g = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
+    return {
+      id: g(0),
+      ativo: row.c && row.c[1] && row.c[1].v === true,
+      tipo: g(2), construtora: g(3), cidade: g(4), nome: g(5),
+      descricao: g(6), imagem: fixDriveUrl(g(7)),
+      uf: g(15), bairro: g(16)
+    };
+  }).filter(r=>r.nome);
+}
+
+let _imovelAtual = null;
+
+async function initFormularioLead_(){
+  if (!EMP_ID){
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('erro-emp').style.display = 'block';
+    return;
+  }
+  const gvizResp = await sheetGvizJsonp(IMOVEIS_SHEET_ID, IMOVEIS_SHEET_NAME);
+  const imoveis = (gvizResp && gvizResp.table) ? parseImoveis(gvizResp.table) : [];
+  const emp = imoveis.find(x => String(x.id) === String(EMP_ID));
+  document.getElementById('loading').style.display = 'none';
+  if (!emp){
+    document.getElementById('erro-emp').style.display = 'block';
+    return;
+  }
+  _imovelAtual = emp;
+  document.title = emp.nome + ' — Cadastro CFIAe | WAL Imóveis';
+  document.getElementById('empTag').textContent = [emp.tipo, emp.construtora].filter(Boolean).join(' · ');
+  document.getElementById('empNome').textContent = emp.nome;
+  document.getElementById('empLocal').textContent = [emp.bairro, [emp.cidade, emp.uf].filter(Boolean).join('/')].filter(Boolean).join(' · ');
+  const img = document.getElementById('empImg');
+  if (emp.imagem){ img.src = emp.imagem; } else { img.style.display = 'none'; }
+  preencherDescricaoInteligente(document.getElementById('empDesc'), emp.descricao, 'Descrição não disponível para este empreendimento.');
+  recalcularDescricoesInteligentes();
+  document.getElementById('conteudo').style.display = 'block';
+}
+initFormularioLead_();
+
+/* ═══ VALIDAÇÃO (mesmas regras já usadas no "Tenho Interesse" do imovel.html) ═══ */
+function validarNomeCompleto_(nome){
+  const limpo = (nome || '').trim();
+  if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+  const partes = limpo.split(/\s+/).filter(Boolean);
+  return partes.length >= 2 && limpo.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').length >= 4;
+}
+function validarEmail_(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((email || '').trim());
+}
+function validarWhatsApp_(tel){
+  const digitos = (tel || '').replace(/\D/g, '');
+  if (digitos.length < 10 || digitos.length > 11) return false;
+  const ddd = parseInt(digitos.slice(0,2), 10);
+  return ddd >= 11 && ddd <= 99;
+}
+function mascaraTelefone_(el){
+  let v = el.value.replace(/\D/g, '').slice(0, 11);
+  if (v.length > 10)     v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+  else if (v.length > 6) v = '('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);
+  else if (v.length > 2) v = '('+v.slice(0,2)+') '+v.slice(2);
+  el.value = v;
+}
+function limparErroCampo_(id){
+  const erro = document.getElementById(id+'-erro');
+  const campo = document.getElementById(id);
+  if (erro) erro.style.display = 'none';
+  if (campo) campo.style.borderColor = '';
+}
+function marcarErroCampo_(id, mostrar){
+  const erro = document.getElementById(id+'-erro');
+  const campo = document.getElementById(id);
+  if (erro)  erro.style.display  = mostrar ? 'block' : 'none';
+  if (campo) campo.style.borderColor = mostrar ? '#DC2626' : '';
+  return !mostrar;
+}
+function alternarHorario_(){
+  const sim = document.querySelector('input[name="fl-agendar"]:checked')?.value === 'Sim';
+  document.getElementById('fl-horario-campo').style.display = sim ? 'block' : 'none';
+  limparErroCampo_('fl-agendar');
+}
+function mostrarToast_(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+function fetchSeguro_(url, payload, timeoutMs){
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), timeoutMs || 8000);
+  return fetch(url, {
+    method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'},
+    body: JSON.stringify(payload), signal: controller.signal
+  }).catch(()=>{}).finally(()=>clearTimeout(timer));
+}
+
+async function enviarFormularioLead_(){
+  const nome        = document.getElementById('fl-nome').value.trim();
+  const posto       = document.getElementById('fl-posto').value;
+  const unidade     = document.getElementById('fl-unidade').value.trim();
+  const whatsapp    = document.getElementById('fl-whatsapp').value.trim();
+  const email       = document.getElementById('fl-email').value.trim().toLowerCase();
+  const residencia  = document.getElementById('fl-residencia').value.trim();
+  const dia         = document.getElementById('fl-dia').value;
+  const agendarEl   = document.querySelector('input[name="fl-agendar"]:checked');
+  const agendar     = agendarEl ? agendarEl.value : '';
+  const horario     = document.getElementById('fl-horario').value.trim();
+  const acompanhantes = document.getElementById('fl-acompanhantes').value.trim();
+  const mensagem    = document.getElementById('fl-mensagem').value.trim();
+
+  const nomeOk   = marcarErroCampo_('fl-nome',       !validarNomeCompleto_(nome));
+  const postoOk  = marcarErroCampo_('fl-posto',      !posto);
+  const unidOk   = marcarErroCampo_('fl-unidade',    !unidade);
+  const wppOk    = marcarErroCampo_('fl-whatsapp',   !validarWhatsApp_(whatsapp));
+  const emailOk  = marcarErroCampo_('fl-email',      !validarEmail_(email));
+  const residOk  = marcarErroCampo_('fl-residencia', !residencia);
+  const diaOk    = marcarErroCampo_('fl-dia',        !dia);
+  const agendarOk = marcarErroCampo_('fl-agendar',   !agendar);
+
+  if (!(nomeOk && postoOk && unidOk && wppOk && emailOk && residOk && diaOk && agendarOk)){
+    mostrarToast_('⚠️ Confira os campos destacados em vermelho.');
+    document.querySelector('.campo-erro[style*="block"]')?.closest('.campo')?.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  const obsPartes = [
+    'Unidade/Órgão da FAB: ' + unidade,
+    'Melhor dia da semana: ' + dia,
+    agendar === 'Sim' ? ('Deseja agendar atendimento: Sim' + (horario ? ' (horário: ' + horario + ')' : '')) : 'Deseja agendar atendimento: Não',
+    acompanhantes ? ('Nº de acompanhantes: ' + acompanhantes) : '',
+    mensagem ? ('Mensagem: ' + mensagem) : ''
+  ].filter(Boolean).join('\n');
+
+  const btn = document.getElementById('btnEnviar');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  await fetchSeguro_(CADASTRO_API_URL, {
+    action: 'crm_indicacao_publica_criar',
+    agenteId: AGENTE_ID,
+    nomeCliente: nome,
+    telefone: whatsapp,
+    emailCliente: email,
+    empId: EMP_ID,
+    campanhaId: CAMPANHA_ID,
+    postoCargo: posto,
+    residenciaAtual: residencia,
+    obs: obsPartes,
+    origem: 'Formulário CFIAe (disparo)'
+  });
+
+  document.getElementById('conteudo').style.display = 'none';
+  document.getElementById('tela-enviado').style.display = 'block';
+
+  const mapaParams = new URLSearchParams({ agente: AGENTE_ID, destaque: EMP_ID });
+  if (CAMPANHA_ID) mapaParams.set('campanha', CAMPANHA_ID);
+  setTimeout(()=>{
+    window.location.href = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
+  }, 1400);
+}
+</script>
+</body>
+</html>

@@ -516,6 +516,8 @@
   body[data-tema="claro"] #f-categoria-ref { background: #fff; color: var(--c-ink); border-color: rgba(184,135,58,.4) !important; }
   body[data-tema="claro"] #ref-agente-banner { background: rgba(184,135,58,.08); color: var(--c-ink); border-bottom-color: var(--c-gold); }
   body[data-tema="claro"] #ref-agente-banner strong { color: var(--c-gold); }
+  body[data-tema="claro"] #boas-vindas-banner { background: rgba(52,199,89,.12); color: var(--c-ink); border-bottom-color: #34c759; }
+  body[data-tema="claro"] #boas-vindas-banner strong { color: var(--c-gold); }
   body[data-tema="claro"] #perfil-banner {
     background: linear-gradient(90deg, rgba(184,135,58,.14), rgba(247,246,243,.9));
     border-bottom-color: var(--c-gold); color: var(--c-ink);
@@ -804,6 +806,12 @@
 
 <div id="ref-agente-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(201,168,76,.12);border-bottom:2px solid #C9A84C;padding:8px 20px;font-size:0.85em;color:#fff;text-align:center">
   🤝 Você está vendo este mapa pela indicação de <strong id="ref-agente-nome" style="color:#C9A84C">—</strong>, Agente Parceiro WAL.
+</div>
+
+<!-- Boas-vindas pós-formulário (pedido 96.5) — some por padrão, só aparece
+     quando a URL tem ?destaque=<empId> (vindo do formulario-lead-cfiae.html) -->
+<div id="boas-vindas-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(52,199,89,.16);border-bottom:2px solid #34c759;padding:8px 20px;font-size:0.85em;color:#fff;text-align:center">
+  ✅ Cadastro recebido! Já destacamos o empreendimento no mapa — clique em <strong style="color:#C9A84C">❓ O que este mapa oferece</strong> pra conhecer todas as funcionalidades.
 </div>
 
 <div id="perfil-banner">
@@ -2149,6 +2157,12 @@ function popularSelect(id, valores, label) {
   if (paramsURL.get('preco_min'))   { document.getElementById('f-preco-min').value = paramsURL.get('preco_min'); temFiltroNaURL = true; }
   if (paramsURL.get('preco_max'))   { document.getElementById('f-preco-max').value = paramsURL.get('preco_max'); temFiltroNaURL = true; }
   if (MODO_ADMIN && paramsURL.get('status') !== null) { document.getElementById('f-status').value = paramsURL.get('status'); temFiltroNaURL = true; }
+  // pedido 96.5 — chegada do formulario-lead-cfiae.html: força o mapa a
+  // renderizar TODOS os marcadores (senão markersById fica vazio, sem
+  // filtro nenhum aplicado) pra depois dar zoom/abrir popup só no
+  // empreendimento do ?destaque=.
+  const destaqueId = paramsURL.get('destaque');
+  if (destaqueId) temFiltroNaURL = true;
 
   function atualizarCidadesFiltro() {
     const uf = document.getElementById('f-uf').value;
@@ -2175,6 +2189,21 @@ function popularSelect(id, valores, label) {
     emptyMsg.style.display = 'flex';
     contador.textContent = `${base.length} com coordenadas`;
   }
+
+  // pedido 96.5 — depois do filtrarErenderizar() acima já ter populado
+  // markersById, dá zoom + abre o popup só do empreendimento do disparo
+  // e mostra o banner apontando pro botão "❓ O que este mapa oferece".
+  function destacarEmpreendimento_(id){
+    const marker = markersById[id];
+    if (!marker) return;
+    if (clusterGroup) clusterGroup.zoomToShowLayer(marker, () => marker.openPopup());
+    else { map.setView(marker.getLatLng(), Math.max(map.getZoom(), 16)); marker.openPopup(); }
+    document.querySelectorAll('.side-card').forEach(c => c.classList.remove('active'));
+    const card = sidebarList && sidebarList.querySelector(`.side-card[data-id="${CSS.escape(id)}"]`);
+    if (card) card.classList.add('active');
+    document.getElementById('boas-vindas-banner').style.display = 'flex';
+  }
+  if (destaqueId) destacarEmpreendimento_(destaqueId);
 
   function montarPopup(im) {
     const foto = im.imagem ? fixDriveUrlProto(im.imagem) : '';
