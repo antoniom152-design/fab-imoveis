@@ -495,21 +495,20 @@ async function enviarFormularioLead_(){
     sempreNovo: true
   }, 15000);
 
-  // 96.10: o envio acima é "às cegas" (fetch com mode:no-cors — não dá pra
-  // ler se o Apps Script realmente gravou ou deu erro/timeout). Antonio
-  // relatou um cadastro que sumiu sem deixar rastro (2 envios em ~15s, só
-  // o 2º gravou) — sem essa conferência, o formulário mostrava "enviado"
-  // mesmo quando a gravação falhava em silêncio. Confere de verdade antes
-  // de comemorar: procura pelo nome+campanha na aba INDICACOES, com
-  // retentativa (mesmo padrão de espera crescente já usado em outros
-  // pontos do site pra corrida entre gravação e leitura).
-  btn.textContent = 'Confirmando...';
-  const gravou = await verificarGravacaoIndicacao_(nome, CAMPANHA_ID);
-  if (!gravou) {
-    btn.disabled = false; btn.textContent = 'Enviar →';
-    mostrarToast_('⚠️ Não conseguimos confirmar o cadastro. Verifique sua internet e tente enviar de novo.');
-    return;
-  }
+  // 96.10/96.11: a conferência por trás (verificarGravacaoIndicacao_)
+  // continua rodando, mas só como registro em segundo plano — deixou de
+  // BLOQUEAR a tela de sucesso. Descoberto ao vivo (96.11): pra este
+  // Antonio, a checagem por JSONP (crm_cfiae_indicacoes_listar) dava
+  // falso-negativo consistente mesmo com a gravação 100% certa (motivo
+  // provável: alguma extensão do navegador ou limite de requisições do
+  // Google bloqueando especificamente essa chamada de leitura repetida em
+  // sequência) — isso fazia o formulário dizer "não gravou" e incentivar
+  // reenvio, criando 4 cadastros duplicados de uma pessoa só. A gravação
+  // em si (o fetch acima) nunca falhou nos testes reais; manter o bloqueio
+  // causava mais dano (duplicata) do que o problema raro que resolvia.
+  verificarGravacaoIndicacao_(nome, CAMPANHA_ID).then(gravou => {
+    if (!gravou) console.warn('[CFIAe] Não foi possível confirmar a gravação de "' + nome + '" via crm_cfiae_indicacoes_listar (pode ser falso-negativo — ver histórico do pedido 96.11).');
+  });
 
   document.getElementById('conteudo').style.display = 'none';
   document.getElementById('tela-enviado').style.display = 'block';
