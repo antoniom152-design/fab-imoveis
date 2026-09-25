@@ -20,7 +20,7 @@
     display: flex; flex-direction: column; overflow: hidden;
     height: 100vh; height: 100dvh;
   }
-  .proto-banner, #ref-agente-banner, #perfil-banner, .toolbar { flex-shrink: 0; }
+  .proto-banner, #perfil-banner, .toolbar { flex-shrink: 0; }
 
   .proto-banner {
     background: linear-gradient(135deg, #0A1628 0%, #16233a 100%);
@@ -514,8 +514,6 @@
   body[data-tema="claro"] .legend-strip .lg-title { color: var(--c-gold); }
   body[data-tema="claro"] .legend-strip .lg-item { color: var(--c-ink); }
   body[data-tema="claro"] #f-categoria-ref { background: #fff; color: var(--c-ink); border-color: rgba(184,135,58,.4) !important; }
-  body[data-tema="claro"] #ref-agente-banner { background: rgba(184,135,58,.08); color: var(--c-ink); border-bottom-color: var(--c-gold); }
-  body[data-tema="claro"] #ref-agente-banner strong { color: var(--c-gold); }
   body[data-tema="claro"] #boas-vindas-banner { background: rgba(52,199,89,.12); color: var(--c-ink); border-bottom-color: #34c759; }
   body[data-tema="claro"] #boas-vindas-banner strong { color: var(--c-gold); }
   body[data-tema="claro"] #perfil-banner {
@@ -538,7 +536,7 @@
      Por padrão tudo aqui fica oculto; body[data-skin="novo"] liga.
      ══════════════════════════════════════════════════════════ */
   #skin-switch-bar {
-    display: flex; align-items: center; justify-content: center; gap: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap;
     background: #0A1628; padding: 7px 12px; font-size: 0.78em; color: #b9c2d0;
   }
   #skin-switch-bar span.lbl { text-transform: uppercase; letter-spacing: .06em; font-weight: 700; font-size: 0.85em; }
@@ -741,6 +739,11 @@
     <button type="button" class="skin-opt ativo" id="tema-btn-escuro" data-tema-opt="escuro">🌙 Escuro</button>
     <button type="button" class="skin-opt" id="tema-btn-claro" data-tema-opt="claro">☀️ Claro</button>
   </span>
+  <!-- pedido 96.9 — indicação do Agente movida pra 1ª linha, junto com
+       "Visual do mapa" (antes ficava num banner próprio mais abaixo) -->
+  <span id="skin-bar-ref-agente" style="display:none;align-items:center;gap:4px">
+    🤝 Indicação de <strong id="skin-bar-ref-agente-nome" style="color:#C9A84C">—</strong>
+  </span>
 </div>
 
 <div id="banner-novo">
@@ -802,10 +805,6 @@
       </select>
     </span>
   </div>
-</div>
-
-<div id="ref-agente-banner" style="display:none;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;background:rgba(201,168,76,.12);border-bottom:2px solid #C9A84C;padding:8px 20px;font-size:0.85em;color:#fff;text-align:center">
-  🤝 Você está vendo este mapa pela indicação de <strong id="ref-agente-nome" style="color:#C9A84C">—</strong>, Agente Parceiro WAL.
 </div>
 
 <!-- Boas-vindas pós-formulário (pedido 96.5) — some por padrão, só aparece
@@ -1239,8 +1238,8 @@ async function capturarReferenciaAgente_(agenteIdParam){
 }
 function mostrarBannerAgente_(ref){
   if(!ref) return;
-  document.getElementById('ref-agente-nome').textContent = ref.nome;
-  document.getElementById('ref-agente-banner').style.display = 'flex';
+  document.getElementById('skin-bar-ref-agente-nome').textContent = ref.nome;
+  document.getElementById('skin-bar-ref-agente').style.display = 'inline-flex';
 }
 capturarReferenciaAgente_(new URLSearchParams(location.search).get('agente')).then(mostrarBannerAgente_);
 
@@ -2162,7 +2161,15 @@ function popularSelect(id, valores, label) {
   // filtro nenhum aplicado) pra depois dar zoom/abrir popup só no
   // empreendimento do ?destaque=.
   const destaqueId = paramsURL.get('destaque');
-  if (destaqueId) temFiltroNaURL = true;
+  if (destaqueId) {
+    temFiltroNaURL = true;
+    // pedido 96.9 — chegada de um lead novo via link do CFIAe (ou
+    // qualquer disparo/formulário) deve começar com o perfil limpo,
+    // não herdar um "Meu imóvel ideal" salvo de uma sessão anterior
+    // neste mesmo navegador (localStorage é por navegador, não por
+    // pessoa — sobrava perfil de teste anterior nos testes do Antonio).
+    limparPerfilStorage();
+  }
 
   function atualizarCidadesFiltro() {
     const uf = document.getElementById('f-uf').value;
@@ -2414,6 +2421,13 @@ function popularSelect(id, valores, label) {
       copy.sort((a,b) => distanciaKm(userLat, userLng, a.lat, a.lng) - distanciaKm(userLat, userLng, b.lat, b.lng));
     } else {
       copy.sort((a,b) => (a.nome||'').localeCompare(b.nome||'', 'pt-BR'));
+    }
+    // pedido 96.9 — o empreendimento do link (?destaque=) sempre aparece
+    // primeiro na lista de Resultados, seja qual for o critério de
+    // ordenação escolhido.
+    if (destaqueId) {
+      const idx = copy.findIndex(im => im.id === destaqueId);
+      if (idx > 0) copy.unshift(copy.splice(idx, 1)[0]);
     }
     return copy;
   }
