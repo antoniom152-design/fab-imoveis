@@ -446,7 +446,14 @@ async function enviarFormularioLead_(){
     postoCargo: posto,
     residenciaAtual: residencia,
     obs: obsPartes,
-    origem: 'Formulário CFIAe (disparo)'
+    origem: 'Formulário CFIAe (disparo)',
+    // 96.6: regra do Antonio — cada envio deste formulário é sempre um
+    // Lead/Indicação novo, mesmo repetindo telefone/e-mail (a pessoa pode
+    // estar perguntando sobre outro empreendimento/disparo). Sem isso, o
+    // dedupe por Agente+Telefone que já existia na função (pra proteger
+    // OUTROS formulários — imovel.html etc. — de reenvio por timeout/duplo
+    // clique) barrava silenciosamente qualquer reenvio com o mesmo WhatsApp.
+    sempreNovo: true
   });
 
   document.getElementById('conteudo').style.display = 'none';
