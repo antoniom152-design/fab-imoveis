@@ -315,10 +315,9 @@
             <div class="campo"><label>Id_Link</label><input type="text" id="dspIdLink" disabled></div>
             <div class="campo"><label>Empreendimento</label><input type="text" id="dspEmpreendimento" disabled></div>
             <div class="campo"><label>Data do Link</label><input type="text" id="dspDataLink" disabled></div>
-            <div class="campo"><label>Observação</label><input type="text" id="dspObservacao" disabled></div>
+            <div class="campo"><label>Observação</label><input type="text" id="dspObservacao" placeholder="Observação deste disparo (opcional)"></div>
           </div>
           <div>
-            <div class="campo"><label>Data do Disparo</label><input type="date" id="dspDataDisparo"></div>
             <button class="btn-gold" id="btnCriarDisparo" onclick="criarDisparo()">Criar Disparo</button>
 
             <div class="link-out" id="dspLinkOut">
@@ -342,8 +341,8 @@
         <h2>Disparos Gerados</h2>
         <div class="tbl-wrap">
           <table class="tbl-basic">
-            <thead><tr><th>Id_Disparo</th><th>Empreendimento</th><th>Dt-Hora Disparo</th><th>Agente</th><th>Relatório</th></tr></thead>
-            <tbody id="tblDisparosBody"><tr><td colspan="5"><div class="empty">Carregando…</div></td></tr></tbody>
+            <thead><tr><th>Id_Disparo</th><th>Empreendimento</th><th>Dt-Hora Disparo</th><th>Agente</th><th>Link</th><th>Relatório</th></tr></thead>
+            <tbody id="tblDisparosBody"><tr><td colspan="6"><div class="empty">Carregando…</div></td></tr></tbody>
           </table>
         </div>
       </div>
@@ -447,6 +446,28 @@
         <thead><tr><th>Nome</th><th>Status</th><th>Cadastro</th></tr></thead>
         <tbody id="relCorpo"></tbody>
       </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL — LINK DE UM DISPARO JÁ CRIADO (pedido 96.7) ═══ -->
+<div class="modal-overlay" id="modalLinkDisparo" onclick="if(event.target===this) fecharModalLinkDisparo()">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModalLinkDisparo()">&times;</button>
+    <h2>Link do Disparo</h2>
+    <p class="desc" id="linkdspEmpNome">—</p>
+    <div class="link-out" id="linkdspLinkOut" style="display:block">
+      <div class="url-box" id="linkdspLinkGerado">—</div>
+      <div class="share-btns">
+        <button onclick="copiarLink('linkdsp')">📋 Copiar link</button>
+        <a href="#" id="linkdspBtnWpp" target="_blank" rel="noopener" class="wpp">📱 WhatsApp</a>
+        <button onclick="mostrarFormEmail('linkdsp')">✉️ E-mail</button>
+        <a href="#" id="linkdspBtnMapa" target="_blank" rel="noopener" class="mapa-link">🗺️ Ver mapa com este link</a>
+      </div>
+      <div id="linkdspFormEmail" style="display:none;margin-top:12px">
+        <div class="campo"><label>Enviar para o e-mail</label><input type="email" id="linkdspEmailDestino" placeholder="destino@exemplo.com"></div>
+        <button class="btn-gold" id="linkdspBtnEnviarEmail" onclick="enviarLinkPorEmail('linkdsp')">Enviar →</button>
+      </div>
     </div>
   </div>
 </div>
@@ -944,8 +965,7 @@ function selecionarLinkParaDisparo(idLink){
   document.getElementById('dspIdLink').value = l.idLink;
   document.getElementById('dspEmpreendimento').value = l.empNome;
   document.getElementById('dspDataLink').value = fmtDtHora_(l.dataHora);
-  document.getElementById('dspObservacao').value = l.observacao || '—';
-  document.getElementById('dspDataDisparo').value = new Date().toISOString().slice(0,10);
+  document.getElementById('dspObservacao').value = l.observacao || '';
   document.getElementById('dspLinkOut').style.display = 'none';
   const card = document.getElementById('cardCriarDisparo');
   card.style.display = 'block';
@@ -954,14 +974,12 @@ function selecionarLinkParaDisparo(idLink){
 
 async function criarDisparo(){
   if (!_linkSelecionado){ toast('Selecione um link primeiro.', 'red'); return; }
-  const dataDisparo = document.getElementById('dspDataDisparo').value;
-  if (!dataDisparo){ toast('Escolha a data do disparo.', 'red'); return; }
   const btn = document.getElementById('btnCriarDisparo');
   btn.disabled = true; btn.textContent = 'Criando...';
-  const observacao = _linkSelecionado.observacao || '';
+  const observacao = document.getElementById('dspObservacao').value.trim();
   const resp = await cadastroApiJsonp('crm_cfiae_disparo_criar', {
     idLink: _linkSelecionado.idLink, empId: _linkSelecionado.empId, empNome: _linkSelecionado.empNome,
-    dataDisparo, agenteId: AGENTE_ID_FIXO, observacao
+    agenteId: AGENTE_ID_FIXO, observacao
   });
   btn.disabled = false; btn.textContent = 'Criar Disparo';
   if (!resp || resp.status !== 'ok'){
@@ -969,6 +987,11 @@ async function criarDisparo(){
     return;
   }
   const idDisparo = resp.idDisparo;
+  // dataDisparo vem pronta do backend (Apps Script gera com Date() no
+  // servidor, mesmo padrão já usado no Id_Link/DataHora — pedido 96.7:
+  // antes vinha de um <input type="date"> só com data, sem hora, e virava
+  // meia-noite UTC, que exibia com 3h a menos/dia anterior no fuso local).
+  const dataDisparo = resp.dataDisparo;
   _disparos.unshift({ idDisparo, idLink:_linkSelecionado.idLink, empId:_linkSelecionado.empId, empNome:_linkSelecionado.empNome, dataDisparo, agenteId:AGENTE_ID_FIXO, observacao });
   renderDisparosGerados();
   renderLinksGerados();
@@ -982,10 +1005,28 @@ async function criarDisparo(){
   toast('Disparo criado!', 'green');
 }
 
+/* ═══ LINK DE UM DISPARO JÁ CRIADO (pedido 96.7) — reconstrói o mesmo
+   link do "Criar Disparo" a partir dos dados já salvos em _disparos,
+   sem precisar criar um disparo novo pra recuperar o link. ═══ */
+function abrirModalLinkDisparo(idDisparo){
+  const d = _disparos.find(x=>x.idDisparo===idDisparo);
+  if (!d){ toast('Disparo não encontrado.', 'red'); return; }
+  document.getElementById('linkdspEmpNome').textContent = d.empNome;
+  const params = new URLSearchParams({ id:d.empId, agente:d.agenteId, campanha:d.idDisparo });
+  const link = `${SITE_BASE_URL}painel/cfiae/formulario-lead-cfiae.html?${params.toString()}`;
+  const mapaParams = new URLSearchParams({ agente:d.agenteId, campanha:d.idDisparo });
+  const linkMapa = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
+  montarShareBox('linkdsp', d.empNome, link, linkMapa);
+  document.getElementById('modalLinkDisparo').classList.add('show');
+}
+function fecharModalLinkDisparo(){
+  document.getElementById('modalLinkDisparo').classList.remove('show');
+}
+
 function renderDisparosGerados(){
   const corpo = document.getElementById('tblDisparosBody');
   if (!_disparos.length){
-    corpo.innerHTML = '<tr><td colspan="5"><div class="empty">Nenhum disparo gerado ainda.</div></td></tr>';
+    corpo.innerHTML = '<tr><td colspan="6"><div class="empty">Nenhum disparo gerado ainda.</div></td></tr>';
     return;
   }
   corpo.innerHTML = _disparos.map(d=>`
@@ -994,6 +1035,7 @@ function renderDisparosGerados(){
       <td>${d.empNome}</td>
       <td>${fmtDtHora_(d.dataDisparo)}</td>
       <td>${d.agenteId}</td>
+      <td><button class="btn-tbl-link" onclick="abrirModalLinkDisparo('${String(d.idDisparo).replace(/'/g,"\\'")}')">🔗 Copiar Link</button></td>
       <td><button class="btn-tbl-link" onclick="abrirRelatorioDisparo('${String(d.idDisparo).replace(/'/g,"\\'")}','${String(d.empNome||'').replace(/'/g,"\\'")}')">📊 Relatório</button></td>
     </tr>`).join('');
 }
