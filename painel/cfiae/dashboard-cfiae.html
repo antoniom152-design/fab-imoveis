@@ -134,6 +134,8 @@
   .btn-tbl-link:hover { background: #16233a; }
   .tr-clicavel { cursor: pointer; }
   .tr-clicavel:hover { background: #f7f4ea; }
+  .tr-clicavel.tr-selecionada { background: #fbf2d8; box-shadow: inset 3px 0 0 #C9A84C; }
+  .tr-clicavel.tr-selecionada:hover { background: #f7ecc8; }
 
   /* ── MODAIS (Criar Link / Relatório / Detalhe do Empreendimento) ── */
   .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(10,22,40,.62); align-items: center; justify-content: center; z-index: 1000; padding: 16px; }
@@ -364,8 +366,8 @@
       </div>
 
       <div class="card">
-        <h2>Resultado dos Leads (via link)</h2>
-        <p class="desc">Contagem de todos os Leads que chegaram através dos links/disparos do CFIAe, por etapa do funil.</p>
+        <h2 id="relLeadsTitulo">Resultado dos Leads (via link)</h2>
+        <p class="desc">Contagem de todos os Leads que chegaram através dos links/disparos do CFIAe, por etapa do funil. Clique numa linha de "Disparos Gerados" acima pra ver só aquele disparo.</p>
         <div class="kpis">
           <div class="kpi"><div class="num" id="kpiRelCadastrados">—</div><div class="lbl">Cadastrados via Link</div></div>
           <div class="kpi"><div class="num" id="kpiRelAnalise">—</div><div class="lbl">Em Análise</div></div>
@@ -1051,6 +1053,15 @@ const STATUS_BDG = { agente:'bdg-novo', contato:'bdg-contato', proposta:'bdg-pro
    retorno + contagem de Leads por etapa do funil, só considerando
    quem entrou por um dos disparos do CFIAe (campanhaId bate com um
    Id_Disparo já criado aqui, não todo Lead do AG0005). ═══ */
+let _disparoSelecionadoRelatorio = null;
+// pedido 96.9 (Relatórios) — clicar numa linha de Disparos Gerados filtra
+// "Resultado dos Leads" só pra aquele disparo; clicar de novo (ou "Ver
+// todos") volta a somar todos os disparos, comportamento original.
+function selecionarDisparoRelatorio(idDisparo){
+  _disparoSelecionadoRelatorio = (idDisparo && idDisparo !== _disparoSelecionadoRelatorio) ? idDisparo : null;
+  renderRelatorios();
+}
+
 function renderRelatorios(){
   const idsDisparos = new Set(_disparos.map(d=>d.idDisparo));
 
@@ -1063,8 +1074,9 @@ function renderRelatorios(){
       const status = qtd
         ? `<span class="bdg bdg-fechado">🟢 ${qtd} lead${qtd>1?'s':''}</span>`
         : `<span class="bdg" style="background:#eef0f3;color:#7f8c9a">— sem leads ainda</span>`;
+      const selecionada = d.idDisparo === _disparoSelecionadoRelatorio ? ' tr-selecionada' : '';
       return `
-      <tr>
+      <tr class="tr-clicavel${selecionada}" onclick="selecionarDisparoRelatorio('${String(d.idDisparo).replace(/'/g,"\\'")}')">
         <td>${d.idDisparo}</td>
         <td>${d.idLink}</td>
         <td>${d.empNome}</td>
@@ -1076,7 +1088,16 @@ function renderRelatorios(){
     }).join('');
   }
 
-  const leadsCfiae = _indicacoes.filter(i=>idsDisparos.has(i.campanhaId));
+  const titulo = document.getElementById('relLeadsTitulo');
+  let leadsCfiae;
+  if (_disparoSelecionadoRelatorio) {
+    const d = _disparos.find(x=>x.idDisparo===_disparoSelecionadoRelatorio);
+    leadsCfiae = _indicacoes.filter(i=>i.campanhaId===_disparoSelecionadoRelatorio);
+    titulo.innerHTML = `Resultado do disparo — ${d ? d.empNome : ''} <span style="color:#7f8c9a;font-weight:400;font-size:0.75em">(${_disparoSelecionadoRelatorio})</span> <button class="btn-tbl-link" onclick="selecionarDisparoRelatorio(null)" style="margin-left:10px;vertical-align:middle">✕ Ver todos</button>`;
+  } else {
+    leadsCfiae = _indicacoes.filter(i=>idsDisparos.has(i.campanhaId));
+    titulo.textContent = 'Resultado dos Leads (via link)';
+  }
   document.getElementById('kpiRelCadastrados').textContent = leadsCfiae.length;
   document.getElementById('kpiRelAnalise').textContent = leadsCfiae.filter(i=>i.status==='contato' || i.status==='proposta').length;
   document.getElementById('kpiRelVisitas').textContent = leadsCfiae.filter(i=>i.visitaAgendada).length;
