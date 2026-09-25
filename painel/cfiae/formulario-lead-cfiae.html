@@ -128,7 +128,7 @@
 
   <div id="conteudo">
     <div class="card">
-      <img class="hero-img" id="empImg" src="" alt="" onerror="this.style.display='none'">
+      <img class="hero-img" id="empImg" alt="" onerror="this.style.display='none'">
       <div class="hero-body">
         <div class="hero-tag" id="empTag">—</div>
         <h1 id="empNome">—</h1>
@@ -222,7 +222,7 @@
           <label>Deseja agendar um horário específico para atendimento personalizado? *</label>
           <div class="radio-row">
             <label><input type="radio" name="fl-agendar" value="Sim" onchange="alternarHorario_()"> Sim</label>
-            <label><input type="radio" name="fl-agendar" value="Não" onchange="alternarHorario_()"> Não</label>
+            <label><input type="radio" name="fl-agendar" value="Não" checked onchange="alternarHorario_()"> Não</label>
           </div>
           <div class="campo-erro" id="fl-agendar-erro">⚠ Escolha uma opção.</div>
         </div>
@@ -331,7 +331,7 @@ async function initFormularioLead_(){
   document.getElementById('empNome').textContent = emp.nome;
   document.getElementById('empLocal').textContent = [emp.bairro, [emp.cidade, emp.uf].filter(Boolean).join('/')].filter(Boolean).join(' · ');
   const img = document.getElementById('empImg');
-  if (emp.imagem){ img.src = emp.imagem; } else { img.style.display = 'none'; }
+  if (emp.imagem){ img.style.display = ''; img.src = emp.imagem; } else { img.style.display = 'none'; }
   preencherDescricaoInteligente(document.getElementById('empDesc'), emp.descricao, 'Descrição não disponível para este empreendimento.');
   recalcularDescricoesInteligentes();
   document.getElementById('conteudo').style.display = 'block';
