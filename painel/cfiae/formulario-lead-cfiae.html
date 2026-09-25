@@ -464,6 +464,9 @@ async function enviarFormularioLead_(){
   }
 
   const obsPartes = [
+    // 96.13: empreendimento primeiro — vira o campo "Solicitação" em
+    // LEADS/admin.html, então precisa deixar claro do que se trata.
+    'Empreendimento: ' + (_imovelAtual ? _imovelAtual.nome : EMP_ID),
     'Unidade/Órgão da FAB: ' + unidade,
     'Melhor dia da semana: ' + dia,
     agendar === 'Sim' ? ('Deseja agendar atendimento: Sim' + (horario ? ' (horário: ' + horario + ')' : '')) : 'Deseja agendar atendimento: Não',
