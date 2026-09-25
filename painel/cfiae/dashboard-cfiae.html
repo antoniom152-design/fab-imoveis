@@ -233,6 +233,7 @@
     <button data-view="disparos" onclick="mudarView('disparos')">📊 Meus Disparos</button>
     <button data-view="relatorios" onclick="mudarView('relatorios')">📈 Relatórios</button>
     <button data-view="projetos" onclick="mudarView('projetos')">🏗️ Projetos</button>
+    <button data-view="manual" onclick="mudarView('manual')">📖 Manual do Usuário</button>
     <div class="nav-right"><span class="relogio" id="relogioTexto">—</span></div>
   </nav>
 
@@ -391,6 +392,15 @@
       <div class="sub-principal-view" id="sub-projeto-sjc">
         <iframe class="iframe-mapa" id="iframeProjetoSjc" title="Projeto Parque Una SJC"></iframe>
       </div>
+    </section>
+
+    <!-- ═══ MANUAL DO USUÁRIO (pedido 96.4) — manual-painel-cfiae.html fica
+         na mesma pasta do painel; iframe só carrega na 1ª abertura da aba ═══ -->
+    <section class="painel-view" id="view-manual">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:10px">
+        <a href="manual-painel-cfiae.html" target="_blank" rel="noopener" class="subtab-btn" style="text-decoration:none">↗ Abrir em nova aba</a>
+      </div>
+      <iframe class="iframe-mapa" id="iframeManual" title="Manual do Usuário — Painel do Parceiro CFIAe" style="height:82vh"></iframe>
     </section>
   </main>
 </div>
@@ -664,6 +674,10 @@ function mudarView(view){
   document.querySelectorAll('.painel-view').forEach(v=>v.classList.remove('active'));
   document.getElementById('view-'+view).classList.add('active');
   if (view === 'projetos') carregarIframeProjetoSeVazio_(_subProjetoAtual);
+  if (view === 'manual') {
+    const fr = document.getElementById('iframeManual');
+    if (fr && !fr.src) fr.src = 'manual-painel-cfiae.html';
+  }
 }
 function mudarSubPrincipal(sub){
   document.querySelectorAll('.subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.sub===sub));
