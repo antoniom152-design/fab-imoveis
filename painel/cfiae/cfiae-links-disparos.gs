@@ -91,9 +91,15 @@ function crm_cfiae_disparo_criar_(p) {
     var ss = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
     var sheet = ss.getSheetByName('CFIAE_DISPAROS');
     if (!sheet) return { status: 'erro', message: 'Aba CFIAE_DISPAROS não encontrada.' };
-    var idDisparo = 'DSP' + Utilities.formatDate(new Date(), 'GMT-3', 'yyyyMMddHHmmss');
-    sheet.appendRow([idDisparo, p.idLink, p.empId, p.empNome, p.dataDisparo, p.agenteId, p.observacao || '']);
-    return { status: 'ok', idDisparo: idDisparo };
+    // 96.7: data/hora gerada AQUI no servidor (mesmo padrão já usado em
+    // crm_cfiae_link_criar_ pra DataHora), em vez de vir de p.dataDisparo
+    // (antes um <input type="date"> só com data, sem hora — virava meia-
+    // noite UTC ao ser gravado, e exibia 3h a menos/dia anterior no fuso
+    // de Brasília na hora de mostrar na tela).
+    var agora = new Date();
+    var idDisparo = 'DSP' + Utilities.formatDate(agora, 'GMT-3', 'yyyyMMddHHmmss');
+    sheet.appendRow([idDisparo, p.idLink, p.empId, p.empNome, agora, p.agenteId, p.observacao || '']);
+    return { status: 'ok', idDisparo: idDisparo, dataDisparo: agora.toISOString() };
   } catch (e) {
     return { status: 'erro', message: e.message };
   } finally {
