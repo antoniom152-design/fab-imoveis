@@ -1,25 +1,35 @@
 /* ════════════════════════════════════════════════════════════════
    CFIAe — LINKS, DISPAROS e RELATÓRIOS (pedido 96.3)
-   Cole estas funções no MESMO projeto Apps Script do cadastro
-   único (o que já tem crm_indicacao_listar_, crm_pessoa_verificar_codigo_,
-   PLANILHA_CRM_LEADS_ID etc.) e registre as 5 novas actions no seu
-   roteador de doGet (o switch/if que já trata "action=..."), no
-   mesmo padrão das demais — por exemplo:
+   CONFIRMADO 24/09/2026: projeto certo é o do "Cadastro Único"
+   (var PLANILHA_CADASTRO_ID = 'WAL Imóveis — Sistema Web · Cadastro
+   Único', o que já tem crm_pessoa_verificar_codigo_, crm_indicacao_listar_,
+   PLANILHA_CRM_LEADS_ID etc.) — Antonio confirmou colando o .gs
+   completo. A função de resposta JSONP desse projeto é jsonpOut_
+   (não "responderJsonp_", nome suposto na 1ª versão deste arquivo).
 
-     if (action === 'crm_cfiae_link_criar')        return responderJsonp_(crm_cfiae_link_criar_(e.parameter), e.parameter.callback);
-     if (action === 'crm_cfiae_link_listar')       return responderJsonp_(crm_cfiae_link_listar_(), e.parameter.callback);
-     if (action === 'crm_cfiae_disparo_criar')     return responderJsonp_(crm_cfiae_disparo_criar_(e.parameter), e.parameter.callback);
-     if (action === 'crm_cfiae_disparo_listar')    return responderJsonp_(crm_cfiae_disparo_listar_(), e.parameter.callback);
-     if (action === 'crm_cfiae_indicacoes_listar') return responderJsonp_(crm_cfiae_indicacoes_listar_(e.parameter), e.parameter.callback);
+   COMO INSTALAR — 2 passos:
 
-   ⚠️ Troque "responderJsonp_" pelo nome real da sua função que já
-   envolve a resposta em "callback(JSON.stringify(...))" — mesmo
-   nome usado pelas demais actions (crm_indicacao_listar etc.).
+   1) Cole o BLOCO DE FUNÇÕES abaixo em qualquer lugar do arquivo,
+      antes do comentário "══ doGet / doPost ══" (fora de qualquer
+      outra função).
+
+   2) Dentro de doGet(), no switch(action), acrescente estas 5 linhas
+      (em qualquer ordem, antes do "default:"):
+
+        case 'crm_cfiae_link_criar':        result = crm_cfiae_link_criar_(p); break;
+        case 'crm_cfiae_link_listar':       result = crm_cfiae_link_listar_(); break;
+        case 'crm_cfiae_disparo_criar':     result = crm_cfiae_disparo_criar_(p); break;
+        case 'crm_cfiae_disparo_listar':    result = crm_cfiae_disparo_listar_(); break;
+        case 'crm_cfiae_indicacoes_listar': result = crm_cfiae_indicacoes_listar_(p); break;
+
+   Não precisa mexer em doPost() — todas essas 5 actions (mesmo as que
+   escrevem) passam por doGet/JSONP, mesmo padrão já usado por
+   crm_indicacao_criar/crm_pessoa_cadastrar nesse arquivo.
 
    PLANILHA — usa SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID), a
    MESMA planilha "WAL — CRM de Leads" que já tem AGENTES / INDICACOES
-   / AGENDAMENTOS_VISITA_LEAD (constante PLANILHA_CRM_LEADS_ID já
-   existe no projeto — não precisa declarar de novo).
+   / AGENDAMENTOS_VISITA_LEAD (constantes já existem no projeto — não
+   precisa declarar de novo).
 
    Crie 2 abas novas nessa planilha, linha 1 = cabeçalho exatamente
    como abaixo (ordem importa, é lida por índice de coluna):
@@ -121,7 +131,7 @@ function crm_cfiae_indicacoes_listar_(p) {
   if (!agenteId) return { status: 'erro', message: 'agenteId é obrigatório.', itens: [] };
 
   var ss = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
-  var abaInd = ss.getSheetByName('INDICACOES');
+  var abaInd = ss.getSheetByName(ABA_INDICACOES);
   if (!abaInd) return { status: 'erro', message: 'Aba INDICACOES não encontrada.', itens: [] };
 
   var headersInd = abaInd.getRange(1, 1, 1, abaInd.getLastColumn()).getValues()[0];
@@ -129,7 +139,7 @@ function crm_cfiae_indicacoes_listar_(p) {
   headersInd.forEach(function (h, i) { colInd[h] = i; });
 
   var linhasAgendadas = {};
-  var abaAgenda = ss.getSheetByName('AGENDAMENTOS_VISITA_LEAD');
+  var abaAgenda = ss.getSheetByName(ABA_AGENDAMENTOS_VISITA_LEAD);
   if (abaAgenda && abaAgenda.getLastRow() > 1) {
     var headersAg = abaAgenda.getRange(1, 1, 1, abaAgenda.getLastColumn()).getValues()[0];
     var colLeadId = headersAg.indexOf('Lead_Id');
