@@ -999,7 +999,10 @@ async function criarDisparo(){
 
   const params = new URLSearchParams({ id:_linkSelecionado.empId, agente:AGENTE_ID_FIXO, campanha:idDisparo });
   const link = `${SITE_BASE_URL}painel/cfiae/formulario-lead-cfiae.html?${params.toString()}`;
-  const mapaParams = new URLSearchParams({ agente:AGENTE_ID_FIXO, campanha:idDisparo });
+  // 96.8: faltava "destaque" aqui — sem ele o mapa abre sem focar em
+  // nenhum empreendimento (mesmo parâmetro usado no redirecionamento do
+  // formulario-lead-cfiae.html após o envio).
+  const mapaParams = new URLSearchParams({ agente:AGENTE_ID_FIXO, campanha:idDisparo, destaque:_linkSelecionado.empId });
   const linkMapa = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
   montarShareBox('dsp', _linkSelecionado.empNome, link, linkMapa);
   toast('Disparo criado!', 'green');
@@ -1014,7 +1017,7 @@ function abrirModalLinkDisparo(idDisparo){
   document.getElementById('linkdspEmpNome').textContent = d.empNome;
   const params = new URLSearchParams({ id:d.empId, agente:d.agenteId, campanha:d.idDisparo });
   const link = `${SITE_BASE_URL}painel/cfiae/formulario-lead-cfiae.html?${params.toString()}`;
-  const mapaParams = new URLSearchParams({ agente:d.agenteId, campanha:d.idDisparo });
+  const mapaParams = new URLSearchParams({ agente:d.agenteId, campanha:d.idDisparo, destaque:d.empId });
   const linkMapa = `${SITE_BASE_URL}mapa-empreendimentos.html?${mapaParams.toString()}`;
   montarShareBox('linkdsp', d.empNome, link, linkMapa);
   document.getElementById('modalLinkDisparo').classList.add('show');
