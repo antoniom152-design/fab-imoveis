@@ -2203,7 +2203,13 @@ function popularSelect(id, valores, label) {
     if (card) card.classList.add('active');
     document.getElementById('boas-vindas-banner').style.display = 'flex';
   }
-  if (destaqueId) destacarEmpreendimento_(destaqueId);
+  // 96.8: espera o fitBounds() de dentro do filtrarErenderizar() acima
+  // (todos os 75 empreendimentos) terminar a animação antes de dar o
+  // 2º movimento de câmera — sem isso, os dois movimentos quase
+  // simultâneos faziam o zoomToShowLayer nunca terminar (Leaflet
+  // atropela a 1ª animação) e o popup nunca abria, mesmo achando o
+  // marcador certo (achado ao vivo, print do Antonio 96.8).
+  if (destaqueId) setTimeout(()=>destacarEmpreendimento_(destaqueId), 400);
 
   function montarPopup(im) {
     const foto = im.imagem ? fixDriveUrlProto(im.imagem) : '';
