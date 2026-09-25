@@ -348,11 +348,30 @@
       </div>
     </section>
 
-    <!-- ═══ RELATÓRIOS (placeholder — conteúdo a definir) ═══ -->
+    <!-- ═══ RELATÓRIOS (pedido 96.3) ═══ -->
     <section class="painel-view" id="view-relatorios">
+      <h1 class="page-title">Relatórios <button class="btn-tbl-link" id="btnAtualizarRelatorios" onclick="atualizarRelatorios()" style="font-size:0.5em;vertical-align:middle;margin-left:10px">🔄 Atualizar</button></h1>
+
       <div class="card">
-        <h2>Relatórios</h2>
-        <p class="desc">Esta seção está em construção. Em breve você terá aqui os relatórios completos de desempenho do CFIAe.</p>
+        <h2>Disparos Gerados</h2>
+        <p class="desc">Todos os disparos criados a partir dos links, com o status de retorno (se já houve algum cadastro de Lead a partir dele).</p>
+        <div class="tbl-wrap">
+          <table class="tbl-basic">
+            <thead><tr><th>Id_Disparo</th><th>Id_Link</th><th>Empreendimento</th><th>Dt-Hora Disparo</th><th>Agente</th><th>Observação</th><th>Status</th></tr></thead>
+            <tbody id="tblRelDisparosBody"><tr><td colspan="7"><div class="empty">Carregando…</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resultado dos Leads (via link)</h2>
+        <p class="desc">Contagem de todos os Leads que chegaram através dos links/disparos do CFIAe, por etapa do funil.</p>
+        <div class="kpis">
+          <div class="kpi"><div class="num" id="kpiRelCadastrados">—</div><div class="lbl">Cadastrados via Link</div></div>
+          <div class="kpi"><div class="num" id="kpiRelAnalise">—</div><div class="lbl">Em Análise</div></div>
+          <div class="kpi"><div class="num" id="kpiRelVisitas">—</div><div class="lbl">Visitas Agendadas</div></div>
+          <div class="kpi"><div class="num" id="kpiRelFechamentos">—</div><div class="lbl">Fechamentos</div></div>
+        </div>
       </div>
     </section>
 
@@ -683,10 +702,10 @@ async function init(){
 
   const [gvizResp, respInd, respLinks, respDisparos] = await Promise.all([
     sheetGvizJsonp(IMOVEIS_SHEET_ID, IMOVEIS_SHEET_NAME),
-    // ⚠️ Antes usava email+sessionToken do login. Sem login, precisa que
-    // o backend aceite filtrar por agenteId direto (ver observações).
-    cadastroApiJsonp('crm_indicacao_listar', { agenteId: AGENTE_ID_FIXO, tipo: TIPO_PESSOA }),
-    // ⚠️ Ações novas — ainda não existem no backend, ver bloco .gs proposto.
+    // Sem login (painel do CFIAe não tem sessão por pessoa), então usa a
+    // action sem OTP que filtra direto por agenteId (96.3) — ver bloco
+    // .gs "RELATÓRIOS" em cfiae-links-disparos.gs.
+    cadastroApiJsonp('crm_cfiae_indicacoes_listar', { agenteId: AGENTE_ID_FIXO }),
     cadastroApiJsonp('crm_cfiae_link_listar', {}),
     cadastroApiJsonp('crm_cfiae_disparo_listar', {})
   ]);
@@ -705,6 +724,7 @@ async function init(){
   renderTabelaImoveis();
   renderLinksGerados();
   renderDisparosGerados();
+  renderRelatorios();
 }
 document.addEventListener('DOMContentLoaded', iniciarGate);
 
@@ -924,9 +944,10 @@ async function criarDisparo(){
   if (!dataDisparo){ toast('Escolha a data do disparo.', 'red'); return; }
   const btn = document.getElementById('btnCriarDisparo');
   btn.disabled = true; btn.textContent = 'Criando...';
+  const observacao = _linkSelecionado.observacao || '';
   const resp = await cadastroApiJsonp('crm_cfiae_disparo_criar', {
     idLink: _linkSelecionado.idLink, empId: _linkSelecionado.empId, empNome: _linkSelecionado.empNome,
-    dataDisparo, agenteId: AGENTE_ID_FIXO
+    dataDisparo, agenteId: AGENTE_ID_FIXO, observacao
   });
   btn.disabled = false; btn.textContent = 'Criar Disparo';
   if (!resp || resp.status !== 'ok'){
@@ -934,9 +955,10 @@ async function criarDisparo(){
     return;
   }
   const idDisparo = resp.idDisparo;
-  _disparos.unshift({ idDisparo, idLink:_linkSelecionado.idLink, empId:_linkSelecionado.empId, empNome:_linkSelecionado.empNome, dataDisparo, agenteId:AGENTE_ID_FIXO });
+  _disparos.unshift({ idDisparo, idLink:_linkSelecionado.idLink, empId:_linkSelecionado.empId, empNome:_linkSelecionado.empNome, dataDisparo, agenteId:AGENTE_ID_FIXO, observacao });
   renderDisparosGerados();
   renderLinksGerados();
+  renderRelatorios();
 
   const params = new URLSearchParams({ id:_linkSelecionado.empId, agente:AGENTE_ID_FIXO, campanha:idDisparo });
   const link = `${SITE_BASE_URL}imovel.html?${params.toString()}`;
@@ -965,6 +987,58 @@ function renderDisparosGerados(){
 /* ═══ RELATÓRIO DE UM DISPARO (contagem de cadastros vindos dele) ═══ */
 const STATUS_LABEL = { agente:'Novo cadastro', contato:'Em contato', proposta:'Proposta', fechado:'Venda fechada', perdido:'Perdido' };
 const STATUS_BDG = { agente:'bdg-novo', contato:'bdg-contato', proposta:'bdg-proposta', fechado:'bdg-fechado', perdido:'bdg-perdido' };
+
+/* ═══ TELA RELATÓRIOS (pedido 96.3) — lista de Disparos com status de
+   retorno + contagem de Leads por etapa do funil, só considerando
+   quem entrou por um dos disparos do CFIAe (campanhaId bate com um
+   Id_Disparo já criado aqui, não todo Lead do AG0005). ═══ */
+function renderRelatorios(){
+  const idsDisparos = new Set(_disparos.map(d=>d.idDisparo));
+
+  const corpo = document.getElementById('tblRelDisparosBody');
+  if (!_disparos.length){
+    corpo.innerHTML = '<tr><td colspan="7"><div class="empty">Nenhum disparo gerado ainda.</div></td></tr>';
+  } else {
+    corpo.innerHTML = _disparos.map(d=>{
+      const qtd = _indicacoes.filter(i=>i.campanhaId===d.idDisparo).length;
+      const status = qtd
+        ? `<span class="bdg bdg-fechado">🟢 ${qtd} lead${qtd>1?'s':''}</span>`
+        : `<span class="bdg" style="background:#eef0f3;color:#7f8c9a">— sem leads ainda</span>`;
+      return `
+      <tr>
+        <td>${d.idDisparo}</td>
+        <td>${d.idLink}</td>
+        <td>${d.empNome}</td>
+        <td>${fmtDtHora_(d.dataDisparo)}</td>
+        <td>${d.agenteId}</td>
+        <td>${d.observacao||'—'}</td>
+        <td>${status}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const leadsCfiae = _indicacoes.filter(i=>idsDisparos.has(i.campanhaId));
+  document.getElementById('kpiRelCadastrados').textContent = leadsCfiae.length;
+  document.getElementById('kpiRelAnalise').textContent = leadsCfiae.filter(i=>i.status==='contato' || i.status==='proposta').length;
+  document.getElementById('kpiRelVisitas').textContent = leadsCfiae.filter(i=>i.visitaAgendada).length;
+  document.getElementById('kpiRelFechamentos').textContent = leadsCfiae.filter(i=>i.status==='fechado').length;
+}
+
+async function atualizarRelatorios(){
+  const btn = document.getElementById('btnAtualizarRelatorios');
+  btn.disabled = true; btn.textContent = '🔄 Atualizando...';
+  const [respInd, respDisparos] = await Promise.all([
+    cadastroApiJsonp('crm_cfiae_indicacoes_listar', { agenteId: AGENTE_ID_FIXO }),
+    cadastroApiJsonp('crm_cfiae_disparo_listar', {})
+  ]);
+  _indicacoes = (respInd && respInd.itens) || _indicacoes;
+  _disparos   = (respDisparos && respDisparos.itens) || _disparos;
+  renderRelatorios();
+  renderDisparosGerados();
+  btn.disabled = false; btn.textContent = '🔄 Atualizar';
+  toast('Relatórios atualizados!', 'green');
+}
+
 function abrirRelatorioDisparo(idDisparo, empNome){
   const itens = _indicacoes.filter(i=>i.campanhaId===idDisparo);
   const fechados = itens.filter(i=>i.status==='fechado').length;
