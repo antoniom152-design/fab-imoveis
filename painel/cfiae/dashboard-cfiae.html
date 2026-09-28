@@ -54,6 +54,7 @@
   nav.tabs button.active { color: #0A1628; border-bottom-color: #C9A84C; }
   .nav-right { margin-left: auto; display: flex; align-items: center; }
   .relogio { font-size: 0.78em; color: #556b7a; font-weight: 600; letter-spacing: .03em; white-space: nowrap; }
+  .relogio-email { font-size: 0.78em; color: #0A4D8C; font-weight: 600; margin-right: 10px; white-space: nowrap; }
 
   main { flex: 1; padding: 22px; max-width: 1400px; width: 100%; margin: 0 auto; }
   .painel-view { display: none; }
@@ -236,7 +237,7 @@
     <button data-view="relatorios" onclick="mudarView('relatorios')">📈 Relatórios</button>
     <button data-view="projetos" onclick="mudarView('projetos')">🏗️ Projetos</button>
     <button data-view="manual" onclick="mudarView('manual')">📖 Manual do Usuário</button>
-    <div class="nav-right"><span class="relogio" id="relogioTexto">—</span></div>
+    <div class="nav-right"><span class="relogio-email" id="relogioEmail" style="display:none"></span><span class="relogio" id="relogioTexto">—</span></div>
   </nav>
 
   <main>
@@ -568,6 +569,11 @@ function cadastroApiJsonp(action, params){
    está usando o painel; termosAceitos vai true automaticamente pro
    backend aceitar o registro mesmo sem checkbox visível. ═══ */
 const CFIAE_VISITADO_KEY = 'cfiae_ja_visitou';
+// 96.13 — e-mail de quem confirmou o gate, pra exibir ao lado do
+// relógio (só existe a partir da 2ª visita, quando o gate realmente
+// pede e-mail/OTP — na 1ª visita ninguém identifica, então o campo
+// fica vazio/escondido de propósito, ver atualizarRelogio()).
+const CFIAE_EMAIL_KEY = 'cfiae_email_logado';
 let _gateEmailPendente = '';
 let _gateSessionToken  = '';
 
@@ -655,6 +661,7 @@ async function gateConfirmarCadastro(){
   gateLiberarAcesso_();
 }
 function gateLiberarAcesso_(){
+  try { localStorage.setItem(CFIAE_EMAIL_KEY, _gateEmailPendente); } catch(e){}
   document.getElementById('tela-gate').classList.remove('show');
   document.getElementById('app').style.display = 'flex';
   init();
@@ -686,11 +693,17 @@ function fmtDtHora_(v){
 }
 function fmtDt_(iso){ if(!iso) return '—'; const m = String(iso).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso); }
 
-/* ═══ RELÓGIO (DATA/HORA no topo) ═══ */
+/* ═══ RELÓGIO (DATA/HORA no topo) — 96.13: e-mail de quem confirmou o
+   gate exibido antes da data, em azul (ver CFIAE_EMAIL_KEY acima). ═══ */
 function atualizarRelogio(){
   const agora = new Date();
   document.getElementById('relogioTexto').textContent =
     agora.toLocaleDateString('pt-BR') + ' · ' + agora.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' });
+  const elEmail = document.getElementById('relogioEmail');
+  let email = '';
+  try { email = localStorage.getItem(CFIAE_EMAIL_KEY) || ''; } catch(e){}
+  if (email){ elEmail.textContent = email; elEmail.style.display = ''; }
+  else { elEmail.style.display = 'none'; }
 }
 setInterval(atualizarRelogio, 30000);
 
