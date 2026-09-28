@@ -301,7 +301,10 @@
       <h1 class="page-title">Meus Disparos</h1>
 
       <div class="card">
-        <h2>Links Gerados</h2>
+        <h2>Links Gerados
+          <button class="btn-tbl-link" id="btnAtualizarLinks" onclick="atualizarLinksGerados()" style="font-size:0.55em;vertical-align:middle;margin-left:10px">🔄 Atualizar</button>
+          <button class="btn-tbl-link" onclick="gerarRelatorioMeusDisparos()" style="font-size:0.55em;vertical-align:middle;margin-left:6px">🖨️ Relatório</button>
+        </h2>
         <div class="tbl-wrap">
           <table class="tbl-basic">
             <thead><tr><th>Id_Link</th><th>Empreendimento</th><th>Data/Hora</th><th>Agente</th><th>Observação</th><th>Disparo</th></tr></thead>
@@ -352,7 +355,7 @@
 
     <!-- ═══ RELATÓRIOS (pedido 96.3) ═══ -->
     <section class="painel-view" id="view-relatorios">
-      <h1 class="page-title">Relatórios <button class="btn-tbl-link" id="btnAtualizarRelatorios" onclick="atualizarRelatorios()" style="font-size:0.5em;vertical-align:middle;margin-left:10px">🔄 Atualizar</button></h1>
+      <h1 class="page-title">Relatórios <button class="btn-tbl-link" id="btnAtualizarRelatorios" onclick="atualizarRelatorios()" style="font-size:0.5em;vertical-align:middle;margin-left:10px">🔄 Atualizar</button> <button class="btn-tbl-link" onclick="gerarRelatorioRelatorios()" style="font-size:0.5em;vertical-align:middle;margin-left:6px">🖨️ Relatório</button></h1>
 
       <div class="card">
         <h2>Disparos Gerados</h2>
@@ -1117,6 +1120,115 @@ async function atualizarRelatorios(){
   renderDisparosGerados();
   btn.disabled = false; btn.textContent = '🔄 Atualizar';
   toast('Relatórios atualizados!', 'green');
+}
+
+/* ═══ 96.11 — "Meus Disparos": Atualizar (recarrega CFIAE_LINKS/
+   CFIAE_DISPAROS sem sair da tela) + Relatório imprimível (Links
+   Gerados + Disparos Gerados), mesmo padrão de janela nova/window.print()
+   já usado em painel/gerente/dashboard_gerente_comercial.html
+   (gerarRelatorioLeads). ═══ */
+function escHtml_(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function atualizarLinksGerados(){
+  const btn = document.getElementById('btnAtualizarLinks');
+  btn.disabled = true; btn.textContent = '🔄 Atualizando...';
+  const [respLinks, respDisparos] = await Promise.all([
+    cadastroApiJsonp('crm_cfiae_link_listar', {}),
+    cadastroApiJsonp('crm_cfiae_disparo_listar', {})
+  ]);
+  _links    = (respLinks && respLinks.itens) || _links;
+  _disparos = (respDisparos && respDisparos.itens) || _disparos;
+  renderLinksGerados();
+  renderDisparosGerados();
+  renderRelatorios();
+  btn.disabled = false; btn.textContent = '🔄 Atualizar';
+  toast('Links e disparos atualizados!', 'green');
+}
+
+function abrirJanelaRelatorio_(titulo, corpoHtml){
+  const agora = new Date().toLocaleString('pt-BR', { timeZone:'America/Sao_Paulo' });
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escHtml_(titulo)} — ${agora}</title>
+  <style>
+    @page{ size:landscape; margin:14mm }
+    body{font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;padding:24px}
+    h1{font-size:22px;margin:0 0 6px}
+    h2{font-size:17px;margin:26px 0 8px;color:#0A1628}
+    .sub{color:#555;margin-bottom:18px;font-size:13px}
+    .tbl-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #ccc;padding:8px 10px;text-align:left;vertical-align:top}
+    th{background:#f0f0f0;font-size:13px}
+    .kpis-print{display:flex;gap:14px;margin-top:6px;flex-wrap:wrap}
+    .kpi-print{border:1px solid #ccc;border-radius:6px;padding:12px 18px;text-align:center;min-width:120px}
+    .kpi-print .n{font-size:26px;font-weight:700;color:#0A1628}
+    .kpi-print .l{font-size:11px;color:#666;text-transform:uppercase;margin-top:4px}
+    @media print{ .no-print{display:none} }
+  </style></head><body>
+  <button class="no-print" onclick="window.print()" style="margin-bottom:14px;padding:8px 16px;cursor:pointer">🖨️ Imprimir / Salvar como PDF</button>
+  <h1>${escHtml_(titulo)}</h1>
+  <div class="sub">Gerado em ${agora}</div>
+  ${corpoHtml}
+  </body></html>`;
+  const w = window.open('', '_blank');
+  if (!w){ toast('Seu navegador bloqueou a nova aba — permita pop-ups pra este site.', 'amber'); return; }
+  w.document.open(); w.document.write(html); w.document.close();
+}
+
+function gerarRelatorioMeusDisparos(){
+  const linksOrd = [..._links].sort((a,b)=>String(b.dataHora||'').localeCompare(String(a.dataHora||'')));
+  const dspOrd = [..._disparos].sort((a,b)=>String(b.dataDisparo||'').localeCompare(String(a.dataDisparo||'')));
+  const corpo = `
+  <h2>Links Gerados (${linksOrd.length})</h2>
+  <div class="tbl-wrap"><table><thead><tr><th>Id_Link</th><th>Empreendimento</th><th>Data/Hora</th><th>Agente</th><th>Observação</th></tr></thead><tbody>
+  ${linksOrd.length ? linksOrd.map(l=>`<tr><td>${escHtml_(l.idLink)}</td><td>${escHtml_(l.empNome)}</td><td>${escHtml_(fmtDtHora_(l.dataHora))}</td><td>${escHtml_(l.agenteId)}</td><td>${escHtml_(l.observacao||'—')}</td></tr>`).join('') : '<tr><td colspan="5">Nenhum link gerado ainda.</td></tr>'}
+  </tbody></table></div>
+
+  <h2>Disparos Gerados (${dspOrd.length})</h2>
+  <div class="tbl-wrap"><table><thead><tr><th>Id_Disparo</th><th>Id_Link</th><th>Empreendimento</th><th>Dt-Hora Disparo</th><th>Agente</th><th>Observação</th></tr></thead><tbody>
+  ${dspOrd.length ? dspOrd.map(d=>`<tr><td>${escHtml_(d.idDisparo)}</td><td>${escHtml_(d.idLink)}</td><td>${escHtml_(d.empNome)}</td><td>${escHtml_(fmtDtHora_(d.dataDisparo))}</td><td>${escHtml_(d.agenteId)}</td><td>${escHtml_(d.observacao||'—')}</td></tr>`).join('') : '<tr><td colspan="6">Nenhum disparo gerado ainda.</td></tr>'}
+  </tbody></table></div>`;
+  abrirJanelaRelatorio_('Relatório — Meus Disparos (CFIAe)', corpo);
+}
+
+/* ═══ 96.12 — "Relatórios": Relatório imprimível de "Disparos Gerados"
+   + "Resultado dos Leads (via link)", respeitando o filtro por disparo
+   já selecionado na tela (mesmo cálculo de renderRelatorios()). ═══ */
+function gerarRelatorioRelatorios(){
+  const idsDisparos = new Set(_disparos.map(d=>d.idDisparo));
+  const dspOrd = [..._disparos].sort((a,b)=>String(b.dataDisparo||'').localeCompare(String(a.dataDisparo||'')));
+
+  let leadsCfiae, tituloLeads;
+  if (_disparoSelecionadoRelatorio){
+    const d = _disparos.find(x=>x.idDisparo===_disparoSelecionadoRelatorio);
+    leadsCfiae = _indicacoes.filter(i=>i.campanhaId===_disparoSelecionadoRelatorio);
+    tituloLeads = `Resultado do disparo — ${d ? d.empNome : ''} (${_disparoSelecionadoRelatorio})`;
+  } else {
+    leadsCfiae = _indicacoes.filter(i=>idsDisparos.has(i.campanhaId));
+    tituloLeads = 'Resultado dos Leads (via link)';
+  }
+  const cadastrados = leadsCfiae.length;
+  const analise = leadsCfiae.filter(i=>i.status==='contato' || i.status==='proposta').length;
+  const visitas = leadsCfiae.filter(i=>i.visitaAgendada).length;
+  const fechamentos = leadsCfiae.filter(i=>i.status==='fechado').length;
+
+  const corpo = `
+  <h2>Disparos Gerados (${dspOrd.length})</h2>
+  <div class="tbl-wrap"><table><thead><tr><th>Id_Disparo</th><th>Id_Link</th><th>Empreendimento</th><th>Dt-Hora Disparo</th><th>Agente</th><th>Observação</th><th>Status</th></tr></thead><tbody>
+  ${dspOrd.length ? dspOrd.map(d=>{
+    const qtd = _indicacoes.filter(i=>i.campanhaId===d.idDisparo).length;
+    const status = qtd ? `${qtd} lead${qtd>1?'s':''}` : 'sem leads ainda';
+    return `<tr><td>${escHtml_(d.idDisparo)}</td><td>${escHtml_(d.idLink)}</td><td>${escHtml_(d.empNome)}</td><td>${escHtml_(fmtDtHora_(d.dataDisparo))}</td><td>${escHtml_(d.agenteId)}</td><td>${escHtml_(d.observacao||'—')}</td><td>${status}</td></tr>`;
+  }).join('') : '<tr><td colspan="7">Nenhum disparo gerado ainda.</td></tr>'}
+  </tbody></table></div>
+
+  <h2>${escHtml_(tituloLeads)}</h2>
+  <div class="kpis-print">
+    <div class="kpi-print"><div class="n">${cadastrados}</div><div class="l">Cadastrados via Link</div></div>
+    <div class="kpi-print"><div class="n">${analise}</div><div class="l">Em Análise</div></div>
+    <div class="kpi-print"><div class="n">${visitas}</div><div class="l">Visitas Agendadas</div></div>
+    <div class="kpi-print"><div class="n">${fechamentos}</div><div class="l">Fechamentos</div></div>
+  </div>`;
+  abrirJanelaRelatorio_('Relatório — Relatórios CFIAe', corpo);
 }
 
 function abrirRelatorioDisparo(idDisparo, empNome){
