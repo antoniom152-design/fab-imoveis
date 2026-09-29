@@ -530,6 +530,18 @@ function sheetGvizJsonp(sheetId, sheetName){
     document.head.appendChild(s);
   });
 }
+/* 96.14 — a coluna "URL da Imagem" do Portfólio guarda link de "view"
+   do Drive (.../d/ID/view), que não renderiza em <img> direto; precisa
+   converter pro formato lh3.googleusercontent.com. Mesma função de
+   imovel.html/painel/agente/dashboard-agente.html — faltava aqui, por
+   isso a imagem nunca aparecia (nem na Lista, nem no modal de Detalhe). */
+function fixDriveUrl(url) {
+  if (!url || !url.includes('drive.google.com')) return url;
+  const m1 = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  const m2 = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  const id  = (m1 && m1[1]) || (m2 && m2[1]);
+  return id ? 'https://lh3.googleusercontent.com/d/' + id : url;
+}
 function parseImoveis(table){
   if (!table || !table.rows) return [];
   return table.rows.map(row=>{
@@ -539,7 +551,7 @@ function parseImoveis(table){
       ativo: row.c && row.c[1] && row.c[1].v === true,
       tipo: g(2), construtora: g(3), cidade: g(4), nome: g(5),
       descricao: g(6),
-      imagem: g(7), faixa: g(8), qtd: g(10), blog: g(11),
+      imagem: fixDriveUrl(g(7)), faixa: g(8), qtd: g(10), blog: g(11),
       destaque: row.c && row.c[14] && row.c[14].v === true,
       uf: g(15), bairro: g(16), linkDrive: g(17)
     };
