@@ -188,6 +188,15 @@
     font-size: 15px; font-weight: 600; color: var(--navy);
   }
   .summary-value.gold { color: var(--gold-ink); }
+  .summary-item-mapa { flex: 0 0 auto; display: flex; align-items: center; }
+  .btn-ver-mapa {
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+    padding: 10px 16px; border: 1px solid var(--gold); border-radius: 3px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 12px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; text-decoration: none;
+    color: var(--gold-ink); background: transparent; transition: background .2s, color .2s;
+  }
+  .btn-ver-mapa:hover { background: var(--gold); color: var(--navy); }
 
   /* ─── MAIN LAYOUT ─── */
   .main-wrap {
@@ -473,6 +482,7 @@
     .summary-inner { flex-wrap: wrap; }
     .summary-item { flex: 1 1 50%; border-right: none; border-bottom: 1px solid var(--border); }
     .summary-item:last-child { border-bottom: none; }
+    .summary-item.summary-item-mapa { flex: 1 1 100%; justify-content: center; }
     .main-wrap {
       grid-template-columns: 1fr; padding: 28px 20px 60px; gap: 32px;
     }
@@ -498,6 +508,7 @@
     .summary-item:nth-child(odd) { border-right: 1px solid var(--border); }
     .summary-item:last-child, .summary-item:nth-last-child(2):nth-child(odd) { border-bottom: none; }
     .summary-value { font-size: 13px; }
+    .summary-item.summary-item-mapa { flex: 1 1 100%; justify-content: center; border-right: none; }
 
     .main-wrap { padding: 20px 16px 48px; gap: 24px; }
 
@@ -695,6 +706,9 @@
     <div class="summary-item">
       <div class="summary-label">Financiamento</div>
       <div class="summary-value">CFIAe · CEF · POUPEX · OUTROS</div>
+    </div>
+    <div class="summary-item summary-item-mapa" id="sum-mapa-item" style="display:none">
+      <a href="#" class="btn-ver-mapa" id="btn-ver-mapa">&#128205; Ver no Mapa</a>
     </div>
   </div>
 </div>
@@ -1069,7 +1083,13 @@ function parseRow(row) {
     precoMin:    parseFloat(g(19)) || 0,
     precoMax:    parseFloat(g(20)) || 0,
     entrega:     g(21),
-    endereco:    g(26)
+    endereco:    g(26),
+    // Pedido 100: valor BRUTO (c.v numérico) — o texto formatado vem com
+    // vírgula decimal (pt-BR). Célula como texto na planilha vem null do
+    // gviz; aí o botão "Ver no Mapa" fica escondido (o mapa também não
+    // teria o marcador pra destacar).
+    lat:         (row.c && row.c[24] && typeof row.c[24].v === 'number') ? row.c[24].v : null,
+    lng:         (row.c && row.c[25] && typeof row.c[25].v === 'number') ? row.c[25].v : null
   };
 }
 
@@ -1376,6 +1396,24 @@ function renderImovel(im, todos) {
     im.valor > 0 ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
   document.getElementById('sum-local').textContent =
     [im.cidade, im.uf].filter(Boolean).join('/') || '—';
+
+  // Pedido 100: "Ver no Mapa" — mesmo link ?destaque= que o
+  // formulario-lead-cfiae.html usa. &origem=imovel avisa o mapa pra não
+  // mostrar "Cadastro recebido!" nem limpar o "Meu imóvel ideal". Sem
+  // coordenada, o item sai do DOM (não só display:none) pra não quebrar
+  // as bordas :last-child da barra no mobile.
+  const mapaItem = document.getElementById('sum-mapa-item');
+  if (mapaItem) {
+    if (im.lat != null && im.lng != null) {
+      // Indicação de agente/campanha não vai na URL: o mapa já lê as
+      // mesmas chaves wal_ref_agente/wal_ref_campanha do localStorage.
+      const mapaParams = new URLSearchParams({ destaque: im.id, origem: 'imovel' });
+      document.getElementById('btn-ver-mapa').href = 'mapa-empreendimentos.html?' + mapaParams.toString();
+      mapaItem.style.display = '';
+    } else {
+      mapaItem.remove();
+    }
+  }
 
   // descrição
   exibirDescricaoImovel(im.descricao);

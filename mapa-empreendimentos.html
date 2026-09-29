@@ -2161,8 +2161,13 @@ function popularSelect(id, valores, label) {
   // filtro nenhum aplicado) pra depois dar zoom/abrir popup só no
   // empreendimento do ?destaque=.
   const destaqueId = paramsURL.get('destaque');
+  // pedido 100 — botão "Ver no Mapa" do imovel.html usa o mesmo ?destaque=,
+  // mas não é lead novo: não limpa o perfil nem mostra "Cadastro recebido!".
+  const destaqueVemDoFormulario = destaqueId && paramsURL.get('origem') !== 'imovel';
   if (destaqueId) {
     temFiltroNaURL = true;
+  }
+  if (destaqueVemDoFormulario) {
     // pedido 96.9 — chegada de um lead novo via link do CFIAe (ou
     // qualquer disparo/formulário) deve começar com o perfil limpo,
     // não herdar um "Meu imóvel ideal" salvo de uma sessão anterior
@@ -2208,7 +2213,7 @@ function popularSelect(id, valores, label) {
     document.querySelectorAll('.side-card').forEach(c => c.classList.remove('active'));
     const card = sidebarList && sidebarList.querySelector(`.side-card[data-id="${CSS.escape(id)}"]`);
     if (card) card.classList.add('active');
-    document.getElementById('boas-vindas-banner').style.display = 'flex';
+    if (destaqueVemDoFormulario) document.getElementById('boas-vindas-banner').style.display = 'flex';
   }
   // 96.8: espera o fitBounds() de dentro do filtrarErenderizar() acima
   // (todos os 75 empreendimentos) terminar a animação antes de dar o
