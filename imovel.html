@@ -1433,7 +1433,7 @@ function renderImovel(im, todos) {
   // sidebar preço
   document.getElementById('sb-preco').textContent =
     im.valor > 0 ? 'R$ ' + im.valor.toLocaleString('pt-BR') + ' mil' : 'Consulte-nos';
-  document.getElementById('sb-preco-sub').textContent = im.faixa || 'Condições especiais para militares';
+  document.getElementById('sb-preco-sub').textContent = im.faixa || 'Condições especiais para servidores públicos civis, militares e pensionistas.';
 
   // downloads / links
   const dlList = document.getElementById('downloads-list');
