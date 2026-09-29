@@ -1367,7 +1367,9 @@ const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t
    (painel/atendente/ → raiz do site). */
 const SITE_BASE_URL = (function(){
   const o = window.location.origin;
-  if (!o || o === 'null' || o.startsWith('file')) return '';
+  // 101: mesmo fix de painel/agente/dashboard-agente.html — arquivo
+  // aberto local (origin "file://"/"null") cai no domínio real fixo.
+  if (!o || o === 'null' || o.startsWith('file')) return 'https://walservidor.com.br/';
   return o + window.location.pathname.replace(/painel\/atendente\/.*$/, '');
 })();
 function cadastroApiJsonp(action, params){

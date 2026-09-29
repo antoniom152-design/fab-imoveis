@@ -1015,7 +1015,11 @@ function chamarCadastroApi(action, payload){
 
 const SITE_BASE_URL = (function() {
   const o = window.location.origin;
-  if (!o || o === 'null' || o.startsWith('file')) return '';
+  // 101: se a página for aberta como arquivo local (origin "file://"
+  // ou "null"), cai no domínio real fixo — sem isso, links de
+  // compartilhar/mapa viravam caminho relativo à pasta local de quem
+  // abriu o arquivo (ver painel/agente/dashboard-agente.html).
+  if (!o || o === 'null' || o.startsWith('file')) return 'https://walservidor.com.br/';
   return o + window.location.pathname.replace(/imovel\.html.*$/, '');
 })();
 
