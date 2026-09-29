@@ -1453,10 +1453,16 @@ const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t
    dentro do contexto do dashboard (link relativo não funcionaria fora
    daqui). Mesmo padrão de SITE_BASE_URL já usado em imovel.html/
    reserva.html, ajustado pra profundidade de pasta deste arquivo
-   (painel/agente/ → raiz do site). */
+   (painel/agente/ → raiz do site).
+   101: se o Agente abrir esta página como arquivo local (baixou/salvou
+   o .html em vez de acessar o site — origin vira "file://" ou "null"),
+   cai no domínio real fixo em vez de "" — sem isso, "Ver no Mapa" e os
+   links de compartilhar viravam caminho relativo ao Desktop dele
+   (file:///C:/Users/.../mapa-empreendimentos.html), que só existe no
+   nosso servidor, nunca na máquina de quem abriu o arquivo local. */
 const SITE_BASE_URL = (function(){
   const o = window.location.origin;
-  if (!o || o === 'null' || o.startsWith('file')) return '';
+  if (!o || o === 'null' || o.startsWith('file')) return 'https://walservidor.com.br/';
   return o + window.location.pathname.replace(/painel\/agente\/.*$/, '');
 })();
 function cadastroApiJsonp(action, params){
