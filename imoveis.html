@@ -598,8 +598,10 @@
 const SITE_BASE_URL = (function() {
   const o = window.location.origin;
   if (!o || o === 'null' || o.startsWith('file')) {
-    // rodando local — retorna string vazia; o link não será clicável mas não quebrará
-    return '';
+    // 101: arquivo aberto local (não pelo site) — cai no domínio real
+    // fixo, mesmo fix de painel/agente/dashboard-agente.html, senão o
+    // link vira caminho relativo à pasta local de quem abriu o arquivo.
+    return 'https://walservidor.com.br/';
   }
   return o + window.location.pathname.replace(/imoveis\.html.*$/, '');
 })();
