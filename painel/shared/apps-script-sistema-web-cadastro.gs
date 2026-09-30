@@ -1130,7 +1130,12 @@ function crm_empreendimentoParaObjeto_(i) {
     // Projeto (coluna X) já era gravado por processarImovel mas nunca
     // tinha sido exposto aqui — acrescentado pra dar pra conferir o
     // cadastro de Empreendimento do Gerente (pedido 79.23).
-    projeto: s_(i.Projeto)
+    projeto: s_(i.Projeto),
+    // 102: coluna já existe e é lida direto via gviz em imovel.html/
+    // mapa-empreendimentos.html/dashboard-cfiae.html pro botão "Fotos /
+    // Vídeos / Book" — faltava expor aqui pro dashboard-agente.html
+    // (que usa crm_empreendimentos_listar, não gviz).
+    linkDrive: s_(i['Link Drive'])
   };
 }
 function crm_empreendimentos_listar_(p) {
