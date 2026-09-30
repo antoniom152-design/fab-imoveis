@@ -2241,6 +2241,29 @@ function abrirCompartilharEmp(id){
   document.getElementById('compEmpFormEmail').style.display='none';
   abrirModal('modalCompEmp');
 }
+/* "Fotos / Vídeos / Book" (102) — mesma funcionalidade do botão em
+   imovel.html: Google Slides abre a versão de exibição (embed) numa
+   aba nova; pasta/arquivo do Drive abre direto. Mesmo padrão já usado
+   em painel/cfiae/dashboard-cfiae.html (abrirGaleriaDetalhe). Depende
+   do campo linkDrive, só exposto pelo backend depois do Antonio
+   republicar o Apps Script (crm_empreendimentoParaObjeto_). */
+function abrirGaleriaEmp(id){
+  const e=_empreendimentos.find(x=>x.id===id);
+  if(!e || !e.linkDrive){ toast('Galeria não disponível para este empreendimento.', 'amber'); return; }
+  const link=e.linkDrive.trim();
+  if(link.includes('docs.google.com/presentation')){
+    let urlAbrir;
+    if(link.includes('pubembed') || link.includes('/pub?')){
+      urlAbrir=link.replace('/pub?','/embed?').replace('pubembed','embed');
+    }else{
+      const m=link.match(/presentation\/d\/(?:e\/)?([a-zA-Z0-9_-]+)/);
+      urlAbrir=m ? 'https://docs.google.com/presentation/d/'+m[1]+'/embed?start=false&loop=false&delayms=5000&rm=minimal' : link;
+    }
+    window.open(urlAbrir,'_blank','noopener');
+    return;
+  }
+  window.open(link,'_blank','noopener');
+}
 function compEmpCopiarLink(btn){
   navigator.clipboard.writeText(_compEmpDados.link).then(()=>{
     const orig=btn.textContent;
@@ -2462,10 +2485,11 @@ function renderEmps(){
           <div class="descricao-imovel"></div>
         </div>
         <button class="botao-detalhes-descricao" type="button" aria-expanded="false" hidden>+ detalhes</button>
-        <div style="display:flex;gap:6px;margin-top:12px">
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px">
           <!-- Botão "Materiais" removido daqui de propósito (24/08/2026) junto com o
                item do menu, enquanto o Antonio monta a parte de marketing. -->
-          <button class="btn-gold btn btn-sm" style="flex:1" onclick="abrirCompartilharEmp('${e.id}')">📲 Compartilhar</button>
+          <button class="btn-gold btn btn-sm" onclick="abrirCompartilharEmp('${e.id}')">📲 Compartilhar</button>
+          ${e.linkDrive ? `<button class="btn-teal btn btn-sm" onclick="abrirGaleriaEmp('${e.id}')">📷 Fotos / Vídeos / Book</button>` : ''}
         </div>
       </div>
     </div>`).join('');
