@@ -3466,7 +3466,7 @@ function limparFiltrosEmps(){
   filtrarEmps();
 }
 function renderEmps(){
-  const list=_empFiltrados;
+  const list=WalVendido.ordenar(_empFiltrados,e=>e.vendido); // pedido 106 — vendidos no final
   const cont=document.getElementById('empContagem');
   if(cont)cont.textContent=`Mostrando ${list.length} empreendimento${list.length===1?'':'s'}`;
   const el=document.getElementById('empGrid');
@@ -3477,7 +3477,7 @@ function renderEmps(){
   if(!list.length){el.innerHTML=`<div class="fs12 c-muted" style="padding:24px;text-align:center">Nenhum empreendimento encontrado. Tente ajustar os filtros.</div>`;return}
   el.innerHTML=list.map(e=>`
     <div class="emp-card">
-      <div class="emp-img">${e.imagem?`<img src="${fixDriveUrl(e.imagem)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:42px;position:relative;z-index:1">🏗️</span>`}</div>
+      <div class="emp-img${e.vendido?' wal-vendido-pai':''}">${e.imagem?`<img src="${fixDriveUrl(e.imagem)}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">`:`<span style="font-size:42px;position:relative;z-index:1">🏗️</span>`}${WalVendido.tarja(e.vendido,'pequena')}</div>
       <div class="emp-body">
         <div class="emp-nome">${e.nome}</div>
         <div class="emp-const">${e.construtora} · ${e.bairro} · ${e.cidade}/${e.uf}</div>
@@ -4125,6 +4125,7 @@ function limparChat(){
 </script>
 <script src="../shared/compartilhamento-seguro.js"></script>
 <script src="../shared/descricao-inteligente.js"></script>
+<script src="../shared/tarja-vendido.js"></script>
 <script src="../../shared/chat-widget.js"></script>
 </body>
 </html>

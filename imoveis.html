@@ -458,6 +458,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+<script src="painel/shared/tarja-vendido.js"></script>
 </head>
 <body>
 
@@ -668,6 +669,7 @@ async function fetchFromSheet(sheetId) {
   const json  = await gvizJsonpImoveis(sheetId);
   const table = json.table;
   if (!table || !table.rows) return [];
+  const iVendido = WalVendido.indiceColuna(table); // pedido 106
   return table.rows
     .filter(row => row.c && row.c[1] && row.c[1].v === true) // Somente ativos
     .map(row => {
@@ -687,6 +689,7 @@ async function fetchFromSheet(sheetId) {
         blogUrl:    g(11) || '#',
         uf:         g(15) || '',
         bairro:     g(16) || '',
+        vendido:    WalVendido.daLinha(row, iVendido),
         wppMsg:     `Olá! Tenho interesse no ${nome} (${cidade}).`
       };
     })
@@ -913,6 +916,7 @@ function renderCard(im) {
         </div>
         <img src="${fixDriveUrl(im.imagem)}" alt="${im.nome}" loading="lazy"
              onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=60'">
+        ${WalVendido.tarja(im.vendido)}
       </div>
 
       <div class="card-body">
@@ -1262,7 +1266,8 @@ function render() {
     empty.style.display = 'block';
   } else {
     empty.style.display = 'none';
-    grid.innerHTML = imoveis.map(renderCard).join('');
+    // pedido 106 — 100% vendidos vão pro final da lista
+    grid.innerHTML = WalVendido.ordenar(imoveis, im => im.vendido).map(renderCard).join('');
     imoveis.forEach((im) => {
       const wrapper = grid.querySelector('.descricao-wrapper[data-desc-id="' + im.id + '"]');
       if (wrapper) preencherDescricaoInteligente(wrapper.querySelector('.descricao-imovel'), im.descricao);
