@@ -449,7 +449,8 @@ async function enviarFormularioWAL(e){
   const btn=document.getElementById('walLeadSubmit');btn.disabled=true;btn.textContent='Enviando...';
   await registrarNoCRM_({nome,email,whatsapp,cargo,interesse});
   btn.disabled=false;btn.textContent='Continuar no WhatsApp →';
-  const url='https://wa.me/5521972443592?text='+encodeURIComponent(mensagem);
+  // pedido 104.3 — central de atendimento da WAL (21 99726-3950)
+  const url='https://wa.me/5521997263950?text='+encodeURIComponent(mensagem);
   if(aba){aba.opener=null;aba.location.href=url}else{location.href=url}
   document.getElementById('walLeadForm').reset();fecharFormularioWAL();
 }
