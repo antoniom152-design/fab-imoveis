@@ -1329,6 +1329,15 @@
         <option value="0">Somente Inativos</option>
       </select>
     </div>
+    <!-- pedido 106.1 — filtro pela coluna "Vendido" (AB) -->
+    <div class="tbl-filter-grp">
+      <span class="tbl-filter-lbl">Vendido</span>
+      <select class="tbl-filter-sel" id="tf-vendido" onchange="renderTable()">
+        <option value="">Todos</option>
+        <option value="1">Só 100% Vendidos</option>
+        <option value="0">Só Disponíveis</option>
+      </select>
+    </div>
   </div>
 
   <!-- TABELA -->
@@ -3143,6 +3152,7 @@ function renderTable() {
   const bairro     = document.getElementById('tf-bairro').value;
   const construtora = document.getElementById('tf-construtora').value;
   const ativo      = document.getElementById('tf-ativo').value;
+  const vendido    = document.getElementById('tf-vendido').value; // pedido 106.1
 
   let data = sheetData.filter(d => {
     if (uf     && (d.uf||'').toUpperCase() !== uf.toUpperCase()) return false;
@@ -3152,6 +3162,8 @@ function renderTable() {
     if (construtora && d.construtora !== construtora) return false;
     if (ativo === '1' && !d.ativo)     return false;
     if (ativo === '0' && d.ativo)      return false;
+    if (vendido === '1' && !d.vendido) return false;
+    if (vendido === '0' && d.vendido)  return false;
     return true;
   });
 
@@ -3167,7 +3179,9 @@ function renderTable() {
     <tr>
       <td>${d.ativo
         ? '<span class="pill-ativo"></span> Ativo'
-        : '<span class="pill-inativo"></span> Inativo'}</td>
+        : '<span class="pill-inativo"></span> Inativo'}${d.vendido
+        ? '<div style="margin-top:5px"><span style="display:inline-block;background:#c8102e;color:#fff;font-size:10px;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:3px;white-space:nowrap">100% VENDIDO</span></div>'
+        : ''}</td>
       <td class="td-img">${WalVendido.envolver(`<img src="${d.imagem||''}" onerror="this.style.display='none'" alt="">`, d.vendido, 'mini')}</td>
       <td class="td-nome"><a href="imovel.html?id=${encodeURIComponent(d.id)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s" onmouseover="this.style.textDecorationColor='var(--gold-ink)'" onmouseout="this.style.textDecorationColor='transparent'" title="Ver no site (nova aba)">${d.nome}</a></td>
       <td><span class="badge-tipo ${tipoClass(d.tipo)}">${d.tipo}</span></td>
