@@ -1214,6 +1214,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+<script src="painel/shared/tarja-vendido.js"></script>
 </head>
 <body>
 
@@ -3159,8 +3160,12 @@ function gvizJsonpIndex(sheetId, sheet) {
       row.c[14] && row.c[14].v === true              // Destaque = TRUE
     );
 
-    const destRJ = destaques.filter(row => g(row,15).toUpperCase() === 'RJ').slice(0,3);
-    const destSP = destaques.filter(row => g(row,15).toUpperCase() === 'SP').slice(0,3);
+    // pedido 106 — "100% VENDIDO": vendidos vão pro final (não ocupam o
+    // lugar dos disponíveis) e ganham a tarja sobre a imagem.
+    const iVendido = WalVendido.indiceColuna(table);
+    const vendidoRow = row => WalVendido.daLinha(row, iVendido);
+    const destRJ = WalVendido.ordenar(destaques.filter(row => g(row,15).toUpperCase() === 'RJ'), vendidoRow).slice(0,3);
+    const destSP = WalVendido.ordenar(destaques.filter(row => g(row,15).toUpperCase() === 'SP'), vendidoRow).slice(0,3);
 
     if (!destRJ.length && !destSP.length) return; // nenhum destaque → mantém fallback
 
@@ -3178,8 +3183,8 @@ function gvizJsonpIndex(sheetId, sheet) {
       return `
         <div class="prop-card">
           <div class="prop-tag">${tipo}</div>
-          <img class="prop-img" src="${imagem}" alt="${nome}" loading="lazy"
-               onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80'">
+          ${WalVendido.envolver(`<img class="prop-img" src="${imagem}" alt="${nome}" loading="lazy"
+               onerror="this.src='https://images.unsplash.com/photo-1486325212027-8081e485255e?w=600&q=80'">`, vendidoRow(row))}
           <div class="prop-body">
             <div class="prop-city">${localStr}</div>
             <div class="prop-name">${nome}</div>

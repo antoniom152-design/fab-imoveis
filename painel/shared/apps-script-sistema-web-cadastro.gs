@@ -1135,8 +1135,48 @@ function crm_empreendimentoParaObjeto_(i) {
     // mapa-empreendimentos.html/dashboard-cfiae.html pro botão "Fotos /
     // Vídeos / Book" — faltava expor aqui pro dashboard-agente.html
     // (que usa crm_empreendimentos_listar, não gviz).
-    linkDrive: s_(i['Link Drive'])
+    linkDrive: s_(i['Link Drive']),
+    // 106: coluna "Vendido" (AB) — "Sim" = 100% vendido, mostra a tarja
+    // "100% VENDIDO" nos cards dos painéis (ver painel/shared/tarja-vendido.js).
+    vendido: i.Vendido === true || /^(sim|true|x)$/i.test(s_(i.Vendido).trim())
   };
+}
+
+/* 106 — marca/desmarca "100% Vendido" de um empreendimento (admin.html →
+   Portfólio → editar imóvel). Grava SÓ a coluna "Vendido" da aba
+   IMOVEISDISPONIVEIS, achada pelo nome do cabeçalho; se ela ainda não
+   existir, cria o cabeçalho na 1ª coluna vazia depois da última (AB).
+   Fica neste backend de propósito, separado do processarImovel do
+   APPS_SCRIPT_URL (que já divergiu do repo — ver bug de Lat/Lng de
+   23/09): assim o cadastro de imóveis em si não é tocado. PIN-gated. */
+function crm_admin_imovel_vendido_(p) {
+  var auth = autorizarAdmin_(p.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var id = s_(p.id).trim();
+  if (!id) return { status: 'error', message: 'ID do imóvel é obrigatório.' };
+  var vendido = /^(sim|true|1)$/i.test(s_(p.vendido).trim());
+  return comLock_(function () {
+    var aba = SpreadsheetApp.openById(PLANILHA_PORTFOLIO_ID).getSheetByName(ABA_IMOVEIS_DISPONIVEIS);
+    if (!aba) return { status: 'error', message: 'Aba ' + ABA_IMOVEIS_DISPONIVEIS + ' não encontrada.' };
+    var ultimaCol = aba.getLastColumn();
+    var headers = aba.getRange(1, 1, 1, ultimaCol).getValues()[0].map(function (h) { return String(h).trim(); });
+    var colId = headers.indexOf('ID');
+    if (colId === -1) return { status: 'error', message: 'Coluna ID não encontrada.' };
+    var colVendido = -1;
+    headers.forEach(function (h, idx) { if (colVendido === -1 && h.toLowerCase() === 'vendido') colVendido = idx; });
+    if (colVendido === -1) {
+      colVendido = ultimaCol; // 0-based → próxima coluna depois da última
+      aba.getRange(1, colVendido + 1).setValue('Vendido');
+    }
+    var ids = aba.getRange(2, colId + 1, Math.max(aba.getLastRow() - 1, 1), 1).getValues();
+    for (var i = 0; i < ids.length; i++) {
+      if (String(ids[i][0]).trim() === id) {
+        aba.getRange(i + 2, colVendido + 1).setValue(vendido ? 'Sim' : 'Não');
+        return { status: 'ok', id: id, vendido: vendido, coluna: colVendido + 1 };
+      }
+    }
+    return { status: 'error', message: 'Imóvel ' + id + ' não encontrado.' };
+  });
 }
 function crm_empreendimentos_listar_(p) {
   var ss = SpreadsheetApp.openById(PLANILHA_PORTFOLIO_ID);
@@ -2759,6 +2799,7 @@ function doGet(e) {
       case 'crm_atendente_agendamento':         result = crm_atendente_agendamento_(p); break;
       case 'crm_admin_historico_evento':        result = crm_admin_historico_evento_(p); break;
       case 'crm_admin_listar_historico':        result = crm_admin_listar_historico_(p); break;
+      case 'crm_admin_imovel_vendido':          result = crm_admin_imovel_vendido_(p); break;
       case 'crm_admin_listar_historico_todos':  result = crm_admin_listar_historico_todos_(p); break;
       case 'crm_admin_migrar_historico_q':      result = crm_admin_migrar_historico_q_(p); break;
       case 'crm_gerente_leads_listar':          result = crm_gerente_leads_listar_(p); break;

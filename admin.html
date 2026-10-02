@@ -646,6 +646,7 @@
     .crm-timeline{max-height:280px}
   }
 </style>
+<script src="painel/shared/tarja-vendido.js"></script>
 </head>
 <body>
 
@@ -672,6 +673,12 @@
               <input type="checkbox" class="toggle-input" id="cadDestaque">
               <span class="toggle-track"></span>
               <span class="toggle-label">★ Destaque na página inicial</span>
+            </label>
+            <!-- pedido 106 — grava só a coluna "Vendido" (AB), ver crm_admin_imovel_vendido -->
+            <label class="toggle-item" id="cadVendidoItem" title="Mostra a tarja &quot;100% VENDIDO&quot; sobre a imagem em todo o site">
+              <input type="checkbox" class="toggle-input" id="cadVendido">
+              <span class="toggle-track"></span>
+              <span class="toggle-label" id="cadVendidoLabel">🔴 100% Vendido</span>
             </label>
           </div>
         </div>
@@ -2906,6 +2913,7 @@ async function fetchPreview() {
 
 function parseGvizToAdmin(table) {
   if (!table || !table.rows) return [];
+  const iVendido = WalVendido.indiceColuna(table); // pedido 106 — achada pelo nome
   return table.rows.map(row => {
     const g  = (i) => { const c = row.c && row.c[i]; return c ? (c.f || c.v || '') : ''; };
     // gv() lê o valor BRUTO da célula (não o texto formatado) — necessário
@@ -2925,7 +2933,8 @@ function parseGvizToAdmin(table) {
       projeto: g(23),
       lat: gv(24),
       lng: gv(25),
-      endereco: g(26)
+      endereco: g(26),
+      vendido: WalVendido.daLinha(row, iVendido)
     };
   }).filter(r => r.nome);
 }
@@ -3159,7 +3168,7 @@ function renderTable() {
       <td>${d.ativo
         ? '<span class="pill-ativo"></span> Ativo'
         : '<span class="pill-inativo"></span> Inativo'}</td>
-      <td class="td-img"><img src="${d.imagem||''}" onerror="this.style.display='none'" alt=""></td>
+      <td class="td-img">${WalVendido.envolver(`<img src="${d.imagem||''}" onerror="this.style.display='none'" alt="">`, d.vendido, 'mini')}</td>
       <td class="td-nome"><a href="imovel.html?id=${encodeURIComponent(d.id)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;text-decoration-color:transparent;transition:text-decoration-color .15s" onmouseover="this.style.textDecorationColor='var(--gold-ink)'" onmouseout="this.style.textDecorationColor='transparent'" title="Ver no site (nova aba)">${d.nome}</a></td>
       <td><span class="badge-tipo ${tipoClass(d.tipo)}">${d.tipo}</span></td>
       <td>${d.construtora||'—'}</td>
@@ -3201,6 +3210,11 @@ function abrirFormNovo() {
   document.getElementById('cadForm').reset();
   document.getElementById('cadAtivo').checked    = true;
   document.getElementById('cadDestaque').checked = false;
+  // pedido 106 — "100% Vendido" só ao editar (o ID do imóvel novo só existe depois de salvo)
+  document.getElementById('cadVendido').checked = false;
+  document.getElementById('cadVendido').disabled = true;
+  document.getElementById('cadVendidoItem').style.opacity = '.5';
+  document.getElementById('cadVendidoLabel').textContent = '🔴 100% Vendido (disponível depois de salvar)';
   document.getElementById('cadFeiraoOnline').checked = false;
   document.getElementById('imgPreview').style.display = 'none';
   // Reseta selects encadeados e hidden fields
@@ -3235,6 +3249,10 @@ function abrirFormEdit(id) {
 
   document.getElementById('cadAtivo').checked     = d.ativo;
   document.getElementById('cadDestaque').checked  = d.destaque;
+  document.getElementById('cadVendido').checked   = !!d.vendido; // pedido 106
+  document.getElementById('cadVendido').disabled  = false;
+  document.getElementById('cadVendidoItem').style.opacity = '';
+  document.getElementById('cadVendidoLabel').textContent = '🔴 100% Vendido';
   document.getElementById('cadNome').value         = d.nome        || '';
   document.getElementById('cadTipo').value         = d.tipo        || '';
   document.getElementById('cadConstrutora').value  = d.construtora || '';
@@ -3425,13 +3443,25 @@ async function salvarImovel() {
     });
   } catch(e) { /* no-cors — assume ok */ }
 
+  // pedido 106 — "100% Vendido" vai por outro backend (Cadastro Único), só
+  // se mudou, pra não mexer no processarImovel do APPS_SCRIPT_URL.
+  let avisoVendido = '';
+  if (editandoId) {
+    const original = sheetData.find(x => x.id === editandoId);
+    const vendidoNovo = document.getElementById('cadVendido').checked;
+    if (!original || !!original.vendido !== vendidoNovo) {
+      const r = await equipeJsonp('crm_admin_imovel_vendido', { id: editandoId, vendido: vendidoNovo ? 'sim' : 'nao' });
+      if (!r || r.status !== 'ok') avisoVendido = ' ⚠️ Não consegui gravar "100% Vendido" — tente de novo.';
+    }
+  }
+
   fecharForm();
   btn.innerHTML = orig;
   btn.disabled  = false;
 
-  mostrarToast(editandoId
+  mostrarToast((editandoId
     ? `✅ "${d.nome}" atualizado! Recarregando em 3s...`
-    : `✅ "${d.nome}" cadastrado! Recarregando em 3s...`);
+    : `✅ "${d.nome}" cadastrado! Recarregando em 3s...`) + avisoVendido);
 
   setTimeout(() => fetchPreview(), 3000);
 }

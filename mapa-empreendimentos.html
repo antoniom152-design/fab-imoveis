@@ -727,6 +727,7 @@
     #banner-novo .bn-perfil { order: 3; width: 100%; }
   }
 </style>
+<script src="painel/shared/tarja-vendido.js"></script>
 </head>
 <body>
 
@@ -1973,7 +1974,7 @@ function abrirComparacao() {
   wrap.innerHTML = `
     <table class="compare-table">
       <tr><th>&nbsp;</th>${itens.map(im => `<th>${im.nome}</th>`).join('')}</tr>
-      <tr><td>Foto</td>${itens.map(im => `<td>${im.imagem ? `<img src="${fixDriveUrlProto(im.imagem)}" onerror="this.style.display='none'">` : '—'}</td>`).join('')}</tr>
+      <tr><td>Foto</td>${itens.map(im => `<td>${im.imagem ? WalVendido.envolver(`<img src="${fixDriveUrlProto(im.imagem)}" onerror="this.style.display='none'">`, im.vendido, 'pequena') : '—'}</td>`).join('')}</tr>
       <tr><td>Tipo</td>${itens.map(im => `<td>${im.tipo || '—'}</td>`).join('')}</tr>
       <tr><td>Projeto</td>${itens.map(im => `<td>${im.projeto || '—'}</td>`).join('')}</tr>
       <tr><td>Local</td>${itens.map(im => `<td>${[im.bairro, im.cidade, im.uf].filter(Boolean).join(', ')}</td>`).join('')}</tr>
@@ -2024,6 +2025,7 @@ async function carregarImoveis() {
   const json  = await gvizJsonpProto(SHEET_IMOVEIS_ID);
   const table = json.table;
   const rows  = (table && table.rows) || [];
+  const iVendido = WalVendido.indiceColuna(table); // pedido 106
 
   const todos = rows.map(row => {
     const g  = (i) => { const c = row.c && row.c[i]; return c ? String(c.f || c.v || '') : ''; };
@@ -2033,7 +2035,8 @@ async function carregarImoveis() {
       tipo: g(2) || 'Novo', construtora: g(3), cidade: g(4), nome: g(5),
       descricao: g(6), imagem: g(7), valor: parseFloat(g(9)) || 0,
       uf: g(15), bairro: g(16),
-      projeto: g(23), lat: gv(24), lng: gv(25), endereco: g(26)
+      projeto: g(23), lat: gv(24), lng: gv(25), endereco: g(26),
+      vendido: WalVendido.daLinha(row, iVendido)
     };
   }).filter(im => im.nome);
 
@@ -2253,7 +2256,7 @@ function popularSelect(id, valores, label) {
       : '';
     return `
       <div class="pw">
-        ${foto ? `<img src="${foto}" alt="${im.nome}" onerror="this.style.display='none'">` : ''}
+        ${foto ? WalVendido.envolver(`<img src="${foto}" alt="${im.nome}" onerror="this.style.display='none'">`, im.vendido) : ''}
         <div class="pw-top-row">
           <div class="pw-badges">
             <span class="badge" style="background:${corPorStatus(im.tipo)}">${im.tipo}</span>
@@ -2364,7 +2367,8 @@ function popularSelect(id, valores, label) {
           ? `<div class="sc-novo-fit ${classeFit(fit)}">✨ ${fitTexto[classeFit(fit)]} (${fit}%)</div>` : '';
         return `
           <div class="side-card" data-id="${im.id}">
-            <div class="sc-novo-img" style="background:linear-gradient(135deg, ${corPorStatus(im.tipo)}99, #12213A99)">
+            <div class="sc-novo-img${im.vendido ? ' wal-vendido-pai' : ''}" style="background:linear-gradient(135deg, ${corPorStatus(im.tipo)}99, #12213A99)">
+              ${WalVendido.tarja(im.vendido, 'pequena')}
               <span class="sc-novo-badge" style="background:${corPorStatus(im.tipo)}">${im.tipo}</span>
               <button class="sc-novo-fav" onclick="event.stopPropagation();alternarFavorito('${im.id}', this)">${fav ? '❤️' : '🤍'}</button>
             </div>
@@ -2386,6 +2390,7 @@ function popularSelect(id, valores, label) {
           <div class="sc-badges">
             <span class="sc-badge" style="background:${corPorStatus(im.tipo)}">${im.tipo}</span>
             ${im.projeto ? `<span class="sc-badge" style="background:#0A1628;color:#C9A84C">${im.projeto}</span>` : ''}
+            ${im.vendido ? `<span class="sc-badge" style="background:#c8102e;color:#fff">100% VENDIDO</span>` : ''}
           </div>
           <h4>${im.nome}</h4>
           <div class="sc-loc">${[im.bairro, im.cidade, im.uf].filter(Boolean).join(', ')}</div>
@@ -2439,6 +2444,10 @@ function popularSelect(id, valores, label) {
     } else {
       copy.sort((a,b) => (a.nome||'').localeCompare(b.nome||'', 'pt-BR'));
     }
+    // pedido 106 — 100% vendidos vão pro final, mantendo o critério acima
+    // entre eles (o ?destaque= abaixo continua vindo primeiro de qualquer jeito)
+    const semVendidosNaFrente = WalVendido.ordenar(copy, im => im.vendido);
+    copy.length = 0; copy.push(...semVendidosNaFrente);
     // pedido 96.9 — o empreendimento do link (?destaque=) sempre aparece
     // primeiro na lista de Resultados, seja qual for o critério de
     // ordenação escolhido.
