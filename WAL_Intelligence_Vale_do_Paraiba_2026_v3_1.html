@@ -100,9 +100,33 @@ document.querySelectorAll('.profile-btn').forEach(btn=>{
 @media(max-width:900px){.una-gallery{grid-template-columns:1fr;grid-auto-rows:250px}.una-gallery figure:first-child{grid-row:span 1}.evolution-line{grid-template-columns:1fr}.arrow-mid{transform:rotate(90deg)}.shift-grid,.maturity{grid-template-columns:1fr}}
 </style>
 
+<style>
+/* pedido 104.1 — formulário "Consultar imóveis na WAL" (mesmo modal do
+   WAL_Parque_Una_SJC_site_completo.html), gravando no CRM. */
+.modal{display:none;position:fixed;inset:0;z-index:100;background:rgba(4,18,30,.86);padding:22px;align-items:center;justify-content:center}
+.modal.open{display:flex}
+.modal-card{width:min(560px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.35);position:relative}
+.modal-head{background:var(--navy);color:white;padding:28px 30px}
+.modal-head h2{margin:5px 40px 6px 0;font-size:31px;line-height:1.05}
+.modal-head p{margin:0;color:#cee0ea;font-size:14px}
+.modal-close{position:absolute;right:18px;top:18px;border:1px solid rgba(255,255,255,.35);background:transparent;color:white;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer}
+.lead-form{padding:26px 30px 30px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{margin-bottom:14px}
+.form-group.full{grid-column:1/-1}
+.form-label{display:block;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.form-input,.form-select{width:100%;border:1px solid var(--line);border-radius:10px;background:#f8fafc;color:var(--ink);padding:12px 13px;font:inherit;outline:none}
+.form-input:focus,.form-select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(0,166,200,.12)}
+.field-error{display:none;color:#b42318;font-size:12px;margin-top:5px}
+.form-note{font-size:12px;color:var(--muted);margin:4px 0 18px}
+.lead-form .submit-wpp{width:100%;margin-top:0;background:#25D366;color:#063d1b}
+.lead-form .submit-wpp:hover{box-shadow:0 8px 20px rgba(37,211,102,.28)}
+.lead-form .submit-wpp:disabled{opacity:.7;cursor:wait}
+@media(max-width:560px){.form-grid{grid-template-columns:1fr}.form-group.full{grid-column:auto}.modal{padding:10px}.modal-head,.lead-form{padding-left:20px;padding-right:20px}.modal-head h2{font-size:25px}}
+</style>
 </head>
 <body>
-<header class="top"><div class="wrap topin"><div class="brand"><div class="brandmark">W</div><div>WAL Intelligence<small>INTELIGÊNCIA IMOBILIÁRIA</small></div></div><nav class="nav"><a href="#regiao">Região</a><a href="#vetores">Vetores</a><a href="#mercado">Mercado</a><a href="#onde-morar">Onde morar?</a><a href="#una">Parque Una</a><a href="#evolucao-projetos">5 anos de evolução</a><a href="#qualidade">Qualidade & Segurança</a><a href="#midia">Mídia</a><a href="#projetos">Projetos</a><a href="#perfil">Meu perfil</a></nav><a class="btn primary" href="https://www.walservidor.com.br" target="_blank" rel="noopener">Ver imóveis</a></div></header>
+<header class="top"><div class="wrap topin"><div class="brand"><div class="brandmark">W</div><div>WAL Intelligence<small>INTELIGÊNCIA IMOBILIÁRIA</small></div></div><nav class="nav"><a href="#regiao">Região</a><a href="#vetores">Vetores</a><a href="#mercado">Mercado</a><a href="#onde-morar">Onde morar?</a><a href="#una">Parque Una</a><a href="#evolucao-projetos">5 anos de evolução</a><a href="#qualidade">Qualidade & Segurança</a><a href="#midia">Mídia</a><a href="#projetos">Projetos</a><a href="#perfil">Meu perfil</a></nav><a class="btn primary" href="mapa-empreendimentos.html?cidades=S%C3%A3o%20Jos%C3%A9%20dos%20Campos,Jacare%C3%AD,Ca%C3%A7apava,Taubat%C3%A9" target="_blank" rel="noopener">Ver Imóveis no Mapa</a></div></header>
 <section class="hero"><div class="wrap"><div class="eyebrow">São José dos Campos • Jacareí • Caçapava • Taubaté</div><h1>Antes de escolher o imóvel, entenda a cidade que está sendo construída.</h1><p>Uma leitura integrada do eixo do Vale do Paraíba para quem quer morar, investir ou construir patrimônio com mais contexto: empregos, infraestrutura, tecnologia, mobilidade, educação, saúde e dinâmica imobiliária.</p><div class="hero-actions"><a class="btn primary" href="#perfil">Descobrir o que observar</a><a class="btn ghost" href="#mercado">Analisar mercado imobiliário</a></div><div class="kpis"><div class="kpi"><b>~727 mil</b><span>habitantes em SJC • referência 2024</span></div><div class="kpi"><b>202,9 mil</b><span>empregos formais • base do estudo</span></div><div class="kpi"><b>R$ 9,2–9,6 mil</b><span>faixa indicativa do m² em SJC • 2026</span></div><div class="kpi"><b>+300</b><span>empresas vinculadas ao PIT</span></div><div class="kpi"><b>4 cidades</b><span>leitura integrada do corredor regional</span></div></div></div></section>
 <div class="notice"><div class="wrap"><strong>Como ler este painel:</strong> números históricos e projetos anunciados são apresentados separadamente de cenários prospectivos. Projeções não representam garantia de valorização ou recomendação individual de investimento.</div></div>
 
@@ -359,7 +383,7 @@ document.querySelectorAll('.profile-btn').forEach(btn=>{
 
 <section class="section"><div class="wrap"><div class="grid g2"><div><div class="label">Transparência</div><h2>Metodologia e fontes do estudo-base</h2><p class="method">Esta página consolida e reorganiza os três materiais fornecidos à WAL. Eles citam como bases: IBGE, CAGED, FipeZAP, Aconvap, Secovi, Prefeitura de São José dos Campos, Governo do Estado de São Paulo, Novo PAC, Sabesp, Embraer, SJK Airport, PIT e imprensa especializada. Valores e status devem ser reconfirmados na fonte primária na data da decisão.</p><ul class="source-list method"><li>IBGE / indicadores populacionais</li><li>CAGED / emprego formal</li><li>FipeZAP / referências imobiliárias</li><li>Aconvap e Secovi / mercado</li><li>Prefeitura de SJC</li><li>Governo do Estado de SP</li><li>Novo PAC / Governo Federal</li><li>Sabesp</li><li>Embraer / cadeia aeroespacial</li><li>SJK Airport</li><li>Parque de Inovação Tecnológica</li><li>Materiais regionais de Jacareí, Caçapava e Taubaté</li></ul></div><div class="card"><h3>Três níveis de informação</h3><p><span class="pill green">1 • Fato / histórico</span></p><p>Indicadores, estruturas existentes, valores históricos e equipamentos já entregues.</p><p><span class="pill">2 • Projeto / vetor</span></p><p>Obras, investimentos e planos cujo impacto depende de cronograma e execução.</p><p><span class="pill amber">3 • Cenário</span></p><p>Estimativas futuras usadas para testar hipóteses — nunca tratadas como garantia.</p></div></div></div></section>
 
-<section class="section"><div class="wrap"><div class="cta"><div><h2>Agora transforme contexto em uma busca de imóvel.</h2><p>A WAL pode cruzar seu perfil, renda, instituição, rotina e objetivo com os empreendimentos disponíveis na região.</p></div><a class="btn ghost" href="https://www.walservidor.com.br" target="_blank" rel="noopener">Consultar imóveis na WAL →</a></div></div></section>
+<section class="section"><div class="wrap"><div class="cta"><div><h2>Agora transforme contexto em uma busca de imóvel.</h2><p>A WAL pode cruzar seu perfil, renda, instituição, rotina e objetivo com os empreendimentos disponíveis na região.</p></div><button class="btn ghost" type="button" onclick="abrirFormularioWAL()">Consultar imóveis na WAL →</button></div></div></section>
 <footer class="footer"><div class="wrap"><strong>WAL Imóveis • WAL Intelligence</strong><br>Especialistas em imóveis para funcionários públicos civis e militares.<br><br>Conteúdo informativo. Cenários e relações de impacto são hipóteses analíticas e não constituem promessa de valorização, garantia de retorno ou recomendação financeira. Atualização-base: outubro de 2026.</div></footer>
 <script>
 document.querySelectorAll('.citybtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.citybtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.citypanel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.city).classList.add('active')}));
@@ -371,4 +395,65 @@ const profiles={moradia:{title:'Moradia familiar',text:'Dê mais peso à qualida
 function renderProfile(){const p=profiles[document.getElementById('perfilSel').value];document.getElementById('profileResult').innerHTML=`<h3>${p.title}</h3><p>${p.text}</p><ul>${p.items.map(i=>`<li>${i}</li>`).join('')}</ul>`}document.getElementById('perfilSel').addEventListener('change',renderProfile);renderProfile();
 new Chart(document.getElementById('hist'),{type:'line',data:{labels:['2019','2020','2021','2022','2023','2024','2025','2026'],datasets:[{label:'R$/m² (aprox.)',data:[4800,4900,5300,6700,7350,8230,9050,9400],borderColor:'#0b67b2',backgroundColor:'rgba(11,103,178,.10)',fill:true,tension:.32,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'SJC • série indicativa do preço médio do m² (2019–2026)'},legend:{display:false}},scales:{y:{beginAtZero:false}}}});
 new Chart(document.getElementById('proj'),{type:'line',data:{labels:['2026','2031','2036','2041','2046'],datasets:[{label:'Conservador',data:[9400,11500,14200,17500,22000],borderColor:'#b96a00',borderDash:[5,5],tension:.3},{label:'Base',data:[9400,12500,17000,23000,31000],borderColor:'#0b67b2',tension:.3},{label:'Expansivo',data:[9400,14000,20500,30000,42000],borderColor:'#198754',borderDash:[5,5],tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Cenários nominais do estudo • 2026–2046'}},scales:{y:{beginAtZero:false}}}});
-</script></body></html>
+</script><div class="modal" id="walModal" role="dialog" aria-modal="true" aria-labelledby="walModalTitle" onclick="fecharModalFundo(event)">
+  <div class="modal-card">
+    <div class="modal-head"><button class="modal-close" type="button" onclick="fecharFormularioWAL()" aria-label="Fechar formulário">×</button><div class="eyebrow">ATENDIMENTO WAL</div><h2 id="walModalTitle">Tenho Interesse em São José dos Campos e Região</h2><p>Preencha os dados para iniciarmos um atendimento mais objetivo pelo WhatsApp.</p></div>
+    <form class="lead-form" id="walLeadForm" novalidate onsubmit="enviarFormularioWAL(event)">
+      <div class="form-grid">
+        <div class="form-group full"><label class="form-label" for="leadNome">Nome completo</label><input class="form-input" id="leadNome" name="nome" autocomplete="name" placeholder="Seu nome e sobrenome"><span class="field-error" id="leadNomeErro">Informe nome e sobrenome, sem números.</span></div>
+        <div class="form-group"><label class="form-label" for="leadEmail">E-mail</label><input class="form-input" id="leadEmail" name="email" type="email" autocomplete="email" placeholder="seu@email.com"><span class="field-error" id="leadEmailErro">Informe um e-mail válido.</span></div>
+        <div class="form-group"><label class="form-label" for="leadWhatsapp">WhatsApp</label><input class="form-input" id="leadWhatsapp" name="whatsapp" type="tel" autocomplete="tel" maxlength="15" placeholder="(12) 99999-9999" oninput="mascaraWhatsapp(this)"><span class="field-error" id="leadWhatsappErro">Informe um WhatsApp válido com DDD.</span></div>
+        <div class="form-group"><label class="form-label" for="leadCargo">Posto / Cargo</label><select class="form-select" id="leadCargo" name="cargo"><option value="">Selecione...</option><optgroup label="Oficiais"><option>Oficial General</option><option>Oficial Superior</option><option>Oficial Intermediário</option><option>Oficial Subalterno</option></optgroup><optgroup label="Praças"><option>Sargento / Suboficial</option><option>Cabo / Soldado</option></optgroup><optgroup label="Civil / Outros"><option>Servidor Público Federal</option><option>Servidor Público Estadual</option><option>Servidor Público Municipal</option><option>Pensionista / Aposentado</option><option>Ministério Público</option><option>Profissional liberal</option><option>Empresário</option><option>Investidor</option><option>Outro</option></optgroup></select><span class="field-error" id="leadCargoErro">Selecione seu posto ou cargo.</span></div>
+        <div class="form-group"><label class="form-label" for="leadInteresse">Interesse principal</label><select class="form-select" id="leadInteresse" name="interesse"><option value="">Selecione...</option><option>Morar em São José dos Campos</option><option>Investir em São José dos Campos</option><option>Parque Una (Riza / Martim)</option><option>Imóveis em Jacareí</option><option>Imóveis em Caçapava</option><option>Imóveis em Taubaté</option><option>Ainda não sei — quero orientação</option></select><span class="field-error" id="leadInteresseErro">Selecione seu interesse.</span></div>
+      </div>
+      <p class="form-note">Ao continuar, você será direcionado ao WhatsApp da WAL. Seus dados serão usados exclusivamente para este atendimento.</p>
+      <button class="btn submit-wpp" id="walLeadSubmit" type="submit">Continuar no WhatsApp →</button>
+    </form>
+  </div>
+</div>
+<script>
+// pedido 104.1 — além de abrir o WhatsApp (como no site do Parque Una),
+// grava o lead na "WAL — CRM de Leads": aba LEADS (criarOuAtualizar, com
+// a 1ª interação) e aba HISTORICO_ATENDIMENTO_LEAD (crm_lead_evento_publico)
+// — mesmo par de chamadas do imovel.html. AWAIT antes de abrir o WhatsApp
+// (lição do 79.31b: requisição solta se perdia em alguns navegadores).
+const CRM_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+const ORIGEM_WAL = 'WAL Intelligence — SJC e Região';
+function abrirFormularioWAL(){const m=document.getElementById('walModal');m.classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('leadNome').focus(),60)}
+function fecharFormularioWAL(){document.getElementById('walModal').classList.remove('open');document.body.style.overflow=''}
+function fecharModalFundo(e){if(e.target.id==='walModal')fecharFormularioWAL()}
+function mascaraWhatsapp(el){let v=el.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v='('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);else if(v.length>6)v='('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);else if(v.length>2)v='('+v.slice(0,2)+') '+v.slice(2);el.value=v}
+function marcarCampo(id,ok){const campo=document.getElementById(id),erro=document.getElementById(id+'Erro');campo.style.borderColor=ok?'':'#b42318';erro.style.display=ok?'none':'block';return ok}
+function fetchSeguro_(url,payload,timeoutMs){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs||8000);return fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:controller.signal}).catch(()=>{}).finally(()=>clearTimeout(timer))}
+// indicação de Agente Parceiro capturada em outra página do site (mesma chave/validade do imovel.html)
+function lerReferenciaAgente_(){try{const ref=JSON.parse(localStorage.getItem('wal_ref_agente')||'null');if(!ref)return null;if((Date.now()-ref.capturadoEm)/86400000>90)return null;return ref}catch(e){return null}}
+async function registrarNoCRM_(d){
+  const ref=lerReferenciaAgente_();
+  const nota=['Posto/Cargo: '+d.cargo,'Interesse: '+d.interesse,'Página: '+location.href].join('\n');
+  const amanha=new Date(Date.now()+864e5);
+  const proxdata=amanha.getFullYear()+'-'+String(amanha.getMonth()+1).padStart(2,'0')+'-'+String(amanha.getDate()).padStart(2,'0');
+  await Promise.all([
+    fetchSeguro_(CRM_URL,{action:'criarOuAtualizar',lead:{status:'novo',prioridade:'alta',nome:d.nome,telefone:d.whatsapp,email:d.email,origem:ORIGEM_WAL,consultor:(ref&&ref.nome)||'',solicitacao:nota,area:'São José dos Campos e região/SP',proxacao:'Contatar lead interessado em SJC e região',proxdata},interacao:{tipo:'WAL Intelligence',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}}),
+    fetchSeguro_(CADASTRO_API_URL,{action:'crm_lead_evento_publico',telefone:d.whatsapp,email:d.email,tipo:'🏙️ WAL Intelligence',texto:nota,origem:ORIGEM_WAL})
+  ]);
+}
+async function enviarFormularioWAL(e){
+  e.preventDefault();
+  const nome=document.getElementById('leadNome').value.trim(),email=document.getElementById('leadEmail').value.trim().toLowerCase(),whatsapp=document.getElementById('leadWhatsapp').value.trim(),cargo=document.getElementById('leadCargo').value,interesse=document.getElementById('leadInteresse').value;
+  const nomeOk=/^[A-Za-zÀ-ÖØ-öø-ÿ'´`\-]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ'´`\-]+)+$/.test(nome),emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),tel=whatsapp.replace(/\D/g,''),wppOk=(tel.length===10||tel.length===11)&&Number(tel.slice(0,2))>=11;
+  const valido=[marcarCampo('leadNome',nomeOk),marcarCampo('leadEmail',emailOk),marcarCampo('leadWhatsapp',wppOk),marcarCampo('leadCargo',!!cargo),marcarCampo('leadInteresse',!!interesse)].every(Boolean);if(!valido)return;
+  const mensagem=['Olá, equipe WAL!','Tenho interesse em São José dos Campos e região.','','Nome: '+nome,'E-mail: '+email,'WhatsApp: '+whatsapp,'Posto/Cargo: '+cargo,'Interesse: '+interesse,'','Gostaria de receber uma análise personalizada.'].join('\n');
+  // abre a aba já no clique (senão o bloqueador de pop-up barra depois do await)
+  const aba=window.open('','_blank');
+  const btn=document.getElementById('walLeadSubmit');btn.disabled=true;btn.textContent='Enviando...';
+  await registrarNoCRM_({nome,email,whatsapp,cargo,interesse});
+  btn.disabled=false;btn.textContent='Continuar no WhatsApp →';
+  const url='https://wa.me/5521972443592?text='+encodeURIComponent(mensagem);
+  if(aba){aba.opener=null;aba.location.href=url}else{location.href=url}
+  document.getElementById('walLeadForm').reset();fecharFormularioWAL();
+}
+document.querySelectorAll('.lead-form .form-input,.lead-form .form-select').forEach(el=>el.addEventListener('input',()=>{el.style.borderColor='';const erro=document.getElementById(el.id+'Erro');if(erro)erro.style.display='none'}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharFormularioWAL()});
+</script>
+</body></html>
