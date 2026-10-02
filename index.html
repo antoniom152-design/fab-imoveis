@@ -1297,7 +1297,7 @@
         <a href="Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html" target="_blank" rel="noopener" class="hero-banner active" data-banner-index="0">
           <img src="capa-projetos-rio-de-janeiro.png" alt="Os grandes projetos que estão redesenhando o Porto e o Centro do Rio — Praça Onze Maravilha">
         </a>
-        <a href="Projeto%20SJC%20e%20SP/WAL_Parque_Una_SJC_site_completo.html" target="_blank" rel="noopener" class="hero-banner" data-banner-index="1">
+        <a href="WAL_Intelligence_Vale_do_Paraiba_2026_v3_1.html" target="_blank" rel="noopener" class="hero-banner" data-banner-index="1">
           <img src="IMG-PARQUE-UNA-SJC.webp" alt="Parque Una São José dos Campos — um novo capítulo para viver e investir na região">
         </a>
         <div class="hero-banner-dots">
@@ -2325,7 +2325,8 @@
 
   // ─── CARROSSEL DO HERO (pedido 97) — 2 banners revezando no mesmo
   // lugar, cada um com seu próprio link (Porto Maravilha/Praça Onze e
-  // Parque Una SJC). Troca sozinha a cada 6s; pausa ao passar o mouse
+  // Parque Una SJC). Troca sozinha a cada 3,5s (pedido 104: 6s era lento
+  // demais, nao dava pra perceber que eram 2 banners); pausa ao passar o mouse
   // (evita trocar debaixo do cursor bem na hora do clique) e os pontinhos
   // deixam pular pra um banner específico manualmente. ───
   (function () {
@@ -2350,7 +2351,7 @@
     }
     function reiniciarAutoTrocaHero() {
       clearInterval(timerHero);
-      timerHero = setInterval(proximoBannerHero, 6000);
+      timerHero = setInterval(proximoBannerHero, 3500);
     }
     reiniciarAutoTrocaHero();
     wrap.addEventListener('mouseenter', () => clearInterval(timerHero));

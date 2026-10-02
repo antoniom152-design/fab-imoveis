@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>WAL Intelligence | São José dos Campos e Vale do Paraíba</title>
+<meta name="description" content="Central de inteligência imobiliária para São José dos Campos, Jacareí, Caçapava e Taubaté. Desenvolvimento urbano, infraestrutura, mercado e cenários para apoiar decisões imobiliárias.">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js">
+document.querySelectorAll('.profile-btn').forEach(btn=>{
+ btn.addEventListener('click',()=>{
+  document.querySelectorAll('.profile-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const f=btn.dataset.filter;
+  document.querySelectorAll('.nhood').forEach(card=>{
+   const tags=(card.dataset.tags||'').split(' ');
+   card.dataset.hidden=(f!=='all' && !tags.includes(f))?'true':'false';
+  });
+ });
+});
+
+</script>
+<style>
+:root{--navy:#071b2d;--blue:#0b67b2;--sky:#48a9e6;--cyan:#00a6c8;--ink:#172433;--muted:#66788a;--bg:#f4f8fb;--card:#fff;--line:#dce7ef;--green:#198754;--amber:#b96a00;--red:#a33b32;--shadow:0 16px 45px rgba(7,27,45,.08)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--ink);background:var(--bg);line-height:1.6}a{color:inherit}.wrap{max-width:1240px;margin:auto;padding:0 22px}
+.top{position:sticky;top:0;z-index:20;background:rgba(7,27,45,.96);backdrop-filter:blur(12px);color:white;border-bottom:1px solid rgba(255,255,255,.1)}.topin{height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{display:flex;align-items:center;gap:12px;font-weight:800;letter-spacing:.3px}.brandmark{width:38px;height:38px;border-radius:10px;background:linear-gradient(145deg,var(--sky),#fff);display:grid;place-items:center;color:var(--navy);font-weight:900}.brand small{display:block;font-size:10px;opacity:.65;letter-spacing:1.6px}.nav{display:flex;gap:18px;font-size:13px}.nav a{text-decoration:none;opacity:.82}.nav a:hover{opacity:1}.btn{border:0;border-radius:10px;padding:12px 18px;font-weight:750;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn.primary{background:var(--blue);color:#fff}.btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+.hero{background:radial-gradient(circle at 82% 20%,rgba(72,169,230,.25),transparent 27%),linear-gradient(135deg,#061724,#0b2f4b 60%,#0a456c);color:white;padding:72px 0 52px;overflow:hidden}.eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:800;color:#9fd9ff}.hero h1{font-size:clamp(34px,5vw,66px);line-height:1.04;margin:13px 0 18px;max-width:900px}.hero p{max-width:820px;font-size:18px;color:#d5e5f1}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0 34px}.hero .btn.ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.3)}.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.kpi{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:16px}.kpi b{font-size:22px;display:block}.kpi span{font-size:12px;color:#bdd2e1}
+.notice{margin-top:-1px;background:#eaf5fc;border-bottom:1px solid #cde6f5;padding:11px 0;font-size:12px;color:#35566c}.section{padding:58px 0}.section.alt{background:#fff}.head{display:flex;justify-content:space-between;gap:28px;align-items:end;margin-bottom:26px}.head h2{font-size:32px;line-height:1.15;margin:6px 0}.head p{max-width:660px;color:var(--muted);margin:0}.label{font-size:11px;letter-spacing:1.8px;text-transform:uppercase;color:var(--blue);font-weight:850}
+.grid{display:grid;gap:18px}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:0 4px 18px rgba(7,27,45,.035)}.card h3{margin:6px 0 8px;font-size:19px}.card p{margin:0;color:var(--muted);font-size:14px}.icon{font-size:25px}.pill{display:inline-block;padding:4px 9px;border-radius:999px;background:#e8f4fb;color:#075b9c;font-size:11px;font-weight:800}.pill.green{background:#e7f6ee;color:#146c43}.pill.amber{background:#fff2df;color:#8b5200}.pill.gray{background:#eef2f5;color:#536371}
+.cities{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}.citybtn{padding:10px 14px;border:1px solid var(--line);border-radius:999px;background:#fff;font-weight:750;color:#4a6072;cursor:pointer}.citybtn.active{background:var(--navy);color:white;border-color:var(--navy)}.citypanel{display:none}.citypanel.active{display:block}.cityhero{display:grid;grid-template-columns:1.15fr .85fr;gap:20px}.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.fact{background:#f5f9fc;border-radius:12px;padding:14px}.fact b{display:block;color:var(--navy);font-size:14px}.fact span{font-size:12px;color:var(--muted)}
+.corridor{position:relative;padding:34px 15px 20px}.track{height:7px;background:linear-gradient(90deg,#4ca6d8,#0b67b2);border-radius:8px;position:absolute;left:9%;right:9%;top:50px}.stops{position:relative;display:grid;grid-template-columns:repeat(4,1fr);text-align:center}.stop i{width:26px;height:26px;border:6px solid #fff;background:var(--blue);box-shadow:0 0 0 3px #8ecbf0;border-radius:50%;display:inline-block}.stop b{display:block;margin-top:9px}.stop small{color:var(--muted)}
+.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff}table{border-collapse:collapse;width:100%;min-width:780px}th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:top}th{background:#0a2b43;color:white;font-size:12px;letter-spacing:.3px}tr:last-child td{border-bottom:0}.impact{font-weight:800;color:var(--blue)}
+.chart{height:340px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px}.chart canvas{max-height:100%}.scenario{border-left:5px solid var(--blue)}.scenario.cons{border-left-color:var(--amber)}.scenario.opt{border-left-color:var(--green)}.scenario b.big{font-size:22px;color:var(--navy)}
+.profilebox{background:linear-gradient(135deg,#071b2d,#0c3e61);color:white;border-radius:20px;padding:28px}.profilebox select{width:100%;padding:13px;border:0;border-radius:9px;margin:10px 0 16px;font-size:14px}.profile-result{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.13);border-radius:13px;padding:18px}.profile-result h3{margin-top:0}.profile-result p{color:#d6e5ef}.profile-result ul{padding-left:18px;color:#e6f1f7}.meter{display:flex;height:8px;border-radius:8px;overflow:hidden;background:#dce7ef;margin:8px 0}.meter i{display:block;background:linear-gradient(90deg,var(--blue),var(--sky))}
+.timeline{position:relative;margin-left:12px;border-left:2px solid #cfe0eb;padding-left:26px}.event{position:relative;margin-bottom:22px}.event:before{content:"";position:absolute;width:12px;height:12px;border-radius:50%;background:var(--blue);left:-33px;top:6px;box-shadow:0 0 0 5px #e7f3fa}.event h3{margin:0 0 4px;font-size:16px}.event p{margin:0;color:var(--muted);font-size:13px}
+.callout{background:#eaf5fc;border:1px solid #cde6f5;border-radius:15px;padding:20px}.risk{background:#fff8eb;border-color:#f0d7a9}.method{font-size:12px;color:var(--muted)}.cta{background:linear-gradient(135deg,#0a2c45,#0b67b2);color:white;border-radius:22px;padding:34px;display:flex;justify-content:space-between;align-items:center;gap:24px}.cta h2{margin:0 0 7px}.cta p{margin:0;color:#d9eaf5}.footer{background:#061724;color:#a8becd;padding:38px 0;font-size:12px}.footer strong{color:white}.source-list{columns:2;column-gap:28px;padding-left:18px}.source-list li{margin:5px 0;break-inside:avoid}
+@media(max-width:900px){.nav{display:none}.kpis,.g4{grid-template-columns:repeat(2,1fr)}.g3,.g2,.cityhero{grid-template-columns:1fr}.head{display:block}.source-list{columns:1}.cta{display:block}.cta .btn{margin-top:18px}.stops{grid-template-columns:1fr 1fr;gap:25px}.track{display:none}}@media(max-width:560px){.kpis,.g4,.facts{grid-template-columns:1fr}.hero{padding-top:48px}.section{padding:42px 0}.hero h1{font-size:38px}.kpi b{font-size:20px}}
+</style>
+
+<style>
+.media-hero{position:relative;min-height:430px;border-radius:22px;overflow:hidden;background:#071b2d;margin-top:24px;box-shadow:var(--shadow)}
+.media-hero img{width:100%;height:430px;object-fit:cover;display:block;opacity:.72}
+.media-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(4,20,33,.94),rgba(4,20,33,.54) 55%,rgba(4,20,33,.12));display:flex;align-items:flex-end;padding:36px;color:#fff}
+.media-overlay>div{max-width:680px}.media-overlay h3{font-size:30px;line-height:1.12;margin:8px 0}.media-overlay p{color:#d9e9f3}
+.photo-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:18px}.photo-card{position:relative;min-height:290px;border-radius:18px;overflow:hidden;background:#0b2f4b}.photo-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.photo-card:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,rgba(5,22,35,.9),transparent 62%)}.photo-cap{position:absolute;z-index:2;left:20px;right:20px;bottom:18px;color:#fff}.photo-cap b{font-size:18px}.photo-cap small{display:block;color:#d6e7f1}
+.video-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.video-card{background:#fff;border:1px solid var(--line);border-radius:17px;overflow:hidden}.video-frame{aspect-ratio:16/9;background:#071b2d}.video-frame iframe{width:100%;height:100%;border:0}.video-body{padding:18px}.video-body h3{margin:0 0 7px}.video-body p{font-size:13px;color:var(--muted)}.video-links{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.linkchip{font-size:12px;text-decoration:none;border:1px solid var(--line);padding:7px 10px;border-radius:999px;color:var(--blue);font-weight:750}
+.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.news-card{background:#fff;border:1px solid var(--line);border-radius:15px;padding:19px}.news-card .source{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--blue);font-weight:850}.news-card h3{font-size:16px;line-height:1.3}.news-card p{font-size:13px;color:var(--muted)}.news-card a{font-size:12px;font-weight:800;color:var(--blue);text-decoration:none}
+.metric-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.metric{background:#fff;border:1px solid var(--line);border-radius:15px;padding:18px}.metric strong{display:block;font-size:25px;color:var(--navy)}.metric span{font-size:12px;color:var(--muted)}
+.safety-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.safety-stat{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.safety-stat div{background:#f4f9fc;border:1px solid #dceaf2;border-radius:13px;padding:15px}.safety-stat b{font-size:22px;color:var(--blue);display:block}.safety-stat span{font-size:12px;color:var(--muted)}
+.source-note{font-size:11px;color:var(--muted);margin-top:12px}.source-note a{color:var(--blue)}
+@media(max-width:900px){.photo-grid,.video-grid,.news-grid,.metric-row,.safety-grid{grid-template-columns:1fr}.media-hero,.media-hero img{min-height:390px;height:390px}.media-overlay{padding:24px}}
+</style>
+
+
+<style>
+.una-showcase{background:linear-gradient(135deg,#071d31,#0c4169);color:#fff;border-radius:24px;padding:30px;overflow:hidden;position:relative}
+.una-showcase:after{content:"UNA";position:absolute;right:-18px;bottom:-58px;font-size:170px;font-weight:900;color:rgba(255,255,255,.045)}
+.una-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:22px;position:relative;z-index:1}
+.una-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px}
+.una-kpi{border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.07);padding:15px;border-radius:14px}
+.una-kpi b{font-size:22px;display:block}.una-kpi span{font-size:11px;color:#d7e7f1}
+.una-map{background:#eef7fb;border-radius:18px;padding:22px;color:#123;min-height:330px;display:flex;flex-direction:column;justify-content:center}
+.una-map .node{padding:12px 14px;border-left:4px solid #0b67b2;background:#fff;margin:5px 0;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,.06)}
+.una-map .node small{display:block;color:#657786}
+.profile-selector{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+.profile-btn{border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:9px 13px;font-weight:750;cursor:pointer}
+.profile-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+.neighborhood-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}
+.nhood{background:#fff;border:1px solid var(--line);border-radius:17px;padding:19px;position:relative;overflow:hidden}
+.nhood[data-hidden="true"]{display:none}
+.nhood h3{margin:7px 0 5px}.nhood .price{font-size:22px;font-weight:850;color:var(--blue)}
+.nhood .meta{font-size:11px;color:var(--muted);margin-bottom:11px}
+.scoreline{display:grid;grid-template-columns:100px 1fr 30px;gap:8px;align-items:center;font-size:11px;margin:7px 0}
+.scorebar{height:7px;background:#e7eef3;border-radius:8px;overflow:hidden}.scorebar i{display:block;height:100%;background:#1885cf;border-radius:8px}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}.ntag{font-size:10px;background:#eef6fb;color:#14527b;padding:5px 8px;border-radius:999px;font-weight:700}
+.compare-table td{vertical-align:top}.signal{font-weight:800}.high{color:#087c5b}.med{color:#9a6800}.low{color:#7b8790}
+.decision-box{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}.decision-box div{background:#f5f9fc;border:1px solid #dce8ef;padding:15px;border-radius:13px}.decision-box b{display:block;color:var(--navy);margin-bottom:5px}.decision-box span{font-size:12px;color:var(--muted)}
+@media(max-width:900px){.una-grid,.neighborhood-grid,.decision-box,.una-kpis{grid-template-columns:1fr}.scoreline{grid-template-columns:90px 1fr 28px}}
+</style>
+
+
+<style>
+.una-gallery{display:grid;grid-template-columns:2fr 1fr 1fr;grid-auto-rows:245px;gap:12px;margin-top:22px}
+.una-gallery figure{margin:0;position:relative;overflow:hidden;border-radius:16px;background:#dce8ef}
+.una-gallery figure:first-child{grid-row:span 2}
+.una-gallery img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .45s ease}
+.una-gallery figure:hover img{transform:scale(1.035)}
+.una-gallery figcaption{position:absolute;left:0;right:0;bottom:0;padding:34px 16px 13px;background:linear-gradient(transparent,rgba(3,20,33,.9));color:#fff;font-size:12px}
+.una-gallery figcaption b{display:block;font-size:15px;margin-bottom:2px}
+.evolution-line{display:grid;grid-template-columns:1fr 70px 1fr;gap:14px;align-items:stretch;margin-top:18px}
+.era{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px}
+.era.now{border:2px solid #9ccce9;background:linear-gradient(145deg,#fff,#f2f9fd)}
+.arrow-mid{display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--blue);font-weight:900}
+.shift-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:18px}
+.shift{background:#fff;border:1px solid var(--line);border-radius:15px;padding:17px}
+.shift-head{display:grid;grid-template-columns:1fr 36px 1fr;gap:8px;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:800;letter-spacing:.5px}
+.shift-body{display:grid;grid-template-columns:1fr 36px 1fr;gap:8px;align-items:center;margin-top:8px}
+.shift-body .to{text-align:center;color:var(--blue);font-size:20px}.shift-body b{font-size:14px}.shift-body span{font-size:12px;color:var(--muted)}
+.maturity{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:18px}
+.maturity div{padding:14px;border-radius:12px;background:#f1f7fa;border:1px solid #dbe8ef;text-align:center}
+.maturity b{display:block;color:var(--blue);font-size:18px}.maturity span{font-size:10px;color:var(--muted)}
+@media(max-width:900px){.una-gallery{grid-template-columns:1fr;grid-auto-rows:250px}.una-gallery figure:first-child{grid-row:span 1}.evolution-line{grid-template-columns:1fr}.arrow-mid{transform:rotate(90deg)}.shift-grid,.maturity{grid-template-columns:1fr}}
+</style>
+
+</head>
+<body>
+<header class="top"><div class="wrap topin"><div class="brand"><div class="brandmark">W</div><div>WAL Intelligence<small>INTELIGÊNCIA IMOBILIÁRIA</small></div></div><nav class="nav"><a href="#regiao">Região</a><a href="#vetores">Vetores</a><a href="#mercado">Mercado</a><a href="#onde-morar">Onde morar?</a><a href="#una">Parque Una</a><a href="#evolucao-projetos">5 anos de evolução</a><a href="#qualidade">Qualidade & Segurança</a><a href="#midia">Mídia</a><a href="#projetos">Projetos</a><a href="#perfil">Meu perfil</a></nav><a class="btn primary" href="https://www.walservidor.com.br" target="_blank" rel="noopener">Ver imóveis</a></div></header>
+<section class="hero"><div class="wrap"><div class="eyebrow">São José dos Campos • Jacareí • Caçapava • Taubaté</div><h1>Antes de escolher o imóvel, entenda a cidade que está sendo construída.</h1><p>Uma leitura integrada do eixo do Vale do Paraíba para quem quer morar, investir ou construir patrimônio com mais contexto: empregos, infraestrutura, tecnologia, mobilidade, educação, saúde e dinâmica imobiliária.</p><div class="hero-actions"><a class="btn primary" href="#perfil">Descobrir o que observar</a><a class="btn ghost" href="#mercado">Analisar mercado imobiliário</a></div><div class="kpis"><div class="kpi"><b>~727 mil</b><span>habitantes em SJC • referência 2024</span></div><div class="kpi"><b>202,9 mil</b><span>empregos formais • base do estudo</span></div><div class="kpi"><b>R$ 9,2–9,6 mil</b><span>faixa indicativa do m² em SJC • 2026</span></div><div class="kpi"><b>+300</b><span>empresas vinculadas ao PIT</span></div><div class="kpi"><b>4 cidades</b><span>leitura integrada do corredor regional</span></div></div></div></section>
+<div class="notice"><div class="wrap"><strong>Como ler este painel:</strong> números históricos e projetos anunciados são apresentados separadamente de cenários prospectivos. Projeções não representam garantia de valorização ou recomendação individual de investimento.</div></div>
+
+<section class="section" id="regiao"><div class="wrap"><div class="head"><div><div class="label">Leitura regional</div><h2>Um corredor econômico, quatro contextos urbanos</h2></div><p>São José dos Campos polariza o eixo, mas a decisão imobiliária pode envolver cidades vizinhas conforme trabalho, deslocamento, estágio urbano e estilo de vida. O estudo-base trata o Vale como um continuum econômico e habitacional.</p></div>
+<div class="corridor card"><div class="track"></div><div class="stops"><div class="stop"><i></i><b>Jacareí</b><small>conexão oeste • logística • expansão urbana</small></div><div class="stop"><i></i><b>São José dos Campos</b><small>tecnologia • aeroespacial • serviços</small></div><div class="stop"><i></i><b>Caçapava</b><small>eixo Dutra • requalificação • conexão regional</small></div><div class="stop"><i></i><b>Taubaté</b><small>indústria • educação • inovação regional</small></div></div></div>
+<div class="cities" style="margin-top:24px"><button class="citybtn active" data-city="sjc">São José dos Campos</button><button class="citybtn" data-city="jacarei">Jacareí</button><button class="citybtn" data-city="cacapava">Caçapava</button><button class="citybtn" data-city="taubate">Taubaté</button></div>
+<div id="sjc" class="citypanel active"><div class="cityhero"><div class="card"><span class="pill">Polo regional</span><h3>São José dos Campos</h3><p>Centro tecnológico, aeroespacial e industrial do Vale, com DCTA, ITA, INPE, Embraer, PIT, rede de serviços e conexões pelas rodovias Dutra, Tamoios e Carvalho Pinto. A combinação de emprego qualificado, inovação e infraestrutura aparece nos arquivos como o principal fundamento estrutural da demanda imobiliária.</p></div><div class="facts"><div class="fact"><b>Economia</b><span>Aeroespacial, defesa, automotivo, farma, energia, TI e serviços.</span></div><div class="fact"><b>Mobilidade</b><span>Linha Verde, Dutra, Tamoios, Carvalho Pinto e aeroporto.</span></div><div class="fact"><b>Educação</b><span>ITA, Univap, Unifesp, Fatec, Senai e rede técnica.</span></div><div class="fact"><b>Mercado</b><span>Demanda ligada a emprego qualificado e expansão de bairros.</span></div></div></div></div>
+<div id="jacarei" class="citypanel"><div class="cityhero"><div class="card"><span class="pill">Conexão metropolitana</span><h3>Jacareí</h3><p>O material regional destaca intervenções estruturais de drenagem e ampliação de vias, automação de serviços públicos, preservação ambiental, eventos e gastronomia. Para o comprador, o ponto central é analisar a relação entre moradia, deslocamento para SJC e evolução dos bairros conectados ao eixo regional.</p></div><div class="facts"><div class="fact"><b>Infraestrutura</b><span>Drenagem e duplicação/ampliação de vias estruturais.</span></div><div class="fact"><b>Tecnologia</b><span>Automação de serviços e atração de investimentos.</span></div><div class="fact"><b>Estilo urbano</b><span>Preservação ambiental, eventos e gastronomia.</span></div><div class="fact"><b>Decisão</b><span>Comparar acesso, rotina e estágio de consolidação do bairro.</span></div></div></div></div>
+<div id="cacapava" class="citypanel"><div class="cityhero"><div class="card"><span class="pill">Eixo intermediário</span><h3>Caçapava</h3><p>O levantamento destaca zeladoria urbana, revitalização do calçadão e galpões públicos, além da posição no corredor da Dutra. A leitura imobiliária deve observar infraestrutura cotidiana, conexões com polos de emprego e transformação gradual do tecido urbano.</p></div><div class="facts"><div class="fact"><b>Urbano</b><span>Revitalização e programas de zeladoria.</span></div><div class="fact"><b>Localização</b><span>Entre SJC e Taubaté no eixo Dutra.</span></div><div class="fact"><b>Identidade</b><span>Turismo histórico-cultural e militar.</span></div><div class="fact"><b>Decisão</b><span>Verificar serviços, acesso e projetos no entorno imediato.</span></div></div></div></div>
+<div id="taubate" class="citypanel"><div class="cityhero"><div class="card"><span class="pill">Polo complementar</span><h3>Taubaté</h3><p>O estudo regional aponta macrodrenagem, intervenções viárias, ecossistema de inovação via HITT e forte presença educacional. Também registra a produção inicial prevista dos eVTOLs da Eve na região, fator que merece acompanhamento pelo possível efeito sobre emprego e cadeia de fornecedores.</p></div><div class="facts"><div class="fact"><b>Infraestrutura</b><span>Macrodrenagem e intervenções viárias.</span></div><div class="fact"><b>Inovação</b><span>HITT e novos negócios digitais.</span></div><div class="fact"><b>Educação</b><span>UNITAU e rede regional de ensino técnico/superior.</span></div><div class="fact"><b>Vetor futuro</b><span>Cadeia aeronáutica/eVTOL citada no material-base.</span></div></div></div></div>
+</div></section>
+
+<section class="section alt" id="vetores"><div class="wrap"><div class="head"><div><div class="label">O que sustenta a demanda</div><h2>Seis vetores que o comprador deve acompanhar</h2></div><p>Valorização imobiliária não nasce de um único projeto. O painel organiza os fatores que podem ampliar — ou limitar — atratividade, liquidez e qualidade de vida.</p></div><div class="grid g3"><div class="card"><div class="icon">✈️</div><h3>Emprego qualificado</h3><p>Embraer, cadeia aeroespacial, DCTA, indústrias e serviços tecnológicos sustentam circulação de profissionais e demanda habitacional.</p></div><div class="card"><div class="icon">🧠</div><h3>Inovação</h3><p>PIT, clusters, startups, data center e ecossistema de P&D reforçam a vocação tecnológica de SJC.</p></div><div class="card"><div class="icon">🛣️</div><h3>Mobilidade</h3><p>Dutra, Linha Verde, Tamoios, Carvalho Pinto, vias municipais e aeroporto alteram acessibilidade e tempo de deslocamento.</p></div><div class="card"><div class="icon">💧</div><h3>Infraestrutura urbana</h3><p>Saneamento, drenagem, energia, requalificação e serviços públicos são essenciais para suportar expansão residencial.</p></div><div class="card"><div class="icon">🎓</div><h3>Educação e talentos</h3><p>ITA, UNIFESP, Univap, Fatec, UNITAU, Senai e ensino técnico alimentam o mercado de trabalho regional.</p></div><div class="card"><div class="icon">🏥</div><h3>Saúde e serviços</h3><p>Novas unidades e expansão da rede de saúde pesam diretamente na decisão de famílias e na consolidação de bairros.</p></div></div></div></section>
+
+<section class="section" id="mercado"><div class="wrap"><div class="head"><div><div class="label">Mercado imobiliário</div><h2>Histórico primeiro. Cenários depois.</h2></div><p>O material-base estima forte valorização em SJC desde 2019. Para evitar falsa precisão, o painel mostra a série como referência aproximada e trata 2026–2046 exclusivamente como cenários nominais.</p></div><div class="grid g2"><div class="chart"><canvas id="hist"></canvas></div><div class="card"><span class="pill green">Leitura do histórico</span><h3>O que os dados sugerem</h3><p>Na série apresentada nos arquivos, o preço médio indicativo passa de cerca de R$ 4,8 mil/m² em 2019 para aproximadamente R$ 9,4 mil/m² em 2026. O próprio estudo associa o movimento à retomada econômica, empregos qualificados, infraestrutura e restrição relativa de oferta em bairros consolidados.</p><div class="callout" style="margin-top:18px"><strong>Atenção:</strong> média municipal não substitui preço do bairro, tipologia, padrão, estágio da obra, andar, posição, condomínio e liquidez do produto específico.</div></div></div>
+<h3 style="margin-top:30px">Cenários nominais apresentados no estudo (não são promessa de retorno)</h3><div class="grid g3"><div class="card scenario cons"><span class="pill amber">Conservador</span><h3>4%–4,5% a.a.</h3><b class="big">2046: R$ 20–24 mil/m²</b><p>Hipótese associada a juros elevados por mais tempo e menor crescimento industrial.</p></div><div class="card scenario"><span class="pill">Base do estudo</span><h3>5,5%–6,5% a.a.</h3><b class="big">2046: R$ 28–32 mil/m²</b><p>Hipótese de continuidade dos vetores de emprego, infraestrutura e crescimento moderado.</p></div><div class="card scenario opt"><span class="pill green">Expansivo</span><h3>7%–8% a.a.</h3><b class="big">2046: R$ 38–45 mil/m²</b><p>Hipótese condicionada a forte expansão industrial, eVTOL e novos investimentos.</p></div></div><div class="chart" style="margin-top:18px"><canvas id="proj"></canvas></div></div></section>
+
+<section class="section alt" id="projetos"><div class="wrap"><div class="head"><div><div class="label">Projetos e capital urbano</div><h2>Investimentos que merecem acompanhamento</h2></div><p>O efeito imobiliário depende de execução, localização e prazo. Por isso, cada projeto deve ser acompanhado até sua entrega — não apenas pelo anúncio.</p></div><div class="tablewrap"><table><thead><tr><th>Projeto / vetor</th><th>Valor indicado no estudo</th><th>Status/horizonte no material</th><th>Por que observar</th></tr></thead><tbody>
+<tr><td>Sabesp • água e esgoto</td><td>R$ 330 mi + R$ 97 mi</td><td>Execução / até 2029</td><td><span class="impact">Capacidade urbana</span><br>Saneamento acompanha expansão e reduz gargalos.</td></tr>
+<tr><td>Linha Verde Fase 2 / Eixo Leste</td><td>~R$ 208 mi</td><td>Convênio/licitação</td><td><span class="impact">Acessibilidade</span><br>Pode alterar deslocamentos e atratividade de eixos conectados.</td></tr>
+<tr><td>Cidade Sete Sóis</td><td>R$ 1 bi</td><td>Etapas até ~2034</td><td><span class="impact">Nova oferta</span><br>Escala residencial relevante na Zona Leste.</td></tr>
+<tr><td>Hospital Materno-Infantil</td><td>R$ 80 mi</td><td>Obras/licitação no estudo</td><td><span class="impact">Serviços</span><br>Saúde amplia conveniência e atividade no entorno.</td></tr>
+<tr><td>Data Center / Cidade Tecnológica</td><td>R$ 50 mi</td><td>1ª fase indicada para 2026</td><td><span class="impact">Economia digital</span><br>Reforça o ecossistema de tecnologia e empregos especializados.</td></tr>
+<tr><td>Aeroporto SJK</td><td>Até R$ 130 mi no contrato citado</td><td>Expansão/estudos</td><td><span class="impact">Conectividade</span><br>Carga, passageiros e atividade corporativa.</td></tr>
+<tr><td>Vertiponto / Aero Garden</td><td>Potencial &gt; R$ 250 mi</td><td>Estudos autorizados</td><td><span class="impact">Opcionalidade futura</span><br>Projeto de maior incerteza; acompanhar execução antes de precificar efeito.</td></tr>
+<tr><td>Dutra • Vale do Paraíba</td><td>~R$ 2 bi no pacote citado</td><td>Trechos e cronogramas plurianuais</td><td><span class="impact">Integração regional</span><br>Impacta SJC, Jacareí, Caçapava, Taubaté e deslocamentos intermunicipais.</td></tr>
+</tbody></table></div>
+<div class="grid g2" style="margin-top:22px"><div class="card"><h3>Linha do tempo de acompanhamento</h3><div class="timeline"><div class="event"><h3>2026 • Base atual do estudo</h3><p>Saúde, recarga elétrica, saneamento, tecnologia e projetos urbanos em diferentes estágios.</p></div><div class="event"><h3>2027–2029 • Mobilidade e infraestrutura</h3><p>Dutra, Linha Verde, saneamento, aeroporto e hotelaria aparecem como vetores a monitorar.</p></div><div class="event"><h3>Até ~2034 • Expansão residencial</h3><p>Grandes projetos e consolidação de novas áreas podem mudar oferta, serviços e fluxos.</p></div><div class="event"><h3>2035+ • Cenário estrutural</h3><p>Resultados dependerão de emprego, renda, juros, execução urbana e maturação tecnológica.</p></div></div></div><div class="card"><h3>Como transformar obra em decisão imobiliária</h3><p>Não basta perguntar “há investimento perto?”. A análise deve responder: a obra reduz tempo de deslocamento? melhora saneamento? cria emprego? aumenta oferta concorrente? traz ruído ou tráfego? muda uso do solo? está financiada? já começou? qual o prazo real?</p><div class="callout risk" style="margin-top:18px"><strong>Regra WAL Intelligence:</strong> anúncio é sinal; obra contratada é evidência maior; entrega e operação são o que efetivamente alteram a experiência urbana.</div></div></div></div></section>
+
+
+
+<section class="section" id="onde-morar"><div class="wrap">
+<div class="head"><div><div class="label">Inteligência por microrregião</div><h2>Onde morar em São José dos Campos?</h2></div><p>Não existe um “melhor bairro” para todos. A escolha muda conforme trabalho, composição familiar, orçamento, rotina, necessidade de caminhar, acesso à Dutra e horizonte patrimonial.</p></div>
+
+<div class="callout"><strong>Como usar esta seção:</strong> primeiro escolha o seu perfil; depois compare preço anunciado, tipo de urbanização, mobilidade e serviços. As notas visuais abaixo são uma <strong>leitura territorial orientativa da WAL</strong>, não uma classificação oficial de segurança, qualidade ou valorização.</div>
+
+<div class="profile-selector">
+<button class="profile-btn active" data-filter="all">Visão geral</button>
+<button class="profile-btn" data-filter="familia">Família</button>
+<button class="profile-btn" data-filter="caminhar">Rotina a pé</button>
+<button class="profile-btn" data-filter="trabalho">Perto do trabalho</button>
+<button class="profile-btn" data-filter="patrimonio">Patrimônio</button>
+<button class="profile-btn" data-filter="custo">Custo de entrada</button>
+</div>
+
+<div class="neighborhood-grid">
+<div class="nhood" data-tags="familia patrimonio trabalho"><span class="pill">Oeste</span><h3>Urbanova</h3><div class="price">R$ 9.038/m²</div><div class="meta">Apartamentos anunciados • mediana set/2026 • 121 anúncios</div><p>Vocação residencial, condomínios e forte presença de casas. Faz sentido para famílias que valorizam espaço, ambiente predominantemente residencial e acesso ao eixo oeste.</p>
+<div class="scoreline"><span>Famílias</span><div class="scorebar"><i style="width:94%"></i></div><b>9</b></div><div class="scoreline"><span>Caminhabilidade</span><div class="scorebar"><i style="width:55%"></i></div><b>6</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:72%"></i></div><b>7</b></div>
+<div class="tagrow"><span class="ntag">condomínios</span><span class="ntag">casas</span><span class="ntag">famílias</span></div></div>
+
+<div class="nhood" data-tags="caminhar patrimonio trabalho familia"><span class="pill green">Oeste</span><h3>Jardim Aquarius</h3><div class="price">R$ 11.192/m²</div><div class="meta">Apartamentos anunciados • mediana set/2026 • 530 anúncios</div><p>Alta verticalização, comércio, serviços e vida urbana consolidada. É referência importante para comparar o novo ciclo do Parque Una, que se integra ao eixo da Avenida Cassiano Ricardo.</p>
+<div class="scoreline"><span>Caminhabilidade</span><div class="scorebar"><i style="width:92%"></i></div><b>9</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:96%"></i></div><b>10</b></div><div class="scoreline"><span>Acesso viário</span><div class="scorebar"><i style="width:88%"></i></div><b>9</b></div>
+<div class="tagrow"><span class="ntag">vertical</span><span class="ntag">serviços</span><span class="ntag">alto padrão</span></div></div>
+
+<div class="nhood" data-tags="caminhar patrimonio trabalho"><span class="pill">Centro expandido</span><h3>Vila Ema</h3><div class="price">R$ 10.528/m²</div><div class="meta">Apartamentos anunciados • mediana set/2026 • 290 anúncios</div><p>Perfil urbano consolidado, gastronomia, serviços e estoque imobiliário de diferentes idades. A diversidade de edifícios exige comparar novo e usado com cuidado.</p>
+<div class="scoreline"><span>Caminhabilidade</span><div class="scorebar"><i style="width:94%"></i></div><b>9</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:94%"></i></div><b>9</b></div><div class="scoreline"><span>Diversidade</span><div class="scorebar"><i style="width:90%"></i></div><b>9</b></div>
+<div class="tagrow"><span class="ntag">gastronomia</span><span class="ntag">urbano</span><span class="ntag">novo + usado</span></div></div>
+
+<div class="nhood" data-tags="familia patrimonio caminhar"><span class="pill">Oeste</span><h3>Jardim das Colinas</h3><div class="price">alto padrão</div><div class="meta">Faixa varia fortemente por tipologia e idade do imóvel</div><p>Eixo tradicional de alto padrão, próximo a Aquarius e importantes corredores. Para comparar corretamente, é essencial separar casas, condomínios e apartamentos.</p>
+<div class="scoreline"><span>Famílias</span><div class="scorebar"><i style="width:90%"></i></div><b>9</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:90%"></i></div><b>9</b></div><div class="scoreline"><span>Centralidade</span><div class="scorebar"><i style="width:88%"></i></div><b>9</b></div>
+<div class="tagrow"><span class="ntag">alto padrão</span><span class="ntag">consolidado</span></div></div>
+
+<div class="nhood" data-tags="caminhar custo trabalho"><span class="pill">Centro</span><h3>São Dimas</h3><div class="price">mercado intermediário</div><div class="meta">Preço depende bastante da idade, padrão e metragem do edifício</div><p>Centralidade, acesso a serviços e proximidade de importantes equipamentos educacionais e urbanos. Pode oferecer alternativas a bairros de tíquete mais alto.</p>
+<div class="scoreline"><span>Centralidade</span><div class="scorebar"><i style="width:94%"></i></div><b>9</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:90%"></i></div><b>9</b></div><div class="scoreline"><span>Acesso</span><div class="scorebar"><i style="width:88%"></i></div><b>9</b></div>
+<div class="tagrow"><span class="ntag">central</span><span class="ntag">serviços</span></div></div>
+
+<div class="nhood" data-tags="custo trabalho familia"><span class="pill">Leste</span><h3>Vila Industrial</h3><div class="price">R$ 7.534/m²</div><div class="meta">Apartamentos anunciados • mediana out/2026 • 99 anúncios</div><p>Região consolidada a leste, com preço anunciado inferior à mediana municipal na fonte consultada e acesso a serviços. Merece análise para quem prioriza custo e rotina no eixo leste.</p>
+<div class="scoreline"><span>Custo relativo</span><div class="scorebar"><i style="width:86%"></i></div><b>9</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:78%"></i></div><b>8</b></div><div class="scoreline"><span>Centralidade</span><div class="scorebar"><i style="width:75%"></i></div><b>8</b></div>
+<div class="tagrow"><span class="ntag">custo</span><span class="ntag">leste</span><span class="ntag">consolidado</span></div></div>
+
+<div class="nhood" data-tags="custo trabalho patrimonio"><span class="pill">Leste</span><h3>Eugênio de Melo</h3><div class="price">vetor de expansão</div><div class="meta">Analisar empreendimento a empreendimento</div><p>Área que merece acompanhamento pela relação com emprego industrial/tecnológico, expansão urbana e novos projetos. Aqui, infraestrutura futura e tempo real de deslocamento pesam mais que uma média genérica de bairro.</p>
+<div class="scoreline"><span>Emprego/eixos</span><div class="scorebar"><i style="width:88%"></i></div><b>9</b></div><div class="scoreline"><span>Expansão</span><div class="scorebar"><i style="width:88%"></i></div><b>9</b></div><div class="scoreline"><span>Serviços</span><div class="scorebar"><i style="width:64%"></i></div><b>6</b></div>
+<div class="tagrow"><span class="ntag">expansão</span><span class="ntag">emprego</span><span class="ntag">infraestrutura</span></div></div>
+
+<div class="nhood" data-tags="caminhar patrimonio familia trabalho"><span class="pill green">Nova centralidade</span><h3>Região Parque Una</h3><div class="price">novo patamar</div><div class="meta">Riza lançado em torno de R$ 17 mil/m² segundo a Idealiza</div><p>Não é apenas um conjunto residencial: propõe uma nova centralidade integrada ao Jardim Aquarius, reunindo moradia, trabalho, parque, comércio, cultura e caminhabilidade.</p>
+<div class="scoreline"><span>Urbanismo</span><div class="scorebar"><i style="width:98%"></i></div><b>10</b></div><div class="scoreline"><span>Caminhabilidade</span><div class="scorebar"><i style="width:96%"></i></div><b>10</b></div><div class="scoreline"><span>Ciclo futuro</span><div class="scorebar"><i style="width:96%"></i></div><b>10</b></div>
+<div class="tagrow"><span class="ntag">bairro planejado</span><span class="ntag">uso misto</span><span class="ntag">novo ciclo</span></div></div>
+</div>
+
+<p class="source-note">Valores são referências de anúncios públicos recentes e não avaliações individuais. Aquarius, Urbanova e Vila Ema: setembro/2026; Vila Industrial: outubro/2026. Notas WAL são qualitativas e servem para organizar a investigação do comprador, não para garantir segurança, liquidez ou valorização.</p>
+
+<div class="decision-box">
+<div><b>1. Comece pela rotina</b><span>Onde trabalha? Quantos dias presenciais? Escola, saúde e lazer entram no trajeto?</span></div>
+<div><b>2. Defina o orçamento total</b><span>Entrada, prestação, condomínio, IPTU, manutenção e deslocamento.</span></div>
+<div><b>3. Compare a mesma tipologia</b><span>Não compare m² de studio novo com apartamento antigo de 150 m².</span></div>
+<div><b>4. Visite o micromercado</b><span>Dia, noite, pico, fim de semana, ruído, acesso e comércio real.</span></div>
+</div>
+</div></section>
+
+<section class="section alt" id="una"><div class="wrap">
+<div class="head"><div><div class="label">Projeto urbano em destaque</div><h2>Parque Una SJC: quando o imóvel passa a fazer parte de uma nova centralidade.</h2></div><p>O Parque Una merece ser analisado dentro do WAL Intelligence porque seu impacto potencial vai além de um lançamento isolado: ele propõe um bairro aberto de uso misto integrado ao tecido urbano de São José dos Campos.</p></div>
+
+<div class="una-showcase">
+<div class="una-grid">
+<div>
+<span class="pill green">Jardim Aquarius • Av. Cassiano Ricardo</span>
+<h2 style="font-size:34px;margin:14px 0 10px">Um bairro pensado para morar, trabalhar, caminhar, conviver e acessar serviços.</h2>
+<p style="color:#dbeaf3">O conceito oficial reúne caminhabilidade, parque central, arborização, mobilidade sustentável, espaços culturais, residências, hub empresarial e infraestrutura urbana planejada. A proposta é reduzir deslocamentos curtos de carro e criar vida urbana ao nível da rua.</p>
+<div class="una-kpis">
+<div class="una-kpi"><b>10 mil</b><span>espécies nativas previstas na arborização das ruas, segundo a Idealiza</span></div>
+<div class="una-kpi"><b>20 mil m²</b><span>Casa Una, apresentada como núcleo multiuso do bairro</span></div>
+<div class="una-kpi"><b>90%+</b><span>do Riza comercializado nas primeiras 72 horas, segundo a Idealiza</span></div>
+</div>
+<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:20px">
+<a class="btn" target="_blank" rel="noopener" href="https://www.walservidor.com.br/Projeto%20SJC%20e%20SP/WAL_Parque_Una_SJC_site_completo.html">Conhecer o projeto na WAL ↗</a>
+<a class="btn ghost" target="_blank" rel="noopener" href="https://www.idealizacidades.com.br/parque-una/sjc">Fonte oficial Idealiza ↗</a>
+</div>
+</div>
+<div class="una-map">
+<div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#39718f;font-weight:800">Ecossistema urbano</div>
+<div class="node"><b>Parque Central</b><small>lazer • contemplação • esporte • bicicleta • mirante</small></div>
+<div class="node"><b>Casa Una</b><small>cultura • convivência • eventos • empreendedorismo</small></div>
+<div class="node"><b>Riza</b><small>primeiro residencial • 51 a 139,57 m²</small></div>
+<div class="node"><b>Martim</b><small>torre comercial • negócios • serviços • profissionais</small></div>
+<div class="node"><b>Setor da Nascente</b><small>lotes residenciais • proximidade entre moradia, trabalho e lazer</small></div>
+</div>
+</div></div>
+
+<div class="cards three" style="margin-top:18px">
+<div class="card"><span class="pill">Urbanismo</span><h3>Por que o Una é diferente?</h3><p>É apresentado como bairro <strong>aberto e público</strong>, e não como condomínio fechado. O desenho privilegia ruas arborizadas, calçadas, espaços públicos, usos mistos e integração com a cidade.</p></div>
+<div class="card"><span class="pill green">Infraestrutura</span><h3>O que está planejado?</h3><p>Rede elétrica subterrânea, gás encanado, mobilidade a pé e por bicicleta, transporte público, parque central, paisagismo e associação responsável por manutenção, iluminação, jardinagem e segurança do bairro.</p></div>
+<div class="card"><span class="pill">Mercado</span><h3>O sinal dado pelo Riza</h3><p>A Idealiza informa que o primeiro residencial teve mais de 90% das unidades comercializadas em 72 horas, aproximadamente R$ 200 milhões em vendas, e lançamento médio em torno de R$ 17 mil/m². É um dado de lançamento, não projeção de valorização futura.</p></div>
+</div>
+
+<div class="tablewrap" style="margin-top:20px"><table class="compare-table"><thead><tr><th>Elemento</th><th>O que existe no conceito</th><th>O que o comprador deve verificar</th><th>Leitura WAL Intelligence</th></tr></thead><tbody>
+<tr><td><strong>Riza</strong></td><td>Primeiro residencial; 1 a 3 dormitórios; 51 a 139,57 m².</td><td>Disponibilidade, preço atual, cronograma e condições.</td><td>Primeiro teste de absorção residencial do bairro.</td></tr>
+<tr><td><strong>Martim</strong></td><td>Componente comercial/corporativo do ecossistema.</td><td>Mix de ocupantes, cronograma, fluxo e operação futura.</td><td>Importante para testar a promessa de uso misto e vida durante o dia.</td></tr>
+<tr><td><strong>Casa Una</strong></td><td>Estrutura multiuso de cerca de 20 mil m², com Oca e anfiteatro.</td><td>Etapas e data efetiva de implantação.</td><td>Equipamento capaz de gerar convivência e identidade, se executado como planejado.</td></tr>
+<tr><td><strong>Parque Central</strong></td><td>Lazer, esporte, caminhada, bicicleta, contemplação e mirante.</td><td>Entrega, manutenção e qualidade do espaço ao longo do tempo.</td><td>Ativo urbano que diferencia o projeto de uma incorporação convencional.</td></tr>
+<tr><td><strong>Associação</strong></td><td>Manutenção, limpeza, iluminação, paisagismo, segurança e agenda cultural.</td><td>Custos, governança e regras.</td><td>Ajuda a preservar padrão urbano, mas cria obrigações que devem entrar no custo total.</td></tr>
+</tbody></table></div>
+
+
+<div style="margin-top:28px">
+<div class="head"><div><div class="label">Parque, jardins e vida ao ar livre</div><h2>O espaço livre como parte central do projeto.</h2></div><p>Perspectivas oficiais do Parque Una SJC. As imagens representam o projeto planejado e não devem ser confundidas com fotografias de áreas já concluídas.</p></div>
+<div class="una-gallery">
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/IPU_15_VISTA_PARQUE_V00_02_HIGH_AI.jpg" alt="Perspectiva oficial do Parque Central do Parque Una SJC"><figcaption><b>Parque Central</b>Gramado, caminhos, convivência e paisagismo como elemento estruturador do bairro.</figcaption></figure>
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/IPU_36_VOO_PET_PARK_R02_HIGH.jpg" alt="Perspectiva do Parcão Parque Una SJC"><figcaption><b>Parcão</b>Área destinada aos pets integrada aos caminhos e jardins.</figcaption></figure>
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/IPU_24_VOO_WETLAND_R03_HIGH.jpg" alt="Wetland Parque Una SJC"><figcaption><b>Wetland</b>Drenagem urbana transformada também em paisagem e contemplação.</figcaption></figure>
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/IPU_03_ESCADARIA_R03_HIGH_AI.jpg" alt="Mirante e paisagismo Parque Una SJC"><figcaption><b>Mirante e topografia</b>Espaços de permanência e conexão visual com a paisagem.</figcaption></figure>
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/eaab.jpg" alt="Academia ao ar livre Parque Una SJC"><figcaption><b>Academia ao ar livre</b>Exercício físico inserido no espaço público e no cotidiano.</figcaption></figure>
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/eaae.jpg" alt="Quadras e área esportiva Parque Una SJC"><figcaption><b>Esporte</b>Quadras e áreas ativas envolvidas pelo parque.</figcaption></figure>
+<figure><img loading="lazy" src="https://www.idealizacidades.com.br/images/sjc/playground.jpg" alt="Playground Parque Una SJC"><figcaption><b>Playground na natureza</b>Projeto da Carve com estruturas inspiradas em troncos e brincadeira não direcionada.</figcaption></figure>
+</div>
+<p class="source-note">Imagens e conceitos: Idealiza Cidades — Parque Una São José dos Campos. Perspectivas artísticas do projeto. O projeto oficial informa ainda gramado multiuso, parque aberto diariamente, área de esportes, mirante e espaços de contemplação.</p>
+</div>
+
+<div class="callout" style="margin-top:20px"><strong>Como interpretar o Una dentro do WAL Intelligence:</strong> o desempenho inicial do Riza é evidência de receptividade ao lançamento, não garantia de valorização. O ponto estratégico é acompanhar se o bairro consegue transformar o masterplan em <strong>cidade funcionando</strong>: moradores + empresas + comércio + parque + cultura + mobilidade + manutenção.</div>
+</div></section>
+
+
+<section class="section" id="evolucao-projetos"><div class="wrap">
+<div class="head"><div><div class="label">2021 → 2026</div><h2>O que mudou nos projetos imobiliários em cinco anos?</h2></div><p>Não se trata de dizer que “novo é sempre melhor”. Trata-se de entender como as prioridades do comprador e a concepção de alguns projetos evoluíram desde o ciclo da pandemia.</p></div>
+
+<div class="evolution-line">
+<div class="era"><span class="pill">Por volta de 2021</span><h3>A moradia foi ressignificada</h3><p>A pandemia colocou a residência no centro da vida cotidiana. Estudos e debates do setor destacavam home office, ambientes internos multifuncionais, varandas, áreas de lazer maiores e arborizadas, pet place, delivery e espaços coletivos de trabalho.</p><p class="source-note">Referências: Secovi-SP e CBIC/Brain, pesquisas e debates de 2020–2021.</p></div>
+<div class="arrow-mid">→</div>
+<div class="era now"><span class="pill green">Ciclo atual • 2026</span><h3>Em alguns projetos, a experiência ultrapassa o condomínio</h3><p>O edifício continua importante, mas propostas contemporâneas de bairro planejado acrescentam escala urbana: caminhabilidade, usos mistos, espaços públicos, natureza, cultura, serviços, trabalho e gestão continuada do entorno.</p><p class="source-note">O Parque Una SJC é um exemplo desse modelo; não representa todos os lançamentos atuais.</p></div>
+</div>
+
+<div class="shift-grid">
+<div class="shift"><div class="shift-head"><span>2021</span><i></i><span>2026</span></div><div class="shift-body"><div><b>Lazer do condomínio</b><br><span>academia, piscina, salão, varanda</span></div><div class="to">→</div><div><b>Lazer + cidade</b><br><span>parque, praça, esporte, cultura e convivência pública</span></div></div></div>
+<div class="shift"><div class="shift-head"><span>2021</span><i></i><span>2026</span></div><div class="shift-body"><div><b>Home office</b><br><span>adaptação da unidade e coworking</span></div><div class="to">→</div><div><b>Ecossistema trabalho–moradia</b><br><span>hub corporativo, serviços e residência próximos</span></div></div></div>
+<div class="shift"><div class="shift-head"><span>2021</span><i></i><span>2026</span></div><div class="shift-body"><div><b>Área verde como amenidade</b><br><span>jardins e paisagismo do condomínio</span></div><div class="to">→</div><div><b>Natureza como infraestrutura</b><br><span>parque estruturante, arborização, drenagem e conforto térmico</span></div></div></div>
+<div class="shift"><div class="shift-head"><span>2021</span><i></i><span>2026</span></div><div class="shift-body"><div><b>Mobilidade centrada no carro</b><br><span>vaga e acesso viário como fatores dominantes</span></div><div class="to">→</div><div><b>Mais opções de deslocamento</b><br><span>caminhar, bicicleta, transporte e ruas de menor velocidade</span></div></div></div>
+<div class="shift"><div class="shift-head"><span>2021</span><i></i><span>2026</span></div><div class="shift-body"><div><b>Produto imobiliário</b><br><span>torre + unidade + áreas comuns</span></div><div class="to">→</div><div><b>Produto + contexto urbano</b><br><span>o comprador passa a avaliar também o bairro que será construído</span></div></div></div>
+<div class="shift"><div class="shift-head"><span>2021</span><i></i><span>2026</span></div><div class="shift-body"><div><b>Segurança física</b><br><span>portaria, controle de acesso e perímetro</span></div><div class="to">→</div><div><b>Segurança + desenho urbano</b><br><span>iluminação, uso contínuo, vigilância natural e tecnologia em alguns projetos</span></div></div></div>
+</div>
+
+<div class="maturity">
+<div><b>1</b><span>UNIDADE</span></div><div><b>2</b><span>CONDOMÍNIO</span></div><div><b>3</b><span>ENTORNO</span></div><div><b>4</b><span>BAIRRO</span></div><div><b>5</b><span>EXPERIÊNCIA URBANA</span></div>
+</div>
+
+<div class="cards three" style="margin-top:18px">
+<div class="card"><h3>O que permaneceu?</h3><p>Localização, preço, metragem, planta, qualidade construtiva e capacidade de pagamento continuam fundamentais. Um bom conceito urbano não substitui a análise financeira e técnica do imóvel.</p></div>
+<div class="card"><h3>O que ganhou peso?</h3><p>Flexibilidade, contato com natureza, serviços próximos, possibilidade de caminhar, áreas abertas, convivência, conectividade e qualidade do entorno passaram a integrar mais fortemente a percepção de valor.</p></div>
+<div class="card"><h3>O que realmente importa na escolha?</h3><p>Além do número de quartos e da metragem, vale considerar <strong>como o imóvel se encaixa na sua vida</strong>: localização do trabalho, tempo de deslocamento, escolas, serviços de saúde, mobilidade, possibilidade de fazer atividades a pé, áreas verdes e o equilíbrio entre centralidade e tranquilidade.</p></div>
+</div>
+
+<div class="callout" style="margin-top:18px"><strong>A mudança mais importante para o WAL Intelligence:</strong> há cinco anos, analisar o apartamento e o condomínio já respondia boa parte da decisão. Em projetos urbanos contemporâneos, é cada vez mais necessário analisar também <strong>o sistema ao redor do imóvel</strong> — bairro, mobilidade, natureza, serviços, trabalho, espaços públicos e o estágio real de implantação de tudo isso.</div>
+<div class="callout risk" style="margin-top:12px"><strong>Importante:</strong> esta é uma leitura de evolução de tendências, não uma regra cronológica. Em 2021 já existiam excelentes projetos de uso misto e bairros planejados; em 2026 continuam existindo lançamentos convencionais. A comparação mostra mudança de ênfase, não superioridade automática por ano de lançamento.</div>
+</div></section>
+
+<section class="section alt" id="qualidade"><div class="wrap">
+<div class="head"><div><div class="label">Qualidade de vida + segurança pública</div><h2>Morar bem é mais do que comprar metros quadrados.</h2></div><p>Para uma decisão residencial, infraestrutura, segurança, áreas verdes, educação, saúde, conectividade e tempo de deslocamento precisam entrar na mesma análise do preço do imóvel.</p></div>
+
+<div class="media-hero">
+<img src="https://www.sjc.sp.gov.br/media/g5lecdwz/parque-da-cidade.jpg?height=900&width=1400" alt="Parque da Cidade, São José dos Campos">
+<div class="media-overlay"><div><span class="pill green">Vida urbana</span><h3>São José combina uma economia de alta tecnologia com uma estrutura urbana que também precisa ser medida pela experiência cotidiana.</h3><p>O Parque da Cidade, a rede de serviços, universidades, equipamentos de saúde e a conectividade regional ajudam a explicar por que qualidade urbana deve ser analisada junto com emprego e valorização imobiliária.</p></div></div>
+</div>
+
+<div class="metric-row" style="margin-top:18px">
+<div class="metric"><strong>68,31</strong><span>IPS Brasil 2026 — pontuação de São José dos Campos</span></div>
+<div class="metric"><strong>7ª</strong><span>entre as grandes cidades não capitais destacadas pelo IPS Brasil 2026</span></div>
+<div class="metric"><strong>+1.200</strong><span>câmeras informadas pela Prefeitura na estrutura do CSI</span></div>
+<div class="metric"><strong>24h</strong><span>monitoramento tecnológico informado pelo município</span></div>
+</div>
+
+<div class="safety-grid" style="margin-top:18px">
+<div class="card"><span class="pill">Segurança pública</span><h3>O que os dados recentes mostram</h3><p>Segundo dados da Secretaria de Segurança Pública reproduzidos pela Prefeitura, na comparação dos oito primeiros meses de 2016 com o mesmo período de 2026 houve redução importante em diferentes indicadores. A comparação é histórica e não significa que o risco seja uniforme em todos os bairros.</p>
+<div class="safety-stat" style="margin-top:16px"><div><b>-94,7%</b><span>roubo de veículos</span></div><div><b>-86,7%</b><span>roubos em geral</span></div><div><b>-72,4%</b><span>furto de veículos</span></div><div><b>-54,1%</b><span>homicídios</span></div></div>
+<p class="source-note">Fonte: Prefeitura de SJC com dados da SSP-SP, atualização de 01/10/2026. Para uma compra, consulte também dados recentes por região e faça visitas ao entorno em horários diferentes.</p></div>
+
+<div class="card"><span class="pill green">Progresso social</span><h3>Qualidade de vida precisa ser decomposta</h3><p>O IPS Brasil 2026 atribui a SJC 68,31 pontos. O indicador agrega dimensões sociais e ambientais; por isso, é mais útil para contextualizar a cidade do que para escolher isoladamente um bairro.</p>
+<p><strong>Na prática, a WAL recomenda observar:</strong> tempo casa–trabalho, oferta de escolas e saúde, acesso a parques, ruído, trânsito, saneamento, comércio cotidiano, segurança do micromercado e custo total de moradia.</p>
+<div class="callout" style="margin-top:16px"><strong>Leitura imobiliária:</strong> qualidade de vida pode sustentar demanda residencial, mas não elimina diferenças relevantes entre bairros, ruas e condomínios.</div></div>
+</div>
+
+<div class="photo-grid" style="margin-top:18px">
+<div class="photo-card"><img src="https://www.sjc.sp.gov.br/media/q4eg4aq0/sanja4adenirbritto1.jpg?height=700&width=1100" alt="Vista urbana de São José dos Campos"><div class="photo-cap"><b>Escala urbana e conectividade</b><small>São José dos Campos — imagem institucional da Prefeitura.</small></div></div>
+<div class="photo-card"><img src="https://www.sjc.sp.gov.br/media/v1kd24pt/dji_0172.jpg?height=700&width=900" alt="Parque da Cidade"><div class="photo-cap"><b>Áreas verdes e lazer</b><small>Parque da Cidade — elemento relevante da experiência residencial.</small></div></div>
+</div>
+</div></section>
+
+<section class="section" id="comparativo-m2"><div class="wrap">
+<div class="head"><div><div class="label">Benchmark imobiliário</div><h2>Quanto custa o m² de SJC diante de outros mercados?</h2></div><p>Comparação de preços médios anunciados de apartamentos residenciais. A mesma metodologia deve ser usada para evitar comparar indicadores incompatíveis.</p></div>
+<div class="chart"><canvas id="chartBenchmark"></canvas></div>
+<div class="tablewrap" style="margin-top:18px"><table><thead><tr><th>Cidade</th><th>Preço médio aproximado</th><th>Diferença para SJC</th><th>Leitura</th></tr></thead><tbody>
+<tr><td>Vitória</td><td>R$ 15.448/m²</td><td>+60,6%</td><td>Mercado mais caro no recorte FipeZAP de jul/2026.</td></tr>
+<tr><td>Florianópolis</td><td>R$ 13.461/m²</td><td>+40,0%</td><td>Capital com forte pressão de preço e restrição territorial.</td></tr>
+<tr><td>São Paulo</td><td>R$ 12.509/m²</td><td>+30,1%</td><td>Maior e mais profundo mercado do país; comparação serve como referência de custo.</td></tr>
+<tr><td>Niterói</td><td>R$ 9.962/m²</td><td>+3,6%</td><td>Preço médio próximo ao de SJC no mesmo levantamento.</td></tr>
+<tr><td><strong>São José dos Campos</strong></td><td><strong>R$ 9.617/m²</strong></td><td>—</td><td>Preço elevado para cidade não capital, associado a um mercado de emprego e renda qualificados.</td></tr>
+<tr><td>Santos</td><td>~R$ 8,5 mil/m²</td><td>inferior</td><td>Mercado litorâneo com dinâmica própria.</td></tr>
+<tr><td>Campinas</td><td>~R$ 8,1 mil/m²</td><td>inferior</td><td>Outro grande polo tecnológico e universitário paulista.</td></tr>
+</tbody></table></div>
+<p class="source-note">Referência principal: Índice FipeZAP / dados de julho-agosto de 2026 reproduzidos em levantamentos de mercado. O valor de SJC chegou a R$ 9.615/m² em agosto/2026, com alta de 9,81% em 12 meses. Preço anunciado não é necessariamente preço efetivo de transação.</p>
+<div class="callout" style="margin-top:18px"><strong>O ponto mais útil para o comprador:</strong> SJC já não deve ser tratada como um mercado “barato do interior”. A decisão precisa comparar o imóvel escolhido com o micromercado local e com a renda/emprego que sustenta aquela demanda.</div>
+</div></section>
+
+<section class="section alt" id="midia"><div class="wrap">
+<div class="head"><div><div class="label">Documentação visual</div><h2>Projetos, vídeos e notícias para investigar a cidade</h2></div><p>Em vez de pedir ao comprador que aceite uma narrativa, esta área oferece caminhos para consultar material oficial, vídeos e cobertura jornalística.</p></div>
+
+<div class="video-grid">
+<div class="video-card"><div class="video-frame"><iframe loading="lazy" src="https://www.youtube.com/embed/koZREVa12Ls" title="Projeto Linha Verde São José dos Campos" allowfullscreen></iframe></div><div class="video-body"><span class="pill">Mobilidade</span><h3>Linha Verde</h3><p>Vídeo de apresentação do corredor sustentável que conecta regiões estratégicas da cidade. Use-o junto com o status atual das fases e obras.</p><div class="video-links"><a class="linkchip" target="_blank" rel="noopener" href="https://www.sjc.sp.gov.br/servicos/mobilidade-urbana/linha-verde/">Página oficial do projeto ↗</a><a class="linkchip" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=koZREVa12Ls">Abrir no YouTube ↗</a></div></div></div>
+<div class="video-card"><div class="video-frame"><iframe loading="lazy" src="https://www.youtube.com/embed/AAFY48icGlk" title="Linha Verde São José dos Campos Governo de São Paulo" allowfullscreen></iframe></div><div class="video-body"><span class="pill green">Obras</span><h3>Linha Verde — registro das obras</h3><p>Material audiovisual do Governo de São Paulo sobre a implantação. É útil como registro histórico; o estágio atual deve ser confirmado nas fontes oficiais.</p><div class="video-links"><a class="linkchip" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=AAFY48icGlk">Assistir no YouTube ↗</a></div></div></div>
+</div>
+
+<h3 style="margin:30px 0 14px">Leituras externas e jornalismo local</h3>
+<div class="news-grid">
+<div class="news-card"><div class="source">Prefeitura de SJC • 01/10/2026</div><h3>Indicadores criminais registram nova redução</h3><p>Dados da SSP-SP permitem acompanhar roubos, furtos e homicídios e ajudam a incluir segurança na análise residencial.</p><a target="_blank" rel="noopener" href="https://www.sjc.sp.gov.br/noticias/2026/outubro/01/sao-jose-confirma-reducao-nos-indicadores-criminais/">Consultar fonte oficial →</a></div>
+<div class="news-card"><div class="source">OVALE / Sampi • mercado</div><h3>SJC entre os maiores preços residenciais de SP</h3><p>O jornal regional repercute dados do FipeZAP e a valorização observada em bairros como Eugênio de Melo, Vila Industrial e São Dimas.</p><a target="_blank" rel="noopener" href="https://sampi.net.br/ovale/noticias/2953005/vale-do-paraiba/2026/01/sao-jose-e-a-4-cidade-com-o-m-residencial-mais-caro-em-sp">Ler matéria →</a></div>
+<div class="news-card"><div class="source">IPS Brasil • 2026</div><h3>Progresso social em perspectiva nacional</h3><p>O IPS permite contextualizar necessidades básicas, bem-estar e oportunidades, complementando indicadores puramente econômicos.</p><a target="_blank" rel="noopener" href="https://ipsbrasil.org.br/">Consultar IPS Brasil →</a></div>
+<div class="news-card"><div class="source">Prefeitura de SJC</div><h3>CSI e Cidade Inteligente</h3><p>Conheça a estrutura tecnológica de monitoramento, leitura de placas, reconhecimento e integração de sistemas.</p><a target="_blank" rel="noopener" href="https://sjc.sp.gov.br/servicos/protecao-ao-cidadao/csi/">Conhecer o CSI →</a></div>
+<div class="news-card"><div class="source">Fipe</div><h3>Índice FipeZAP</h3><p>Acompanhe diretamente a metodologia e as séries de preços de venda e locação residencial.</p><a target="_blank" rel="noopener" href="https://www.fipe.org.br/pt-br/indices/fipezap/">Abrir fonte do índice →</a></div>
+<div class="news-card"><div class="source">Prefeitura de SJC</div><h3>Linha Verde: documentos, notícias e projeto</h3><p>A página municipal reúne informações, documentos e atualizações, permitindo separar conceito, obra e operação.</p><a target="_blank" rel="noopener" href="https://www.sjc.sp.gov.br/servicos/mobilidade-urbana/linha-verde/">Acessar central oficial →</a></div>
+</div>
+<div class="callout risk" style="margin-top:20px"><strong>Critério editorial WAL:</strong> material oficial mostra o projeto e a posição do órgão responsável; jornalismo ajuda a contextualizar; indicadores independentes permitem comparação. Nenhuma dessas fontes, isoladamente, deve ser usada como promessa de valorização imobiliária.</div>
+</div></section>
+
+<section class="section" id="perfil"><div class="wrap"><div class="head"><div><div class="label">Decisão orientada ao comprador</div><h2>O imóvel certo depende do seu objetivo</h2></div><p>Use este diagnóstico como ponto de partida. Ele não escolhe um imóvel por você; mostra quais critérios merecem mais peso na sua análise.</p></div><div class="grid g2"><div class="profilebox"><label for="perfilSel"><strong>Qual é seu objetivo principal?</strong></label><select id="perfilSel"><option value="moradia">Morar com a família</option><option value="trabalho">Morar perto do trabalho / reduzir deslocamento</option><option value="renda">Comprar para renda de aluguel</option><option value="patrimonio">Construir patrimônio no longo prazo</option><option value="servidor">Funcionário público / militar</option></select><div class="profile-result" id="profileResult"></div></div><div class="card"><h3>Checklist antes da proposta</h3><div id="checklist"><p>✓ Compare o preço do imóvel com produtos realmente equivalentes no mesmo micromercado.</p><p>✓ Meça o deslocamento nos horários reais da sua rotina — não apenas quilômetros.</p><p>✓ Identifique obras anunciadas, contratadas, em execução e entregues separadamente.</p><p>✓ Verifique estoque futuro: valorização potencial e nova concorrência podem coexistir.</p><p>✓ Considere condomínio, IPTU, manutenção, financiamento e custo total de ocupação.</p><p>✓ Para investimento, estime aluguel líquido, vacância e horizonte de saída.</p><p>✓ Confirme informações comerciais, urbanísticas e documentais antes da assinatura.</p></div></div></div></div></section>
+
+<section class="section alt"><div class="wrap"><div class="head"><div><div class="label">Matriz de leitura</div><h2>Onde cada cidade entra na análise</h2></div><p>Esta matriz é qualitativa e descritiva, construída a partir dos temas presentes nos arquivos. Não é ranking de investimento.</p></div><div class="tablewrap"><table><thead><tr><th>Cidade</th><th>Âncora econômica/urbana no material</th><th>Infraestrutura destacada</th><th>Questão essencial para o comprador</th></tr></thead><tbody><tr><td><strong>São José dos Campos</strong></td><td>Tecnologia, aeroespacial, indústria, PIT</td><td>Linha Verde, rodovias, saneamento, aeroporto</td><td>Qual bairro equilibra preço, rotina e exposição aos vetores de crescimento?</td></tr><tr><td><strong>Jacareí</strong></td><td>Integração regional, logística e serviços</td><td>Drenagem e ampliação viária</td><td>O ganho de preço compensa o deslocamento e o estágio urbano do entorno?</td></tr><tr><td><strong>Caçapava</strong></td><td>Posição intermediária no eixo Dutra</td><td>Revitalização e zeladoria urbana</td><td>O imóvel está conectado aos serviços e aos polos de emprego relevantes para sua rotina?</td></tr><tr><td><strong>Taubaté</strong></td><td>Indústria, educação, inovação e cadeia regional</td><td>Macrodrenagem e intervenções viárias</td><td>Quais vetores são locais e quais dependem da integração com o restante do Vale?</td></tr></tbody></table></div></div></section>
+
+<section class="section"><div class="wrap"><div class="grid g2"><div><div class="label">Transparência</div><h2>Metodologia e fontes do estudo-base</h2><p class="method">Esta página consolida e reorganiza os três materiais fornecidos à WAL. Eles citam como bases: IBGE, CAGED, FipeZAP, Aconvap, Secovi, Prefeitura de São José dos Campos, Governo do Estado de São Paulo, Novo PAC, Sabesp, Embraer, SJK Airport, PIT e imprensa especializada. Valores e status devem ser reconfirmados na fonte primária na data da decisão.</p><ul class="source-list method"><li>IBGE / indicadores populacionais</li><li>CAGED / emprego formal</li><li>FipeZAP / referências imobiliárias</li><li>Aconvap e Secovi / mercado</li><li>Prefeitura de SJC</li><li>Governo do Estado de SP</li><li>Novo PAC / Governo Federal</li><li>Sabesp</li><li>Embraer / cadeia aeroespacial</li><li>SJK Airport</li><li>Parque de Inovação Tecnológica</li><li>Materiais regionais de Jacareí, Caçapava e Taubaté</li></ul></div><div class="card"><h3>Três níveis de informação</h3><p><span class="pill green">1 • Fato / histórico</span></p><p>Indicadores, estruturas existentes, valores históricos e equipamentos já entregues.</p><p><span class="pill">2 • Projeto / vetor</span></p><p>Obras, investimentos e planos cujo impacto depende de cronograma e execução.</p><p><span class="pill amber">3 • Cenário</span></p><p>Estimativas futuras usadas para testar hipóteses — nunca tratadas como garantia.</p></div></div></div></section>
+
+<section class="section"><div class="wrap"><div class="cta"><div><h2>Agora transforme contexto em uma busca de imóvel.</h2><p>A WAL pode cruzar seu perfil, renda, instituição, rotina e objetivo com os empreendimentos disponíveis na região.</p></div><a class="btn ghost" href="https://www.walservidor.com.br" target="_blank" rel="noopener">Consultar imóveis na WAL →</a></div></div></section>
+<footer class="footer"><div class="wrap"><strong>WAL Imóveis • WAL Intelligence</strong><br>Especialistas em imóveis para funcionários públicos civis e militares.<br><br>Conteúdo informativo. Cenários e relações de impacto são hipóteses analíticas e não constituem promessa de valorização, garantia de retorno ou recomendação financeira. Atualização-base: outubro de 2026.</div></footer>
+<script>
+document.querySelectorAll('.citybtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.citybtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.citypanel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.city).classList.add('active')}));
+
+const bench=document.getElementById('chartBenchmark');
+if(bench){new Chart(bench,{type:'bar',data:{labels:['Vitória','Florianópolis','São Paulo','Niterói','S. J. Campos','Santos','Campinas'],datasets:[{label:'Preço médio anunciado (R$/m²)',data:[15448,13461,12509,9962,9617,8547,8089],backgroundColor:['#b8c8d4','#b8c8d4','#b8c8d4','#b8c8d4','#0b67b2','#b8c8d4','#b8c8d4'],borderRadius:7}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},title:{display:true,text:'Benchmark de preço residencial — referências 2026'}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'R$ '+Number(v).toLocaleString('pt-BR')}}}}})}
+
+const profiles={moradia:{title:'Moradia familiar',text:'Dê mais peso à qualidade da rotina do que à narrativa de valorização.',items:['Escolas, saúde, comércio e áreas de convivência','Tempo real de deslocamento da família','Segurança, ruído, trânsito e infraestrutura do bairro','Planta, condomínio e custo total mensal']},trabalho:{title:'Proximidade e mobilidade',text:'O endereço precisa funcionar nos horários em que você realmente se desloca.',items:['Acesso à Dutra, Linha Verde e vias estruturais','Distância de polos como DCTA, Embraer, PIT e áreas industriais','Alternativas de rota e transporte','Impacto de obras futuras no trajeto']},renda:{title:'Renda de aluguel',text:'Liquidez e demanda locatícia importam mais do que uma projeção genérica do m².',items:['Perfil de inquilino do micromercado','Aluguel líquido versus custo total','Oferta futura concorrente','Vacância, tipologia e facilidade de revenda']},patrimonio:{title:'Patrimônio no longo prazo',text:'Procure convergência entre infraestrutura, emprego, oferta controlada e maturação urbana.',items:['Projetos efetivamente contratados e executados','Novos polos de emprego e serviços','Oferta futura e adensamento','Horizonte de 7–15 anos e capacidade de carregar o ativo']},servidor:{title:'Funcionário público / militar',text:'Cruze estabilidade de renda e condições de crédito com a rotina e o objetivo patrimonial.',items:['Condições de financiamento aplicáveis ao seu perfil','Proximidade da unidade de trabalho e mobilidade regional','Prestação confortável e custo total de moradia','Possibilidade de mudança, transferência e liquidez futura']}};
+function renderProfile(){const p=profiles[document.getElementById('perfilSel').value];document.getElementById('profileResult').innerHTML=`<h3>${p.title}</h3><p>${p.text}</p><ul>${p.items.map(i=>`<li>${i}</li>`).join('')}</ul>`}document.getElementById('perfilSel').addEventListener('change',renderProfile);renderProfile();
+new Chart(document.getElementById('hist'),{type:'line',data:{labels:['2019','2020','2021','2022','2023','2024','2025','2026'],datasets:[{label:'R$/m² (aprox.)',data:[4800,4900,5300,6700,7350,8230,9050,9400],borderColor:'#0b67b2',backgroundColor:'rgba(11,103,178,.10)',fill:true,tension:.32,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'SJC • série indicativa do preço médio do m² (2019–2026)'},legend:{display:false}},scales:{y:{beginAtZero:false}}}});
+new Chart(document.getElementById('proj'),{type:'line',data:{labels:['2026','2031','2036','2041','2046'],datasets:[{label:'Conservador',data:[9400,11500,14200,17500,22000],borderColor:'#b96a00',borderDash:[5,5],tension:.3},{label:'Base',data:[9400,12500,17000,23000,31000],borderColor:'#0b67b2',tension:.3},{label:'Expansivo',data:[9400,14000,20500,30000,42000],borderColor:'#198754',borderDash:[5,5],tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{title:{display:true,text:'Cenários nominais do estudo • 2026–2046'}},scales:{y:{beginAtZero:false}}}});
+</script></body></html>
