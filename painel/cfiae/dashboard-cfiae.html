@@ -395,7 +395,7 @@
 
       <!-- ── SJC E REGIÃO (Parque Una) ── -->
       <div class="sub-principal-view" id="sub-projeto-sjc">
-        <iframe class="iframe-mapa" id="iframeProjetoSjc" title="Projeto Parque Una SJC"></iframe>
+        <iframe class="iframe-mapa" id="iframeProjetoSjc" title="WAL Intelligence — SJC e Região"></iframe>
       </div>
     </section>
 
@@ -744,7 +744,9 @@ function mudarSubPrincipal(sub){
    carregar as duas páginas — a do SJC é pesada, ~3,5MB — sem o CFIAe
    nunca ter clicado nelas). ═══ */
 const URL_PROJETO_RIO = `${SITE_BASE_URL}Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html`;
-const URL_PROJETO_SJC = `${SITE_BASE_URL}Projeto%20SJC%20e%20SP/WAL_Parque_Una_SJC_site_completo.html#riza`;
+// pedido 105 — trocado do WAL_Parque_Una_SJC_site_completo.html (#riza)
+// pela página regional WAL Intelligence (abre no topo; ela não tem #riza).
+const URL_PROJETO_SJC = `${SITE_BASE_URL}WAL_Intelligence_Vale_do_Paraiba_2026_v3_1.html`;
 let _subProjetoAtual = 'rio';
 function carregarIframeProjetoSeVazio_(sub){
   const id = sub === 'sjc' ? 'iframeProjetoSjc' : 'iframeProjetoRio';
