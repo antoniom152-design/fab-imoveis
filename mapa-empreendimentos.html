@@ -2143,11 +2143,23 @@ function popularSelect(id, valores, label) {
   popularSelect('f-construtora', [...new Set(base.map(im => im.construtora).filter(Boolean))].sort(), 'Todas');
   document.getElementById('fn-uf').innerHTML = document.getElementById('f-uf').innerHTML;
 
+  let grupoCidades = [];
+  const normalizarCidade_ = c => String(c || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
   const paramsURL = new URLSearchParams(location.search);
   let temFiltroNaURL = false;
   if (paramsURL.get('uf')) { document.getElementById('f-uf').value = paramsURL.get('uf'); temFiltroNaURL = true; }
   atualizarCidadesFiltro();
   if (paramsURL.get('cidade')) { document.getElementById('f-cidade').value = paramsURL.get('cidade'); temFiltroNaURL = true; }
+  // pedido 104.1 — ?cidades=A,B,C mostra várias cidades de uma vez (o
+  // select f-cidade só aceita uma). Usado pelo botão "Ver Imóveis no
+  // Mapa" do WAL_Intelligence_Vale_do_Paraiba (SJC + vizinhas). Compara
+  // sem acento/maiúscula porque a planilha grava "Jacarei" sem acento.
+  // Se a pessoa escolher uma cidade no select, ela vale sozinha; "Limpar"
+  // desfaz o grupo.
+  if (paramsURL.get('cidades')) {
+    grupoCidades = paramsURL.get('cidades').split(',').map(normalizarCidade_).filter(Boolean);
+    if (grupoCidades.length) temFiltroNaURL = true;
+  }
   atualizarBairrosFiltro();
   if (paramsURL.get('bairro'))      { document.getElementById('f-bairro').value = paramsURL.get('bairro'); temFiltroNaURL = true; }
   if (paramsURL.get('tipo'))        { document.getElementById('f-tipo').value = paramsURL.get('tipo'); temFiltroNaURL = true; }
@@ -2464,7 +2476,7 @@ function popularSelect(id, valores, label) {
 
     let filtrados = base.filter(im =>
       (!uf         || im.uf === uf) &&
-      (!cidade     || im.cidade === cidade) &&
+      (cidade ? im.cidade === cidade : (!grupoCidades.length || grupoCidades.includes(normalizarCidade_(im.cidade)))) &&
       (!bairro     || im.bairro === bairro) &&
       (!tipo       || im.tipo === tipo) &&
       (!construtora || im.construtora === construtora) &&
@@ -2506,6 +2518,7 @@ function popularSelect(id, valores, label) {
   }
 
   function limparFiltros() {
+    grupoCidades = [];
     ['f-uf','f-cidade','f-bairro','f-tipo'].forEach(id => document.getElementById(id).value = '');
     document.getElementById('f-busca').value = '';
     document.getElementById('f-construtora').value = '';
