@@ -1301,9 +1301,14 @@
         <a href="WAL_Intelligence_Vale_do_Paraiba_2026_v3_1.html" target="_blank" rel="noopener" class="hero-banner" data-banner-index="1">
           <img src="IMG-PARQUE-UNA-SJC.webp" alt="Parque Una São José dos Campos — um novo capítulo para viver e investir na região">
         </a>
+        <!-- pedido 104.a — 3º banner: Espírito Santo -->
+        <a href="wal-consultoria-espirito-santo-expandido%5D_2026_v1.html" target="_blank" rel="noopener" class="hero-banner" data-banner-index="2">
+          <img src="IMG%20Espirito%20Santo%20em%20transformacao.png" alt="Espírito Santo: cidades em transformação — Vitória, Vila Velha, Serra e Guarapari">
+        </a>
         <div class="hero-banner-dots">
           <button type="button" class="active" onclick="irParaBannerHero(0)" aria-label="Mostrar banner Porto Maravilha / Praça Onze"></button>
           <button type="button" onclick="irParaBannerHero(1)" aria-label="Mostrar banner Parque Una São José dos Campos"></button>
+          <button type="button" onclick="irParaBannerHero(2)" aria-label="Mostrar banner Espírito Santo"></button>
         </div>
       </div>
       <!-- 34) Botões "Quero Reservar" e "Simular Financiamento" desativados a pedido do Antonio (05/08/2026) — por enquanto, não remover -->
@@ -2326,8 +2331,8 @@
 
   // ─── CARROSSEL DO HERO (pedido 97) — 2 banners revezando no mesmo
   // lugar, cada um com seu próprio link (Porto Maravilha/Praça Onze e
-  // Parque Una SJC). Troca sozinha a cada 3,5s (pedido 104: 6s era lento
-  // demais, nao dava pra perceber que eram 2 banners); pausa ao passar o mouse
+  // Parque Una SJC; 3º Espírito Santo no pedido 104.a). Troca sozinha a cada
+  // 3s (pedido 104: 6s era lento demais; 104.a: 3s); pausa ao passar o mouse
   // (evita trocar debaixo do cursor bem na hora do clique) e os pontinhos
   // deixam pular pra um banner específico manualmente. ───
   (function () {
@@ -2352,7 +2357,7 @@
     }
     function reiniciarAutoTrocaHero() {
       clearInterval(timerHero);
-      timerHero = setInterval(proximoBannerHero, 3500);
+      timerHero = setInterval(proximoBannerHero, 3000);
     }
     reiniciarAutoTrocaHero();
     wrap.addEventListener('mouseenter', () => clearInterval(timerHero));
