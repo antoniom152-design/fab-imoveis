@@ -126,6 +126,18 @@ document.querySelectorAll('.profile-btn').forEach(btn=>{
 .lead-form .submit-wpp:disabled{opacity:.7;cursor:wait}
 @media(max-width:560px){.form-grid{grid-template-columns:1fr}.form-group.full{grid-column:auto}.modal{padding:10px}.modal-head,.lead-form{padding-left:20px;padding-right:20px}.modal-head h2{font-size:25px}}
 </style>
+<style>
+/* pedido 104.b — mesmo rodapé do praca_onze_dashboard.html (classes com
+   prefixo wal-rodape- para não conflitar com o CSS desta página) */
+.wal-rodape{background:#2c3e50;padding:40px 30px;text-align:center;font-family:"Segoe UI",Tahoma,Geneva,Verdana,sans-serif}
+.wal-rodape-content{max-width:1400px;margin:0 auto 30px;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:30px;text-align:left}
+.wal-rodape-section h4{margin:0 0 15px;color:#06b6d4;font-size:1em;font-weight:700}
+.wal-rodape-section p{margin:0;color:#bdc3c7;font-size:.95em;line-height:1.8}
+.wal-rodape-btn{background:#06b6d4;color:#000;padding:10px 20px;border-radius:6px;font-weight:600;border:none;cursor:pointer;transition:background .3s;font:inherit;font-weight:600;font-size:14px}
+.wal-rodape-btn:hover{background:#0891b2}
+.wal-rodape-bottom{border-top:1px solid #34495e;padding-top:20px;color:#95a5a6}
+.wal-rodape-bottom p{margin:0;font-size:.95em}
+</style>
 </head>
 <body>
 <header class="top"><div class="wrap topin"><div class="brand"><div class="brandmark">W</div><div>WAL Intelligence<small>INTELIGÊNCIA IMOBILIÁRIA</small></div></div><nav class="nav"><a href="#regiao">Região</a><a href="#vetores">Vetores</a><a href="#mercado">Mercado</a><a href="#onde-morar">Onde morar?</a><a href="#una">Parque Una</a><a href="#evolucao-projetos">5 anos de evolução</a><a href="#qualidade">Qualidade & Segurança</a><a href="#midia">Mídia</a><a href="#projetos">Projetos</a><a href="#perfil">Meu perfil</a></nav><div class="top-acoes"><span class="versao-tag">Versão 3.1</span><a class="btn primary" href="mapa-empreendimentos.html?cidades=S%C3%A3o%20Jos%C3%A9%20dos%20Campos,Jacare%C3%AD,Ca%C3%A7apava,Taubat%C3%A9" target="_blank" rel="noopener">Ver Imóveis no Mapa</a></div></div></header>
@@ -387,6 +399,28 @@ document.querySelectorAll('.profile-btn').forEach(btn=>{
 
 <section class="section"><div class="wrap"><div class="cta"><div><h2>Agora transforme contexto em uma busca de imóvel.</h2><p>A WAL pode cruzar seu perfil, renda, instituição, rotina e objetivo com os empreendimentos disponíveis na região.</p></div><button class="btn ghost" type="button" onclick="abrirFormularioWAL()">Consultar imóveis na WAL →</button></div></div></section>
 <footer class="footer"><div class="wrap"><strong>WAL Imóveis • WAL Intelligence</strong><br>Especialistas em imóveis para funcionários públicos civis e militares.<br><br>Conteúdo informativo. Cenários e relações de impacto são hipóteses analíticas e não constituem promessa de valorização, garantia de retorno ou recomendação financeira. Atualização-base: outubro de 2026.</div></footer>
+<!-- pedido 104.b — rodapé WAL (igual ao do praca_onze_dashboard.html) -->
+<div class="wal-rodape">
+  <div class="wal-rodape-content">
+    <div class="wal-rodape-section">
+      <h4>WAL - Novo Rio</h4>
+      <p>Especialistas em imóveis para servidores públicos civis, militares e pensionistas — no Rio e região.</p>
+      <button class="wal-rodape-btn" type="button" onclick="abrirFormularioWAL()">Contato</button>
+    </div>
+    <div class="wal-rodape-section">
+      <h4>Central de Atendimento</h4>
+      <p>📞  (21) 99726-3950<br>📧 comercial@walservidor.com.br<br>💬 (21) 97244-3592 WhatsApp</p>
+    </div>
+    <div class="wal-rodape-section">
+      <h4>Horário</h4>
+      <p>Segunda a Sexta: 8h - 20h<br>Sábado: 9h - 18h<br>Domingo: Plantão Online <br>Consultor IA (24hs)</p>
+    </div>
+  </div>
+  <div class="wal-rodape-bottom">
+    <p>&copy; 2026 WAL Imóveis e Consultoria. CRECI 12261-J. Todos os direitos reservados.</p>
+  </div>
+</div>
+
 <script>
 document.querySelectorAll('.citybtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.citybtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.citypanel').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById(b.dataset.city).classList.add('active')}));
 
