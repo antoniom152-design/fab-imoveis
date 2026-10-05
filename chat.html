@@ -457,6 +457,7 @@ header {
   text-align: center; margin-top: 16px; line-height: 1.5;
 }
 </style>
+<script src="painel/shared/crm-lead.js"></script>
 </head>
 <body>
 
@@ -1445,27 +1446,18 @@ function registrarLeadNoCRM(dados) {
       agenteId: lerRefAgenteId_()
     }
   };
-  fetch(CRM_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
-  }).catch(() => {}); // silencioso — não interrompe o chat
-
   // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
-  // admin.html e dashboard_atendente.html leem/gravam) — o chat gravava
-  // no CRM mas não aparecia nesse histórico. Fire-and-forget, não trava
-  // o chat.
-  fetch(CADASTRO_API_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action: 'crm_lead_evento_publico',
-      telefone: dados.telefone, email: dados.email,
-      tipo: 'Chat IA', texto: nota, origem: 'Chat IA'
-    })
-  }).catch(() => {});
+  // admin.html e dashboard_atendente.html leem/gravam) — 110b: em
+  // sequência, já com o ID do lead criado (painel/shared/crm-lead.js).
+  // Fire-and-forget, não trava o chat; o ID fica guardado pra
+  // resolverLeadId_() não precisar buscar por contato.
+  _crmLeadIdPromise = WalCRM.gravarLeadEHistorico(CRM_SCRIPT_URL, CADASTRO_API_URL, payload, {
+    action: 'crm_lead_evento_publico',
+    telefone: dados.telefone, email: dados.email,
+    tipo: 'Chat IA', texto: nota, origem: 'Chat IA'
+  }).catch(() => '');
 }
+let _crmLeadIdPromise = null;
 
 /* pedido 90.1.c — chamada pelo modo livre (home) quando a IA já
    coletou dados suficientes ([LEAD_QUALIFICADO], ver sendMessage()).
@@ -1638,6 +1630,12 @@ function dentroDoHorarioAtendimento_(cfg) {
    disponível pro Atendente acompanhar/entrar. */
 async function resolverLeadId_() {
   if (leadId) { iniciarChatAoVivo_(); return; }
+  // 110b — se o lead acabou de ser criado por registrarLeadNoCRM(), usa o
+  // ID que o CRM devolveu (sem risco de pegar outro lead do mesmo e-mail)
+  if (_crmLeadIdPromise) {
+    const idCriado = await _crmLeadIdPromise;
+    if (idCriado) { leadId = idCriado; iniciarChatAoVivo_(); return; }
+  }
   if (!leadDados.telefone && !leadDados.email) return;
   try {
     const resp = await cadastroApiJsonp('crm_lead_id_publico', { telefone: leadDados.telefone, email: leadDados.email });

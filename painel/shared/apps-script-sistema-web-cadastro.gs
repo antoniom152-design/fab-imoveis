@@ -1697,7 +1697,11 @@ function crm_lead_evento_publico_(data) {
   var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
   if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
 
-  var idLead = crm_acharLeadNovoPorContato_(abaLeads, telefone, email);
+  // 110b — o site agora manda o leadId devolvido pelo CRM (ver
+  // painel/shared/crm-lead.js): usa ele direto se existir na aba LEADS.
+  // Sem leadId (ou ID inexistente), cai na busca por contato.
+  var idLead = crm_leadIdExistente_(abaLeads, data.leadId) ||
+               crm_acharLeadNovoPorContato_(abaLeads, telefone, email);
   if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
 
   return comLock_(function () {
@@ -1717,6 +1721,15 @@ function crm_lead_evento_publico_(data) {
    nenhum é que cai no comportamento antigo (o mais recente, de qualquer
    data). */
 var CRM_LEAD_RECENTE_MS = 3 * 60 * 1000;
+function crm_leadIdExistente_(abaLeads, leadId) {
+  var id = s_(leadId).trim();
+  if (!id) return '';
+  var vals = abaLeads.getDataRange().getValues();
+  var colId = vals[0].map(function (h) { return String(h).trim(); }).indexOf('ID');
+  if (colId === -1) return '';
+  for (var i = vals.length - 1; i >= 1; i--) if (s_(vals[i][colId]).trim() === id) return id;
+  return '';
+}
 function crm_acharLeadNovoPorContato_(abaLeads, telefone, email) {
   var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email, CRM_LEAD_RECENTE_MS);
   for (var tentativa = 1; !idLead && tentativa <= 4; tentativa++) {

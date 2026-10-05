@@ -3090,6 +3090,8 @@ function popularSelect(id, valores, label) {
           headers: { 'Content-Type': 'text/plain' },
           body: JSON.stringify({
             action: 'crm_lead_evento_publico',
+            // 110b — ID do lead recém-criado (o backend usa direto, sem buscar por contato)
+            leadId: (data && (data.id || data.lead_id)) || '',
             telefone, email,
             tipo: interacaoMapa.tipo, texto: interacaoMapa.nota,
             origem: leadData.origem

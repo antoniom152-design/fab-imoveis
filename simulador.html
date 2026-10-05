@@ -325,6 +325,7 @@ td.td-enc{font-weight:700;color:var(--cfiae)}
   @page{size:A4 portrait;margin:15mm}
 }
 </style>
+<script src="painel/shared/crm-lead.js"></script>
 </head>
 <body>
 
@@ -720,27 +721,18 @@ function lerRefAgenteId_() {
   } catch(e) { return ''; }
 }
 function registrarNoCRMSim(lead, nota) {
-  fetch(CRM_URL_SIM, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action: 'criarOuAtualizar',
-      lead: Object.assign({ prioridade: 'alta', status: 'novo' }, lead),
-      interacao: { tipo: lead.origem, data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'), nota }
-    })
-  }).catch(() => {});
-
   // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
-  // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
-  // não trava o simulador.
-  fetch(CADASTRO_API_URL, {
-    method: 'POST', mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      action: 'crm_lead_evento_publico',
-      telefone: lead.telefone, email: lead.email,
-      tipo: lead.origem, texto: nota, origem: lead.origem
-    })
+  // admin.html e dashboard_atendente.html leem/gravam) — 110b: em
+  // sequência, já com o ID do lead criado (painel/shared/crm-lead.js).
+  // Continua fire-and-forget: não trava o simulador.
+  WalCRM.gravarLeadEHistorico(CRM_URL_SIM, CADASTRO_API_URL, {
+    action: 'criarOuAtualizar',
+    lead: Object.assign({ prioridade: 'alta', status: 'novo' }, lead),
+    interacao: { tipo: lead.origem, data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'), nota }
+  }, {
+    action: 'crm_lead_evento_publico',
+    telefone: lead.telefone, email: lead.email,
+    tipo: lead.origem, texto: nota, origem: lead.origem
   }).catch(() => {});
 }
 
