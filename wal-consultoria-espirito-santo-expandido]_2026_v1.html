@@ -453,6 +453,32 @@ html{scroll-behavior:smooth;scroll-padding-top:125px} section{scroll-margin-top:
 .wal-rodape-bottom{border-top:1px solid #34495e;padding-top:20px;color:#95a5a6}
 .wal-rodape-bottom p{margin:0;font-size:.95em}
 </style>
+<style>
+/* pedido 104.c — formulário do botão "Contato" (mesmo do WAL_Intelligence),
+   gravando no CRM. Classes com prefixo wal- porque esta página já tem
+   .form-grid/.form-group e estilos gerais de button/input/select/label. */
+.wal-modal{display:none;position:fixed;inset:0;z-index:1000;background:rgba(4,18,30,.86);padding:22px;align-items:center;justify-content:center}
+.wal-modal.open{display:flex}
+.wal-modal-card{width:min(560px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:24px;box-shadow:0 28px 90px rgba(0,0,0,.35);position:relative;text-align:left;color:#172433}
+.wal-modal-head{background:#0a2a40;color:#fff;padding:28px 30px}
+.wal-modal-eyebrow{text-transform:uppercase;letter-spacing:2px;font-size:11px;font-weight:800;color:#e8d48b}
+.wal-modal-head h2{margin:5px 40px 6px 0;font-size:31px;line-height:1.05;color:#fff}
+.wal-modal-head p{margin:0;color:#cee0ea;font-size:14px}
+.wal-modal button.wal-modal-close{position:absolute;right:18px;top:18px;border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;width:38px;height:38px;border-radius:50%;font-size:20px;line-height:1;padding:0;cursor:pointer}
+.wal-lead-form{padding:26px 30px 30px}
+.wal-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.wal-form-group{margin-bottom:14px}
+.wal-form-group.full{grid-column:1/-1}
+.wal-lead-form .wal-form-label{display:block;font-size:12px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:#66788a;margin-bottom:6px}
+.wal-lead-form .wal-form-input,.wal-lead-form .wal-form-select{width:100%;border:1px solid #dce7ef;border-radius:10px;background:#f8fafc;color:#172433;padding:12px 13px;font:inherit;outline:none;margin:0}
+.wal-lead-form .wal-form-input:focus,.wal-lead-form .wal-form-select:focus{border-color:#c9a227;box-shadow:0 0 0 3px rgba(201,162,39,.15)}
+.wal-field-error{display:none;color:#b42318;font-size:12px;margin-top:5px}
+.wal-form-note{font-size:12px;color:#66788a;margin:4px 0 18px}
+.wal-lead-form button.wal-submit-wpp{width:100%;background:#25D366;color:#063d1b;font-weight:750;border-radius:10px;padding:12px 18px}
+.wal-lead-form button.wal-submit-wpp:hover{box-shadow:0 8px 20px rgba(37,211,102,.28)}
+.wal-lead-form button.wal-submit-wpp:disabled{opacity:.7;cursor:wait}
+@media(max-width:560px){.wal-form-grid{grid-template-columns:1fr}.wal-form-group.full{grid-column:auto}.wal-modal{padding:10px}.wal-modal-head,.wal-lead-form{padding-left:20px;padding-right:20px}.wal-modal-head h2{font-size:25px}}
+</style>
 </head>
 <body>
 
@@ -533,7 +559,7 @@ html{scroll-behavior:smooth;scroll-padding-top:125px} section{scroll-margin-top:
     <div class="wal-rodape-section">
       <h4>WAL - Novo Rio</h4>
       <p>Especialistas em imóveis para servidores públicos civis, militares e pensionistas — no Rio e região.</p>
-      <button class="wal-rodape-btn" type="button" onclick="document.getElementById('contato').scrollIntoView({behavior:'smooth'})">Contato</button>
+      <button class="wal-rodape-btn" type="button" onclick="abrirFormularioWAL()">Contato</button>
     </div>
     <div class="wal-rodape-section">
       <h4>Central de Atendimento</h4>
@@ -588,5 +614,67 @@ document.querySelectorAll('.photoOpen').forEach(b=>b.addEventListener('click',()
 $('leadBrief').addEventListener('submit',e=>{e.preventDefault();$('briefResult').value=`Solicitação à WAL Consultoria Imobiliária\nCidade: ${$('leadCity').value}\nObjetivo: ${$('leadGoal').value}\nOrçamento: ${$('leadBudget').value||'A definir'}\nPrioridades: ${$('leadNeeds').value||'A definir'}`;$('briefResult').hidden=false;$('copyBrief').hidden=false;$('briefNotice').textContent='Solicitação preparada. Copie o texto e leve ao canal de atendimento do portal WAL.'});
 $('copyBrief').addEventListener('click',async()=>{try{await navigator.clipboard.writeText($('briefResult').value);$('briefNotice').textContent='Texto copiado. Abra o portal WAL para enviar pelo canal de atendimento.'}catch(e){$('briefResult').focus();$('briefResult').select();$('briefNotice').textContent='Selecione e copie o texto manualmente para levar ao atendimento.'}});
 renderHistory();renderFuture();filterProjects();
-</script></body>
+</script>
+<div class="wal-modal" id="walModal" role="dialog" aria-modal="true" aria-labelledby="walModalTitle" onclick="fecharModalFundo(event)">
+  <div class="wal-modal-card">
+    <div class="wal-modal-head"><button class="wal-modal-close" type="button" onclick="fecharFormularioWAL()" aria-label="Fechar formulário">×</button><div class="wal-modal-eyebrow">ATENDIMENTO WAL</div><h2 id="walModalTitle">Tenho Interesse no Espírito Santo</h2><p>Preencha os dados para iniciarmos um atendimento mais objetivo pelo WhatsApp.</p></div>
+    <form class="wal-lead-form" id="walLeadForm" novalidate onsubmit="enviarFormularioWAL(event)">
+      <div class="wal-form-grid">
+        <div class="wal-form-group full"><label class="wal-form-label" for="leadNome">Nome completo</label><input class="wal-form-input" id="leadNome" name="nome" autocomplete="name" placeholder="Seu nome e sobrenome"><span class="wal-field-error" id="leadNomeErro">Informe nome e sobrenome, sem números.</span></div>
+        <div class="wal-form-group"><label class="wal-form-label" for="leadEmail">E-mail</label><input class="wal-form-input" id="leadEmail" name="email" type="email" autocomplete="email" placeholder="seu@email.com"><span class="wal-field-error" id="leadEmailErro">Informe um e-mail válido.</span></div>
+        <div class="wal-form-group"><label class="wal-form-label" for="leadWhatsapp">WhatsApp</label><input class="wal-form-input" id="leadWhatsapp" name="whatsapp" type="tel" autocomplete="tel" maxlength="15" placeholder="(27) 99999-9999" oninput="mascaraWhatsapp(this)"><span class="wal-field-error" id="leadWhatsappErro">Informe um WhatsApp válido com DDD.</span></div>
+        <div class="wal-form-group"><label class="wal-form-label" for="leadCargo">Posto / Cargo</label><select class="wal-form-select" id="leadCargo" name="cargo"><option value="">Selecione...</option><optgroup label="Oficiais"><option>Oficial General</option><option>Oficial Superior</option><option>Oficial Intermediário</option><option>Oficial Subalterno</option></optgroup><optgroup label="Praças"><option>Sargento / Suboficial</option><option>Cabo / Soldado</option></optgroup><optgroup label="Civil / Outros"><option>Servidor Público Federal</option><option>Servidor Público Estadual</option><option>Servidor Público Municipal</option><option>Pensionista / Aposentado</option><option>Ministério Público</option><option>Profissional liberal</option><option>Empresário</option><option>Investidor</option><option>Outro</option></optgroup></select><span class="wal-field-error" id="leadCargoErro">Selecione seu posto ou cargo.</span></div>
+        <div class="wal-form-group"><label class="wal-form-label" for="leadInteresse">Interesse principal</label><select class="wal-form-select" id="leadInteresse" name="interesse"><option value="">Selecione...</option><option>Imóveis em Vitória</option><option>Imóveis em Vila Velha</option><option>Imóveis na Serra</option><option>Imóveis em Guarapari</option><option>Investir no Espírito Santo</option><option>Ainda não sei — quero orientação</option></select><span class="wal-field-error" id="leadInteresseErro">Selecione seu interesse.</span></div>
+      </div>
+      <p class="wal-form-note">Ao continuar, você será direcionado ao WhatsApp da WAL. Seus dados serão usados exclusivamente para este atendimento.</p>
+      <button class="wal-submit-wpp" id="walLeadSubmit" type="submit">Continuar no WhatsApp →</button>
+    </form>
+  </div>
+</div>
+<script>
+// pedido 104.c — mesmo formulário do WAL_Intelligence_Vale_do_Paraiba (104.1/104.3):
+// grava na "WAL — CRM de Leads" (aba LEADS via criarOuAtualizar + aba
+// HISTORICO_ATENDIMENTO_LEAD via crm_lead_evento_publico, iguais ao
+// imovel.html), AWAIT antes de abrir o WhatsApp da central.
+const CRM_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+const ORIGEM_WAL = 'WAL Consultoria — Espírito Santo';
+function abrirFormularioWAL(){const m=document.getElementById('walModal');m.classList.add('open');document.body.style.overflow='hidden';setTimeout(()=>document.getElementById('leadNome').focus(),60)}
+function fecharFormularioWAL(){document.getElementById('walModal').classList.remove('open');document.body.style.overflow=''}
+function fecharModalFundo(e){if(e.target.id==='walModal')fecharFormularioWAL()}
+function mascaraWhatsapp(el){let v=el.value.replace(/\D/g,'').slice(0,11);if(v.length>10)v='('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);else if(v.length>6)v='('+v.slice(0,2)+') '+v.slice(2,6)+'-'+v.slice(6);else if(v.length>2)v='('+v.slice(0,2)+') '+v.slice(2);el.value=v}
+function marcarCampo(id,ok){const campo=document.getElementById(id),erro=document.getElementById(id+'Erro');campo.style.borderColor=ok?'':'#b42318';erro.style.display=ok?'none':'block';return ok}
+function fetchSeguro_(url,payload,timeoutMs){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),timeoutMs||8000);return fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:controller.signal}).catch(()=>{}).finally(()=>clearTimeout(timer))}
+// indicação de Agente Parceiro capturada em outra página do site (mesma chave/validade do imovel.html)
+function lerReferenciaAgente_(){try{const ref=JSON.parse(localStorage.getItem('wal_ref_agente')||'null');if(!ref)return null;if((Date.now()-ref.capturadoEm)/86400000>90)return null;return ref}catch(e){return null}}
+async function registrarNoCRM_(d){
+  const ref=lerReferenciaAgente_();
+  const nota=['Posto/Cargo: '+d.cargo,'Interesse: '+d.interesse,'Página: '+location.href].join('\n');
+  const amanha=new Date(Date.now()+864e5);
+  const proxdata=amanha.getFullYear()+'-'+String(amanha.getMonth()+1).padStart(2,'0')+'-'+String(amanha.getDate()).padStart(2,'0');
+  await Promise.all([
+    fetchSeguro_(CRM_URL,{action:'criarOuAtualizar',lead:{status:'novo',prioridade:'alta',nome:d.nome,telefone:d.whatsapp,email:d.email,origem:ORIGEM_WAL,consultor:(ref&&ref.nome)||'',solicitacao:nota,area:'Grande Vitória/ES',proxacao:'Contatar lead interessado no Espírito Santo',proxdata},interacao:{tipo:'WAL Consultoria ES',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}}),
+    fetchSeguro_(CADASTRO_API_URL,{action:'crm_lead_evento_publico',telefone:d.whatsapp,email:d.email,tipo:'🌊 WAL Consultoria ES',texto:nota,origem:ORIGEM_WAL})
+  ]);
+}
+async function enviarFormularioWAL(e){
+  e.preventDefault();
+  const nome=document.getElementById('leadNome').value.trim(),email=document.getElementById('leadEmail').value.trim().toLowerCase(),whatsapp=document.getElementById('leadWhatsapp').value.trim(),cargo=document.getElementById('leadCargo').value,interesse=document.getElementById('leadInteresse').value;
+  const nomeOk=/^[A-Za-zÀ-ÖØ-öø-ÿ'´`\-]+(?:\s+[A-Za-zÀ-ÖØ-öø-ÿ'´`\-]+)+$/.test(nome),emailOk=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),tel=whatsapp.replace(/\D/g,''),wppOk=(tel.length===10||tel.length===11)&&Number(tel.slice(0,2))>=11;
+  const valido=[marcarCampo('leadNome',nomeOk),marcarCampo('leadEmail',emailOk),marcarCampo('leadWhatsapp',wppOk),marcarCampo('leadCargo',!!cargo),marcarCampo('leadInteresse',!!interesse)].every(Boolean);if(!valido)return;
+  const mensagem=['Olá, equipe WAL!','Tenho interesse em imóveis no Espírito Santo.','','Nome: '+nome,'E-mail: '+email,'WhatsApp: '+whatsapp,'Posto/Cargo: '+cargo,'Interesse: '+interesse,'','Gostaria de receber uma análise personalizada.'].join('\n');
+  // abre a aba já no clique (senão o bloqueador de pop-up barra depois do await)
+  const aba=window.open('','_blank');
+  const btn=document.getElementById('walLeadSubmit');btn.disabled=true;btn.textContent='Enviando...';
+  await registrarNoCRM_({nome,email,whatsapp,cargo,interesse});
+  btn.disabled=false;btn.textContent='Continuar no WhatsApp →';
+  // central de atendimento da WAL (21 99726-3950), mesma do WAL_Intelligence (104.3)
+  const url='https://wa.me/5521997263950?text='+encodeURIComponent(mensagem);
+  if(aba){aba.opener=null;aba.location.href=url}else{location.href=url}
+  document.getElementById('walLeadForm').reset();fecharFormularioWAL();
+}
+document.querySelectorAll('.wal-lead-form .wal-form-input,.wal-lead-form .wal-form-select').forEach(el=>el.addEventListener('input',()=>{el.style.borderColor='';const erro=document.getElementById(el.id+'Erro');if(erro)erro.style.display='none'}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharFormularioWAL()});
+</script>
+</body>
 </html>
