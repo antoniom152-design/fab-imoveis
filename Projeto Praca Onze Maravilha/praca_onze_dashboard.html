@@ -656,6 +656,9 @@
             flex-direction: column;
         }
         
+        /* pedido 109 — erro por campo no formulário de Contato */
+        .pc-erro { display: none; color: #b42318; font-size: 0.85em; margin-top: 5px; }
+
         .form-group label {
             font-weight: 600;
             margin-bottom: 8px;
@@ -1583,18 +1586,21 @@
             
             <div id="formContato" style="display: none;">
                 <h2 style="color: #2c3e50; margin-bottom: 20px;">Entre em Contato</h2>
-                <form onsubmit="submitFormContato(event)">
+                <form onsubmit="submitFormContato(event)" novalidate>
                     <div class="form-group">
                         <label>Nome completo</label>
-                        <input type="text" id="pcContatoNome" required>
+                        <input type="text" id="pcContatoNome" required maxlength="80" autocomplete="name" placeholder="Seu nome e sobrenome" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'.\s]/g,'')">
+                        <span class="pc-erro" id="pcContatoNomeErro">Informe nome e sobrenome, só com letras.</span>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="pcContatoEmail" required>
+                        <input type="email" id="pcContatoEmail" required maxlength="120" autocomplete="email" placeholder="seu@email.com">
+                        <span class="pc-erro" id="pcContatoEmailErro">Informe um e-mail válido.</span>
                     </div>
                     <div class="form-group">
                         <label>Telefone/WhatsApp</label>
-                        <input type="tel" id="pcContatoWhats" required>
+                        <input type="tel" id="pcContatoWhats" required maxlength="15" autocomplete="tel" placeholder="(21) 99999-9999" oninput="mascaraWhatsPC(this)">
+                        <span class="pc-erro" id="pcContatoWhatsErro">Informe um WhatsApp válido com DDD.</span>
                     </div>
                     <div class="form-group">
                         <label>Órgão/Segmento</label>
@@ -1613,10 +1619,12 @@
 							<option value="outro">Outro</option>
 
                         </select>
+                        <span class="pc-erro" id="pcContatoOrgaoErro">Selecione seu órgão ou segmento.</span>
                     </div>
                     <div class="form-group">
                         <label>Mensagem</label>
-                        <textarea rows="4" id="pcContatoMsg" required placeholder="Como podemos ajudar?"></textarea>
+                        <textarea rows="4" id="pcContatoMsg" required maxlength="1000" placeholder="Como podemos ajudar?"></textarea>
+                        <span class="pc-erro" id="pcContatoMsgErro">Escreva uma mensagem com pelo menos 10 letras.</span>
                     </div>
                     <button type="submit" class="form-submit" id="pcContatoBtn">Enviar Solicitação</button>
                 </form>
@@ -1704,29 +1712,153 @@
             } catch (err) { /* no-cors: não dá pra confirmar entrega, mesma convenção do resto do site */ }
         }
 
-        function submitFormContato(event) {
+        /* ================================================================
+           pedido 109 — formulário de Contato:
+           1) valida cada campo (não deixa passar lixo — mesmas regras do
+              imovel.html: nome+sobrenome só letras, e-mail válido, WhatsApp
+              com DDD 11-99 e 10/11 dígitos; mais órgão e mensagem real);
+           2) grava na "WAL — CRM de Leads" — aba LEADS (criarOuAtualizar,
+              com a 1ª interação) e aba HISTORICO_ATENDIMENTO_LEAD
+              (crm_lead_evento_publico) — igual ao imovel.html, e continua
+              mandando também pra aba "Leads" antiga (enviarLeadPC);
+           3) espera as gravações terminarem e abre o WhatsApp da central
+              (21 99726-3950), igual ao WAL_Intelligence_Vale_do_Paraiba.
+        ================================================================ */
+        const CRM_URL = 'https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+        const CADASTRO_API_URL = 'https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+        const ORIGEM_PC_CONTATO = 'Dashboard Praça Onze Maravilha — Formulário Contato';
+        const WPP_CENTRAL_PC = '5521997263950';
+
+        function mascaraWhatsPC(el) {
+            let v = el.value.replace(/\D/g, '').slice(0, 11);
+            if (v.length > 10)     v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+            else if (v.length > 6) v = '(' + v.slice(0,2) + ') ' + v.slice(2,6) + '-' + v.slice(6);
+            else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+            el.value = v;
+        }
+        function validarNomePC(nome) {
+            const limpo = (nome || '').trim();
+            if (!/^[A-Za-zÀ-ÖØ-öø-ÿ'.\s]+$/.test(limpo)) return false;
+            const partes = limpo.split(/\s+/).filter(Boolean);
+            // nome + sobrenome, cada um com pelo menos 2 letras, sem "aaaa"
+            return partes.length >= 2 &&
+                   partes.filter(x => x.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '').length >= 2).length >= 2 &&
+                   !/(.)\1{3,}/i.test(limpo);
+        }
+        function validarEmailPC(email) {
+            const e = (email || '').trim();
+            return /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/.test(e) && !/\.\./.test(e);
+        }
+        function validarWhatsPC(tel) {
+            const d = (tel || '').replace(/\D/g, '');
+            if (d.length < 10 || d.length > 11) return false;
+            const ddd = parseInt(d.slice(0, 2), 10);
+            if (ddd < 11 || ddd > 99) return false;
+            if (/^(\d)\1+$/.test(d.slice(2))) return false;          // 99999-9999, 00000-0000
+            if (d.length === 11 && d[2] !== '9') return false;        // celular com 9 dígitos começa com 9
+            return true;
+        }
+        function validarMensagemPC(msg) {
+            const m = (msg || '').trim();
+            const letras = m.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g, '');
+            return letras.length >= 10 && !/(.)\1{5,}/i.test(m) && /\s/.test(m);
+        }
+        function marcarCampoPC(id, ok) {
+            const campo = document.getElementById(id), erro = document.getElementById(id + 'Erro');
+            if (campo) campo.style.borderColor = ok ? '' : '#b42318';
+            if (erro)  erro.style.display = ok ? 'none' : 'block';
+            return ok;
+        }
+        ['pcContatoNome','pcContatoEmail','pcContatoWhats','pcContatoOrgao','pcContatoMsg'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => marcarCampoPC(id, true));
+        });
+
+        function fetchSeguroPC_(url, payload, timeoutMs) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs || 8000);
+            return fetch(url, {
+                method: 'POST', mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload), signal: controller.signal
+            }).catch(() => {}).finally(() => clearTimeout(timer));
+        }
+        // indicação de Agente Parceiro capturada em outra página do site (mesma chave/validade do imovel.html)
+        function lerReferenciaAgentePC_() {
+            try {
+                const ref = JSON.parse(localStorage.getItem('wal_ref_agente') || 'null');
+                if (!ref || (Date.now() - ref.capturadoEm) / 86400000 > 90) return null;
+                return ref;
+            } catch (e) { return null; }
+        }
+        async function registrarContatoNoCRM_(d) {
+            const ref = lerReferenciaAgentePC_();
+            const nota = ['Órgão/Segmento: ' + d.orgao, 'Mensagem: ' + d.mensagem, 'Página: ' + location.href].join('\n');
+            const amanha = new Date(Date.now() + 864e5);
+            const proxdata = amanha.getFullYear() + '-' + String(amanha.getMonth() + 1).padStart(2, '0') + '-' + String(amanha.getDate()).padStart(2, '0');
+            await Promise.all([
+                // aba "Leads" antiga (já era gravada antes do pedido 109)
+                fetchSeguroPC_(WAL_SCRIPT_URL_LEADS, {
+                    tipo: 'lead',
+                    timestamp: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+                    nome: d.nome, email: d.email, whatsapp: d.whatsapp,
+                    posto: d.orgao, mensagem: d.mensagem, origem: ORIGEM_PC_CONTATO
+                }),
+                fetchSeguroPC_(CRM_URL, {
+                    action: 'criarOuAtualizar',
+                    lead: {
+                        status: 'novo', prioridade: 'alta',
+                        nome: d.nome, telefone: d.whatsapp, email: d.email,
+                        origem: ORIGEM_PC_CONTATO, consultor: (ref && ref.nome) || '',
+                        solicitacao: nota, area: 'Porto Maravilha / Centro — Rio de Janeiro/RJ',
+                        proxacao: 'Contatar lead do Dashboard Praça Onze', proxdata
+                    },
+                    interacao: {
+                        tipo: 'Dashboard Praça Onze',
+                        data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
+                        nota
+                    }
+                }),
+                fetchSeguroPC_(CADASTRO_API_URL, {
+                    action: 'crm_lead_evento_publico',
+                    telefone: d.whatsapp, email: d.email,
+                    tipo: '🏙️ Dashboard Praça Onze', texto: nota, origem: ORIGEM_PC_CONTATO
+                })
+            ]);
+        }
+
+        async function submitFormContato(event) {
             event.preventDefault();
+            const form = event.target;
+            const nome     = document.getElementById('pcContatoNome').value.trim().replace(/\s+/g, ' ');
+            const email    = document.getElementById('pcContatoEmail').value.trim().toLowerCase();
+            const whatsapp = document.getElementById('pcContatoWhats').value.trim();
+            const orgaoSel = document.getElementById('pcContatoOrgao');
+            const mensagem = document.getElementById('pcContatoMsg').value.trim();
+            const valido = [
+                marcarCampoPC('pcContatoNome',  validarNomePC(nome)),
+                marcarCampoPC('pcContatoEmail', validarEmailPC(email)),
+                marcarCampoPC('pcContatoWhats', validarWhatsPC(whatsapp)),
+                marcarCampoPC('pcContatoOrgao', !!orgaoSel.value),
+                marcarCampoPC('pcContatoMsg',   validarMensagemPC(mensagem))
+            ].every(Boolean);
+            if (!valido) return;
+            const orgao = orgaoSel.options[orgaoSel.selectedIndex].textContent.trim();
+
+            // abre a aba já no clique (senão o bloqueador de pop-up barra depois do await)
+            const aba = window.open('', '_blank');
             const btn = document.getElementById('pcContatoBtn');
             btn.disabled = true; btn.textContent = 'Enviando...';
+            await registrarContatoNoCRM_({ nome, email, whatsapp, orgao, mensagem });
+            btn.disabled = false; btn.textContent = 'Enviar Solicitação';
 
-            const orgaoSel  = document.getElementById('pcContatoOrgao');
-            const orgaoTexto = orgaoSel.options[orgaoSel.selectedIndex].textContent;
-
-            enviarLeadPC({
-                tipo:      'lead',
-                timestamp: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-                nome:      document.getElementById('pcContatoNome').value.trim(),
-                email:     document.getElementById('pcContatoEmail').value.trim().toLowerCase(),
-                whatsapp:  document.getElementById('pcContatoWhats').value.trim(),
-                posto:     orgaoTexto,
-                mensagem:  document.getElementById('pcContatoMsg').value.trim(),
-                origem:    'Dashboard Praça Onze Maravilha — Formulário Contato'
-            }).then(() => {
-                btn.disabled = false; btn.textContent = 'Enviar Solicitação';
-                alert('Obrigado! Entraremos em contato em breve.');
-                event.target.reset();
-                closeForm();
-            });
+            const texto = ['Olá, equipe WAL!', 'Vim pelo Dashboard Praça Onze Maravilha.', '',
+                'Nome: ' + nome, 'E-mail: ' + email, 'WhatsApp: ' + whatsapp,
+                'Órgão/Segmento: ' + orgao, 'Mensagem: ' + mensagem].join('\n');
+            const url = 'https://wa.me/' + WPP_CENTRAL_PC + '?text=' + encodeURIComponent(texto);
+            if (aba) { aba.opener = null; aba.location.href = url; } else { location.href = url; }
+            form.reset();
+            closeForm();
         }
 
         function submitFormProposta(event) {
