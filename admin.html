@@ -4932,13 +4932,19 @@ async function crmExcluirLead() {
   const lead = _crmLeads.find(l => l.id === _crmEditId);
   if (!lead) return;
   if (!confirm(`Confirma a exclusão do lead "${lead.nome}"?\n\nEssa ação não pode ser desfeita.`)) return;
-  _crmLeads = _crmLeads.filter(l => l.id !== _crmEditId);
+  const idExcluir = _crmEditId;
+  _crmLeads = _crmLeads.filter(l => l.id !== idExcluir);
   crmSalvarStorage();
-  await crmPostScript({ action: 'excluir', id: _crmEditId });
+  await crmPostScript({ action: 'excluir', id: idExcluir });
+  // pedido 110 — apaga também as linhas desse lead na aba
+  // HISTORICO_ATENDIMENTO_LEAD (backend Cadastro Único)
+  const respHist = await equipeJsonp('crm_admin_lead_excluir_historico', { leadId: idExcluir });
   crmFecharModal();
   crmAtualizarStats();
   crmRenderLista();
-  mostrarToast(`🗑 Lead "${lead.nome}" removido.`);
+  mostrarToast((respHist && respHist.status === 'ok')
+    ? `🗑 Lead "${lead.nome}" removido (e ${respHist.removidas} registro(s) do histórico).`
+    : `🗑 Lead "${lead.nome}" removido. ⚠️ Não consegui apagar o histórico dele — tente de novo ou apague na aba HISTORICO_ATENDIMENTO_LEAD.`);
 }
 
 function crmLimparDatas() {

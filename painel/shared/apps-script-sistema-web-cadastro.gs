@@ -1697,11 +1697,7 @@ function crm_lead_evento_publico_(data) {
   var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
   if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
 
-  var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
-  for (var tentativa = 1; !idLead && tentativa <= 3; tentativa++) {
-    Utilities.sleep(1500 * tentativa);
-    idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
-  }
+  var idLead = crm_acharLeadNovoPorContato_(abaLeads, telefone, email);
   if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
 
   return comLock_(function () {
@@ -1711,20 +1707,78 @@ function crm_lead_evento_publico_(data) {
     return { status: 'ok', leadId: idLead };
   });
 }
-function crm_acharLeadPorContato_(abaLeads, telefone, email) {
+/* 110 — o site cria o lead (projeto CRM, outro Apps Script) e manda o
+   evento do histórico EM PARALELO. Se o evento chegava primeiro e já
+   existia um lead ANTIGO com o mesmo e-mail/telefone (ex.: testes
+   repetidos com o mesmo e-mail), o histórico ia pro Lead_Id antigo — o
+   lead novo ficava sem histórico, e o histórico "sumia" quando o antigo
+   era excluído (caso "Marcus Arruda", 05/10/2026). Agora: espera aparecer
+   um lead CRIADO NOS ÚLTIMOS 3 MIN com aquele contato; só se não aparecer
+   nenhum é que cai no comportamento antigo (o mais recente, de qualquer
+   data). */
+var CRM_LEAD_RECENTE_MS = 3 * 60 * 1000;
+function crm_acharLeadNovoPorContato_(abaLeads, telefone, email) {
+  var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email, CRM_LEAD_RECENTE_MS);
+  for (var tentativa = 1; !idLead && tentativa <= 4; tentativa++) {
+    Utilities.sleep(1500 * tentativa);
+    idLead = crm_acharLeadPorContato_(abaLeads, telefone, email, CRM_LEAD_RECENTE_MS);
+  }
+  return idLead || crm_acharLeadPorContato_(abaLeads, telefone, email);
+}
+// Momento de criação do lead: o ID "CRM_<milissegundos>" já carrega isso
+// (sem depender de fuso); senão, a coluna "Criado em".
+function crm_leadCriadoEmMs_(id, criadoEm) {
+  var m = String(id || '').match(/^CRM_(\d{12,})$/);
+  if (m) return Number(m[1]);
+  if (criadoEm instanceof Date) return criadoEm.getTime();
+  var str = s_(criadoEm).trim();
+  if (!str) return 0;
+  try { return Utilities.parseDate(str.slice(0, 19), 'America/Sao_Paulo', "yyyy-MM-dd'T'HH:mm:ss").getTime(); } catch (e) { return 0; }
+}
+function crm_acharLeadPorContato_(abaLeads, telefone, email, recenteMs) {
   var vals = abaLeads.getDataRange().getValues();
   if (vals.length < 2) return '';
   var headers = vals[0].map(function (h) { return String(h).trim(); });
   var colId = headers.indexOf('ID');
   var colTel = headers.indexOf('Telefone');
   var colEmail = headers.indexOf('Email');
+  var colCriado = headers.indexOf('Criado em');
   if (colId === -1) return '';
+  var agoraMs = Date.now();
   for (var i = vals.length - 1; i >= 1; i--) {
     var rowTel = colTel === -1 ? '' : String(vals[i][colTel] || '').replace(/\D/g, '');
     var rowEmail = colEmail === -1 ? '' : normalizarEmail_(vals[i][colEmail]);
-    if ((telefone && rowTel === telefone) || (email && rowEmail === email)) return s_(vals[i][colId]);
+    if (!((telefone && rowTel === telefone) || (email && rowEmail === email))) continue;
+    if (recenteMs) {
+      var criadoMs = crm_leadCriadoEmMs_(vals[i][colId], colCriado === -1 ? '' : vals[i][colCriado]);
+      if (!criadoMs || agoraMs - criadoMs > recenteMs) continue;
+    }
+    return s_(vals[i][colId]);
   }
   return '';
+}
+
+/* 110 — "Excluir" do CRM (admin.html) apaga também o histórico do lead.
+   A linha da aba LEADS é apagada pelo projeto do CRM (action 'excluir');
+   aqui saem as linhas da HISTORICO_ATENDIMENTO_LEAD com o mesmo Lead_Id.
+   De baixo pra cima, pra exclusão não deslocar as linhas ainda a checar. */
+function crm_admin_lead_excluir_historico_(p) {
+  var auth = autorizarAdmin_(p.authPin);
+  if (!auth.ok) return { status: 'error', message: auth.erro };
+  var idLead = s_(p.leadId).trim();
+  if (!idLead) return { status: 'error', message: 'Id do lead é obrigatório.' };
+  return comLock_(function () {
+    var aba = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID).getSheetByName(ABA_HISTORICO_ATENDIMENTO_LEAD);
+    if (!aba) return { status: 'ok', removidas: 0 };
+    var vals = aba.getDataRange().getValues();
+    var colLead = vals[0].map(function (h) { return String(h).trim(); }).indexOf('Lead_Id');
+    if (colLead === -1) return { status: 'error', message: 'Coluna Lead_Id não encontrada.' };
+    var removidas = 0;
+    for (var i = vals.length - 1; i >= 1; i--) {
+      if (s_(vals[i][colLead]).trim() === idLead) { aba.deleteRow(i + 1); removidas++; }
+    }
+    return { status: 'ok', removidas: removidas };
+  });
 }
 
 /* ══════════════════ CHAT AO VIVO LEAD↔ATENDENTE/IA (pedido 90) ══════════════════
@@ -1876,11 +1930,7 @@ function crm_lead_id_publico_(data) {
   var ssCrm = SpreadsheetApp.openById(PLANILHA_CRM_LEADS_ID);
   var abaLeads = ssCrm.getSheetByName(ABA_LEADS);
   if (!abaLeads) return { status: 'error', message: 'Aba ' + ABA_LEADS + ' não encontrada.' };
-  var idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
-  for (var tentativa = 1; !idLead && tentativa <= 3; tentativa++) {
-    Utilities.sleep(1500 * tentativa);
-    idLead = crm_acharLeadPorContato_(abaLeads, telefone, email);
-  }
+  var idLead = crm_acharLeadNovoPorContato_(abaLeads, telefone, email);
   if (!idLead) return { status: 'error', message: 'Lead ainda não encontrado.' };
   return { status: 'ok', leadId: idLead };
 }
@@ -2800,6 +2850,7 @@ function doGet(e) {
       case 'crm_admin_historico_evento':        result = crm_admin_historico_evento_(p); break;
       case 'crm_admin_listar_historico':        result = crm_admin_listar_historico_(p); break;
       case 'crm_admin_imovel_vendido':          result = crm_admin_imovel_vendido_(p); break;
+      case 'crm_admin_lead_excluir_historico':  result = crm_admin_lead_excluir_historico_(p); break;
       case 'crm_admin_listar_historico_todos':  result = crm_admin_listar_historico_todos_(p); break;
       case 'crm_admin_migrar_historico_q':      result = crm_admin_migrar_historico_q_(p); break;
       case 'crm_gerente_leads_listar':          result = crm_gerente_leads_listar_(p); break;
