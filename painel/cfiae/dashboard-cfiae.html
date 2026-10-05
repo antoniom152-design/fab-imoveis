@@ -386,6 +386,7 @@
       <div class="subtabs">
         <button class="subtab-btn active" data-subproj="rio" onclick="mudarSubProjeto('rio')">Rio</button>
         <button class="subtab-btn" data-subproj="sjc" onclick="mudarSubProjeto('sjc')">SJC e Região</button>
+        <button class="subtab-btn" data-subproj="es" onclick="mudarSubProjeto('es')">Espírito Santo</button>
       </div>
 
       <!-- ── RIO (Porto Maravilha / Praça Onze) ── -->
@@ -396,6 +397,11 @@
       <!-- ── SJC E REGIÃO (Parque Una) ── -->
       <div class="sub-principal-view" id="sub-projeto-sjc">
         <iframe class="iframe-mapa" id="iframeProjetoSjc" title="WAL Intelligence — SJC e Região"></iframe>
+      </div>
+
+      <!-- ── ESPÍRITO SANTO (pedido 96.15) ── -->
+      <div class="sub-principal-view" id="sub-projeto-es">
+        <iframe class="iframe-mapa" id="iframeProjetoEs" title="Espírito Santo — cidades em transformação"></iframe>
       </div>
     </section>
 
@@ -750,10 +756,13 @@ const URL_PROJETO_RIO = `${SITE_BASE_URL}Projeto%20Praca%20Onze%20Maravilha/prac
 // pedido 105 — trocado do WAL_Parque_Una_SJC_site_completo.html (#riza)
 // pela página regional WAL Intelligence (abre no topo; ela não tem #riza).
 const URL_PROJETO_SJC = `${SITE_BASE_URL}WAL_Intelligence_Vale_do_Paraiba_2026_v3_1.html`;
+// pedido 96.15 — 3ª aba. Página pesada (~13,7MB, imagens embutidas), por
+// isso o mesmo lazy-load das outras é ainda mais importante aqui.
+const URL_PROJETO_ES = `${SITE_BASE_URL}wal-consultoria-espirito-santo-expandido%5D_2026_v1.html`;
 let _subProjetoAtual = 'rio';
 function carregarIframeProjetoSeVazio_(sub){
-  const id = sub === 'sjc' ? 'iframeProjetoSjc' : 'iframeProjetoRio';
-  const url = sub === 'sjc' ? URL_PROJETO_SJC : URL_PROJETO_RIO;
+  const id = sub === 'sjc' ? 'iframeProjetoSjc' : sub === 'es' ? 'iframeProjetoEs' : 'iframeProjetoRio';
+  const url = sub === 'sjc' ? URL_PROJETO_SJC : sub === 'es' ? URL_PROJETO_ES : URL_PROJETO_RIO;
   const iframe = document.getElementById(id);
   if (iframe && !iframe.src) iframe.src = url;
 }
@@ -762,6 +771,7 @@ function mudarSubProjeto(sub){
   document.querySelectorAll('#view-projetos .subtab-btn').forEach(b=>b.classList.toggle('active', b.dataset.subproj===sub));
   document.getElementById('sub-projeto-rio').classList.toggle('active', sub==='rio');
   document.getElementById('sub-projeto-sjc').classList.toggle('active', sub==='sjc');
+  document.getElementById('sub-projeto-es').classList.toggle('active', sub==='es');
   carregarIframeProjetoSeVazio_(sub);
 }
 
