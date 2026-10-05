@@ -138,6 +138,7 @@ document.querySelectorAll('.profile-btn').forEach(btn=>{
 .wal-rodape-bottom{border-top:1px solid #34495e;padding-top:20px;color:#95a5a6}
 .wal-rodape-bottom p{margin:0;font-size:.95em}
 </style>
+<script src="painel/shared/crm-lead.js"></script>
 </head>
 <body>
 <header class="top"><div class="wrap topin"><div class="brand"><div class="brandmark">W</div><div>WAL Intelligence<small>INTELIGÊNCIA IMOBILIÁRIA</small></div></div><nav class="nav"><a href="#regiao">Região</a><a href="#vetores">Vetores</a><a href="#mercado">Mercado</a><a href="#onde-morar">Onde morar?</a><a href="#una">Parque Una</a><a href="#evolucao-projetos">5 anos de evolução</a><a href="#qualidade">Qualidade & Segurança</a><a href="#midia">Mídia</a><a href="#projetos">Projetos</a><a href="#perfil">Meu perfil</a></nav><div class="top-acoes"><span class="versao-tag">Versão 3.1</span><a class="btn primary" href="mapa-empreendimentos.html?cidades=S%C3%A3o%20Jos%C3%A9%20dos%20Campos,Jacare%C3%AD,Ca%C3%A7apava,Taubat%C3%A9" target="_blank" rel="noopener">Ver Imóveis no Mapa</a></div></div></header>
@@ -469,10 +470,10 @@ async function registrarNoCRM_(d){
   const nota=['Posto/Cargo: '+d.cargo,'Interesse: '+d.interesse,'Página: '+location.href].join('\n');
   const amanha=new Date(Date.now()+864e5);
   const proxdata=amanha.getFullYear()+'-'+String(amanha.getMonth()+1).padStart(2,'0')+'-'+String(amanha.getDate()).padStart(2,'0');
-  await Promise.all([
-    fetchSeguro_(CRM_URL,{action:'criarOuAtualizar',lead:{status:'novo',prioridade:'alta',nome:d.nome,telefone:d.whatsapp,email:d.email,origem:ORIGEM_WAL,consultor:(ref&&ref.nome)||'',solicitacao:nota,area:'São José dos Campos e região/SP',proxacao:'Contatar lead interessado em SJC e região',proxdata},interacao:{tipo:'WAL Intelligence',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}}),
-    fetchSeguro_(CADASTRO_API_URL,{action:'crm_lead_evento_publico',telefone:d.whatsapp,email:d.email,tipo:'🏙️ WAL Intelligence',texto:nota,origem:ORIGEM_WAL})
-  ]);
+  // 110b — em sequência: cria o lead, lê o ID e grava o histórico com ele (painel/shared/crm-lead.js)
+  await WalCRM.gravarLeadEHistorico(CRM_URL,CADASTRO_API_URL,
+    {action:'criarOuAtualizar',lead:{status:'novo',prioridade:'alta',nome:d.nome,telefone:d.whatsapp,email:d.email,origem:ORIGEM_WAL,consultor:(ref&&ref.nome)||'',solicitacao:nota,area:'São José dos Campos e região/SP',proxacao:'Contatar lead interessado em SJC e região',proxdata},interacao:{tipo:'WAL Intelligence',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}},
+    {action:'crm_lead_evento_publico',telefone:d.whatsapp,email:d.email,tipo:'🏙️ WAL Intelligence',texto:nota,origem:ORIGEM_WAL});
 }
 async function enviarFormularioWAL(e){
   e.preventDefault();

@@ -1676,6 +1676,7 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="../painel/shared/descricao-inteligente.js"></script>
     <script src="../painel/shared/tarja-vendido.js"></script>
+    <script src="../painel/shared/crm-lead.js"></script>
     <script>
         // pedido 109b — empId (opcional): botão "Proposta" do card já
         // chega com o empreendimento escolhido no select.
@@ -1819,7 +1820,8 @@
                     nome: d.nome, email: d.email, whatsapp: d.whatsapp,
                     posto: d.orgao, mensagem: d.mensagem, origem: ORIGEM_PC_CONTATO
                 }),
-                fetchSeguroPC_(CRM_URL, {
+                // 110b — CRM + histórico em sequência, histórico já com o ID do lead (painel/shared/crm-lead.js)
+                WalCRM.gravarLeadEHistorico(CRM_URL, CADASTRO_API_URL, {
                     action: 'criarOuAtualizar',
                     lead: {
                         status: 'novo', prioridade: 'alta',
@@ -1833,8 +1835,7 @@
                         data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
                         nota
                     }
-                }),
-                fetchSeguroPC_(CADASTRO_API_URL, {
+                }, {
                     action: 'crm_lead_evento_publico',
                     telefone: d.whatsapp, email: d.email,
                     tipo: '🏙️ Dashboard Praça Onze', texto: nota, origem: ORIGEM_PC_CONTATO
@@ -1902,7 +1903,8 @@
                     mensagem: 'Tipo de imóvel desejado: ' + d.tipoDesejado,
                     origem: ORIGEM_PC_PROPOSTA
                 }),
-                fetchSeguroPC_(CRM_URL, {
+                // 110b — CRM + histórico em sequência, histórico já com o ID do lead (painel/shared/crm-lead.js)
+                WalCRM.gravarLeadEHistorico(CRM_URL, CADASTRO_API_URL, {
                     action: 'criarOuAtualizar',
                     lead: {
                         status: 'novo', prioridade: 'alta',
@@ -1917,8 +1919,7 @@
                         data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
                         nota
                     }
-                }),
-                fetchSeguroPC_(CADASTRO_API_URL, {
+                }, {
                     action: 'crm_lead_evento_publico',
                     telefone: d.whatsapp, email: d.email,
                     tipo: '🏙️ Dashboard Praça Onze — Proposta', texto: nota, origem: ORIGEM_PC_PROPOSTA

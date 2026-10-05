@@ -525,6 +525,7 @@
     .success-box { padding: 36px 22px; }
   }
 </style>
+<script src="painel/shared/crm-lead.js"></script>
 </head>
 <body>
 
@@ -1184,23 +1185,14 @@
       },
       interacao: { tipo: 'Reserva', data: now, nota: notaSolicitacao }
     };
-    fetch(CRM_URL_RES, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify(crmPayload)
-    }).catch(() => {});
-
     // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
-    // admin.html e dashboard_atendente.html leem/gravam) — fire-and-forget,
-    // não trava a confirmação da reserva.
-    fetch(CADASTRO_API_URL, {
-      method: 'POST', mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        action: 'crm_lead_evento_publico',
-        telefone: payload.telefone, email: payload.email,
-        tipo: 'Reserva', texto: notaSolicitacao, origem: 'Reserva'
-      })
+    // admin.html e dashboard_atendente.html leem/gravam) — 110b: em
+    // sequência, já com o ID do lead criado (painel/shared/crm-lead.js).
+    // Continua fire-and-forget: não trava a confirmação da reserva.
+    WalCRM.gravarLeadEHistorico(CRM_URL_RES, CADASTRO_API_URL, crmPayload, {
+      action: 'crm_lead_evento_publico',
+      telefone: payload.telefone, email: payload.email,
+      tipo: 'Reserva', texto: notaSolicitacao, origem: 'Reserva'
     }).catch(() => {});
   }
 

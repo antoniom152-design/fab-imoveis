@@ -614,6 +614,7 @@
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
 <script src="painel/shared/tarja-vendido.js"></script>
+<script src="painel/shared/crm-lead.js"></script>
 </head>
 <body>
 
@@ -2027,8 +2028,8 @@ async function registrarNoCRMImovel_(data) {
   // 1ª interação vai pra HISTORICO_ATENDIMENTO_LEAD (mesma aba que
   // admin.html e dashboard_atendente.html leem/gravam) — em paralelo,
   // mas ambas esperadas antes de seguir (ver comentário acima).
-  await Promise.all([
-    fetchSeguro_(CRM_URL, {
+  // 110b — em sequência (cria o lead, lê o ID, grava o histórico com ele)
+  await WalCRM.gravarLeadEHistorico(CRM_URL, CADASTRO_API_URL, {
       action: 'criarOuAtualizar',
       lead: {
         status: 'novo', prioridade: 'alta',
@@ -2042,13 +2043,11 @@ async function registrarNoCRMImovel_(data) {
         proxdata: dataProxAcao
       },
       interacao
-    }),
-    fetchSeguro_(CADASTRO_API_URL, {
+    }, {
       action: 'crm_lead_evento_publico',
       telefone: data.whatsapp, email: data.email,
       tipo: '🏠 Página do Imóvel', texto: notaSolicitacao, origem: 'Página do Imóvel'
-    })
-  ]);
+    });
 }
 
 async function enviarInteresseFinal(data) {
