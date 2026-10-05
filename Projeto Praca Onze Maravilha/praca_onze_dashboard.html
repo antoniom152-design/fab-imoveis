@@ -1632,24 +1632,28 @@
             
             <div id="formProposta" style="display: none;">
                 <h2 style="color: #2c3e50; margin-bottom: 20px;">Solicitar Proposta</h2>
-                <form onsubmit="submitFormProposta(event)">
+                <form onsubmit="submitFormProposta(event)" novalidate>
                     <div class="form-group">
                         <label>Qual empreendimento te interessa?</label>
                         <select id="pcPropostaEmp" required>
                             <option value="">Selecione</option>
                         </select>
+                        <span class="pc-erro" id="pcPropostaEmpErro">Selecione o empreendimento.</span>
                     </div>
                     <div class="form-group">
                         <label>Nome</label>
-                        <input type="text" id="pcPropostaNome" required>
+                        <input type="text" id="pcPropostaNome" required maxlength="80" autocomplete="name" placeholder="Seu nome e sobrenome" oninput="this.value=this.value.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ'.\s]/g,'')">
+                        <span class="pc-erro" id="pcPropostaNomeErro">Informe nome e sobrenome, só com letras.</span>
                     </div>
                     <div class="form-group">
                         <label>Email</label>
-                        <input type="email" id="pcPropostaEmail" required>
+                        <input type="email" id="pcPropostaEmail" required maxlength="120" autocomplete="email" placeholder="seu@email.com">
+                        <span class="pc-erro" id="pcPropostaEmailErro">Informe um e-mail válido.</span>
                     </div>
                     <div class="form-group">
                         <label>Telefone/WhatsApp</label>
-                        <input type="tel" id="pcPropostaWhats" required>
+                        <input type="tel" id="pcPropostaWhats" required maxlength="15" autocomplete="tel" placeholder="(21) 99999-9999" oninput="mascaraWhatsPC(this)">
+                        <span class="pc-erro" id="pcPropostaWhatsErro">Informe um WhatsApp válido com DDD.</span>
                     </div>
                     <div class="form-group">
                         <label>Tipo de imóvel desejado</label>
@@ -1660,6 +1664,7 @@
                             <option value="3 Quartos">3 Quartos</option>
                             <option value="Studio">Studio</option>
                         </select>
+                        <span class="pc-erro" id="pcPropostaTipoErro">Selecione o tipo de imóvel.</span>
                     </div>
                     <button type="submit" class="form-submit" id="pcPropostaBtn">Solicitar Proposta</button>
                 </form>
@@ -1671,7 +1676,9 @@
     <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
     <script src="../painel/shared/descricao-inteligente.js"></script>
     <script>
-        function openForm(type) {
+        // pedido 109b — empId (opcional): botão "Proposta" do card já
+        // chega com o empreendimento escolhido no select.
+        function openForm(type, empId) {
             const modal = document.getElementById('formModal');
             const formContato = document.getElementById('formContato');
             const formProposta = document.getElementById('formProposta');
@@ -1683,6 +1690,13 @@
                 formContato.style.display = 'block';
             } else if (type === 'proposta') {
                 formProposta.style.display = 'block';
+                const sel = document.getElementById('pcPropostaEmp');
+                if (sel && empId) {
+                    // se o select ainda não tiver a opção (lista carregando), garante ela
+                    if (![...sel.options].some(o => o.value === String(empId))) popularSelectPropostaEmpreendimentos();
+                    sel.value = String(empId);
+                    marcarCampoPC('pcPropostaEmp', true);
+                }
             }
             
             modal.classList.add('active');
@@ -1861,30 +1875,91 @@
             closeForm();
         }
 
-        function submitFormProposta(event) {
+        /* pedido 109b — "Solicitar Proposta" com o mesmo tratamento do
+           Contato (109): valida, grava (Leads antiga + CRM LEADS +
+           HISTORICO) e abre o WhatsApp da central. */
+        const ORIGEM_PC_PROPOSTA = 'Dashboard Praça Onze Maravilha — Formulário Proposta';
+        ['pcPropostaEmp','pcPropostaNome','pcPropostaEmail','pcPropostaWhats','pcPropostaTipo'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.addEventListener('input', () => marcarCampoPC(id, true));
+        });
+
+        async function registrarPropostaNoCRM_(d) {
+            const ref = lerReferenciaAgentePC_();
+            const nota = ['Empreendimento: ' + d.empNome + (d.empId ? ' (' + d.empId + ')' : ''),
+                          'Tipo de imóvel desejado: ' + d.tipoDesejado,
+                          'Página: ' + location.href].join('\n');
+            const amanha = new Date(Date.now() + 864e5);
+            const proxdata = amanha.getFullYear() + '-' + String(amanha.getMonth() + 1).padStart(2, '0') + '-' + String(amanha.getDate()).padStart(2, '0');
+            await Promise.all([
+                // aba "Leads" antiga (já era gravada antes do pedido 109b)
+                fetchSeguroPC_(WAL_SCRIPT_URL_LEADS, {
+                    tipo: 'lead',
+                    timestamp: new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
+                    nome: d.nome, email: d.email, whatsapp: d.whatsapp,
+                    imovel_interesse: d.empNome,
+                    mensagem: 'Tipo de imóvel desejado: ' + d.tipoDesejado,
+                    origem: ORIGEM_PC_PROPOSTA
+                }),
+                fetchSeguroPC_(CRM_URL, {
+                    action: 'criarOuAtualizar',
+                    lead: {
+                        status: 'novo', prioridade: 'alta',
+                        nome: d.nome, telefone: d.whatsapp, email: d.email,
+                        origem: ORIGEM_PC_PROPOSTA + ' — ' + d.empNome,
+                        consultor: (ref && ref.nome) || '',
+                        solicitacao: nota, area: d.area,
+                        proxacao: 'Enviar proposta do empreendimento ao lead', proxdata
+                    },
+                    interacao: {
+                        tipo: 'Dashboard Praça Onze',
+                        data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'),
+                        nota
+                    }
+                }),
+                fetchSeguroPC_(CADASTRO_API_URL, {
+                    action: 'crm_lead_evento_publico',
+                    telefone: d.whatsapp, email: d.email,
+                    tipo: '🏙️ Dashboard Praça Onze — Proposta', texto: nota, origem: ORIGEM_PC_PROPOSTA
+                })
+            ]);
+        }
+
+        async function submitFormProposta(event) {
             event.preventDefault();
+            const form = event.target;
+            const empSel   = document.getElementById('pcPropostaEmp');
+            const nome     = document.getElementById('pcPropostaNome').value.trim().replace(/\s+/g, ' ');
+            const email    = document.getElementById('pcPropostaEmail').value.trim().toLowerCase();
+            const whatsapp = document.getElementById('pcPropostaWhats').value.trim();
+            const tipoDesejado = document.getElementById('pcPropostaTipo').value;
+            const valido = [
+                marcarCampoPC('pcPropostaEmp',   !!empSel.value),
+                marcarCampoPC('pcPropostaNome',  validarNomePC(nome)),
+                marcarCampoPC('pcPropostaEmail', validarEmailPC(email)),
+                marcarCampoPC('pcPropostaWhats', validarWhatsPC(whatsapp)),
+                marcarCampoPC('pcPropostaTipo',  !!tipoDesejado)
+            ].every(Boolean);
+            if (!valido) return;
+            const empId   = empSel.value;
+            const empNome = empSel.options[empSel.selectedIndex].textContent.trim();
+            const emp = _empreendimentosBase.find(x => String(x.id) === String(empId));
+            const area = emp ? [emp.bairro, [emp.cidade, emp.uf].filter(Boolean).join('/')].filter(Boolean).join(', ') : '';
+
+            // abre a aba já no clique (senão o bloqueador de pop-up barra depois do await)
+            const aba = window.open('', '_blank');
             const btn = document.getElementById('pcPropostaBtn');
             btn.disabled = true; btn.textContent = 'Enviando...';
+            await registrarPropostaNoCRM_({ nome, email, whatsapp, tipoDesejado, empId, empNome, area });
+            btn.disabled = false; btn.textContent = 'Solicitar Proposta';
 
-            const empSel   = document.getElementById('pcPropostaEmp');
-            const empTexto = empSel.options[empSel.selectedIndex].textContent;
-            const tipoDesejado = document.getElementById('pcPropostaTipo').value;
-
-            enviarLeadPC({
-                tipo:             'lead',
-                timestamp:        new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }),
-                nome:             document.getElementById('pcPropostaNome').value.trim(),
-                email:            document.getElementById('pcPropostaEmail').value.trim().toLowerCase(),
-                whatsapp:         document.getElementById('pcPropostaWhats').value.trim(),
-                imovel_interesse: empTexto,
-                mensagem:         'Tipo de imóvel desejado: ' + tipoDesejado,
-                origem:           'Dashboard Praça Onze Maravilha — Formulário Proposta'
-            }).then(() => {
-                btn.disabled = false; btn.textContent = 'Solicitar Proposta';
-                alert('Obrigado! Entraremos em contato em breve.');
-                event.target.reset();
-                closeForm();
-            });
+            const texto = ['Olá, equipe WAL!', 'Gostaria de receber uma proposta do empreendimento ' + empNome + '.', '',
+                'Nome: ' + nome, 'E-mail: ' + email, 'WhatsApp: ' + whatsapp,
+                'Tipo de imóvel desejado: ' + tipoDesejado].join('\n');
+            const url = 'https://wa.me/' + WPP_CENTRAL_PC + '?text=' + encodeURIComponent(texto);
+            if (aba) { aba.opener = null; aba.location.href = url; } else { location.href = url; }
+            form.reset();
+            closeForm();
         }
 
         // Popula o select "Qual empreendimento te interessa?" com os
@@ -2118,7 +2193,7 @@
                             </div>
                         </div>
                         <div class="card-footer">
-                            <button class="btn-small btn-primary" onclick="openForm('proposta')">Proposta</button>
+                            <button class="btn-small btn-primary" onclick="openForm('proposta','${im.id}')">Proposta</button>
                             <a class="btn-small btn-secondary" style="text-decoration:none;display:flex;align-items:center;justify-content:center" href="../imovel.html?id=${im.id}" target="_blank">Mais info</a>
                         </div>
                     </div>
