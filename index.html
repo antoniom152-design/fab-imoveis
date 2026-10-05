@@ -1210,6 +1210,28 @@
 
     .fghab-inner { gap: 24px; }
     .ebook-section { padding: 40px 16px !important; }
+
+    /* pedido 111 — página ficava mais larga que a tela no celular:
+       1) a coluna única do "Benefício exclusivo" não encolhia abaixo do
+          conteúdo (434px numa tela de 375) — minmax(0,1fr) deixa encolher;
+       2) os 4 botões do menu fixo não cabiam numa linha: Dashboard,
+          Consultor IA e Compartilhar viram só ícone (o title/aria-label
+          mantém o nome) e o logo fica menor; abaixo de 400px o texto
+          "WAL Imóveis" ao lado do logo some (o logo já tem "WAL"). */
+    .fghab-inner { grid-template-columns: minmax(0, 1fr); }
+    /* a palavra "possibilidades" a 52px não cabia na caixa estreita */
+    .fghab-box { padding: 28px 20px; }
+    .fghab-highlight { font-size: clamp(30px, 9vw, 52px); }
+    /* links do rodapé não quebravam linha em telas de 320-360px */
+    .footer-links { flex-wrap: wrap; justify-content: center; row-gap: 10px; }
+    .nav-acoes { gap: 6px !important; }
+    .nav-acoes .nav-sec { font-size: 0 !important; padding: 8px !important; gap: 0 !important; }
+    .nav-acoes .nav-sec svg { width: 15px; height: 15px; }
+    nav .logo-emblem { height: 40px !important; }
+    nav .nav-marca { font-size: 16px !important; }
+  }
+  @media (max-width: 400px) {
+    nav .nav-marca { display: none; }
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -1225,10 +1247,10 @@
     <img src="logo%20novo%20wal.jpeg" alt="WAL Imóveis" class="logo-emblem"
          style="width:auto;height:62px;object-fit:contain">
     <span style="font-family:'Playfair Display',serif;font-size:20px;font-weight:700;
-                 color:var(--gold);letter-spacing:0.04em;white-space:nowrap">WAL Imóveis</span>
+                 color:var(--gold);letter-spacing:0.04em;white-space:nowrap" class="nav-marca">WAL Imóveis</span>
   </a>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <a href="#" onclick="abrirModalAcesso();return false;" style="
+  <div class="nav-acoes" style="display:flex;align-items:center;gap:10px;">
+    <a href="#" onclick="abrirModalAcesso();return false;" class="nav-sec" title="Acessar meu Dashboard" aria-label="Acessar meu Dashboard" style="
       display:inline-flex;align-items:center;gap:7px;
       font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
       letter-spacing:.14em;text-transform:uppercase;
@@ -1242,7 +1264,7 @@
     <!-- pedido 90.1.c: sem gate de e-mail/OTP de propósito — a IA conduz
          a conversa livremente e só pede os dados quando fizer sentido
          (ver SYSTEM_LEAD_HOME em chat.html) -->
-    <a href="chat.html?modo=livre" style="
+    <a href="chat.html?modo=livre" class="nav-sec" title="Consultor IA" aria-label="Consultor IA" style="
       display:inline-flex;align-items:center;gap:7px;
       font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
       letter-spacing:.14em;text-transform:uppercase;
@@ -1253,7 +1275,7 @@
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Consultor IA
     </a>
-    <a href="#" onclick="compartilharSite();return false;" style="
+    <a href="#" onclick="compartilharSite();return false;" class="nav-sec" title="Compartilhar Site" aria-label="Compartilhar Site" style="
       display:inline-flex;align-items:center;gap:7px;
       font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;
       letter-spacing:.14em;text-transform:uppercase;
