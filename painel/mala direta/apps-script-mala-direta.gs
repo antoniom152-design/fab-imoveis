@@ -762,6 +762,7 @@ const ACOES_ADMIN = {
   md_config:          function ()  { return configStatus_(); },
   md_enviar:          function (d) { return enviarLote(d.etapa, d.qtd); },
   md_teste_email:     function (d) { return testeEmail_(d.email, d.etapa); },
+  md_brevo_eventos:   function (d) { return brevoEventos_(d.email); },
   md_whats:           function ()  { return { itens: filaWhats_() }; },
   md_marcar_whats:    function (d) { return { ok: marcarWhats_(String(d.id || '')) }; },
   md_consultor:       function ()  { return { itens: listaConsultor_() }; },
@@ -875,6 +876,23 @@ function testeEmail_(email, etapa) {
   if (cod !== 201 && cod !== 202) throw new Error('Brevo ' + cod + ': ' + resp.getContentText().slice(0, 150));
   log_([[new Date(), '', 'EMAIL', 'TESTE_' + etapa, email]]);
   return { msg: 'E-mail de teste enviado para ' + email + '.' };
+}
+
+/** O que a Brevo registrou para um e-mail (entregue, bloqueado, spam...). Diagnóstico de entrega. */
+function brevoEventos_(email) {
+  email = String(email || '').trim().toLowerCase();
+  if (!RE_EMAIL.test(email)) throw new Error('Informe um e-mail válido.');
+  const chave = PropertiesService.getScriptProperties().getProperty('BREVO_API_KEY');
+  if (!chave) throw new Error('Defina BREVO_API_KEY nas propriedades do script.');
+  const resp = UrlFetchApp.fetch('https://api.brevo.com/v3/smtp/statistics/events?limit=30&sort=desc&days=30&email=' +
+    encodeURIComponent(email), { method: 'get', muteHttpExceptions: true, headers: { 'api-key': chave, accept: 'application/json' } });
+  const cod = resp.getResponseCode();
+  if (cod !== 200) throw new Error('Brevo ' + cod + ': ' + resp.getContentText().slice(0, 150));
+  const evs = (JSON.parse(resp.getContentText() || '{}').events || []).map(function (e) {
+    return { data: e.date ? fmt_(new Date(e.date)) : '', evento: String(e.event || ''), motivo: String(e.reason || ''),
+      assunto: String(e.subject || ''), de: String(e.from || ''), tag: String(e.tag || '') };
+  });
+  return { itens: evs };
 }
 
 /** Fila do WhatsApp: devolve nome, link wa.me e o texto pronto. */
