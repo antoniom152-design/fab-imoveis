@@ -669,7 +669,7 @@ function brevoBloquear_(email) {
 function webhookBrevo_(ev) {
   if (JSON.stringify(ev).indexOf(CFG.TAG) < 0) return;    // só eventos desta campanha
   const email = String(ev.email || '').trim().toLowerCase();
-  const tipo = String(ev.event);
+  const tipo = tipoEvento_(ev.event);
   if (!email) return;
   const lock = LockService.getScriptLock();
   lock.waitLock(30000);
@@ -693,13 +693,27 @@ function webhookBrevo_(ev) {
     } else if (tipo === 'soft_bounce') {
       r[c.OBS] = 'soft_bounce' + (ev.reason ? ': ' + String(ev.reason).slice(0, 100) : '');
     } else {
-      return;                                             // request, delivered, click, deferred...
+      // request, delivered, click, deferred... ou um nome que a Brevo mudou: fica no log para conferir.
+      log_([[new Date(), r[c.ID], 'EMAIL', 'EVENTO_IGNORADO', String(ev.event).slice(0, 60)]]);
+      return;
     }
     gravar_(L, ['DT_ABERTURA', 'STATUS', 'OBS']);
     if (antes !== r[c.STATUS] || tipo === 'soft_bounce') log_([[new Date(), r[c.ID], 'EMAIL', tipo.toUpperCase(), '']]);
   } finally {
     lock.releaseLock();
   }
+}
+
+/**
+ * Nome do evento da Brevo no formato que o webhook trata. A Brevo já usou variações
+ * (uniqueOpened, first_opening, invalid, complaint...) conforme a tela/versão do webhook.
+ */
+function tipoEvento_(nome) {
+  const t = String(nome || '').replace(/([a-z])([A-Z])/g, '$1_$2').replace(/[\s-]+/g, '_').toLowerCase();
+  const ALIAS = { first_opening: 'unique_opened', first_open: 'unique_opened', unique_open: 'unique_opened',
+    open: 'opened', invalid: 'invalid_email', complaint: 'spam', hardbounce: 'hard_bounce', softbounce: 'soft_bounce',
+    unsubscribe: 'unsubscribed' };
+  return ALIAS[t] || t;
 }
 
 /** Descadastro em dois passos: leitores de e-mail abrem links sozinhos, então o GET só mostra o botão. */
