@@ -191,7 +191,7 @@ section{padding:48px 0}h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.025em}
    Nenhum dado pessoal volta do servidor para este navegador.
    CSRF: não se aplica (sem sessão por cookie). Não adicione cabeçalhos customizados no POST.
 */
-const CONFIG={API_URL:'',CATALOG_URL:'',MAPA_URL:'mapa-empreendimentos.html',PRIVACIDADE_URL:'',PAGE_SIZE:6};
+const CONFIG={API_URL:'https://script.google.com/macros/s/AKfycbzaU09THh0kaJElazeYLVKmkQygVvToVw5q4rhma1Eq5fT35aO8-hq8sEBsmlZ56HvUgw/exec',CATALOG_URL:'',MAPA_URL:'mapa-empreendimentos.html',PRIVACIDADE_URL:'',PAGE_SIZE:6};
 if(CONFIG.API_URL&&!CONFIG.CATALOG_URL)CONFIG.CATALOG_URL=CONFIG.API_URL+'?a=catalogo';
 const $=id=>document.getElementById(id);
 const REGIOES={GERAL:{rotulo:'Todas as regiões',cidades:[]},RJ:{rotulo:'Rio de Janeiro e Niterói',cidades:['rio de janeiro','niteroi']},SPA:{rotulo:'São Pedro da Aldeia',cidades:['sao pedro da aldeia']},SJC:{rotulo:'Vale do Paraíba',cidades:['sao jose dos campos','jacarei','cacapava']},SP:{rotulo:'São Paulo capital',cidades:['sao paulo']},LITORAL:{rotulo:'Caraguatatuba',cidades:['caraguatatuba']}};
