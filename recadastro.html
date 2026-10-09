@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Atualize sua busca | WAL Imóveis</title>
+<style>
+  :root{--navy:#0b1f3a;--navy2:#13305a;--ouro:#c9a24b;--ouro2:#e3c57e;--fundo:#f3f1ec;--txt:#1c2733;--sub:#5d6875;--linha:#e2ded4;--ok:#1f7a4d}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;background:var(--fundo);color:var(--txt);line-height:1.5}
+  .w{max-width:960px;margin:0 auto;padding:0 16px}
+  header{background:var(--navy);color:#fff;padding:14px 0}
+  header .w{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .marca{color:var(--ouro);font-weight:800;letter-spacing:.06em}
+  .creci{font-size:12px;color:#b9c3d1}
+  .hero{background:linear-gradient(160deg,var(--navy),var(--navy2));color:#fff;padding:36px 0 44px}
+  .hero h1{font-size:clamp(26px,5vw,38px);line-height:1.15;margin:0 0 12px;text-wrap:balance}
+  .hero h1 em{font-style:normal;color:var(--ouro2)}
+  .hero p{margin:0;max-width:60ch;color:#d5dce6;font-size:17px}
+  .antes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:26px}
+  .antes div{border:1px solid rgba(255,255,255,.18);border-radius:10px;padding:14px}
+  .antes s{display:block;color:#9fb0c6;font-size:13px}
+  .antes b{display:block;color:var(--ouro2);font-size:17px;margin-top:2px}
+  section{padding:34px 0}
+  h2{font-size:22px;color:var(--navy);margin:0 0 6px}
+  .sub{color:var(--sub);margin:0 0 18px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .chips button{border:1px solid var(--linha);background:#fff;color:var(--navy);border-radius:999px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}
+  .chips button[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .card{background:#fff;border:1px solid var(--linha);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:4px}
+  .card .tag{align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--navy);background:#f1e7cf;border-radius:4px;padding:2px 7px}
+  .card h3{margin:4px 0 0;font-size:16px;color:var(--navy)}
+  .card .loc{color:var(--sub);font-size:14px}
+  .card .preco{margin-top:auto;padding-top:8px;font-weight:700}
+  .aviso{background:#fff;border:1px dashed var(--linha);border-radius:10px;padding:18px;color:var(--sub)}
+  .bloco{background:#fff;border-top:1px solid var(--linha);border-bottom:1px solid var(--linha)}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:680px}
+  .campo{display:flex;flex-direction:column;gap:5px}
+  .campo.l{grid-column:1/-1}
+  label{font-size:14px;font-weight:600}
+  input,select{font:inherit;padding:11px 12px;border:1px solid #c9c4b7;border-radius:8px;background:#fff;color:var(--txt);width:100%}
+  input:focus,select:focus,button:focus-visible,a:focus-visible{outline:3px solid var(--ouro);outline-offset:2px}
+  .aceite{grid-column:1/-1;display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400}
+  .aceite input{width:auto;margin-top:3px}
+  .hp{position:absolute;left:-9999px}
+  .btn{display:inline-block;background:var(--ouro);color:var(--navy);font-weight:800;border:0;border-radius:8px;padding:14px 24px;font-size:16px;cursor:pointer;text-decoration:none}
+  .btn.sec{background:var(--navy);color:#fff}
+  .erro{grid-column:1/-1;color:#a3261c;font-size:14px;margin:0}
+  .feito{border-left:4px solid var(--ok);background:#eef7f1;padding:16px 18px;border-radius:8px;max-width:680px}
+  .feito h3{margin:0 0 4px;color:var(--ok)}
+  .func{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:22px}
+  .func div{background:#fff;border:1px solid var(--linha);border-radius:10px;padding:16px}
+  .func b{display:block;color:var(--navy);margin-bottom:4px}
+  .func span{color:var(--sub);font-size:14px}
+  footer{padding:22px 0 34px;color:var(--sub);font-size:13px}
+  [hidden]{display:none!important}
+  @media(max-width:620px){.antes{grid-template-columns:1fr}form{grid-template-columns:1fr}}
+
+html{scroll-behavior:smooth;scroll-padding-top:24px} :root{--fundo:#f5f7fa;--linha:#dee5ed;--ouro:#d9b76a;--ouro2:#f0d799}
+.w{max-width:1120px;padding:0 24px}header{padding:20px 0}.hero{padding:64px 0 40px;background:radial-gradient(ellipse at 95% 0%,#265582 0%,transparent 55%),linear-gradient(145deg,#0b1f3a,#143454)}.hero h1{font-size:clamp(32px,5vw,52px);max-width:850px;letter-spacing:-.035em}.hero p{max-width:720px}.hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0}.btn{min-height:48px}.btn.ghost{background:transparent;color:#fff;border:1px solid #94a9c0}.antes div{background:#ffffff08;border-radius:14px}.antes span{color:#c6d4e4;font-size:13px}.antes b{font-size:19px}.hero .hero-note{font-size:12px;margin-top:18px;color:#c6d4e4}
+section{padding:48px 0}h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.025em}.eyebrow{display:block;color:#4d7195;text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:800;margin-bottom:10px}.chips button{padding:10px 17px}.card{padding:22px;border-radius:16px;min-height:175px;box-shadow:0 5px 18px #0b1f3a05}.card h3{font-size:19px}.card a{color:#13305a;font-weight:700;margin-top:10px}.aviso{border-style:solid;background:#edf3f9}.form-layout{display:grid;grid-template-columns:320px 1fr;gap:48px}.aside-note{background:#edf3f9;padding:20px;border-radius:16px;color:#274760;margin:26px 0}.aside-note p{font-size:14px}form{max-width:none;background:#fff;border:1px solid var(--linha);padding:28px;border-radius:20px}.campo{gap:7px}input,select,textarea{font:inherit;width:100%;padding:12px;border:1px solid #bbc9d8;border-radius:9px;background:#fff;color:var(--txt)}input[type=checkbox]{accent-color:#13305a;width:18px;height:18px;flex-shrink:0}.optional{color:var(--sub);font-weight:400}.small{font-size:13px}.aceite{font-weight:400}.aceite input{margin-top:3px}fieldset{grid-column:1/-1;border:0;border-top:1px solid var(--linha);padding:20px 0 0;margin:12px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:14px;min-width:0}legend{font-weight:750;color:var(--navy);font-size:15px;padding:0 8px 0 0}fieldset>.sub{grid-column:1/-1;margin:0}.outline{background:#fff;border:1px solid var(--ligne,#bbc9d8);color:var(--navy);margin-top:12px}.feito{padding:26px}#mais{margin-top:18px}a{color:#244f7b}button:disabled{opacity:.6;cursor:wait}textarea:focus{outline:3px solid var(--ouro);outline-offset:2px}.func div{border-radius:16px;padding:22px}.func b{font-size:17px}footer{border-top:1px solid var(--linha)}
+@media(max-width:850px){.form-layout{grid-template-columns:1fr;gap:18px}.aside-note{margin:16px 0}.hero{padding-top:40px}}@media(max-width:620px){.w{padding:0 18px}form{padding:20px}fieldset{grid-template-columns:1fr}.antes{gap:8px}.hero-actions .btn{width:100%;text-align:center}.hero h1{font-size:36px}section{padding:34px 0}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+.wide{max-width:850px}.welcome{border-left:4px solid var(--ouro);padding:20px 24px;background:#fff;border-radius:0 14px 14px 0;margin:26px 0}.welcome b{font-size:18px;color:var(--navy)}.welcome p{margin:10px 0 0;color:var(--sub)}.evolucao{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.evolucao article{background:#fff;border:1px solid var(--linha);border-radius:16px;padding:24px}.step{font-size:11px;letter-spacing:.09em;font-weight:800;color:#4d7195}.evolucao h3{font-size:20px;line-height:1.3;color:var(--navy);margin:12px 0}.evolucao p{font-size:14px;color:var(--sub);margin:0}.map-section{background:#eaf1f8}.map-lead{display:grid;grid-template-columns:1.2fr 1fr;background:#fff;border:1px solid #d7e2ef;padding:30px;gap:36px;border-radius:20px;margin:28px 0}.map-lead h3{font-size:26px;color:var(--navy);margin:10px 0}.map-lead p{color:var(--sub)}.map-guide{padding:24px;background:#f3f7fb;border-radius:14px;color:var(--navy)}.map-guide ol{padding-left:22px;margin-bottom:0}.map-guide li{padding:6px 0}.features{grid-template-columns:repeat(4,minmax(0,1fr))}.feature-number{display:block;font-size:12px!important;font-weight:800;color:#6487a9!important;margin-bottom:12px}.simulation{background:linear-gradient(135deg,#0b1f3a,#204b72);color:#fff}.simulation h2{color:#fff;font-size:clamp(28px,4vw,40px)}.simulation .eyebrow{color:var(--ouro2)}.simulation-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:48px;align-items:center}.simulation-grid p{color:#d6e1ec}.simulation-box{border:1px solid #ffffff30;background:#ffffff08;border-radius:18px;padding:28px}.simulation-box b{font-size:20px;color:var(--ouro2)}.simulation-box ul{padding-left:20px}.simulation-box li{margin:12px 0}.simulation-note{font-size:12px;color:#c4d3e2;margin:28px 0 0;max-width:950px}.specialist{background:#fff}.specialist-points{display:flex;flex-wrap:wrap;gap:10px;margin:24px 0}.specialist-points span{padding:9px 16px;background:#edf3f9;color:#244f7b;border-radius:30px;font-weight:650;font-size:14px}.hero-actions .ghost{padding:13px 20px}
+@media(max-width:950px){.features{grid-template-columns:repeat(2,minmax(0,1fr))}.evolucao{grid-template-columns:1fr}.map-lead,.simulation-grid{grid-template-columns:1fr;gap:24px}}
+@media(max-width:620px){.features{grid-template-columns:1fr}.map-lead{padding:22px}.simulation-box{padding:22px}.hero h1{font-size:34px}.welcome{padding:18px}}
+
+
+.intelligence{background:#eef3f8}.research-intro{background:white;border-left:4px solid var(--ouro);padding:22px 26px;border-radius:0 16px 16px 0;margin:26px 0}.research-intro b{color:var(--navy);font-size:20px}.research-intro p{margin-bottom:0;color:var(--sub)}.research-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.research-card{background:#fff;border:1px solid #d8e1ec;border-radius:20px;overflow:hidden;display:flex;flex-direction:column}.research-top{background:linear-gradient(135deg,#123857,#265873);padding:28px;color:white}.research-top.rio{background:linear-gradient(135deg,#0b1f3a,#315b7c)}.research-label{font-size:11px;letter-spacing:.08em;color:#f0d799;font-weight:800}.research-top h3{font-size:26px;line-height:1.25;margin:12px 0}.research-top p{font-size:14px;color:#dbe7f2;margin-bottom:0}.research-body{padding:26px;display:flex;flex-direction:column;flex:1}.research-body ul{padding-left:20px;margin:0 0 16px;color:var(--sub)}.research-body li{margin:9px 0}.research-question{padding:16px;background:#f4f7fa;border-radius:12px;color:#354d66;font-size:14px;margin-top:0}.research-link{margin-top:auto;text-align:center}.research-local{display:inline-block;font-size:14px;font-weight:750;margin-top:18px}.coverage{margin:14px 0 0}.research-details{background:#fff;border:1px solid #d8e1ec;border-radius:14px;margin-top:24px}.research-details summary{padding:18px 22px;cursor:pointer;font-weight:750;color:var(--navy)}.research-details>div{padding:0 24px 18px;font-size:14px;color:var(--sub)}.research-details li{margin:10px 0}.research-footer{margin-top:26px}.research-footer p{font-size:18px;color:var(--navy);font-weight:700}.research-footer .research-local{margin-left:18px}summary:focus-visible{outline:3px solid var(--ouro);outline-offset:3px}@media(max-width:750px){.research-grid{grid-template-columns:1fr}.research-footer .research-local{display:block;margin-left:0}.research-top,.research-body{padding:22px}}
+
+
+.wal-footer{background:#0b1f3a;color:#c6d3e1;padding:46px 0 0;border:0;font-size:14px}.footer-grid{display:grid;grid-template-columns:1.15fr 1fr .8fr;gap:40px;padding-bottom:36px}.footer-brand{font-size:12px;letter-spacing:.08em;color:#e3c57e;font-weight:800}.wal-footer h3{color:#fff;font-size:18px;margin:14px 0}.wal-footer p{line-height:1.7;max-width:38ch}.wal-footer a{color:#e0eaf5;text-decoration:none;overflow-wrap:anywhere}.wal-footer a:hover{text-decoration:underline}.wal-footer ul{list-style:none;padding:0;margin:0}.wal-footer li{margin-bottom:16px;line-height:1.5}.wal-footer li span{display:block;color:#9db2c9;font-size:12px;margin-bottom:3px}.wal-footer .footer-button{display:inline-block;background:#d9b76a;color:#0b1f3a;font-weight:800;border-radius:8px;padding:12px 18px;margin-top:8px}.footer-ai{color:#e3c57e;font-weight:750}.footer-bottom{padding:20px 0;border-top:1px solid #ffffff20;font-size:12px;color:#9db2c9}@media(max-width:850px){.footer-grid{grid-template-columns:1fr 1fr}.footer-grid>div:first-child{grid-column:1/-1}}@media(max-width:550px){.footer-grid{grid-template-columns:1fr;gap:20px}.wal-footer{padding-top:32px}}
+
+</style>
+</head>
+<body>
+
+<header><div class="w"><span class="marca">WAL IMÓVEIS</span><span class="creci">CRECI 12261-J</span></div></header>
+
+<div class="hero"><div class="w">
+  <h1 id="titulo">Você já conhece a WAL.<br><em>Agora, descubra tudo o que mudou para ajudar você.</em></h1>
+  <p id="intro">Desde o seu primeiro contato, ampliamos as opções e desenvolvemos uma plataforma para facilitar cada etapa da sua busca. Hoje, você pode explorar imóveis no mapa, conhecer o entorno e obter simulações imediatas em quatro instituições e consultar estudos sobre as regiões — com o apoio de uma equipe especializada em servidores públicos civis e militares.</p>
+  <div class="hero-actions"><a class="btn" href="#descubra-mapa">Descobrir o novo mapa</a><a class="btn ghost" href="#inteligencia">Entender as regiões</a><a class="btn ghost" href="#atualizar">Atualizar minha busca</a></div>
+  <div class="antes">
+    <div><span>Mais possibilidades</span><b>82 empreendimentos cadastrados</b></div>
+    <div><span>Simulação com resultado imediato</span><b>4 instituições para comparar</b></div>
+    <div><span>Atendimento especializado</span><b>Servidores civis e militares</b></div>
+  </div>
+  <p class="hero-note">RJ e SP · Lançamentos, em construção, novos e usados. Disponibilidade e condições sujeitas a atualização.</p>
+</div></div>
+
+<section class="reconexao"><div class="w">
+  <span class="eyebrow">Uma nova etapa no nosso atendimento</span>
+  <h2>Sua necessidade ajudou a transformar a WAL.</h2>
+  <p class="sub wide">No início, nossa oferta era menor e a pesquisa dependia de conversas, agendamentos e retornos individuais. Ouvimos as dúvidas de quem nos procurou e construímos ferramentas para tornar a escolha do imóvel mais simples, informada e acessível.</p>
+  <div class="welcome"><b>Mesmo que não tenhamos conseguido avançar no seu primeiro contato, queremos retomar essa conversa.</b><p>Se você ainda procura um imóvel, mudou de região ou está apenas avaliando possibilidades, conheça o que preparamos para ajudar no seu momento atual.</p></div>
+  <div class="evolucao"><article><span class="step">MAIS OPÇÕES</span><h3>De uma oferta limitada a um catálogo ampliado</h3><p>82 empreendimentos cadastrados: 62 no RJ e 20 em SP, entre lançamentos, em construção, novos e usados.</p></article><article><span class="step">MAIS AGILIDADE</span><h3>Da espera por uma simulação à comparação imediata</h3><p>Informe os dados solicitados e obtenha estimativas em quatro instituições para avaliar cenários de compra.</p></article><article><span class="step">MAIS INFORMAÇÃO</span><h3>Da pesquisa em conversas à exploração no mapa</h3><p>Reúna localização, informações do empreendimento e ferramentas para conhecer a região, no seu tempo.</p></article></div>
+</div></section>
+
+<section id="descubra-mapa" class="map-section"><div class="w">
+  <span class="eyebrow">Explore antes de decidir</span>
+  <h2>Descubra o imóvel. Conheça a região.<br>Entenda suas possibilidades.</h2>
+  <p class="sub wide">O mapa da WAL ajuda você a responder: qual imóvel faz sentido para meu perfil, minha rotina e meu momento? Explore as opções e conte com nossa equipe para esclarecer o que precisar.</p>
+  <div class="map-lead"><div><span class="step">SUA BUSCA, COM MAIS CLAREZA</span><h3>Veja além das fotos do apartamento.</h3><p>Localize os empreendimentos, observe a região e utilize as ferramentas de consulta para aproximar sua pesquisa da vida que você deseja ter.</p><a class="btn" data-mapa href="#">Explorar o Mapa de Empreendimentos</a><p class="small">Você pode explorar o mapa antes de atualizar seu cadastro.</p></div><div class="map-guide"><b>Como começar</b><ol><li>Escolha a cidade ou região.</li><li>Filtre as opções que interessam.</li><li>Abra um empreendimento e conheça seus detalhes.</li><li>Explore o entorno e os trajetos.</li><li>Simule e solicite orientação para avançar.</li></ol></div></div>
+  <!-- Conferir estes recursos no mapa publicado antes de iniciar a campanha. -->
+  <div class="func features">
+    <div><span class="feature-number">01</span><b>Encontre por localização</b><span>Veja onde estão os empreendimentos e compare regiões de interesse.</span></div>
+    <div><span class="feature-number">02</span><b>Filtre o estágio do imóvel</b><span>Explore lançamentos, em construção, novos e usados conforme seu plano de compra.</span></div>
+    <div><span class="feature-number">03</span><b>Consulte os detalhes</b><span>Acesse as informações e os materiais disponíveis de cada empreendimento.</span></div>
+    <div><span class="feature-number">04</span><b>Conheça o entorno</b><span>Use “Ver no entorno” para pesquisar serviços e pontos de interesse próximos.</span></div>
+    <div><span class="feature-number">05</span><b>Explore com Street View</b><span>Observe ruas e a vizinhança nos locais com imagens disponíveis.</span></div>
+    <div><span class="feature-number">06</span><b>Planeje seus trajetos</b><span>Use “Como chegar” para consultar rotas e avaliar seus deslocamentos.</span></div>
+    <div><span class="feature-number">07</span><b>Compartilhe sua escolha</b><span>Envie o link do empreendimento para conversar com a família ou com quem participa da decisão.</span></div>
+    <div><span class="feature-number">08</span><b>Compare simulações</b><span>Explore possibilidades em quatro instituições e avalie os resultados apresentados.</span></div>
+  </div>
+</div></section>
+
+<section class="simulation"><div class="w simulation-grid"><div><span class="eyebrow">Mais agilidade para planejar</span><h2>Quatro possibilidades.<br>Simulações imediatas.<br>Uma escolha mais informada.</h2><p>Você não precisa aguardar o retorno de uma simulação para começar a entender suas possibilidades. Preencha os dados no simulador e compare estimativas em quatro instituições.</p><a class="btn" data-mapa href="#">Abrir o mapa e acessar a simulação</a></div><div class="simulation-box"><b>Compare os cenários apresentados</b><ul><li>Valor do imóvel e entrada.</li><li>Prazo e estimativa das parcelas.</li><li>Diferenças entre os resultados das instituições.</li><li>Impacto de ajustar os dados da sua simulação.</li></ul><p>Encontrou uma possibilidade interessante? Nossa equipe ajuda a esclarecer as condições e os próximos passos.</p></div></div><div class="w"><p class="simulation-note">O resultado imediato é uma estimativa do simulador, não uma proposta bancária nem aprovação de crédito. Condições efetivas dependem da análise da instituição, do perfil do comprador e do imóvel.</p></div></section>
+
+<section class="specialist"><div class="w"><span class="eyebrow">Especialização que acompanha seu perfil</span><h2>Atendimento especializado para servidores públicos civis e militares.</h2><p class="sub wide">A WAL se especializou no atendimento a servidores públicos civis e militares das esferas federal, estadual e municipal, incluindo aposentados e pensionistas. Sua instituição, seu momento e sua rotina ajudam a orientar a busca e o atendimento.</p><div class="specialist-points"><span>Seu perfil</span><span>Sua região</span><span>Seu planejamento</span><span>Seu momento de vida</span></div><p class="sub">Explore com autonomia. Conte com orientação quando precisar. E atualize suas preferências para retomarmos a conversa com informações atuais.</p><a class="btn sec" href="#atualizar">Contar o que procuro hoje</a></div></section>
+
+<section id="inteligencia" class="intelligence"><div class="w">
+  <span class="eyebrow">WAL Intelligence · Informação para sua decisão</span>
+  <h2>Antes de escolher o imóvel,<br>entenda o que está acontecendo na região.</h2>
+  <p class="sub wide">O preço e a planta são parte da escolha. Empregos, mobilidade, serviços e investimentos públicos e privados também ajudam a entender como uma região pode se transformar — e como isso se relaciona com sua rotina e seu planejamento.</p>
+  <div class="research-intro"><b>Mais contexto para morar. Mais critérios para investir.</b><p>A WAL reúne estudos regionais, leituras de mercado e links para documentos, notícias e materiais de referência. Explore o estudo da região, localize os empreendimentos no mapa e compare as opções que fazem sentido para você.</p></div>
+  <div class="research-grid">
+    <article class="research-card" data-estudo="SJC"><div class="research-top"><span class="research-label">SÃO PAULO · VALE DO PARAÍBA</span><h3>Conheça a região além do empreendimento.</h3><p>São José dos Campos, Jacareí, Caçapava e Taubaté no estudo regional.</p></div><div class="research-body"><ul><li>Emprego, tecnologia e polos de atividade.</li><li>Mobilidade, saneamento, saúde e serviços.</li><li>Referências de mercado e perfis de bairros.</li><li>Projetos urbanos, incluindo o Parque Una SJC.</li></ul><p class="research-question"><b>O que observar?</b> Como trabalho, acesso, orçamento e estágio do bairro se encaixam no seu plano de moradia ou investimento.</p><a class="btn sec research-link" href="https://www.walservidor.com.br/WAL_Intelligence_Vale_do_Paraiba_2026_v3_1.html" target="_blank" rel="noopener noreferrer">Explorar o estudo do Vale ↗</a><a class="research-local" href="#opcoes" data-research-region="SJC">Consultar empreendimentos no Vale →</a><p class="small sub coverage">Este estudo é do Vale do Paraíba. São Paulo capital e Caraguatatuba têm contextos próprios.</p></div></article>
+    <article class="research-card" data-estudo="RJ"><div class="research-top rio"><span class="research-label">RIO DE JANEIRO · PORTO E CENTRO</span><h3>Entenda os projetos de transformação urbana.</h3><p>Porto Maravilha, Praça Onze, São Cristóvão e Reviver Centro.</p></div><div class="research-body"><ul><li>Projetos de requalificação e infraestrutura.</li><li>Investimentos e novas ocupações urbanas.</li><li>Documentos, notícias, vídeos e referências.</li><li>Contexto para analisar imóveis nesses eixos.</li></ul><p class="research-question"><b>O que observar?</b> O que já foi entregue, o que está em execução e o que depende de etapas futuras.</p><a class="btn sec research-link" href="https://www.walservidor.com.br/Projeto%20Praca%20Onze%20Maravilha/praca_onze_dashboard.html" target="_blank" rel="noopener noreferrer">Explorar o painel Porto e Centro ↗</a><a class="research-local" data-mapa href="#">Localizar os empreendimentos no mapa →</a><p class="small sub coverage">Este painel trata desses eixos do Rio. Não é um estudo de Niterói, São Pedro da Aldeia, Barra ou Recreio.</p></div></article>
+  </div>
+  <details class="research-details"><summary>Como usar os estudos na sua escolha</summary><div><ol><li><b>Entenda a região:</b> observe trabalho, mobilidade, serviços e projetos.</li><li><b>Confira a evidência:</b> leia as fontes, a data e o estágio de cada investimento.</li><li><b>Localize o imóvel:</b> examine o entorno e os trajetos no mapa.</li><li><b>Avalie seu planejamento:</b> compare simulações e custos de moradia.</li><li><b>Converse com a WAL:</b> esclareça dúvidas sobre o imóvel e as condições atuais.</li></ol><p>Anúncio, planejamento, contratação, obra e entrega são situações diferentes. Investimentos na cidade não garantem valorização de um imóvel específico. Referências históricas e cenários futuros devem ser lidos com suas fontes, datas e limitações.</p></div></details>
+  <div class="research-footer"><p>Conheça a região. Explore o mapa. Compare suas possibilidades.</p><a class="btn" data-mapa href="#">Continuar minha pesquisa no mapa</a><a class="research-local" href="#atualizar">Atualizar minhas preferências →</a></div>
+</div></section>
+<section id="opcoes"><div class="w">
+  <span class="eyebrow">Consulte o catálogo</span><h2 id="tituloLista">Qual região faz sentido para você?</h2>
+  <p class="sub">Lançamentos, imóveis em construção, novos e usados.</p>
+  <div class="chips" id="chips"></div>
+  <div class="grade" id="grade"></div><button class="btn sec" id="mais" type="button" hidden>Mostrar mais opções</button>
+  <p class="aviso" id="avisoLista">Carregando empreendimentos…</p>
+</div></section>
+
+<section class="bloco" id="atualizar"><div class="w form-layout">
+  <aside><span class="eyebrow">Vamos retomar a conversa</span><h2>Atualize sua busca</h2><p class="sub">Uma conversa melhor começa com o que você precisa hoje.</p><div class="aside-note"><b>Seus planos mudaram?</b><p>Você pode informar outra região, adiar a compra ou nos contar que já encontrou seu imóvel.</p><p>Não solicitamos documentos nesta etapa.</p></div><p class="sub small">Consultar os empreendimentos e o mapa não exige preencher este formulário.</p></aside>
+  <div><form id="form">
+    <div class="campo l"><label for="situacao">Como está sua busca? *</label><select id="situacao" required><option value="">Selecione</option><option value="buscando">Continuo buscando um imóvel</option><option value="adiou">Adiei meus planos</option><option value="comprou">Já comprei meu imóvel</option><option value="sem_interesse">Não tenho mais interesse</option><option value="nao_contatar">Não desejo receber novas mensagens</option></select></div>
+    <div class="campo"><label for="nome">Seu nome *</label><input id="nome" autocomplete="name" maxlength="80" required></div>
+    <div class="campo"><label for="telefone">WhatsApp com DDD *</label><input id="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" required placeholder="(21) 99999-9999"></div>
+    <div class="campo l"><label for="email">E-mail <span class="optional">· opcional</span></label><input id="email" type="email" autocomplete="email" maxlength="120" placeholder="Se desejar receber informações por e-mail"></div>
+    <fieldset id="preferencias"><legend>Preferências para sua próxima etapa</legend>
+      <div class="campo l"><label for="cidade">Principal cidade de interesse *</label><select id="cidade"><option value="">Selecione</option><option>Rio de Janeiro</option><option>Niterói</option><option>São Pedro da Aldeia</option><option>São Paulo</option><option>São José dos Campos</option><option>Jacareí</option><option>Caçapava</option><option>Caraguatatuba</option><option>Ainda estou avaliando</option></select></div>
+      <div class="campo"><label for="objetivo">Objetivo · opcional</label><select id="objetivo"><option value="">Selecione</option><option>Morar</option><option>Investir</option><option>Segundo imóvel ou veraneio</option><option>Ainda estou avaliando</option></select></div>
+      <div class="campo"><label for="prazo">Quando pretende comprar? · opcional</label><select id="prazo"><option value="">Selecione</option><option>Até 3 meses</option><option>De 3 a 6 meses</option><option>De 6 a 12 meses</option><option>Mais de 12 meses</option><option>Sem prazo definido</option></select></div>
+      <div class="campo l"><label for="vinculo">Instituição ou vínculo · opcional</label><select id="vinculo"><option value="">Prefiro não informar</option><option>FAB</option><option>Marinha</option><option>Exército</option><option>Polícia Militar</option><option>Bombeiros</option><option>Servidor federal</option><option>Servidor estadual</option><option>Servidor municipal</option><option>Aposentado ou pensionista</option><option>Outro</option></select></div>
+      <div class="campo l"><label for="observacoes">O que mais devemos saber? · opcional</label><textarea id="observacoes" maxlength="600" rows="3" placeholder="Outra cidade, quantidade de quartos ou algo importante para sua busca."></textarea></div>
+      <label class="aceite"><input type="checkbox" id="atendimento"><span>Gostaria de conversar com um consultor sobre minha busca.</span></label>
+    </fieldset>
+    <fieldset id="comunicacoes"><legend>Você escolhe como receber novidades</legend><p class="sub small">Estas opções são facultativas. Você pode atualizar sua busca sem autorizar campanhas.</p>
+      <label class="aceite"><input type="checkbox" id="aceiteWhatsapp"><span>Desejo receber pelo WhatsApp novidades da WAL sobre imóveis e conteúdos relacionados à minha busca.</span></label>
+      <label class="aceite"><input type="checkbox" id="aceiteEmail"><span>Desejo receber essas novidades por e-mail.</span></label>
+      <p class="small sub">Você pode cancelar o recebimento a qualquer momento.</p>
+    </fieldset>
+    <p class="campo l small sub">Os dados serão utilizados para atualizar sua busca e atender às suas solicitações, conforme nosso <a id="privacidade" href="#">Aviso de Privacidade</a>.</p>
+    <div class="hp" aria-hidden="true"><label for="site">Não preencha</label><input id="site" tabindex="-1" autocomplete="off"></div>
+    <p class="erro" id="erro" role="alert" hidden></p><p class="campo l small sub" id="configAviso" hidden></p>
+    <div class="campo l"><button class="btn" id="enviar" type="submit">Salvar minhas preferências</button><span class="small sub">* Campos necessários para identificar sua solicitação.</span></div>
+  </form>
+  <div class="feito" id="feito" hidden tabindex="-1" role="status"><h3>Preferências atualizadas.</h3><p id="confirmacao"></p><a class="btn sec" data-mapa href="#">Explorar o mapa</a><button class="btn outline" id="editar" type="button">Editar preferências</button></div></div>
+</div></section>
+
+
+<footer class="wal-footer"><div class="w">
+  <div class="footer-grid">
+    <div><span class="footer-brand">WAL IMÓVEIS E CONSULTORIA</span><h3>WAL · Novo Rio</h3><p>Especialistas em oportunidades imobiliárias no novo eixo de desenvolvimento do Rio — para servidores públicos e militares.</p><a class="footer-button" href="https://wa.me/5521972443592" target="_blank" rel="noopener noreferrer">Fale com a WAL</a></div>
+    <div><h3>Central de Atendimento</h3><ul><li><span>Telefone</span><a href="tel:+5521997263950">(21) 99726-3950</a></li><li><span>E-mail</span><a href="mailto:comercial@walservidor.com.br">comercial@walservidor.com.br</a></li><li><span>WhatsApp</span><a href="https://wa.me/5521972443592" target="_blank" rel="noopener noreferrer">(21) 97244-3592</a></li></ul></div>
+    <div><h3>Horário de Atendimento</h3><ul><li><span>Segunda a sexta</span>8h às 20h</li><li><span>Sábado</span>9h às 18h</li><li><span>Domingo</span>Plantão online</li><li class="footer-ai">Consultor IA · 24 horas</li></ul></div>
+  </div>
+  <div class="footer-bottom">© 2026 WAL Imóveis e Consultoria · CRECI 12261-J · Todos os direitos reservados.</div>
+</div></footer>
+
+<script>
+/* CONFIGURAÇÃO DE PRODUÇÃO (backend: Google Apps Script · Code.gs da campanha)
+   API_URL: URL /exec do Web App. CATALOG_URL vazio = API_URL + '?a=catalogo'.
+   POST {acao:'recadastro', ...} vai como text/plain (Apps Script não aceita preflight CORS)
+   e só recebe {ok:true} depois que a planilha foi gravada.
+   Token: a página apenas registra a visita (?a=visita) e o envia no POST; o servidor
+   valida formato, validade (120 dias do 1º envio) e telefone antes de atualizar o lead.
+   Nenhum dado pessoal volta do servidor para este navegador.
+   CSRF: não se aplica (sem sessão por cookie). Não adicione cabeçalhos customizados no POST.
+*/
+const CONFIG={API_URL:'',CATALOG_URL:'',MAPA_URL:'mapa-empreendimentos.html',PRIVACIDADE_URL:'',PAGE_SIZE:6};
+if(CONFIG.API_URL&&!CONFIG.CATALOG_URL)CONFIG.CATALOG_URL=CONFIG.API_URL+'?a=catalogo';
+const $=id=>document.getElementById(id);
+const REGIOES={GERAL:{rotulo:'Todas as regiões',cidades:[]},RJ:{rotulo:'Rio de Janeiro e Niterói',cidades:['rio de janeiro','niteroi']},SPA:{rotulo:'São Pedro da Aldeia',cidades:['sao pedro da aldeia']},SJC:{rotulo:'Vale do Paraíba',cidades:['sao jose dos campos','jacarei','cacapava']},SP:{rotulo:'São Paulo capital',cidades:['sao paulo']},LITORAL:{rotulo:'Caraguatatuba',cidades:['caraguatatuba']}};
+const params=new URLSearchParams(location.search);
+let token=params.get('t')||'';
+if(!/^[A-Za-z0-9_-]{20,200}$/.test(token))token='';
+if(token&&CONFIG.API_URL)fetch(CONFIG.API_URL+'?a=visita&t='+encodeURIComponent(token),{referrerPolicy:'no-referrer'}).catch(()=>{});
+let regiaoAtual=Object.hasOwn(REGIOES,params.get('regiao'))?params.get('regiao'):'GERAL';
+let imoveis=[],limite=CONFIG.PAGE_SIZE;
+const normal=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+function urlSegura(value){try{const u=new URL(value,location.href);return ['http:','https:'].includes(u.protocol)?u.href:null}catch{return null}}
+document.querySelectorAll('[data-mapa]').forEach(a=>{a.href=CONFIG.MAPA_URL;a.referrerPolicy='no-referrer'});
+if(CONFIG.PRIVACIDADE_URL){$('privacidade').href=CONFIG.PRIVACIDADE_URL}else{$('privacidade').removeAttribute('href');$('configAviso').hidden=false;$('configAviso').textContent='Esta versão está em preparação. O envio será liberado após a configuração do formulário e do Aviso de Privacidade.'}
+function chips(){const box=$('chips');box.replaceChildren();Object.entries(REGIOES).forEach(([k,r])=>{const b=document.createElement('button');b.type='button';b.textContent=r.rotulo;b.setAttribute('aria-pressed',String(k===regiaoAtual));b.onclick=()=>{regiaoAtual=k;limite=CONFIG.PAGE_SIZE;chips();lista()};box.append(b)})}
+function lista(){const g=$('grade');g.replaceChildren();const r=REGIOES[regiaoAtual];const itens=imoveis.filter(i=>!r.cidades.length||r.cidades.includes(normal(i.cidade)));$('tituloLista').textContent=regiaoAtual==='GERAL'?'Qual região faz sentido para você?':'Opções em '+r.rotulo;$('avisoLista').hidden=false;$('avisoLista').textContent=imoveis.length?(itens.length?`Exibindo ${Math.min(limite,itens.length)} de ${itens.length} empreendimentos. Consulte a disponibilidade de unidades com a equipe.`:'Nenhum empreendimento retornado para esta seleção. Explore outras regiões ou consulte o mapa.'):'Consulte o catálogo atual no Mapa de Empreendimentos. A lista nesta página estará disponível após a integração.';
+  itens.slice(0,limite).forEach(i=>{const c=document.createElement('article');c.className='card';[['span',i.estagio,'tag'],['h3',i.nome,''],['span',[i.bairro,i.cidade].filter(Boolean).join(' · '),'loc'],['span',i.preco,'preco']].forEach(([tag,text,cls])=>{if(!text)return;const el=document.createElement(tag);el.textContent=text;el.className=cls;c.append(el)});const u=i.url&&urlSegura(i.url);if(u){const a=document.createElement('a');a.href=u;a.referrerPolicy='no-referrer';a.textContent='Conhecer empreendimento →';c.append(a)}g.append(c)});$('mais').hidden=itens.length<=limite}
+document.querySelectorAll('[data-research-region]').forEach(a=>a.addEventListener('click',()=>{regiaoAtual=a.dataset.researchRegion;limite=CONFIG.PAGE_SIZE;chips();lista()}));
+$('mais').onclick=()=>{limite+=CONFIG.PAGE_SIZE;lista()};chips();lista();
+async function jsonRequest(url,options={}){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),15000);try{const response=await fetch(url,{...options,signal:controller.signal,referrerPolicy:'no-referrer'});if(!response.ok)throw Error('http');const data=await response.json();if(data.ok!==true)throw Error('api');return data}finally{clearTimeout(timer)}}
+if(CONFIG.CATALOG_URL)jsonRequest(CONFIG.CATALOG_URL).then(d=>{if(!Array.isArray(d.imoveis))throw Error('format');imoveis=d.imoveis.filter(i=>i&&typeof i.nome==='string'&&typeof i.cidade==='string');lista()}).catch(()=>{$('avisoLista').textContent='Não foi possível carregar a lista agora. Você pode continuar pelo mapa.'});
+function situacao(){const ativa=['buscando','adiou'].includes($('situacao').value);$('preferencias').hidden=!ativa;$('preferencias').disabled=!ativa;$('cidade').required=ativa;const bloqueia=['nao_contatar','sem_interesse'].includes($('situacao').value);$('comunicacoes').hidden=bloqueia;$('comunicacoes').disabled=bloqueia;if(bloqueia){$('aceiteWhatsapp').checked=false;$('aceiteEmail').checked=false} $('enviar').textContent=$('situacao').value==='nao_contatar'?'Solicitar interrupção das mensagens':'Salvar minhas preferências'}
+$('situacao').onchange=situacao;situacao();
+function erro(text,field){$('erro').hidden=false;$('erro').textContent=text;if(field)field.focus()}
+$('form').addEventListener('submit',async e=>{e.preventDefault();$('erro').hidden=true;const telefone=$('telefone').value.replace(/\D/g,'');const local=telefone.startsWith('55')&&[12,13].includes(telefone.length)?telefone.slice(2):telefone;const email=$('email').value.trim();if($('nome').value.trim().length<3)return erro('Informe seu nome.',$('nome'));if(!/^[1-9]{2}[2-9][0-9]{7,8}$/.test(local))return erro('Confira o telefone brasileiro com DDD.',$('telefone'));if($('aceiteEmail').checked&&!email)return erro('Informe o e-mail para receber novidades por esse canal.',$('email'));if(!CONFIG.API_URL||!CONFIG.PRIVACIDADE_URL)return erro('O formulário ainda não está conectado para receber atualizações. Consulte as opções pelo mapa.');if($('site').value)return erro('Não foi possível enviar. Recarregue a página e tente novamente.');
+ const ativa=['buscando','adiou'].includes($('situacao').value);const dados={acao:'recadastro',t:token,nome:$('nome').value.trim(),telefone:'55'+local,email:email.toLowerCase(),situacao:$('situacao').value,cidade:ativa?$('cidade').value:'',objetivo:ativa?$('objetivo').value:'',prazo:ativa?$('prazo').value:'',vinculo:ativa?$('vinculo').value:'',observacoes:ativa?$('observacoes').value.trim():'',solicita_atendimento:ativa&&$('atendimento').checked,consentimento_whatsapp:$('aceiteWhatsapp').checked,consentimento_email:$('aceiteEmail').checked,nao_contatar:$('situacao').value==='nao_contatar',regiao_campanha:params.get('regiao')||'',campanha:params.get('utm_campaign')||'',versao_texto:'wal-recadastro-v4-2026-10',site:$('site').value};
+ const btn=$('enviar');btn.disabled=true;btn.textContent='Enviando…';try{const headers={'Content-Type':'text/plain;charset=utf-8'};await jsonRequest(CONFIG.API_URL,{method:'POST',headers,body:JSON.stringify(dados)});$('form').hidden=true;$('feito').hidden=false;$('confirmacao').textContent=dados.nao_contatar?'Sua solicitação de interrupção das mensagens foi registrada.':dados.solicita_atendimento?'Sua atualização foi registrada. A equipe poderá dar continuidade ao atendimento solicitado.':'Sua atualização foi registrada. Continue explorando as opções no seu tempo.';$('feito').focus()}catch{erro('Não recebemos a confirmação de gravação. Não considere o cadastro atualizado. Verifique sua conexão ou fale com a WAL antes de tentar novamente.')}finally{btn.disabled=false;situacao()}});
+$('editar').onclick=()=>{$('feito').hidden=true;$('form').hidden=false;$('situacao').focus()};
+</script>
+</body>
+</html>

@@ -645,6 +645,65 @@
     .crm-modal-left{border-right:none;border-bottom:1px solid var(--border)}
     .crm-timeline{max-height:280px}
   }
+
+  /* ─── MALA DIRETA (pedido 110.7) ─── */
+  .md-view{display:none}
+  .md-view.active{display:block}
+  .md-sec{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--navy);margin:28px 0 10px;display:flex;align-items:center;gap:8px}
+  .md-cont{background:#b03a2e;color:#fff;border-radius:999px;font-size:11px;padding:1px 9px;letter-spacing:0}
+  .md-cont.zero{background:#9aa6b4}
+  table.md-table{min-width:0}
+  .md-table td.md-n,.md-table th.md-n{text-align:right;font-variant-numeric:tabular-nums}
+  .md-badge{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-size:10px;font-weight:700;
+    letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:2px;color:#fff;white-space:nowrap}
+  .md-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .md-input{background:#fff;border:1px solid rgba(138,150,168,.45);color:var(--navy);padding:8px 10px;
+    font-family:'Barlow',sans-serif;font-size:13px;outline:none}
+  .md-input:focus{border-color:var(--gold)}
+  .md-mono{font-family:'Courier New',Courier,monospace;font-size:12.5px;line-height:1.5;resize:vertical}
+  .md-msg{font-size:12.5px;margin-top:10px;color:var(--ink-muted);line-height:1.5}
+  .md-msg:empty{display:none}
+  .md-msg.e{color:#b03a2e}
+  .md-msg.ok{color:#1f7a52}
+  .md-nota{font-size:12px;color:var(--ink-muted);line-height:1.6}
+  .md-grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .md-tx-grade{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+  .md-campo{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .md-campo label{font-size:13px;font-weight:600;color:var(--navy)}
+  .md-campo small{color:var(--ink-muted);font-size:11.5px}
+  .md-campo .md-input{width:100%}
+  .md-comum{border:1px solid var(--border);padding:10px 12px;margin-bottom:14px}
+  .md-comum summary{cursor:pointer;font-weight:600;color:var(--navy);font-size:13px}
+  .md-comum[open] summary{margin-bottom:10px}
+  .md-chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+  .md-chips button{background:var(--surf);color:var(--navy);border:1px solid var(--border);border-radius:999px;
+    padding:3px 10px;font-size:12px;font-family:'Courier New',monospace;cursor:pointer}
+  .md-chips button:hover{border-color:var(--gold)}
+  .md-erros{margin:12px 0 0;padding:10px 12px 10px 30px;background:#fbeceb;color:#b03a2e;font-size:13px;line-height:1.5}
+  .md-erros:empty{display:none}
+  .md-pv-email{width:100%;height:720px;border:1px solid var(--border);background:#f5f7fa}
+  .md-zap{background:#e5ddd5;padding:16px}
+  .md-zap div{background:#dcf8c6;border-radius:10px 10px 10px 2px;padding:12px 14px;white-space:pre-wrap;
+    overflow-wrap:anywhere;font-size:14px;max-width:460px;color:#111b21;line-height:1.45}
+  .md-check{list-style:none;padding:0;margin:4px 0 0}
+  .md-check li{font-size:13px;color:var(--navy);padding:6px 0;border-bottom:1px solid rgba(201,168,76,.12);line-height:1.5}
+  .md-check li:last-child{border-bottom:0}
+  .md-check code,.md-passos code{background:var(--surf);padding:1px 6px;font-size:12px;overflow-wrap:anywhere}
+  .md-passos{padding-left:20px}
+  .md-passos li{font-size:13px;color:var(--ink-muted);line-height:1.7;margin-bottom:6px}
+  .md-passos li b{color:var(--navy)}
+  #md-t-leads tr{cursor:pointer}
+  .md-kv{display:grid;grid-template-columns:170px minmax(0,1fr);gap:6px 14px;font-size:13px;margin-bottom:18px}
+  .md-kv dt{color:var(--ink-muted)}
+  .md-kv dd{color:var(--navy);overflow-wrap:anywhere}
+  .md-acao{border-top:1px solid var(--border);padding-top:16px;margin-top:4px}
+  #md-v-acomp a,#md-modal a{color:var(--gold-ink);font-weight:600}
+  @media(max-width:860px){
+    .md-grid2,.md-tx-grade{grid-template-columns:1fr}
+    .md-kv{grid-template-columns:1fr;gap:0 0}
+    .md-kv dd{margin-bottom:8px}
+  }
 </style>
 <script src="painel/shared/tarja-vendido.js"></script>
 </head>
@@ -1148,6 +1207,10 @@
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h.01M11 8h6M7 12h.01M11 12h4"/></svg>
     CRM
     <span class="tb-count" id="crm-count-badge" style="background:rgba(34,197,94,.2);color:#86EFAC">0</span>
+  </button>
+  <button class="tab-btn" onclick="switchTab('maladireta')" id="tab-maladireta">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+    Mala Direta
   </button>
   <button class="tab-btn" onclick="switchTab('equipe')" id="tab-equipe">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
@@ -1957,6 +2020,230 @@ function onEdit(e) {
     </div>
   </div>
 </div>
+</div>
+
+<!-- ══════════════ TAB: MALA DIRETA (pedido 110.7) ══════════════
+     Backend próprio e isolado: painel/mala direta/apps-script-mala-direta.gs,
+     ligado à planilha privada "WAL — Mala Direta" (MD_API_URL no script abaixo). -->
+<div class="tab-panel" id="panel-maladireta">
+<div class="main">
+
+  <div class="alert alert-warn" id="md-aviso-config" style="display:none"></div>
+
+  <div class="equipe-view-toggle" style="flex-wrap:wrap">
+    <button class="equipe-view-btn active" data-md-view="acomp" onclick="mdView('acomp')">📊 Acompanhamento</button>
+    <button class="equipe-view-btn" data-md-view="leads" onclick="mdView('leads')">👥 Leads</button>
+    <button class="equipe-view-btn" data-md-view="importar" onclick="mdView('importar')">📥 Importar</button>
+    <button class="equipe-view-btn" data-md-view="textos" onclick="mdView('textos')">✏️ Textos das mensagens <span id="md-tx-pend" style="color:#b03a2e;display:none">•</span></button>
+    <button class="equipe-view-btn" data-md-view="config" onclick="mdView('config')">⚙️ Configuração</button>
+  </div>
+
+  <!-- ── ACOMPANHAMENTO ── -->
+  <div class="md-view active" id="md-v-acomp">
+    <div class="md-row" style="justify-content:space-between;margin-bottom:14px">
+      <span class="md-nota">Campanha <b id="md-tag">reativacao-fab-2026</b> · e-mail pela Brevo, WhatsApp manual com mensagem pronta.</span>
+      <button class="btn-conn-test" onclick="mdCarregarResumo()">🔄 Atualizar</button>
+    </div>
+    <p class="md-msg e" id="md-acomp-erro" style="display:none"></p>
+
+    <div class="stats-grid" id="md-kpis" style="margin-bottom:8px"></div>
+
+    <div class="md-sec">Pediram consultor <span class="md-cont zero" id="md-n-consultor">0</span></div>
+    <div class="table-wrap"><div class="table-wrap-inner">
+      <table class="md-table"><thead><tr><th>Quando</th><th>Lead</th><th>Cidade · prazo · objetivo</th><th>Observações</th><th></th></tr></thead>
+      <tbody id="md-t-consultor"><tr><td colspan="5"><div class="empty-table">—</div></td></tr></tbody></table>
+    </div></div>
+
+    <div class="md-sec">Envio por e-mail (Brevo)</div>
+    <div class="conn-card" style="margin-bottom:0">
+      <div class="md-row">
+        <span style="font-size:13px">Hoje: <b id="md-hoje">0</b> de <b id="md-limite">0</b></span>
+        <label class="md-nota" for="md-qtd">Lote</label>
+        <input class="md-input" id="md-qtd" type="number" min="1" value="50" style="width:90px">
+        <button class="btn-conn" id="md-env1" onclick="mdEnviar(1)">Enviar 1º e-mail (<span id="md-f1">0</span> na fila)</button>
+        <button class="btn-conn-test" id="md-env2" onclick="mdEnviar(2)">Enviar lembrete (<span id="md-f2">0</span> na fila)</button>
+      </div>
+      <p class="md-msg" id="md-msg-envio"></p>
+      <p class="md-nota" style="margin-top:8px">Os leads mais recentes saem primeiro. O lembrete só entra na fila <span id="md-dias-lembrete">5</span> dias depois do 1º e-mail e só para quem não visitou a página. Ritmo sugerido para proteger o domínio: dia 1 = 50, dia 2 = 100, depois 200/dia. Se os inválidos passarem de ~5% do lote, pare e limpe a base.</p>
+    </div>
+
+    <div class="md-sec">Fila do WhatsApp <span class="md-cont zero" id="md-n-whats">0</span></div>
+    <div class="table-wrap">
+      <div class="table-head-row"><span>Abra a conversa com a mensagem pronta, envie pelo WhatsApp e marque como enviado</span>
+        <button class="btn-conn-test" style="height:30px" onclick="mdCarregarWhats()">Carregar fila</button></div>
+      <div class="table-wrap-inner"><table class="md-table"><tbody id="md-t-whats"><tr><td><div class="empty-table" style="padding:24px">Clique em "Carregar fila".</div></td></tr></tbody></table></div>
+    </div>
+
+    <div class="md-sec">Por região de origem</div>
+    <div class="table-wrap"><div class="table-wrap-inner">
+      <table class="md-table"><thead><tr><th>Origem</th><th class="md-n">Leads</th><th class="md-n">Enviados</th><th class="md-n">Visitaram</th><th class="md-n">Responderam</th><th class="md-n">Conversão</th></tr></thead>
+      <tbody id="md-t-origem"></tbody></table>
+    </div></div>
+
+    <div class="md-grid2" style="margin-top:8px">
+      <div><div class="md-sec">O que responderam</div>
+        <div class="table-wrap"><table class="md-table"><tbody id="md-t-situacao"></tbody></table></div></div>
+      <div><div class="md-sec">Autorizações para próximas campanhas</div>
+        <div class="table-wrap"><table class="md-table"><tbody id="md-t-consent"></tbody></table></div>
+        <p class="md-nota" style="margin-top:6px">Só quem marcou a autorização entra em campanhas futuras daquele canal.</p></div>
+    </div>
+
+    <div class="md-sec">Últimos eventos</div>
+    <div class="table-wrap"><div class="table-wrap-inner">
+      <table class="md-table"><thead><tr><th>Data</th><th>Lead</th><th>Canal</th><th>Evento</th><th>Detalhe</th></tr></thead>
+      <tbody id="md-t-log"></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- ── LEADS ── -->
+  <div class="md-view" id="md-v-leads">
+    <div class="conn-card" style="margin-bottom:16px;padding:16px 20px">
+      <div class="md-row">
+        <input class="md-input" id="md-f-busca" placeholder="Buscar nome, e-mail, telefone ou ID" style="flex:1;min-width:220px" oninput="mdRenderLeads()">
+        <select class="md-input" id="md-f-status" onchange="mdRenderLeads()"><option value="">Todos os status</option></select>
+        <select class="md-input" id="md-f-canal" onchange="mdRenderLeads()"><option value="">Todos os canais</option><option value="EMAIL">E-mail</option><option value="WHATSAPP">WhatsApp</option><option value="SITE">Site (sem link)</option></select>
+        <select class="md-input" id="md-f-origem" onchange="mdRenderLeads()"><option value="">Todas as origens</option></select>
+        <button class="btn-conn-test" onclick="mdCarregarLeads()">🔄 Recarregar</button>
+      </div>
+      <p class="md-nota" id="md-leads-count" style="margin-top:10px"></p>
+    </div>
+    <div class="table-wrap"><div class="table-wrap-inner">
+      <table><thead><tr><th>ID</th><th>Nome</th><th>Contato</th><th>Origem</th><th>Canal</th><th>Status</th><th>Último movimento</th><th>Resposta</th></tr></thead>
+      <tbody id="md-t-leads"><tr><td colspan="8"><div class="empty-table">Carregando…</div></td></tr></tbody></table>
+    </div></div>
+  </div>
+
+  <!-- ── IMPORTAR ── -->
+  <div class="md-view" id="md-v-importar">
+    <div class="alert alert-info">
+      Copie as linhas da sua planilha (Excel ou Google Sheets) e cole abaixo, nesta ordem de colunas:
+      <b>NOME · TELEFONE · E-MAIL · ORIGEM · EMPREENDIMENTO · DATA DO CADASTRO</b>.
+      Se a primeira linha tiver os títulos (com "Nome"), as colunas são reconhecidas pelo título, em qualquer ordem.
+      Quem tem e-mail válido vai para a fila da Brevo; sem e-mail, vai para a fila do WhatsApp.
+      Quem já está na planilha (mesmo e-mail ou telefone) é pulado.
+    </div>
+    <div class="conn-card">
+      <textarea class="md-input" id="md-imp-texto" rows="10" style="width:100%;font-family:'Courier New',monospace;font-size:12px" placeholder="Maria da Silva&#9;(21) 99999-1234&#9;maria@email.com&#9;Rio de Janeiro&#9;Residencial X&#9;15/03/2024" oninput="mdImpConferir()"></textarea>
+      <p class="md-nota" style="margin-top:6px">ORIGEM vira a região da mensagem: Rio/Niterói → RJ · São Pedro da Aldeia/Lagos → SPA · SJC/Jacareí/Taubaté/Vale → SJC · São Paulo → SP · Caraguatatuba/Litoral → LITORAL · outro → GERAL. A DATA define se o lead é "antigo" (mais de 6 meses) ou "recente" no texto.</p>
+      <div id="md-imp-resumo" class="md-msg"></div>
+      <div class="table-wrap-inner" id="md-imp-previa" style="margin-top:10px"></div>
+      <div class="md-row" style="margin-top:14px">
+        <button class="btn-conn" id="md-imp-btn" onclick="mdImportar()" disabled>📥 Importar e preparar</button>
+        <button class="btn-conn-test" onclick="document.getElementById('md-imp-texto').value='';mdImpConferir()">Limpar</button>
+      </div>
+      <p class="md-msg" id="md-imp-msg"></p>
+    </div>
+
+    <div class="conn-card">
+      <div class="conn-status-row" style="margin-bottom:8px"><span class="conn-title">Leads colados direto na planilha</span>
+        <span class="conn-sub" id="md-sem-preparar">—</span></div>
+      <p class="md-nota">Se você colar leads direto na aba CAMPANHA_LEADS (colunas NOME, TELEFONE, EMAIL, ORIGEM, EMPREENDIMENTO, DT_CADASTRO), clique aqui para gerar ID, link único e canal de cada um.</p>
+      <div class="md-row" style="margin-top:12px"><button class="btn-conn-test" onclick="mdPreparar()">⚙️ Preparar leads da planilha</button></div>
+    </div>
+  </div>
+
+  <!-- ── TEXTOS DAS MENSAGENS ── -->
+  <div class="md-view" id="md-v-textos">
+    <div class="md-row" style="justify-content:space-between">
+      <div class="md-row" id="md-tx-seg">
+        <button class="equipe-view-btn active" data-msg="e1" onclick="mdTxMostrar('e1')">1º e-mail</button>
+        <button class="equipe-view-btn" data-msg="e2" onclick="mdTxMostrar('e2')">Lembrete</button>
+        <button class="equipe-view-btn" data-msg="wa" onclick="mdTxMostrar('wa')">WhatsApp</button>
+      </div>
+      <div class="md-row">
+        <span class="md-nota" id="md-tx-estado">Carregando…</span>
+        <button class="btn-conn-test" id="md-tx-descartar" onclick="mdTxDescartar()">Descartar alterações</button>
+        <button class="btn-conn" id="md-tx-salvar" onclick="mdTxSalvar()">Salvar textos</button>
+      </div>
+    </div>
+    <p class="md-nota" style="margin:10px 0 14px">O texto salvo vale para os próximos envios. Mensagens já enviadas não mudam. A prévia ao lado usa a mesma montagem do envio real.</p>
+    <div class="md-tx-grade">
+      <div class="conn-card" style="margin:0">
+        <div id="md-grp-email">
+          <div class="md-campo"><label for="md-txAssunto">Assunto</label><input class="md-input" id="md-txAssunto" maxlength="150"></div>
+          <div class="md-campo"><label for="md-txCorpo">Texto do e-mail</label><textarea class="md-input md-mono" id="md-txCorpo" rows="14"></textarea>
+            <small>O botão com o link entra logo depois deste texto.</small></div>
+          <div class="md-campo"><label for="md-txBotao">Texto do botão</label><input class="md-input" id="md-txBotao" maxlength="60"></div>
+          <details class="md-comum"><summary>Nota e assinatura (valem para os dois e-mails)</summary>
+            <div class="md-campo"><label for="md-txNota">Nota depois do botão</label><textarea class="md-input md-mono" id="md-txNota" rows="3"></textarea></div>
+            <div class="md-campo"><label for="md-txAss">Assinatura</label><textarea class="md-input md-mono" id="md-txAss" rows="2"></textarea>
+              <small>O rodapé com CRECI, contatos e o link "Não quero mais receber" é fixo e sempre sai.</small></div>
+          </details>
+        </div>
+        <div id="md-grp-whats" style="display:none">
+          <div class="md-campo"><label for="md-txWhats">Mensagem de WhatsApp</label><textarea class="md-input md-mono" id="md-txWhats" rows="14"></textarea>
+            <small>Precisa ter {link}. É o texto que o admin coloca pronto na conversa.</small></div>
+        </div>
+        <div class="md-nota"><b>Inserir variável</b> (no campo onde o cursor está):</div>
+        <div class="md-chips" id="md-tx-vars"></div>
+        <div class="md-nota"><b>Inserir bloco</b> (envolve o trecho selecionado; só aparece para quem se encaixa):</div>
+        <div class="md-chips" id="md-tx-blocos"></div>
+        <p class="md-nota">Linha em branco separa parágrafos. **texto** vira negrito. {opcoes} e {regiao} mudam conforme a região do lead. [antigo] = cadastro com mais de 6 meses.</p>
+        <ul class="md-erros" id="md-tx-erros"></ul>
+        <div class="md-row" style="justify-content:space-between;margin-top:12px">
+          <span class="md-nota" id="md-tx-data"></span>
+          <button class="btn-conn-test" onclick="mdTxPadrao()">Restaurar texto padrão desta mensagem</button>
+        </div>
+      </div>
+      <div class="conn-card" style="margin:0">
+        <div class="md-row md-nota" style="margin-bottom:12px">Prévia para um lead
+          <select class="md-input" id="md-pvAntigo" onchange="mdPrevia()"><option value="1">com cadastro antigo</option><option value="0">com cadastro recente</option></select>
+          <select class="md-input" id="md-pvEmp" onchange="mdPrevia()"><option value="1">com empreendimento</option><option value="0">sem empreendimento</option></select>
+          <select class="md-input" id="md-pvReg" onchange="mdPrevia()"></select>
+        </div>
+        <div id="md-pv-email-box"><div class="md-nota" style="margin-bottom:8px">Assunto: <b id="md-pv-assunto" style="color:var(--navy);font-size:14px"></b></div>
+          <iframe class="md-pv-email" id="md-pv-email" sandbox="" title="Prévia do e-mail"></iframe></div>
+        <div id="md-pv-zap-box" class="md-zap" style="display:none"><div id="md-pv-zap"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CONFIGURAÇÃO ── -->
+  <div class="md-view" id="md-v-config">
+    <div class="conn-card">
+      <div class="conn-status-row"><span class="conn-dot" id="md-cfg-dot"></span><span class="conn-title" id="md-cfg-titulo">Verificando…</span>
+        <span class="conn-sub"><button class="btn-conn-test" style="height:30px" onclick="mdCarregarConfig()">🔄 Verificar</button></span></div>
+      <ul class="md-check" id="md-cfg-lista"></ul>
+    </div>
+
+    <div class="conn-card">
+      <div class="conn-status-row" style="margin-bottom:8px"><span class="conn-title">Teste de e-mail</span></div>
+      <p class="md-nota">Envia o 1º e-mail ou o lembrete, com o texto salvo, para um endereço seu (lead fictício "Antonio Teste"). Não entra na planilha. Faça antes do primeiro lote real e confira caixa de entrada, spam e o botão.</p>
+      <div class="md-row" style="margin-top:12px">
+        <input class="md-input" id="md-teste-email" type="email" placeholder="seu@email.com" style="min-width:240px">
+        <select class="md-input" id="md-teste-etapa"><option value="1">1º e-mail</option><option value="2">Lembrete</option></select>
+        <button class="btn-conn" onclick="mdTesteEmail()">✉️ Enviar teste</button>
+      </div>
+      <p class="md-msg" id="md-teste-msg"></p>
+    </div>
+
+    <div class="table-wrap">
+      <div class="table-head-row"><span>Como implantar (1ª vez)</span></div>
+      <div style="padding:16px 20px">
+        <ol class="md-passos">
+          <li>Crie uma planilha nova e <b>privada</b> no Google Sheets: <b>WAL — Mala Direta</b>.</li>
+          <li>Nela: <b>Extensões › Apps Script</b>. Confira o nome do projeto no topo do editor e cole todo o arquivo <code>painel/mala direta/apps-script-mala-direta.gs</code>.</li>
+          <li>Rode <b>configurarMalaDireta</b> (▶ Executar) e autorize. Ela cria as abas CAMPANHA_LEADS, CAMPANHA_LOG e CAMPANHA_TEXTOS.</li>
+          <li><b>Implantar › Nova implantação › Aplicativo da Web</b> · Executar como "Eu" · Quem pode acessar "Qualquer pessoa". Copie a URL /exec.</li>
+          <li>Em <b>Configurações do projeto › Propriedades do script</b>: BREVO_API_KEY, URL_API (a URL /exec), WEBHOOK_KEY (um segredo qualquer) e, se quiser, BREVO_LIST_ID.</li>
+          <li>Cole a URL /exec em <code>MD_API_URL</code> (admin.html) e em <code>CONFIG.API_URL</code> (recadastro.html). Publique o Aviso de Privacidade e preencha <code>CONFIG.PRIVACIDADE_URL</code> no recadastro.html — sem ele o formulário fica travado.</li>
+          <li>Na Brevo: <b>Transacional › Webhooks</b>, apontando para a "URL do webhook" mostrada acima, com aberturas, hard bounce, e-mail inválido, bloqueado, spam e descadastro.</li>
+          <li>Teste com 3 ou 4 e-mails seus (importe-os como leads), clique, recadastre em cada situação e confira aqui antes do lote real.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- MODAL DETALHE DO LEAD (Mala Direta) -->
+<div class="cad-overlay" id="md-modal" onclick="if(event.target===this)mdFecharLead()">
+  <div class="cad-box">
+    <div class="cad-header"><span class="cad-title" id="md-modal-titulo">Lead</span>
+      <button class="cad-close" onclick="mdFecharLead()" aria-label="Fechar">✕</button></div>
+    <div class="cad-body" id="md-modal-corpo"></div>
+  </div>
 </div>
 
 <!-- ══════════════ TAB: MAPA DE EMPREENDIMENTOS ══════════════ -->
@@ -2807,6 +3094,7 @@ function switchTab(name) {
   if (name === 'banners') carregarBanners();
   if (name === 'equipe') equipeCarregar();
   if (name === 'backup') backupCarregar();
+  if (name === 'maladireta') mdAbrir();
 }
 
 /* Coloca um elemento (ex: o iframe do Painel 3D) em tela cheia — o
@@ -5731,6 +6019,484 @@ function initAdmin() {
 document.addEventListener('DOMContentLoaded', () => {
   if (localStorage.getItem('fab_admin_ok') === ADMIN_PIN) initAdmin();
 });
+
+/* ── MALA DIRETA (pedido 110.7) ──
+   Opera a campanha de reativação de leads (e-mail pela Brevo + WhatsApp manual).
+   Backend próprio e ISOLADO: painel/mala direta/apps-script-mala-direta.gs, ligado
+   à planilha privada "WAL — Mala Direta". Não mexe em nenhum dos outros backends.
+   Leituras e ações pequenas via JSONP; prévia, salvar textos e importar via POST
+   text/plain (payload grande demais para a URL). */
+const MD_API_URL = '';   // colar aqui a URL /exec da implantação do apps-script-mala-direta.gs
+
+const MD_ORDEM = ['PENDENTE', 'ENVIADO', 'ABRIU', 'CLICOU', 'RECADASTROU', 'COMPROU', 'SEM_INTERESSE', 'SAIR', 'INVALIDO', 'SPAM', 'ERRO_ENVIO', 'DUPLICADO'];
+const MD_SAIDAS = ['COMPROU', 'SEM_INTERESSE', 'SAIR', 'INVALIDO', 'SPAM', 'ERRO_ENVIO', 'DUPLICADO'];
+const MD_ROTULO = { PENDENTE: 'Aguardando envio', ENVIADO: 'Enviados sem abrir', ABRIU: 'Abriram', CLICOU: 'Visitaram a página',
+  RECADASTROU: 'Atualizaram a busca', COMPROU: 'Já compraram', SEM_INTERESSE: 'Sem interesse', SAIR: 'Pediram para sair',
+  INVALIDO: 'Contato inválido', SPAM: 'Marcaram spam', ERRO_ENVIO: 'Erro de envio', DUPLICADO: 'Duplicados', NAO_PREPARADO: 'Não preparado' };
+const MD_COR = { PENDENTE: '#5c6579', ENVIADO: '#1C3461', ABRIU: '#2563EB', CLICOU: '#0E7490', RECADASTROU: '#15803D',
+  COMPROU: '#15803D', SEM_INTERESSE: '#8A96A8', SAIR: '#8A96A8', INVALIDO: '#b03a2e', SPAM: '#b03a2e', ERRO_ENVIO: '#b03a2e',
+  DUPLICADO: '#8A96A8', NAO_PREPARADO: '#9a6b0a' };
+const MD_SITUACAO = { buscando: 'Continuam buscando', adiou: 'Adiaram os planos', comprou: 'Já compraram',
+  sem_interesse: 'Sem interesse', nao_contatar: 'Não querem contato' };
+const MD_NOME_ORIGEM = { RJ: 'Rio de Janeiro', SPA: 'São Pedro da Aldeia', SJC: 'Vale do Paraíba', SP: 'São Paulo capital',
+  LITORAL: 'Caraguatatuba', GERAL: 'Contato direto / outros' };
+const MD_STATUS_MANUAIS = { SAIR: 'Pediu para sair (ex.: respondeu SAIR)', COMPROU: 'Já comprou', SEM_INTERESSE: 'Sem interesse',
+  INVALIDO: 'Contato inválido (número/e-mail não existe)', PENDENTE: 'Voltar para PENDENTE (só ERRO_ENVIO/DUPLICADO)' };
+
+const _md = { view: 'acomp', resumo: null, leads: [], leadsCarregados: false, imp: [],
+  tx: null, salvo: {}, rasc: {}, msg: 'e1', ultimoCampo: null, tPrevia: null, seqPrevia: 0 };
+
+function mdEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function mdBadge(st) {
+  return `<span class="md-badge" style="background:${MD_COR[st] || '#5c6579'}">${mdEsc(MD_ROTULO[st] || st || '—')}</span>`;
+}
+function mdCont(id, n) { const el = document.getElementById(id); el.textContent = n; el.className = 'md-cont' + (n ? '' : ' zero'); }
+function mdMsg(id, texto, tipo) { const el = document.getElementById(id); el.textContent = texto || ''; el.className = 'md-msg' + (tipo ? ' ' + tipo : ''); }
+function mdOk(r) { return r && r.status === 'ok'; }
+function mdErro(r) { return (r && r.message) || 'Sem resposta do servidor.'; }
+const MD_NAO_CONFIG = { status: 'error', naoConfigurado: true,
+  message: 'Backend da Mala Direta ainda não conectado: implante o apps-script-mala-direta.gs e cole a URL /exec em MD_API_URL (admin.html).' };
+
+function mdGet(action, params, timeoutMs) {
+  return new Promise(resolve => {
+    if (!MD_API_URL) { resolve(MD_NAO_CONFIG); return; }
+    const cb = 'mdCb_' + Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const s = document.createElement('script');
+    const t = setTimeout(() => { cleanup(); resolve({ status: 'error', message: 'Sem resposta do servidor (tempo esgotado). Clique em Atualizar para conferir.' }); }, timeoutMs || 25000);
+    function cleanup() { clearTimeout(t); delete window[cb]; s.parentNode && s.parentNode.removeChild(s); }
+    window[cb] = data => { cleanup(); resolve(data); };
+    s.onerror = () => { cleanup(); resolve({ status: 'error', message: 'Falha ao falar com o backend da Mala Direta.' }); };
+    const qs = new URLSearchParams(Object.assign({ action, callback: cb, authPin: ADMIN_PIN }, params || {}));
+    s.src = MD_API_URL + '?' + qs.toString();
+    document.body.appendChild(s);
+  });
+}
+async function mdPost(action, body) {
+  if (!MD_API_URL) return MD_NAO_CONFIG;
+  try {
+    const r = await fetch(MD_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(Object.assign({ action, authPin: ADMIN_PIN }, body || {})) });
+    return await r.json();
+  } catch (e) {
+    return { status: 'error', message: 'Falha ao falar com o backend da Mala Direta (' + e.message + ').' };
+  }
+}
+
+function mdAbrir() {
+  const aviso = document.getElementById('md-aviso-config');
+  aviso.style.display = MD_API_URL ? 'none' : '';
+  aviso.textContent = MD_API_URL ? '' : MD_NAO_CONFIG.message + ' O passo a passo está em ⚙️ Configuração.';
+  mdView(_md.view);
+}
+
+function mdView(v) {
+  _md.view = v;
+  document.querySelectorAll('[data-md-view]').forEach(b => b.classList.toggle('active', b.dataset.mdView === v));
+  document.querySelectorAll('#panel-maladireta .md-view').forEach(p => p.classList.toggle('active', p.id === 'md-v-' + v));
+  if (v === 'acomp') mdCarregarResumo();
+  if (v === 'leads' && !_md.leadsCarregados) mdCarregarLeads();
+  if (v === 'importar') mdCarregarResumo(true);
+  if (v === 'textos') { if (_md.tx) mdPrevia(); else mdCarregarTextos(); }
+  if (v === 'config') mdCarregarConfig();
+}
+
+/* ---------- Acompanhamento ---------- */
+async function mdCarregarResumo(soContadores) {
+  const d = await mdGet('md_resumo');
+  if (!mdOk(d)) { mdMsg('md-acomp-erro', mdErro(d), 'e'); document.getElementById('md-acomp-erro').style.display = ''; return; }
+  document.getElementById('md-acomp-erro').style.display = 'none';
+  _md.resumo = d;
+  document.getElementById('md-sem-preparar').textContent = d.semPreparar ? d.semPreparar + ' aguardando preparação' : 'nenhum aguardando';
+  if (soContadores) return;
+
+  const total = Object.values(d.porStatus).reduce((a, b) => a + b, 0);
+  const kpis = MD_ORDEM.filter(s => d.porStatus[s]).map(s =>
+    `<div class="stat-card"${MD_SAIDAS.includes(s) ? ' style="opacity:.75"' : ''}><div class="stat-label">${mdEsc(MD_ROTULO[s])}</div>
+      <div class="stat-val">${d.porStatus[s]}</div><div class="stat-sub">${Math.round(100 * d.porStatus[s] / total)}% da base</div></div>`);
+  document.getElementById('md-kpis').innerHTML = kpis.length ? kpis.join('')
+    : '<div class="empty-table" style="padding:24px;grid-column:1/-1">Nenhum lead preparado ainda. Use 📥 Importar.</div>';
+
+  document.getElementById('md-hoje').textContent = d.enviadosHoje;
+  document.getElementById('md-limite').textContent = d.limiteDia;
+  document.getElementById('md-f1').textContent = d.filaEtapa1;
+  document.getElementById('md-f2').textContent = d.filaEtapa2;
+  document.getElementById('md-dias-lembrete').textContent = d.diasLembrete;
+  document.getElementById('md-qtd').max = d.loteMax;
+  mdCont('md-n-whats', d.filaWhats);
+  mdCont('md-n-consultor', d.consultor);
+
+  const origens = Object.keys(d.origem);
+  document.getElementById('md-t-origem').innerHTML = origens.length ? origens.map(o => { const x = d.origem[o];
+    return `<tr><td class="td-nome">${mdEsc(MD_NOME_ORIGEM[o] || o)}</td><td class="md-n">${x.total}</td><td class="md-n">${x.enviados}</td>
+      <td class="md-n">${x.visitou}</td><td class="md-n">${x.recadastrou}</td><td class="md-n">${x.enviados ? Math.round(100 * x.recadastrou / x.enviados) + '%' : '–'}</td></tr>`;
+  }).join('') : '<tr><td colspan="6"><div class="empty-table" style="padding:20px">Sem leads ainda.</div></td></tr>';
+
+  const sits = Object.keys(MD_SITUACAO).filter(s => d.situacao[s]);
+  document.getElementById('md-t-situacao').innerHTML = sits.length
+    ? sits.map(s => `<tr><td class="td-nome">${MD_SITUACAO[s]}</td><td class="md-n">${d.situacao[s]}</td></tr>`).join('')
+    : '<tr><td>Ninguém respondeu ainda.</td></tr>';
+  document.getElementById('md-t-consent').innerHTML =
+    `<tr><td class="td-nome">Autorizaram e-mail</td><td class="md-n">${d.consEmail}</td></tr>
+     <tr><td class="td-nome">Autorizaram WhatsApp</td><td class="md-n">${d.consWhats}</td></tr>`;
+  document.getElementById('md-t-log').innerHTML = d.logs.length
+    ? d.logs.map(l => `<tr>${l.map((v, i) => `<td${i === 1 ? ' class="td-nome"' : ''}>${mdEsc(v)}</td>`).join('')}</tr>`).join('')
+    : '<tr><td colspan="5"><div class="empty-table" style="padding:20px">Nenhum evento ainda.</div></td></tr>';
+
+  mdCarregarConsultor();
+  if (d.filaWhats && document.getElementById('md-t-whats').dataset.carregada) mdCarregarWhats();
+}
+
+async function mdCarregarConsultor() {
+  const r = await mdGet('md_consultor');
+  const t = document.getElementById('md-t-consultor');
+  if (!mdOk(r)) { t.innerHTML = `<tr><td colspan="5"><div class="empty-table" style="padding:20px">${mdEsc(mdErro(r))}</div></td></tr>`; return; }
+  if (!r.itens.length) { t.innerHTML = '<tr><td colspan="5"><div class="empty-table" style="padding:20px">Nenhum pedido em aberto.</div></td></tr>'; return; }
+  t.innerHTML = r.itens.map(p => `<tr>
+    <td>${mdEsc(p.quando)}</td>
+    <td class="td-nome"><b>${mdEsc(p.nome)}</b><br>${p.link ? `<a href="${mdEsc(p.link)}" target="_blank" rel="noopener">WhatsApp</a> · ` : ''}${mdEsc(p.id)}${p.vinculo ? ' · ' + mdEsc(p.vinculo) : ''}${p.email ? '<br>' + mdEsc(p.email) : ''}</td>
+    <td>${mdEsc([p.cidade, p.prazo, p.objetivo].filter(Boolean).join(' · '))}</td>
+    <td style="max-width:320px">${mdEsc(p.obs)}</td>
+    <td><button class="btn-conn-test" style="height:30px" data-id="${mdEsc(p.id)}" onclick="mdMarcarAtendido(this)">Marcar atendido</button></td></tr>`).join('');
+}
+async function mdMarcarAtendido(btn) {
+  btn.disabled = true;
+  const r = await mdGet('md_marcar_atendido', { id: btn.dataset.id });
+  if (!mdOk(r) || !r.ok) { btn.disabled = false; mostrarToast('❌ ' + (mdOk(r) ? 'Pedido já estava marcado.' : mdErro(r))); return; }
+  btn.closest('tr').remove();
+  mdCont('md-n-consultor', Math.max(0, Number(document.getElementById('md-n-consultor').textContent) - 1));
+  mostrarToast('✅ Marcado como atendido.');
+}
+
+async function mdEnviar(etapa) {
+  const qtd = Number(document.getElementById('md-qtd').value) || 0;
+  if (qtd < 1) return;
+  const avisoTx = mdTxSujo() ? '\n\nAtenção: há alterações de texto não salvas. O envio usa o último texto salvo.' : '';
+  if (!confirm('Enviar ' + qtd + (etapa === 1 ? ' primeiros e-mails' : ' lembretes') + ' agora pela Brevo?' + avisoTx)) return;
+  const b1 = document.getElementById('md-env1'), b2 = document.getElementById('md-env2');
+  b1.disabled = b2.disabled = true;
+  mdMsg('md-msg-envio', 'Enviando… pode levar até 1 minuto. Não feche a página.');
+  const r = await mdGet('md_enviar', { etapa, qtd }, 300000);
+  b1.disabled = b2.disabled = false;
+  if (mdOk(r)) mdMsg('md-msg-envio', r.msg, r.falhas ? 'e' : 'ok');
+  else mdMsg('md-msg-envio', mdErro(r), 'e');
+  mdCarregarResumo();
+}
+
+async function mdCarregarWhats() {
+  const t = document.getElementById('md-t-whats');
+  t.dataset.carregada = '1';
+  t.innerHTML = '<tr><td><div class="empty-table" style="padding:20px">Carregando…</div></td></tr>';
+  const r = await mdGet('md_whats');
+  if (!mdOk(r)) { t.innerHTML = `<tr><td><div class="empty-table" style="padding:20px">${mdEsc(mdErro(r))}</div></td></tr>`; return; }
+  if (!r.itens.length) { t.innerHTML = '<tr><td><div class="empty-table" style="padding:20px">Nenhum lead pendente no WhatsApp.</div></td></tr>'; return; }
+  _md.whats = r.itens;
+  t.innerHTML = r.itens.map((w, i) => `<tr>
+    <td>${mdEsc(w.id)}</td><td class="td-nome">${mdEsc(w.nome)}</td><td>${mdEsc(w.telefone || 'sem telefone válido')}</td>
+    <td>${mdEsc(MD_NOME_ORIGEM[w.origem] || w.origem)}</td>
+    <td>${w.link ? `<a href="${mdEsc(w.link)}" target="_blank" rel="noopener">Abrir conversa com a mensagem</a>` : ''}</td>
+    <td><button class="btn-conn-test" style="height:30px" onclick="mdCopiarWhats(${i})">Copiar texto</button></td>
+    <td><button class="btn-conn-test" style="height:30px" data-id="${mdEsc(w.id)}" onclick="mdMarcarWhats(this)">Marcar enviado</button></td></tr>`).join('');
+}
+function mdCopiarWhats(i) {
+  navigator.clipboard.writeText(_md.whats[i].texto).then(() => mostrarToast('📋 Texto copiado.'), () => mostrarToast('❌ Não foi possível copiar.'));
+}
+async function mdMarcarWhats(btn) {
+  btn.disabled = true;
+  const r = await mdGet('md_marcar_whats', { id: btn.dataset.id });
+  if (!mdOk(r) || !r.ok) { btn.disabled = false; mostrarToast('❌ ' + (mdOk(r) ? 'Este lead não está mais pendente.' : mdErro(r))); return; }
+  btn.closest('tr').remove();
+  mdCont('md-n-whats', Math.max(0, Number(document.getElementById('md-n-whats').textContent) - 1));
+  _md.leadsCarregados = false;
+}
+
+/* ---------- Leads ---------- */
+async function mdCarregarLeads() {
+  document.getElementById('md-t-leads').innerHTML = '<tr><td colspan="8"><div class="empty-table">Carregando…</div></td></tr>';
+  const r = await mdGet('md_leads', {}, 40000);
+  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="8"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return; }
+  _md.leads = r.itens;
+  _md.leadsCarregados = true;
+  const fill = (id, vals, rotulo, primeiro) => {
+    const el = document.getElementById(id), atual = el.value;
+    el.innerHTML = `<option value="">${primeiro}</option>` + vals.map(v => `<option value="${mdEsc(v)}">${mdEsc(rotulo(v))}</option>`).join('');
+    el.value = vals.includes(atual) ? atual : '';
+  };
+  const sts = [...new Set(_md.leads.map(l => l.status))].sort((a, b) => MD_ORDEM.indexOf(a) - MD_ORDEM.indexOf(b));
+  fill('md-f-status', sts, s => MD_ROTULO[s] || s, 'Todos os status');
+  fill('md-f-origem', [...new Set(_md.leads.map(l => l.origem).filter(Boolean))].sort(), o => MD_NOME_ORIGEM[o] || o, 'Todas as origens');
+  mdRenderLeads();
+}
+function mdUltimoMov(l) {
+  if (l.dtRecadastro) return 'Recadastrou ' + l.dtRecadastro;
+  if (l.dtClique) return 'Visitou ' + l.dtClique;
+  if (l.dtAbertura) return 'Abriu ' + l.dtAbertura;
+  if (l.dtEnvio2) return 'Lembrete ' + l.dtEnvio2;
+  if (l.dtEnvio1) return 'Enviado ' + l.dtEnvio1;
+  return l.dtCadastro ? 'Cadastro ' + l.dtCadastro : '';
+}
+function mdRenderLeads() {
+  const q = document.getElementById('md-f-busca').value.trim().toLowerCase();
+  const fs = document.getElementById('md-f-status').value, fc = document.getElementById('md-f-canal').value, fo = document.getElementById('md-f-origem').value;
+  const qDig = q.replace(/\D/g, '');
+  const lista = _md.leads.filter(l => (!fs || l.status === fs) && (!fc || l.canal === fc) && (!fo || l.origem === fo) &&
+    (!q || (l.nome + ' ' + l.email + ' ' + l.emailAtual + ' ' + l.id).toLowerCase().includes(q) || (qDig.length >= 4 && l.telefone.replace(/\D/g, '').includes(qDig))));
+  const LIM = 300;
+  document.getElementById('md-leads-count').textContent = `${lista.length} de ${_md.leads.length} leads` + (lista.length > LIM ? ` — mostrando os ${LIM} primeiros; refine a busca.` : '') + ' · Clique numa linha para ver tudo e mudar o status.';
+  const idx = new Map(_md.leads.map((l, i) => [l, i]));
+  document.getElementById('md-t-leads').innerHTML = lista.length ? lista.slice(0, LIM).map(l => `<tr onclick="mdAbrirLead(${idx.get(l)})">
+    <td>${mdEsc(l.id)}</td><td class="td-nome">${mdEsc(l.nome)}</td>
+    <td>${mdEsc(l.email || '')}${l.email && l.telefone ? '<br>' : ''}${mdEsc(l.telefone || '')}</td>
+    <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
+    <td>${mdEsc(mdUltimoMov(l))}</td><td>${mdEsc(MD_SITUACAO[l.situacao] || '')}${l.consultor === 'SIM' && !l.dtAtendido ? ' 🆘' : ''}</td></tr>`).join('')
+    : '<tr><td colspan="8"><div class="empty-table">Nenhum lead encontrado.</div></td></tr>';
+}
+
+function mdAbrirLead(i) {
+  const l = _md.leads[i];
+  if (!l) return;
+  _md.leadAberto = l;
+  const kv = (rotulo, v) => v ? `<dt>${rotulo}</dt><dd>${mdEsc(v)}</dd>` : '';
+  const fone = (l.telefone || '').replace(/\D/g, '');
+  const foneWa = fone.length === 10 || fone.length === 11 ? '55' + fone : fone;
+  const podeWhats = l.canal === 'EMAIL' && ['INVALIDO', 'ERRO_ENVIO', 'PENDENTE'].includes(l.status) && /^55\d{10,11}$/.test(foneWa);
+  document.getElementById('md-modal-titulo').textContent = l.nome + ' · ' + l.id;
+  document.getElementById('md-modal-corpo').innerHTML = `
+    <div style="margin-bottom:14px">${mdBadge(l.status)} <span class="md-nota">canal ${mdEsc(l.canal || '—')} · ${l.envios} envio(s)</span></div>
+    <dl class="md-kv">
+      ${kv('Telefone', l.telefone)}${kv('E-mail do cadastro', l.email)}${kv('E-mail atualizado', l.emailAtual !== l.email ? l.emailAtual : '')}
+      ${kv('Origem', MD_NOME_ORIGEM[l.origem] || l.origem)}${kv('Empreendimento', l.empreendimento)}${kv('Cadastro original', l.dtCadastro)}
+      ${kv('1º envio', l.dtEnvio1)}${kv('Lembrete', l.dtEnvio2)}${kv('Abriu o e-mail', l.dtAbertura)}${kv('Visitou a página', l.dtClique)}
+      ${kv('Recadastrou', l.dtRecadastro)}${kv('Resposta', MD_SITUACAO[l.situacao] || l.situacao)}${kv('Cidade de interesse', l.cidade)}
+      ${kv('Objetivo', l.objetivo)}${kv('Prazo', l.prazo)}${kv('Vínculo', l.vinculo)}${kv('Observações do lead', l.observacoes)}
+      ${kv('Pediu consultor', l.consultor === 'SIM' ? (l.dtAtendido ? 'Sim — atendido em ' + l.dtAtendido : 'Sim — AGUARDANDO') : '')}
+      ${kv('Autorizou e-mail', l.consEmail)}${kv('Autorizou WhatsApp', l.consWhats)}${kv('Campanha', l.campanha)}${kv('Observação interna', l.obs)}
+    </dl>
+    <div class="md-acao">
+      ${/^55\d{10,11}$/.test(foneWa) ? `<p style="margin-bottom:12px"><a href="https://wa.me/${foneWa}" target="_blank" rel="noopener">💬 Abrir conversa no WhatsApp</a></p>` : ''}
+      <div class="md-row">
+        <select class="md-input" id="md-st-novo">${Object.keys(MD_STATUS_MANUAIS).map(s => `<option value="${s}">${mdEsc(MD_STATUS_MANUAIS[s])}</option>`).join('')}</select>
+        <input class="md-input" id="md-st-motivo" placeholder="Motivo (opcional)" maxlength="120" style="flex:1;min-width:180px">
+        <button class="btn-conn" onclick="mdStatusManual()">Aplicar status</button>
+      </div>
+      <p class="md-nota" style="margin-top:6px">"Pediu para sair" também bloqueia o e-mail na Brevo. Use quando o lead responder SAIR no WhatsApp.</p>
+      ${podeWhats ? `<div class="md-row" style="margin-top:14px"><button class="btn-conn-test" onclick="mdParaWhats()">📱 Tentar pelo WhatsApp</button>
+        <span class="md-nota">Tira da fila de e-mail e coloca na fila do WhatsApp.</span></div>` : ''}
+      <p class="md-msg" id="md-lead-msg"></p>
+    </div>`;
+  document.getElementById('md-modal').classList.add('show');
+}
+function mdFecharLead() { document.getElementById('md-modal').classList.remove('show'); }
+
+async function mdStatusManual() {
+  const l = _md.leadAberto, novo = document.getElementById('md-st-novo').value;
+  if (!confirm(`Marcar ${l.nome} (${l.id}) como "${MD_ROTULO[novo]}"?`)) return;
+  const r = await mdGet('md_status_manual', { id: l.id, novo, motivo: document.getElementById('md-st-motivo').value.trim() });
+  if (!mdOk(r)) { mdMsg('md-lead-msg', mdErro(r), 'e'); return; }
+  mostrarToast('✅ Status atualizado.');
+  mdFecharLead();
+  mdCarregarLeads();
+}
+async function mdParaWhats() {
+  const l = _md.leadAberto;
+  const r = await mdGet('md_para_whats', { id: l.id });
+  if (!mdOk(r)) { mdMsg('md-lead-msg', mdErro(r), 'e'); return; }
+  mostrarToast('📱 ' + l.nome + ' entrou na fila do WhatsApp.');
+  mdFecharLead();
+  mdCarregarLeads();
+}
+
+/* ---------- Importar ---------- */
+function mdImpLer(texto) {
+  const linhas = texto.replace(/\r/g, '').split('\n').filter(l => l.trim());
+  if (!linhas.length) return [];
+  const sep = linhas[0].includes('\t') ? '\t' : linhas[0].includes(';') ? ';' : ',';
+  const partir = l => l.split(sep).map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+  const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  let mapa = { nome: 0, telefone: 1, email: 2, origem: 3, empreendimento: 4, dt_cadastro: 5 };
+  const cab = partir(linhas[0]).map(norm);
+  if (cab.some(h => /^nome/.test(h))) {
+    const achar = res => cab.findIndex(h => res.some(re => re.test(h)));
+    mapa = { nome: achar([/^nome/]), telefone: achar([/telefone|fone|celular|whats/]), email: achar([/e-?mail/]),
+      origem: achar([/origem|regiao|cidade/]), empreendimento: achar([/empreend|imovel/]), dt_cadastro: achar([/data|cadastro|^dt/]) };
+    linhas.shift();
+  }
+  return linhas.map(l => { const c = partir(l), o = {};
+    Object.keys(mapa).forEach(k => { o[k] = mapa[k] >= 0 ? (c[mapa[k]] || '') : ''; });
+    return o; });
+}
+function mdImpConferir() {
+  const itens = mdImpLer(document.getElementById('md-imp-texto').value);
+  const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  const foneOk = v => { let f = String(v).replace(/\D/g, ''); if (f.length === 10 || f.length === 11) f = '55' + f; return /^55[1-9]{2}[2-9]\d{7,8}$/.test(f); };
+  let email = 0, whats = 0, sem = 0;
+  itens.forEach(x => { if (reEmail.test(x.email.trim())) email++; else if (foneOk(x.telefone)) whats++; else sem++; });
+  _md.imp = itens;
+  document.getElementById('md-imp-btn').disabled = !(email + whats);
+  document.getElementById('md-imp-resumo').innerHTML = itens.length
+    ? `<b>${itens.length}</b> linha(s): <b>${email}</b> com e-mail (Brevo) · <b>${whats}</b> só com telefone (WhatsApp)` + (sem ? ` · <span style="color:#b03a2e">${sem} sem e-mail nem telefone válido (serão ignorados)</span>` : '')
+    : '';
+  document.getElementById('md-imp-previa').innerHTML = itens.length ? `<table class="md-table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Origem</th><th>Empreendimento</th><th>Data</th></tr></thead><tbody>` +
+    itens.slice(0, 8).map(x => `<tr><td class="td-nome">${mdEsc(x.nome)}</td><td>${mdEsc(x.telefone)}</td><td>${mdEsc(x.email)}</td><td>${mdEsc(x.origem)}</td><td>${mdEsc(x.empreendimento)}</td><td>${mdEsc(x.dt_cadastro)}</td></tr>`).join('') +
+    `</tbody></table>${itens.length > 8 ? `<p class="md-nota" style="padding:6px 0">… e mais ${itens.length - 8}.</p>` : ''}` : '';
+}
+async function mdImportar() {
+  if (!_md.imp.length || !confirm(`Importar ${_md.imp.length} linha(s) para a planilha da Mala Direta?`)) return;
+  const btn = document.getElementById('md-imp-btn');
+  btn.disabled = true;
+  mdMsg('md-imp-msg', 'Importando e preparando…');
+  const r = await mdPost('md_importar', { linhas: _md.imp });
+  btn.disabled = false;
+  if (!mdOk(r)) { mdMsg('md-imp-msg', mdErro(r), 'e'); return; }
+  mdMsg('md-imp-msg', `✅ ${r.importados} importado(s) e ${r.preparados} preparado(s). ${r.pulados} já estavam na planilha; ${r.invalidos} sem contato válido.`, 'ok');
+  if (r.importados) { document.getElementById('md-imp-texto').value = ''; mdImpConferir(); }
+  _md.leadsCarregados = false;
+  mdCarregarResumo(true);
+}
+async function mdPreparar() {
+  const r = await mdGet('md_preparar', {}, 60000);
+  if (!mdOk(r)) { mostrarToast('❌ ' + mdErro(r)); return; }
+  mostrarToast(`✅ ${r.preparados} lead(s) preparado(s).`);
+  _md.leadsCarregados = false;
+  mdCarregarResumo(true);
+}
+
+/* ---------- Textos das mensagens ---------- */
+const MD_CAMPOS = { e1: { 'md-txAssunto': 'EMAIL1_ASSUNTO', 'md-txCorpo': 'EMAIL1_CORPO', 'md-txBotao': 'EMAIL1_BOTAO' },
+  e2: { 'md-txAssunto': 'EMAIL2_ASSUNTO', 'md-txCorpo': 'EMAIL2_CORPO', 'md-txBotao': 'EMAIL2_BOTAO' },
+  wa: { 'md-txWhats': 'WHATS_TEXTO' } };
+const MD_COMUNS = { 'md-txNota': 'EMAIL_NOTA', 'md-txAss': 'EMAIL_ASSINATURA' };
+const mdCopia = o => JSON.parse(JSON.stringify(o));
+function mdTxSujo() { return !!_md.tx && JSON.stringify(_md.rasc) !== JSON.stringify(_md.salvo); }
+function mdCamposAtuais() { return Object.assign({}, MD_CAMPOS[_md.msg], _md.msg !== 'wa' ? MD_COMUNS : {}); }
+
+async function mdCarregarTextos() {
+  document.getElementById('md-tx-estado').textContent = 'Carregando…';
+  const d = await mdGet('md_textos');
+  if (!mdOk(d)) { document.getElementById('md-tx-estado').textContent = mdErro(d); return; }
+  _md.tx = d; _md.salvo = mdCopia(d.textos); _md.rasc = mdCopia(d.textos);
+  const chips = (id, itens, abre, fecha) => {
+    const box = document.getElementById(id); box.innerHTML = '';
+    itens.forEach(v => { const b = document.createElement('button'); b.type = 'button'; b.textContent = abre(v);
+      b.onclick = () => mdTxInserir(abre(v), fecha(v)); box.appendChild(b); });
+  };
+  chips('md-tx-vars', d.variaveis, v => '{' + v + '}', () => '');
+  chips('md-tx-blocos', d.blocos, v => '[' + v + ']', v => '[/' + v + ']');
+  document.getElementById('md-pvReg').innerHTML = d.regioes.map(r => `<option value="${mdEsc(r.k)}">de ${mdEsc(r.nome)}</option>`).join('');
+  mdTxMostrar('e1');
+}
+function mdTxMostrar(m) {
+  if (!_md.tx) return;
+  _md.msg = m;
+  document.querySelectorAll('#md-tx-seg [data-msg]').forEach(b => b.classList.toggle('active', b.dataset.msg === m));
+  document.getElementById('md-grp-email').style.display = m === 'wa' ? 'none' : '';
+  document.getElementById('md-grp-whats').style.display = m === 'wa' ? '' : 'none';
+  document.getElementById('md-pv-email-box').style.display = m === 'wa' ? 'none' : '';
+  document.getElementById('md-pv-zap-box').style.display = m === 'wa' ? '' : 'none';
+  const mapa = mdCamposAtuais();
+  Object.keys(mapa).forEach(id => { document.getElementById(id).value = _md.rasc[mapa[id]] || ''; });
+  const chave = MD_CAMPOS[m]['md-txCorpo'] || MD_CAMPOS[m]['md-txWhats'];
+  document.getElementById('md-tx-data').textContent = _md.tx.datas[chave] ? 'Última alteração salva: ' + _md.tx.datas[chave] : '';
+  mdTxEstado(); mdPrevia();
+}
+['md-txAssunto', 'md-txCorpo', 'md-txBotao', 'md-txNota', 'md-txAss', 'md-txWhats'].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('focus', () => { _md.ultimoCampo = el; });
+  el.addEventListener('input', () => {
+    const chave = mdCamposAtuais()[id]; if (!chave) return;
+    _md.rasc[chave] = el.value; mdTxEstado();
+    clearTimeout(_md.tPrevia); _md.tPrevia = setTimeout(mdPrevia, 500);
+  });
+});
+function mdTxInserir(abre, fecha) {
+  const u = _md.ultimoCampo;
+  const c = u && u.offsetParent !== null ? u : document.getElementById(_md.msg === 'wa' ? 'md-txWhats' : 'md-txCorpo');
+  const i = c.selectionStart || 0, f = c.selectionEnd || i, v = c.value;
+  c.value = v.slice(0, i) + abre + v.slice(i, f) + fecha + v.slice(f);
+  c.focus(); c.selectionStart = i + abre.length; c.selectionEnd = f + abre.length;
+  c.dispatchEvent(new Event('input'));
+}
+function mdTxEstado() {
+  const sujo = mdTxSujo(), el = document.getElementById('md-tx-estado');
+  el.textContent = sujo ? 'Alterações não salvas' : 'Tudo salvo';
+  el.style.color = sujo ? '#b03a2e' : ''; el.style.fontWeight = sujo ? '700' : '';
+  document.getElementById('md-tx-pend').style.display = sujo ? '' : 'none';
+  document.getElementById('md-tx-descartar').disabled = !sujo;
+}
+function mdTxErros(lista) {
+  document.getElementById('md-tx-erros').innerHTML = (lista || []).map(t => `<li>${mdEsc(t)}</li>`).join('');
+}
+async function mdPrevia() {
+  if (!_md.tx || _md.view !== 'textos') return;
+  const seq = ++_md.seqPrevia;
+  const ex = { antigo: document.getElementById('md-pvAntigo').value === '1', comEmpreendimento: document.getElementById('md-pvEmp').value === '1',
+    origem: document.getElementById('md-pvReg').value };
+  const r = await mdPost('md_previa', { rascunho: _md.rasc, ex });
+  if (seq !== _md.seqPrevia) return;   // chegou uma prévia mais nova
+  if (!mdOk(r)) { mdTxErros([mdErro(r)]); return; }
+  const m = _md.msg === 'e2' ? r.email2 : r.email1;
+  document.getElementById('md-pv-assunto').textContent = m.assunto;
+  document.getElementById('md-pv-email').srcdoc = '<!doctype html><meta charset="utf-8"><body style="margin:0">' + m.html;
+  document.getElementById('md-pv-zap').textContent = r.whats;
+  mdTxErros(r.erros);
+}
+async function mdTxSalvar() {
+  const b = document.getElementById('md-tx-salvar');
+  b.disabled = true; document.getElementById('md-tx-estado').textContent = 'Salvando…';
+  const r = await mdPost('md_salvar_textos', { textos: _md.rasc });
+  b.disabled = false;
+  if (!mdOk(r)) { mdTxErros([mdErro(r)]); mdTxEstado(); return; }
+  if (!r.ok) { mdTxErros(r.erros); const el = document.getElementById('md-tx-estado'); el.textContent = 'Não salvo: corrija os itens em vermelho'; el.style.color = '#b03a2e'; return; }
+  _md.salvo = mdCopia(_md.rasc); _md.tx.datas = r.datas; mdTxErros([]); mdTxMostrar(_md.msg);
+  document.getElementById('md-tx-estado').textContent = r.alterados ? 'Salvo. Os próximos envios já usam este texto.' : 'Nada mudou.';
+}
+function mdTxDescartar() { _md.rasc = mdCopia(_md.salvo); mdTxMostrar(_md.msg); }
+function mdTxPadrao() {
+  const nomes = { e1: 'do 1º e-mail', e2: 'do lembrete', wa: 'do WhatsApp' };
+  if (!confirm('Voltar o texto ' + nomes[_md.msg] + ' ao padrão? Só passa a valer depois de salvar.')) return;
+  const a = MD_CAMPOS[_md.msg]; Object.keys(a).forEach(id => { _md.rasc[a[id]] = _md.tx.padrao[a[id]]; });
+  mdTxMostrar(_md.msg);
+}
+window.addEventListener('beforeunload', e => { if (mdTxSujo()) { e.preventDefault(); e.returnValue = ''; } });
+
+/* ---------- Configuração ---------- */
+async function mdCarregarConfig() {
+  const dot = document.getElementById('md-cfg-dot'), tit = document.getElementById('md-cfg-titulo'), ul = document.getElementById('md-cfg-lista');
+  tit.textContent = 'Verificando…';
+  const item = (ok, texto) => `<li>${ok === true ? '✅' : ok === false ? '⚠️' : 'ℹ️'} ${texto}</li>`;
+  if (!MD_API_URL) {
+    dot.className = 'conn-dot err'; tit.textContent = 'Backend não conectado';
+    ul.innerHTML = item(false, 'Cole a URL /exec do <b>apps-script-mala-direta.gs</b> em <code>MD_API_URL</code>, no admin.html. Siga o passo a passo abaixo.');
+    return;
+  }
+  const c = await mdGet('md_config');
+  if (!mdOk(c)) { dot.className = 'conn-dot err'; tit.textContent = 'Sem resposta do backend'; ul.innerHTML = item(false, mdEsc(mdErro(c))); return; }
+  const abasOk = Object.values(c.abas).every(Boolean);
+  const tudo = abasOk && c.brevo && c.urlApi && c.webhook;
+  dot.className = 'conn-dot ' + (tudo ? 'ok' : 'warn');
+  tit.textContent = tudo ? 'Mala Direta pronta para enviar' : 'Mala Direta conectada — falta configurar';
+  ul.innerHTML = [
+    item(true, `Planilha: <a href="${mdEsc(c.planilha.url)}" target="_blank" rel="noopener">${mdEsc(c.planilha.nome)}</a>`),
+    item(abasOk, 'Abas: ' + Object.keys(c.abas).map(k => (c.abas[k] ? '' : '❌ ') + mdEsc(k)).join(', ') + (abasOk ? '' : ' — rode <b>configurarMalaDireta</b> no editor.')),
+    item(c.brevo, c.brevo ? 'Chave da Brevo (BREVO_API_KEY) cadastrada.' : 'Falta a propriedade <code>BREVO_API_KEY</code>.'),
+    item(!!c.urlApi, c.urlApi ? 'URL_API: <code>' + mdEsc(c.urlApi) + '</code>' + (c.urlApi === MD_API_URL ? '' : ' <b style="color:#b03a2e">— diferente de MD_API_URL!</b>') : 'Falta a propriedade <code>URL_API</code> (a URL /exec).'),
+    item(c.webhook, c.webhook ? 'URL do webhook para cadastrar na Brevo: <code>' + mdEsc(c.webhookUrl) + '</code>' : 'Falta a propriedade <code>WEBHOOK_KEY</code>.'),
+    item(c.listaId ? true : null, c.listaId ? 'Lista da Brevo para quem autoriza e-mail: ' + mdEsc(c.listaId) : 'Sem <code>BREVO_LIST_ID</code> (opcional): quem autorizar e-mail não entra numa lista da Brevo.'),
+    item(null, 'Remetente: ' + mdEsc(c.remetente) + ' · campanha <code>' + mdEsc(c.tag) + '</code>'),
+    item(null, 'Página de recadastro: <a href="' + mdEsc(c.urlRecadastro) + '" target="_blank" rel="noopener">' + mdEsc(c.urlRecadastro) + '</a> · link vale ' + c.diasValidade + ' dias'),
+    item(null, `Limites: ${c.loteMax} por lote, ${c.limiteDia} por dia (plano grátis da Brevo = 300/dia) · lembrete após ${c.diasLembrete} dias.`)
+  ].join('');
+  document.getElementById('md-tag').textContent = c.tag;
+}
+async function mdTesteEmail() {
+  const email = document.getElementById('md-teste-email').value.trim();
+  if (!email) return;
+  mdMsg('md-teste-msg', 'Enviando…');
+  const r = await mdGet('md_teste_email', { email, etapa: document.getElementById('md-teste-etapa').value }, 40000);
+  mdMsg('md-teste-msg', mdOk(r) ? r.msg : mdErro(r), mdOk(r) ? 'ok' : 'e');
+}
 </script>
 </body>
 </html>
