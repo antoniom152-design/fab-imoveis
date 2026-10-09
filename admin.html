@@ -2215,6 +2215,11 @@ function onEdit(e) {
         <button class="btn-conn" onclick="mdTesteEmail()">✉️ Enviar teste</button>
       </div>
       <p class="md-msg" id="md-teste-msg"></p>
+      <div class="md-row" style="margin-top:14px">
+        <button class="btn-conn-test" onclick="mdBrevoEventos()">🔎 Ver o que a Brevo fez com este e-mail</button>
+        <span class="md-nota">Entregue, bloqueado, spam, inválido… (últimos 30 dias)</span>
+      </div>
+      <div class="table-wrap-inner" id="md-brevo-eventos" style="margin-top:10px"></div>
     </div>
 
     <div class="table-wrap">
@@ -6489,6 +6494,24 @@ async function mdCarregarConfig() {
     item(null, `Limites: ${c.loteMax} por lote, ${c.limiteDia} por dia (plano grátis da Brevo = 300/dia) · lembrete após ${c.diasLembrete} dias.`)
   ].join('');
   document.getElementById('md-tag').textContent = c.tag;
+}
+const MD_EVENTO_BREVO = { requests: 'Aceito pela Brevo', request: 'Aceito pela Brevo', delivered: '✅ Entregue ao provedor',
+  opened: 'Aberto', uniqueOpened: 'Aberto', unique_opened: 'Aberto', clicks: 'Clicou', click: 'Clicou',
+  softBounces: '⚠️ Soft bounce (caixa cheia/temporário)', soft_bounce: '⚠️ Soft bounce (caixa cheia/temporário)',
+  hardBounces: '❌ Hard bounce (endereço não existe)', hard_bounce: '❌ Hard bounce (endereço não existe)',
+  blocked: '❌ Bloqueado pela Brevo', spam: '❌ Marcado como spam', invalid: '❌ E-mail inválido', invalid_email: '❌ E-mail inválido',
+  deferred: '⏳ Adiado (o provedor pediu para tentar depois)', unsubscribed: 'Descadastrou', error: '❌ Erro', loadedByProxy: 'Aberto por proxy' };
+async function mdBrevoEventos() {
+  const email = document.getElementById('md-teste-email').value.trim();
+  const box = document.getElementById('md-brevo-eventos');
+  if (!email) { box.innerHTML = '<p class="md-msg e">Informe o e-mail acima.</p>'; return; }
+  box.innerHTML = '<p class="md-nota">Consultando a Brevo…</p>';
+  const r = await mdGet('md_brevo_eventos', { email }, 40000);
+  if (!mdOk(r)) { box.innerHTML = `<p class="md-msg e">${mdEsc(mdErro(r))}</p>`; return; }
+  if (!r.itens.length) { box.innerHTML = '<p class="md-nota">A Brevo não tem nenhum registro para este e-mail nos últimos 30 dias (pode levar alguns minutos para aparecer).</p>'; return; }
+  box.innerHTML = '<table class="md-table"><thead><tr><th>Quando</th><th>O que aconteceu</th><th>Motivo</th><th>Assunto</th><th>Remetente</th></tr></thead><tbody>' +
+    r.itens.map(e => `<tr><td>${mdEsc(e.data)}</td><td class="td-nome">${mdEsc(MD_EVENTO_BREVO[e.evento] || e.evento)}</td><td>${mdEsc(e.motivo)}</td><td>${mdEsc(e.assunto)}</td><td>${mdEsc(e.de)}</td></tr>`).join('') +
+    '</tbody></table>';
 }
 async function mdTesteEmail() {
   const email = document.getElementById('md-teste-email').value.trim();
