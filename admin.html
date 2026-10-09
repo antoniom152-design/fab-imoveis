@@ -6026,7 +6026,7 @@ document.addEventListener('DOMContentLoaded', () => {
    à planilha privada "WAL — Mala Direta". Não mexe em nenhum dos outros backends.
    Leituras e ações pequenas via JSONP; prévia, salvar textos e importar via POST
    text/plain (payload grande demais para a URL). */
-const MD_API_URL = '';   // colar aqui a URL /exec da implantação do apps-script-mala-direta.gs
+const MD_API_URL = 'https://script.google.com/macros/s/AKfycbzaU09THh0kaJElazeYLVKmkQygVvToVw5q4rhma1Eq5fT35aO8-hq8sEBsmlZ56HvUgw/exec';   // colar aqui a URL /exec da implantação do apps-script-mala-direta.gs
 
 const MD_ORDEM = ['PENDENTE', 'ENVIADO', 'ABRIU', 'CLICOU', 'RECADASTROU', 'COMPROU', 'SEM_INTERESSE', 'SAIR', 'INVALIDO', 'SPAM', 'ERRO_ENVIO', 'DUPLICADO'];
 const MD_SAIDAS = ['COMPROU', 'SEM_INTERESSE', 'SAIR', 'INVALIDO', 'SPAM', 'ERRO_ENVIO', 'DUPLICADO'];

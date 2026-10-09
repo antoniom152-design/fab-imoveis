@@ -523,7 +523,7 @@ function catalogo_() {
     vistos[chave] = true;
     const id = cel('id');
     imoveis.push({ id: id, nome: nome, cidade: cidade, bairro: cel('bairro'), estagio: cel('estagio'),
-      preco: cel('preco'), url: id ? CFG.URL_IMOVEL + '?id=' + encodeURIComponent(id) : '' });
+      preco: /^[R$\s0.,]*$/.test(cel('preco')) ? '' : cel('preco'), url: id ? CFG.URL_IMOVEL + '?id=' + encodeURIComponent(id) : '' });
   });
   const saida = JSON.stringify({ ok: true, imoveis: imoveis });
   if (saida.length < 90000) cache.put('CATALOGO', saida, 600);
