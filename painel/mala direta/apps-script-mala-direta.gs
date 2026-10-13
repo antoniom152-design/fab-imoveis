@@ -373,7 +373,10 @@ function validarTextos_(t) {
       if (VARIAVEIS.indexOf(x.slice(1, -1)) < 0) erros.push(nome + ': a variável ' + x + ' não existe.');
     });
     (v.match(/\[\/?[^\[\]]*\]/g) || []).forEach(function (x) {
-      if (BLOCOS.indexOf(x.replace(/[\[\]\/]/g, '')) < 0) erros.push(nome + ': o bloco ' + x + ' não existe.');
+      if (BLOCOS.indexOf(x.replace(/[\[\]\/]/g, '')) >= 0) return;
+      if (/^\[\/?[a-z_]+\]$/.test(x)) erros.push(nome + ': o bloco ' + x + ' não existe.');
+      else erros.push(nome + ': tire os colchetes de ' + x + ' — [ ] é reservado aos blocos. O botão do e-mail já entra sozinho ' +
+        '(o texto dele fica no campo "Texto do botão") e endereço de site pode ser escrito direto, sem [ ] nem ( ).');
     });
     BLOCOS.forEach(function (b) {
       if (v.split('[' + b + ']').length !== v.split('[/' + b + ']').length) {
