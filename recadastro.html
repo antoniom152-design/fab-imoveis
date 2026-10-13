@@ -181,6 +181,7 @@ section{padding:48px 0}h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.025em}
   <div class="footer-bottom">© 2026 WAL Imóveis e Consultoria · CRECI 12261-J · Todos os direitos reservados.</div>
 </div></footer>
 
+<script src="painel/shared/crm-lead.js"></script>
 <script>
 /* CONFIGURAÇÃO DE PRODUÇÃO (backend: Google Apps Script · Code.gs da campanha)
    API_URL: URL /exec do Web App. CATALOG_URL vazio = API_URL + '?a=catalogo'.
@@ -194,6 +195,36 @@ section{padding:48px 0}h2{font-size:clamp(24px,3vw,32px);letter-spacing:-.025em}
 const CONFIG={API_URL:'https://script.google.com/macros/s/AKfycbzaU09THh0kaJElazeYLVKmkQygVvToVw5q4rhma1Eq5fT35aO8-hq8sEBsmlZ56HvUgw/exec',CATALOG_URL:'',MAPA_URL:'mapa-empreendimentos.html',PRIVACIDADE_URL:'aviso-privacidade.html',PAGE_SIZE:6};
 if(CONFIG.API_URL&&!CONFIG.CATALOG_URL)CONFIG.CATALOG_URL=CONFIG.API_URL+'?a=catalogo';
 const $=id=>document.getElementById(id);
+/* 110.11 — quem continua buscando ou adiou também entra no "WAL — CRM de Leads", igual aos
+   outros formulários do site (painel/shared/crm-lead.js: cria o lead, lê o ID e grava o histórico).
+   Comprou / sem interesse / não contatar ficam só na planilha da Mala Direta: não são atendimento. */
+const CRM_URL='https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
+const CADASTRO_API_URL='https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
+const ORIGEM_CRM='Mala Direta — Atualize sua busca';
+let crmLeadId='';   // se o lead clicar em "Editar preferências", atualiza o mesmo lead do CRM em vez de criar outro
+function dataISO_(dias){const d=new Date(Date.now()+dias*864e5);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function foneMascara_(f){const d=f.replace(/^55/,'');return '('+d.slice(0,2)+') '+d.slice(2,d.length-4)+'-'+d.slice(-4)}
+async function registrarNoCRM_(d){
+  if(!window.WalCRM||!['buscando','adiou'].includes(d.situacao))return;
+  const rotulo={buscando:'Continuo buscando um imóvel',adiou:'Adiei meus planos'}[d.situacao];
+  const nota=['Resposta: '+rotulo,
+    d.solicita_atendimento?'PEDIU PARA CONVERSAR COM UM CONSULTOR':'',
+    'Cidade de interesse: '+(d.cidade||'—'),d.objetivo?'Objetivo: '+d.objetivo:'',d.prazo?'Prazo: '+d.prazo:'',
+    d.vinculo?'Instituição/vínculo: '+d.vinculo:'',d.observacoes?'Observações: '+d.observacoes:'',
+    'Autorizou novidades — WhatsApp: '+(d.consentimento_whatsapp?'sim':'não')+' · e-mail: '+(d.consentimento_email?'sim':'não'),
+    'Campanha: '+(d.campanha||'reativacao-fab-2026')+(d.regiao_campanha?' · região '+d.regiao_campanha:'')+(token?' · veio pelo link do e-mail/WhatsApp':' · sem link')
+  ].filter(Boolean).join('\n');
+  const tel=foneMascara_(d.telefone);
+  const lead={status:'novo',prioridade:d.solicita_atendimento?'alta':d.situacao==='adiou'?'baixa':'media',nome:d.nome,telefone:tel,email:d.email,
+    origem:ORIGEM_CRM,consultor:'',solicitacao:nota,area:d.cidade||'',
+    proxacao:d.solicita_atendimento?'Ligar: pediu consultor pela Mala Direta':d.situacao==='adiou'?'Retomar contato (adiou a compra)':'Retomar contato: atualizou a busca pela Mala Direta',
+    proxdata:dataISO_(d.solicita_atendimento?1:d.situacao==='adiou'?30:2)};
+  if(crmLeadId)lead.id=crmLeadId;
+  const id=await WalCRM.gravarLeadEHistorico(CRM_URL,CADASTRO_API_URL,
+    {action:'criarOuAtualizar',lead,interacao:{tipo:'Mala Direta',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}},
+    {action:'crm_lead_evento_publico',telefone:tel,email:d.email,tipo:'📬 Mala Direta — Atualize sua busca',texto:nota,origem:ORIGEM_CRM});
+  if(id)crmLeadId=id;
+}
 const REGIOES={GERAL:{rotulo:'Todas as regiões',cidades:[]},RJ:{rotulo:'Rio de Janeiro e Niterói',cidades:['rio de janeiro','niteroi']},SPA:{rotulo:'São Pedro da Aldeia',cidades:['sao pedro da aldeia']},SJC:{rotulo:'Vale do Paraíba',cidades:['sao jose dos campos','jacarei','cacapava']},SP:{rotulo:'São Paulo capital',cidades:['sao paulo']},LITORAL:{rotulo:'Caraguatatuba',cidades:['caraguatatuba']}};
 const params=new URLSearchParams(location.search);
 let token=params.get('t')||'';
@@ -217,7 +248,7 @@ $('situacao').onchange=situacao;situacao();
 function erro(text,field){$('erro').hidden=false;$('erro').textContent=text;if(field)field.focus()}
 $('form').addEventListener('submit',async e=>{e.preventDefault();$('erro').hidden=true;const telefone=$('telefone').value.replace(/\D/g,'');const local=telefone.startsWith('55')&&[12,13].includes(telefone.length)?telefone.slice(2):telefone;const email=$('email').value.trim();if($('nome').value.trim().length<3)return erro('Informe seu nome.',$('nome'));if(!/^[1-9]{2}[2-9][0-9]{7,8}$/.test(local))return erro('Confira o telefone brasileiro com DDD.',$('telefone'));if($('aceiteEmail').checked&&!email)return erro('Informe o e-mail para receber novidades por esse canal.',$('email'));if(!CONFIG.API_URL||!CONFIG.PRIVACIDADE_URL)return erro('O formulário ainda não está conectado para receber atualizações. Consulte as opções pelo mapa.');if($('site').value)return erro('Não foi possível enviar. Recarregue a página e tente novamente.');
  const ativa=['buscando','adiou'].includes($('situacao').value);const dados={acao:'recadastro',t:token,nome:$('nome').value.trim(),telefone:'55'+local,email:email.toLowerCase(),situacao:$('situacao').value,cidade:ativa?$('cidade').value:'',objetivo:ativa?$('objetivo').value:'',prazo:ativa?$('prazo').value:'',vinculo:ativa?$('vinculo').value:'',observacoes:ativa?$('observacoes').value.trim():'',solicita_atendimento:ativa&&$('atendimento').checked,consentimento_whatsapp:$('aceiteWhatsapp').checked,consentimento_email:$('aceiteEmail').checked,nao_contatar:$('situacao').value==='nao_contatar',regiao_campanha:params.get('regiao')||'',campanha:params.get('utm_campaign')||'',versao_texto:'wal-recadastro-v4-2026-10',site:$('site').value};
- const btn=$('enviar');btn.disabled=true;btn.textContent='Enviando…';try{const headers={'Content-Type':'text/plain;charset=utf-8'};await jsonRequest(CONFIG.API_URL,{method:'POST',headers,body:JSON.stringify(dados)});$('form').hidden=true;$('feito').hidden=false;$('confirmacao').textContent=dados.nao_contatar?'Sua solicitação de interrupção das mensagens foi registrada.':dados.solicita_atendimento?'Sua atualização foi registrada. A equipe poderá dar continuidade ao atendimento solicitado.':'Sua atualização foi registrada. Continue explorando as opções no seu tempo.';$('feito').focus()}catch{erro('Não recebemos a confirmação de gravação. Não considere o cadastro atualizado. Verifique sua conexão ou fale com a WAL antes de tentar novamente.')}finally{btn.disabled=false;situacao()}});
+ const btn=$('enviar');btn.disabled=true;btn.textContent='Enviando…';try{const headers={'Content-Type':'text/plain;charset=utf-8'};await jsonRequest(CONFIG.API_URL,{method:'POST',headers,body:JSON.stringify(dados)});try{await registrarNoCRM_(dados)}catch(e){};$('form').hidden=true;$('feito').hidden=false;$('confirmacao').textContent=dados.nao_contatar?'Sua solicitação de interrupção das mensagens foi registrada.':dados.solicita_atendimento?'Sua atualização foi registrada. A equipe poderá dar continuidade ao atendimento solicitado.':'Sua atualização foi registrada. Continue explorando as opções no seu tempo.';$('feito').focus()}catch{erro('Não recebemos a confirmação de gravação. Não considere o cadastro atualizado. Verifique sua conexão ou fale com a WAL antes de tentar novamente.')}finally{btn.disabled=false;situacao()}});
 $('editar').onclick=()=>{$('feito').hidden=true;$('form').hidden=false;$('situacao').focus()};
 </script>
 </body>
