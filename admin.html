@@ -2136,6 +2136,15 @@ function onEdit(e) {
     <div class="conn-card">
       <textarea class="md-input" id="md-imp-texto" rows="10" style="width:100%;font-family:'Courier New',monospace;font-size:12px" placeholder="Maria da Silva&#9;(21) 99999-1234&#9;maria@email.com&#9;Rio de Janeiro&#9;Residencial X&#9;15/03/2024" oninput="mdImpConferir()"></textarea>
       <p class="md-nota" style="margin-top:6px">ORIGEM vira a região da mensagem: Rio/Niterói → RJ · São Pedro da Aldeia/Lagos → SPA · SJC/Jacareí/Taubaté/Vale → SJC · São Paulo → SP · Caraguatatuba/Litoral → LITORAL · outro → GERAL. A DATA define se o lead é "antigo" (mais de 6 meses) ou "recente" no texto.</p>
+      <div class="md-row" style="margin-top:10px">
+        <label class="md-nota" for="md-imp-regiao"><b>Região para quem está sem ORIGEM:</b></label>
+        <select class="md-input" id="md-imp-regiao" onchange="mdImpConferir()">
+          <option value="">Geral (Rio de Janeiro e São Paulo)</option><option value="RJ">Rio de Janeiro / Niterói</option>
+          <option value="SPA">São Pedro da Aldeia</option><option value="SJC">Vale do Paraíba (SJC)</option>
+          <option value="SP">São Paulo capital</option><option value="LITORAL">Caraguatatuba</option>
+        </select>
+        <span class="md-nota">Vale só para as linhas com a ORIGEM vazia.</span>
+      </div>
       <div id="md-imp-resumo" class="md-msg"></div>
       <div class="table-wrap-inner" id="md-imp-previa" style="margin-top:10px"></div>
       <div class="md-row" style="margin-top:14px">
@@ -6252,7 +6261,7 @@ async function mdCarregarWhats() {
   if (!r.itens.length) { t.innerHTML = '<tr><td><div class="empty-table" style="padding:20px">Nenhum lead pendente no WhatsApp.</div></td></tr>'; return; }
   _md.whats = r.itens;
   t.innerHTML = r.itens.map((w, i) => `<tr>
-    <td>${mdEsc(w.id)}</td><td class="td-nome">${mdEsc(w.nome)}</td><td>${mdEsc(w.telefone || 'sem telefone válido')}</td>
+    <td>${mdEsc(w.id)}</td><td class="td-nome">${mdEsc(w.nome || '(sem nome)')}</td><td>${mdEsc(w.telefone || 'sem telefone válido')}</td>
     <td>${mdEsc(MD_NOME_ORIGEM[w.origem] || w.origem)}</td>
     <td>${w.link ? `<a href="${mdEsc(w.link)}" target="_blank" rel="noopener">Abrir conversa com a mensagem</a>` : ''}</td>
     <td><button class="btn-conn-test" style="height:30px" onclick="mdCopiarWhats(${i})">Copiar texto</button></td>
@@ -6326,7 +6335,7 @@ function mdRenderLeads(reiniciar) {
   document.getElementById('md-leads-mais').style.display = lista.length > lim ? '' : 'none';
   const idx = new Map(_md.leads.map((l, i) => [l, i]));
   document.getElementById('md-t-leads').innerHTML = lista.length ? lista.slice(0, lim).map(l => `<tr onclick="mdAbrirLead(${idx.get(l)})">
-    <td>${mdEsc(l.id)}</td><td class="td-nome">${mdEsc(l.nome)}</td>
+    <td>${mdEsc(l.id)}</td><td class="td-nome">${mdEsc(l.nome || '(sem nome)')}</td>
     <td>${mdEsc(l.email || '')}${l.email && l.telefone ? '<br>' : ''}${mdEsc(l.telefone || '')}</td>
     <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td style="white-space:nowrap">${mdEsc(l.dtCadastro)}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
     <td>${mdEsc(mdUltimoMov(l))}</td><td>${mdEsc(MD_SITUACAO[l.situacao] || '')}${l.consultor === 'SIM' && !l.dtAtendido ? ' 🆘' : ''}</td></tr>`).join('')
@@ -6341,7 +6350,7 @@ function mdAbrirLead(i) {
   const fone = (l.telefone || '').replace(/\D/g, '');
   const foneWa = fone.length === 10 || fone.length === 11 ? '55' + fone : fone;
   const podeWhats = l.canal === 'EMAIL' && ['INVALIDO', 'ERRO_ENVIO', 'PENDENTE'].includes(l.status) && /^55\d{10,11}$/.test(foneWa);
-  document.getElementById('md-modal-titulo').textContent = l.nome + ' · ' + l.id;
+  document.getElementById('md-modal-titulo').textContent = (l.nome || '(sem nome)') + ' · ' + l.id;
   document.getElementById('md-modal-corpo').innerHTML = `
     <div style="margin-bottom:14px">${mdBadge(l.status)} <span class="md-nota">canal ${mdEsc(l.canal || '—')} · ${l.envios} envio(s)</span></div>
     <dl class="md-kv">
@@ -6430,17 +6439,27 @@ function mdImpConferir() {
   const itens = mdImpLer(document.getElementById('md-imp-texto').value);
   const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
   const foneOk = v => { let f = String(v).replace(/\D/g, ''); if (f.length === 10 || f.length === 11) f = '55' + f; return /^55[1-9]{2}[2-9]\d{7,8}$/.test(f); };
-  let email = 0, whats = 0, sem = 0;
-  itens.forEach(x => { if (reEmail.test(x.email.trim())) email++; else if (foneOk(x.telefone)) whats++; else sem++; });
+  let email = 0, whats = 0, sem = 0, semNome = 0, semOrig = 0, semEmp = 0;
+  itens.forEach(x => {
+    if (reEmail.test(x.email.trim())) email++; else if (foneOk(x.telefone)) whats++; else { sem++; return; }
+    if (x.nome.trim().length < 2) semNome++;            // 112 — entra assim mesmo; a saudação vira "Olá, tudo bem!"
+    if (!x.origem.trim()) semOrig++;
+    if (!x.empreendimento.trim()) semEmp++;
+  });
+  const selReg = document.getElementById('md-imp-regiao');
+  const regPadrao = selReg.options[selReg.selectedIndex].text;
   _md.imp = itens;
   document.getElementById('md-imp-btn').disabled = !(email + whats);
   const fmtData = _md.impFormatoData === 'mes/dia (americano)' ? ' · datas lidas como <b>mês/dia</b> (formato americano) e convertidas'
     : _md.impFormatoData === 'misturado' ? ' · <span style="color:#b03a2e">datas misturadas (dia/mês e mês/dia) — confira a coluna de data antes de importar</span>' : '';
   document.getElementById('md-imp-resumo').innerHTML = itens.length
-    ? `<b>${itens.length}</b> linha(s): <b>${email}</b> com e-mail (Brevo) · <b>${whats}</b> só com telefone (WhatsApp)` + (sem ? ` · <span style="color:#b03a2e">${sem} sem e-mail nem telefone válido (serão ignorados)</span>` : '') + fmtData
+    ? `<b>${itens.length}</b> linha(s): <b>${email}</b> com e-mail (Brevo) · <b>${whats}</b> só com telefone (WhatsApp)` + (sem ? ` · <span style="color:#b03a2e">${sem} sem e-mail nem telefone válido (serão ignorados)</span>` : '') + fmtData +
+      (semEmp ? `<br>• <b>${semEmp}</b> sem empreendimento: recebem o texto do bloco [sem_empreendimento]` : '') +
+      (semOrig ? `<br>• <b>${semOrig}</b> sem origem: vão como <b>${mdEsc(regPadrao)}</b> (escolha acima)` : '') +
+      (semNome ? `<br>• <b>${semNome}</b> sem nome: entram assim mesmo e a saudação vira "Olá, tudo bem!"; o nome é gravado se o lead se recadastrar` : '')
     : '';
   document.getElementById('md-imp-previa').innerHTML = itens.length ? `<table class="md-table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Origem</th><th>Empreendimento</th><th>Data</th></tr></thead><tbody>` +
-    itens.slice(0, 8).map(x => `<tr><td class="td-nome">${mdEsc(x.nome)}</td><td>${mdEsc(x.telefone)}</td><td>${mdEsc(x.email)}</td><td>${mdEsc(x.origem)}</td><td>${mdEsc(x.empreendimento)}</td><td>${mdEsc(x.dt_cadastro)}</td></tr>`).join('') +
+    itens.slice(0, 8).map(x => `<tr><td class="td-nome">${x.nome.trim() ? mdEsc(x.nome) : '<i>(sem nome)</i>'}</td><td>${mdEsc(x.telefone)}</td><td>${mdEsc(x.email)}</td><td>${x.origem.trim() ? mdEsc(x.origem) : '<i>(vazia → ' + mdEsc(regPadrao) + ')</i>'}</td><td>${mdEsc(x.empreendimento)}</td><td>${mdEsc(x.dt_cadastro)}</td></tr>`).join('') +
     `</tbody></table>${itens.length > 8 ? `<p class="md-nota" style="padding:6px 0">… e mais ${itens.length - 8}.</p>` : ''}` : '';
 }
 async function mdImportar() {
@@ -6448,7 +6467,9 @@ async function mdImportar() {
   const btn = document.getElementById('md-imp-btn');
   btn.disabled = true;
   mdMsg('md-imp-msg', 'Importando e preparando…');
-  const r = await mdPost('md_importar', { linhas: _md.imp });
+  const regPadrao = document.getElementById('md-imp-regiao').value;
+  const linhas = _md.imp.map(x => Object.assign({}, x, { origem: x.origem.trim() || regPadrao }));
+  const r = await mdPost('md_importar', { linhas });
   btn.disabled = false;
   if (!mdOk(r)) { mdMsg('md-imp-msg', mdErro(r), 'e'); return; }
   mdMsg('md-imp-msg', `✅ ${r.importados} importado(s) e ${r.preparados} preparado(s). ${r.pulados} já estavam na planilha; ${r.invalidos} sem contato válido.`, 'ok');
