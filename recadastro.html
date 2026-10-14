@@ -204,7 +204,8 @@ const $=id=>document.getElementById(id);
    Comprou / sem interesse / não contatar ficam só na planilha da Mala Direta: não são atendimento. */
 const CRM_URL='https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 const CADASTRO_API_URL='https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
-const ORIGEM_CRM='Mala Direta — Atualize sua busca';
+// 112.1 — origem igual às opções do CRM: link do e-mail (?t=) → E-mail; link curto do WhatsApp (?c=) → Zap
+const ORIGEM_CRM=(q=>q.get('c')?'Mala Direta Zap':q.get('t')?'Mala Direta E-mail':'Mala Direta — Atualize sua busca')(new URLSearchParams(location.search));
 let crmLeadId='';   // se o lead clicar em "Editar preferências", atualiza o mesmo lead do CRM em vez de criar outro
 function dataISO_(dias){const d=new Date(Date.now()+dias*864e5);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function foneMascara_(f){const d=f.replace(/^55/,'');return '('+d.slice(0,2)+') '+d.slice(2,d.length-4)+'-'+d.slice(-4)}
