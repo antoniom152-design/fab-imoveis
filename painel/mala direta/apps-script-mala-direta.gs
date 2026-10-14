@@ -45,6 +45,9 @@ const CFG = {
   ABA_TEXTOS: 'CAMPANHA_TEXTOS',
   TAG: 'reativacao-fab-2026',
   URL_RECADASTRO: 'https://walservidor.com.br/recadastro.html',
+  // 110.14 — link curto do WhatsApp (o WhatsApp não aceita texto clicável; sempre mostra o endereço).
+  // walservidor.com.br/a/<código> redireciona para recadastro.html?c=<código> (vercel.json).
+  URL_CURTO: 'https://walservidor.com.br/a/',
   URL_IMOVEL: 'https://walservidor.com.br/imovel.html',
   PLANILHA_SITE: '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk',
   ABA_SITE: 'IMOVEISDISPONIVEIS',
@@ -417,6 +420,7 @@ function negritoHtml_(s) { return s.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').repla
 function semNegrito_(s) { return s.replace(/\*\*(.+?)\*\*/g, '$1'); }
 
 function linkRecadastro_(lead, canal) {
+  if (canal === 'whatsapp') return CFG.URL_CURTO + codigoCurto_(lead.token);
   return CFG.URL_RECADASTRO + '?t=' + lead.token + '&regiao=' + (CFG.REGIOES[lead.origem] ? lead.origem : 'GERAL') +
     '&utm_source=' + canal + '&utm_medium=mala-direta&utm_campaign=' + CFG.TAG;
 }
@@ -470,7 +474,7 @@ function doGet(e) {
   if (p.action) return jsonp_(p.callback, admin_(p.action, p));   // admin.html (JSONP)
   if (p.a === 'sair') return paginaSair_(p);
   if (p.a === 'catalogo') return catalogo_();
-  if (p.a === 'visita') { registrarVisita_(p.t); return json_({ ok: true }); }
+  if (p.a === 'visita') return json_({ ok: true, regiao: registrarVisita_(p.t) || '' });
   return json_({ ok: false });
 }
 
@@ -534,19 +538,34 @@ function catalogo_() {
 }
 
 /** Visita pelo link: marca CLICOU. Não devolve nada sobre o lead. */
+/** Código curto do link do WhatsApp: os 10 primeiros caracteres do TOKEN (40 bits, impossível de adivinhar em massa). */
+function codigoCurto_(token) { return String(token || '').slice(0, 10); }
+
+/** Acha o lead pelo TOKEN inteiro (link do e-mail) ou pelo código curto (link do WhatsApp). Ambíguo = não achou. */
+function acharPorToken_(L, t) {
+  t = String(t || '').toLowerCase();
+  const c = L.cab;
+  if (RE_TOKEN.test(t)) return L.linhas.filter(function (x) { return x[c.TOKEN] === t; })[0] || null;
+  if (!/^[a-f0-9]{10}$/.test(t)) return null;
+  const achados = L.linhas.filter(function (x) { return String(x[c.TOKEN]).indexOf(t) === 0; });
+  return achados.length === 1 ? achados[0] : null;
+}
+
+/** Visita pelo link: marca CLICOU. Devolve só a região da campanha (para a página abrir nela), nada pessoal. */
 function registrarVisita_(token) {
-  token = String(token || '');
-  if (!RE_TOKEN.test(token)) return;
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(10000)) return;
+  if (!lock.tryLock(10000)) return '';
   try {
     const L = lerLeads_(), c = L.cab;
-    const r = L.linhas.filter(function (x) { return x[c.TOKEN] === token; })[0];
-    if (!r || r[c.DT_CLIQUE] || !tokenValido_(r, c)) return;
+    const r = acharPorToken_(L, token);
+    if (!r || !tokenValido_(r, c)) return '';
+    const regiao = CFG.REGIOES[r[c.ORIGEM]] ? String(r[c.ORIGEM]) : 'GERAL';
+    if (r[c.DT_CLIQUE]) return regiao;
     r[c.DT_CLIQUE] = new Date();
     r[c.STATUS] = subir_(r[c.STATUS], 'CLICOU');
     gravar_(L, ['DT_CLIQUE', 'STATUS']);
     log_([[new Date(), r[c.ID], r[c.CANAL], 'VISITA', '']]);
+    return regiao;
   } finally {
     lock.releaseLock();
   }
@@ -584,7 +603,7 @@ function recadastrar_(d) {
   try {
     const L = lerLeads_(), c = L.cab;
     const token = String(d.t || '').toLowerCase();
-    let r = RE_TOKEN.test(token) ? L.linhas.filter(function (x) { return x[c.TOKEN] === token; })[0] : null;
+    let r = acharPorToken_(L, token);
     let via = '';
     if (r && (!tokenValido_(r, c) || !mesmoFone_(r[c.TELEFONE], fone))) { via = r[c.ID]; r = null; }
     if (!r) r = L.linhas.filter(function (x) { return mesmoFone_(x[c.TELEFONE], fone); })[0] || null;   // sem link: procura pelo telefone
@@ -611,7 +630,7 @@ function recadastrar_(d) {
     r[c.CONSENT_EMAIL] = (consEmail ? 'SIM ' : 'NAO ') + carimbo;
     r[c.CONSENT_WHATSAPP] = (consWhats ? 'SIM ' : 'NAO ') + carimbo;
     r[c.VERSAO_TEXTO] = limpar_(d.versao_texto, 60);
-    r[c.CAMPANHA] = limpar_(d.campanha || d.regiao_campanha, 60);
+    r[c.CAMPANHA] = limpar_(d.campanha || d.regiao_campanha, 60) || (via || !nova ? CFG.TAG : '');
     r[c.DT_RECADASTRO] = agora;
     r[c.STATUS] = SITUACAO_STATUS[situacao];
     if (nova) L.sh.appendRow(r);
