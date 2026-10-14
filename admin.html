@@ -649,6 +649,9 @@
   /* ─── MALA DIRETA (pedido 110.7) ─── */
   .md-view{display:none}
   .md-view.active{display:block}
+  .md-status{background:#fff;border:1px solid var(--border);border-left:3px solid var(--green);padding:10px 14px;
+    font-size:12.5px;line-height:1.75;color:var(--navy);margin-bottom:16px}
+  .md-status:empty{display:none}
   .md-sec{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;
     text-transform:uppercase;color:var(--navy);margin:28px 0 10px;display:flex;align-items:center;gap:8px}
   .md-cont{background:#b03a2e;color:#fff;border-radius:999px;font-size:11px;padding:1px 9px;letter-spacing:0}
@@ -2042,9 +2045,10 @@ function onEdit(e) {
   <div class="md-view active" id="md-v-acomp">
     <div class="md-row" style="justify-content:space-between;margin-bottom:14px">
       <span class="md-nota">Campanha <b id="md-tag">reativacao-fab-2026</b> · e-mail pela Brevo, WhatsApp manual com mensagem pronta.</span>
-      <button class="btn-conn-test" onclick="mdCarregarResumo()">🔄 Atualizar</button>
+      <button class="btn-conn-test" onclick="mdAtualizarAcomp(this)">🔄 Atualizar</button>
     </div>
     <p class="md-msg e" id="md-acomp-erro" style="display:none"></p>
+    <div class="md-status" id="md-acomp-status"></div>
 
     <div class="stats-grid" id="md-kpis" style="margin-bottom:8px"></div>
 
@@ -2106,7 +2110,7 @@ function onEdit(e) {
         <select class="md-input" id="md-f-ordem" onchange="mdRenderLeads(true)" aria-label="Ordenar">
           <option value="id">Ordem da planilha (ID)</option><option value="cad_desc">Cadastro mais recente primeiro</option>
           <option value="cad_asc">Cadastro mais antigo primeiro</option><option value="nome">Nome (A-Z)</option></select>
-        <button class="btn-conn-test" onclick="mdCarregarLeads()">🔄 Recarregar</button>
+        <button class="btn-conn-test" onclick="mdRecarregarLeads(this)">🔄 Recarregar</button>
       </div>
       <p class="md-nota" id="md-leads-count" style="margin-top:10px"></p>
     </div>
@@ -2218,7 +2222,7 @@ function onEdit(e) {
   <div class="md-view" id="md-v-config">
     <div class="conn-card">
       <div class="conn-status-row"><span class="conn-dot" id="md-cfg-dot"></span><span class="conn-title" id="md-cfg-titulo">Verificando…</span>
-        <span class="conn-sub"><button class="btn-conn-test" style="height:30px" onclick="mdCarregarConfig()">🔄 Verificar</button></span></div>
+        <span class="conn-sub"><button class="btn-conn-test" style="height:30px" onclick="mdVerificarConfig(this)">🔄 Verificar</button></span></div>
       <ul class="md-check" id="md-cfg-lista"></ul>
     </div>
 
@@ -6124,13 +6128,46 @@ function mdView(v) {
 }
 
 /* ---------- Acompanhamento ---------- */
+/* 110.15 — botões de atualizar mostram que estão trabalhando e, no fim, quando atualizou e o que mudou */
+function mdHora() { return new Date().toLocaleTimeString('pt-BR'); }
+async function mdComBotao(btn, texto, fn) {
+  const orig = btn.innerHTML; btn.disabled = true; btn.innerHTML = '⏳ ' + texto;
+  try { return await fn(); } finally { btn.disabled = false; btn.innerHTML = orig; }
+}
+async function mdAtualizarAcomp(btn) {
+  const ok = await mdComBotao(btn, 'Atualizando…', () => mdCarregarResumo());
+  mostrarToast(ok ? '✅ Mala Direta atualizada às ' + mdHora() + '. Veja o resumo no topo.' : '❌ Não foi possível atualizar. Veja a mensagem em vermelho.');
+}
+function mdPintarStatus(d, ant) {
+  const p = d.porStatus, pend = [];
+  if (d.consultor) pend.push(`🆘 <b>${d.consultor}</b> pediram consultor e aguardam contato: veja "Pediram consultor" abaixo.`);
+  if (d.filaEtapa1) pend.push(`📧 <b>${d.filaEtapa1}</b> aguardando o 1º e-mail (enviados hoje: ${d.enviadosHoje} de ${d.limiteDia}).`);
+  if (d.filaEtapa2) pend.push(`🔁 <b>${d.filaEtapa2}</b> prontos para receber o lembrete.`);
+  if (d.filaWhats) pend.push(`📱 <b>${d.filaWhats}</b> na fila do WhatsApp: clique em "Carregar fila".`);
+  if (d.semPreparar) pend.push(`⚙️ <b>${d.semPreparar}</b> leads ainda não preparados: vá em 📥 Importar › "Preparar leads da planilha".`);
+  let mud = '';
+  if (ant) {
+    const soma = o => Object.values(o).reduce((a, b) => a + b, 0), pa = ant.porStatus;
+    const rot = { ENVIADO: 'enviados', ABRIU: 'abriram o e-mail', CLICOU: 'visitaram a página', RECADASTROU: 'atualizaram a busca',
+      COMPROU: 'já compraram', SEM_INTERESSE: 'sem interesse', SAIR: 'pediram para sair', INVALIDO: 'contatos inválidos', SPAM: 'marcaram spam', ERRO_ENVIO: 'erros de envio' };
+    const dif = Object.keys(rot).map(k => [(p[k] || 0) - (pa[k] || 0), rot[k]]).filter(x => x[0] > 0).map(x => `+${x[0]} ${x[1]}`);
+    if (soma(p) > soma(pa)) dif.unshift(`+${soma(p) - soma(pa)} leads novos`);
+    if (d.consultor > ant.consultor) dif.push(`+${d.consultor - ant.consultor} pedido(s) de consultor`);
+    mud = dif.length ? ' · Desde a atualização anterior: ' + dif.join(' · ') : ' · Nada mudou desde a atualização anterior.';
+  }
+  const total = Object.values(p).reduce((a, b) => a + b, 0);
+  document.getElementById('md-acomp-status').innerHTML = `<b>✅ Atualizado às ${mdHora()}</b> · ${total} leads na campanha${mud}<br>` +
+    (pend.length ? '<b>O que fazer agora:</b><br>' + pend.join('<br>') : 'Nada pendente agora: as filas de e-mail e WhatsApp estão vazias e não há pedidos de consultor.');
+}
 async function mdCarregarResumo(soContadores) {
   const d = await mdGet('md_resumo');
-  if (!mdOk(d)) { mdMsg('md-acomp-erro', mdErro(d), 'e'); document.getElementById('md-acomp-erro').style.display = ''; return; }
+  if (!mdOk(d)) { mdMsg('md-acomp-erro', mdErro(d), 'e'); document.getElementById('md-acomp-erro').style.display = ''; return false; }
   document.getElementById('md-acomp-erro').style.display = 'none';
+  const anterior = _md.resumo;
   _md.resumo = d;
   document.getElementById('md-sem-preparar').textContent = d.semPreparar ? d.semPreparar + ' aguardando preparação' : 'nenhum aguardando';
-  if (soContadores) return;
+  if (soContadores) return true;
+  mdPintarStatus(d, anterior);
 
   const total = Object.values(d.porStatus).reduce((a, b) => a + b, 0);
   const kpis = MD_ORDEM.filter(s => d.porStatus[s]).map(s =>
@@ -6167,6 +6204,7 @@ async function mdCarregarResumo(soContadores) {
 
   mdCarregarConsultor();
   if (d.filaWhats && document.getElementById('md-t-whats').dataset.carregada) mdCarregarWhats();
+  return true;
 }
 
 async function mdCarregarConsultor() {
@@ -6233,10 +6271,18 @@ async function mdMarcarWhats(btn) {
 }
 
 /* ---------- Leads ---------- */
+async function mdRecarregarLeads(btn) {
+  const antes = _md.leads.length;
+  const ok = await mdComBotao(btn, 'Recarregando…', () => mdCarregarLeads());
+  if (!ok) { mostrarToast('❌ Não foi possível recarregar a lista. Veja a mensagem na tabela.'); return; }
+  const dif = _md.leads.length - antes;
+  mostrarToast(`✅ Lista recarregada às ${mdHora()}: ${_md.leads.length} leads` + (antes && dif > 0 ? ` (+${dif} novos).` : '.'));
+}
 async function mdCarregarLeads() {
   document.getElementById('md-t-leads').innerHTML = '<tr><td colspan="9"><div class="empty-table">Carregando…</div></td></tr>';
   const r = await mdGet('md_leads', {}, 40000);
-  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="9"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return; }
+  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="9"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return false; }
+  _md.leadsHora = mdHora();
   _md.leads = r.itens;
   _md.leadsCarregados = true;
   const fill = (id, vals, rotulo, primeiro) => {
@@ -6248,6 +6294,7 @@ async function mdCarregarLeads() {
   fill('md-f-status', sts, s => MD_ROTULO[s] || s, 'Todos os status');
   fill('md-f-origem', [...new Set(_md.leads.map(l => l.origem).filter(Boolean))].sort(), o => MD_NOME_ORIGEM[o] || o, 'Todas as origens');
   mdRenderLeads(true);
+  return true;
 }
 function mdUltimoMov(l) {
   if (l.dtRecadastro) return 'Recadastrou ' + l.dtRecadastro;
@@ -6275,7 +6322,7 @@ function mdRenderLeads(reiniciar) {
   }
   const lim = Math.min(_md.leadsLim, lista.length);
   document.getElementById('md-leads-count').textContent = `${lista.length} de ${_md.leads.length} leads` +
-    (lista.length > lim ? ` — mostrando ${lim}; use "Mostrar mais" no fim da lista.` : '') + ' · Clique numa linha para ver tudo e mudar o status.';
+    (lista.length > lim ? ` — mostrando ${lim}; use "Mostrar mais" no fim da lista.` : '') + (_md.leadsHora ? ` · Atualizada às ${_md.leadsHora}` : '') + ' · Clique numa linha para ver tudo e mudar o status.';
   document.getElementById('md-leads-mais').style.display = lista.length > lim ? '' : 'none';
   const idx = new Map(_md.leads.map((l, i) => [l, i]));
   document.getElementById('md-t-leads').innerHTML = lista.length ? lista.slice(0, lim).map(l => `<tr onclick="mdAbrirLead(${idx.get(l)})">
@@ -6529,6 +6576,10 @@ function mdTxPadrao() {
 window.addEventListener('beforeunload', e => { if (mdTxSujo()) { e.preventDefault(); e.returnValue = ''; } });
 
 /* ---------- Configuração ---------- */
+async function mdVerificarConfig(btn) {
+  await mdComBotao(btn, 'Verificando…', () => mdCarregarConfig());
+  mostrarToast('🔎 Configuração verificada às ' + mdHora() + ': ' + document.getElementById('md-cfg-titulo').textContent + '.');
+}
 async function mdCarregarConfig() {
   const dot = document.getElementById('md-cfg-dot'), tit = document.getElementById('md-cfg-titulo'), ul = document.getElementById('md-cfg-lista');
   tit.textContent = 'Verificando…';
