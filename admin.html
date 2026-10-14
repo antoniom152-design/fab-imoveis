@@ -2099,18 +2099,25 @@ function onEdit(e) {
   <div class="md-view" id="md-v-leads">
     <div class="conn-card" style="margin-bottom:16px;padding:16px 20px">
       <div class="md-row">
-        <input class="md-input" id="md-f-busca" placeholder="Buscar nome, e-mail, telefone ou ID" style="flex:1;min-width:220px" oninput="mdRenderLeads()">
-        <select class="md-input" id="md-f-status" onchange="mdRenderLeads()"><option value="">Todos os status</option></select>
-        <select class="md-input" id="md-f-canal" onchange="mdRenderLeads()"><option value="">Todos os canais</option><option value="EMAIL">E-mail</option><option value="WHATSAPP">WhatsApp</option><option value="SITE">Site (sem link)</option></select>
-        <select class="md-input" id="md-f-origem" onchange="mdRenderLeads()"><option value="">Todas as origens</option></select>
+        <input class="md-input" id="md-f-busca" placeholder="Buscar nome, e-mail, telefone ou ID" style="flex:1;min-width:220px" oninput="mdRenderLeads(true)">
+        <select class="md-input" id="md-f-status" onchange="mdRenderLeads(true)"><option value="">Todos os status</option></select>
+        <select class="md-input" id="md-f-canal" onchange="mdRenderLeads(true)"><option value="">Todos os canais</option><option value="EMAIL">E-mail</option><option value="WHATSAPP">WhatsApp</option><option value="SITE">Site (sem link)</option></select>
+        <select class="md-input" id="md-f-origem" onchange="mdRenderLeads(true)"><option value="">Todas as origens</option></select>
+        <select class="md-input" id="md-f-ordem" onchange="mdRenderLeads(true)" aria-label="Ordenar">
+          <option value="id">Ordem da planilha (ID)</option><option value="cad_desc">Cadastro mais recente primeiro</option>
+          <option value="cad_asc">Cadastro mais antigo primeiro</option><option value="nome">Nome (A-Z)</option></select>
         <button class="btn-conn-test" onclick="mdCarregarLeads()">🔄 Recarregar</button>
       </div>
       <p class="md-nota" id="md-leads-count" style="margin-top:10px"></p>
     </div>
     <div class="table-wrap"><div class="table-wrap-inner">
-      <table><thead><tr><th>ID</th><th>Nome</th><th>Contato</th><th>Origem</th><th>Canal</th><th>Status</th><th>Último movimento</th><th>Resposta</th></tr></thead>
-      <tbody id="md-t-leads"><tr><td colspan="8"><div class="empty-table">Carregando…</div></td></tr></tbody></table>
+      <table><thead><tr><th>ID</th><th>Nome</th><th>Contato</th><th>Origem</th><th>Cadastro</th><th>Canal</th><th>Status</th><th>Último movimento</th><th>Resposta</th></tr></thead>
+      <tbody id="md-t-leads"><tr><td colspan="9"><div class="empty-table">Carregando…</div></td></tr></tbody></table>
     </div></div>
+    <div class="md-row" id="md-leads-mais" style="justify-content:center;margin-top:14px;display:none">
+      <button class="btn-conn-test" onclick="_md.leadsLim += 200; mdRenderLeads()">Mostrar mais 200</button>
+      <button class="btn-conn-test" onclick="_md.leadsLim = Infinity; mdRenderLeads()">Mostrar todos</button>
+    </div>
   </div>
 
   <!-- ── IMPORTAR ── -->
@@ -2193,7 +2200,16 @@ function onEdit(e) {
         </div>
         <div id="md-pv-email-box"><div class="md-nota" style="margin-bottom:8px">Assunto: <b id="md-pv-assunto" style="color:var(--navy);font-size:14px"></b></div>
           <iframe class="md-pv-email" id="md-pv-email" sandbox="" title="Prévia do e-mail"></iframe></div>
-        <div id="md-pv-zap-box" class="md-zap" style="display:none"><div id="md-pv-zap"></div></div>
+        <div id="md-pv-zap-box" style="display:none">
+          <div class="md-zap"><div id="md-pv-zap"></div></div>
+          <!-- 110.13 — teste real: abre o WhatsApp com esta mensagem para o número digitado (o seu) -->
+          <div class="md-row" style="margin-top:14px">
+            <input class="md-input" id="md-zap-teste-fone" type="tel" placeholder="Seu WhatsApp com DDD" style="width:190px">
+            <button class="btn-conn" onclick="mdZapTeste()">📱 Testar no meu WhatsApp</button>
+          </div>
+          <p class="md-nota" style="margin-top:6px">Abre o WhatsApp com a mensagem da prévia (lead fictício "Ana") para o número acima. Envie para você mesmo e veja negrito, quebras de linha e o link no celular. Não entra na planilha. O link do teste abre a página de recadastro, mas não atualiza nenhum lead.</p>
+          <p class="md-msg" id="md-zap-teste-msg"></p>
+        </div>
       </div>
     </div>
   </div>
@@ -6218,9 +6234,9 @@ async function mdMarcarWhats(btn) {
 
 /* ---------- Leads ---------- */
 async function mdCarregarLeads() {
-  document.getElementById('md-t-leads').innerHTML = '<tr><td colspan="8"><div class="empty-table">Carregando…</div></td></tr>';
+  document.getElementById('md-t-leads').innerHTML = '<tr><td colspan="9"><div class="empty-table">Carregando…</div></td></tr>';
   const r = await mdGet('md_leads', {}, 40000);
-  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="8"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return; }
+  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="9"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return; }
   _md.leads = r.itens;
   _md.leadsCarregados = true;
   const fill = (id, vals, rotulo, primeiro) => {
@@ -6231,7 +6247,7 @@ async function mdCarregarLeads() {
   const sts = [...new Set(_md.leads.map(l => l.status))].sort((a, b) => MD_ORDEM.indexOf(a) - MD_ORDEM.indexOf(b));
   fill('md-f-status', sts, s => MD_ROTULO[s] || s, 'Todos os status');
   fill('md-f-origem', [...new Set(_md.leads.map(l => l.origem).filter(Boolean))].sort(), o => MD_NOME_ORIGEM[o] || o, 'Todas as origens');
-  mdRenderLeads();
+  mdRenderLeads(true);
 }
 function mdUltimoMov(l) {
   if (l.dtRecadastro) return 'Recadastrou ' + l.dtRecadastro;
@@ -6241,21 +6257,33 @@ function mdUltimoMov(l) {
   if (l.dtEnvio1) return 'Enviado ' + l.dtEnvio1;
   return l.dtCadastro ? 'Cadastro ' + l.dtCadastro : '';
 }
-function mdRenderLeads() {
+/* dd/mm/aaaa → aaaammdd, para ordenar por data de cadastro (sem data vai para o fim) */
+function mdChaveData(s) { const m = String(s || '').match(/^(\d{2})\/(\d{2})\/(\d{4})/); return m ? m[3] + m[2] + m[1] : ''; }
+function mdRenderLeads(reiniciar) {
+  if (reiniciar || !_md.leadsLim) _md.leadsLim = 200;   // 110.12 — antes cortava em 300 e escondia o resto
   const q = document.getElementById('md-f-busca').value.trim().toLowerCase();
   const fs = document.getElementById('md-f-status').value, fc = document.getElementById('md-f-canal').value, fo = document.getElementById('md-f-origem').value;
   const qDig = q.replace(/\D/g, '');
   const lista = _md.leads.filter(l => (!fs || l.status === fs) && (!fc || l.canal === fc) && (!fo || l.origem === fo) &&
     (!q || (l.nome + ' ' + l.email + ' ' + l.emailAtual + ' ' + l.id).toLowerCase().includes(q) || (qDig.length >= 4 && l.telefone.replace(/\D/g, '').includes(qDig))));
-  const LIM = 300;
-  document.getElementById('md-leads-count').textContent = `${lista.length} de ${_md.leads.length} leads` + (lista.length > LIM ? ` — mostrando os ${LIM} primeiros; refine a busca.` : '') + ' · Clique numa linha para ver tudo e mudar o status.';
+  const ordem = document.getElementById('md-f-ordem').value;
+  if (ordem === 'nome') lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  else if (ordem === 'cad_desc' || ordem === 'cad_asc') {
+    const sinal = ordem === 'cad_desc' ? -1 : 1;
+    lista.sort((a, b) => { const x = mdChaveData(a.dtCadastro), y = mdChaveData(b.dtCadastro);
+      if (!x || !y) return x ? -1 : y ? 1 : 0; return x < y ? -sinal : x > y ? sinal : 0; });
+  }
+  const lim = Math.min(_md.leadsLim, lista.length);
+  document.getElementById('md-leads-count').textContent = `${lista.length} de ${_md.leads.length} leads` +
+    (lista.length > lim ? ` — mostrando ${lim}; use "Mostrar mais" no fim da lista.` : '') + ' · Clique numa linha para ver tudo e mudar o status.';
+  document.getElementById('md-leads-mais').style.display = lista.length > lim ? '' : 'none';
   const idx = new Map(_md.leads.map((l, i) => [l, i]));
-  document.getElementById('md-t-leads').innerHTML = lista.length ? lista.slice(0, LIM).map(l => `<tr onclick="mdAbrirLead(${idx.get(l)})">
+  document.getElementById('md-t-leads').innerHTML = lista.length ? lista.slice(0, lim).map(l => `<tr onclick="mdAbrirLead(${idx.get(l)})">
     <td>${mdEsc(l.id)}</td><td class="td-nome">${mdEsc(l.nome)}</td>
     <td>${mdEsc(l.email || '')}${l.email && l.telefone ? '<br>' : ''}${mdEsc(l.telefone || '')}</td>
-    <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
+    <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td style="white-space:nowrap">${mdEsc(l.dtCadastro)}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
     <td>${mdEsc(mdUltimoMov(l))}</td><td>${mdEsc(MD_SITUACAO[l.situacao] || '')}${l.consultor === 'SIM' && !l.dtAtendido ? ' 🆘' : ''}</td></tr>`).join('')
-    : '<tr><td colspan="8"><div class="empty-table">Nenhum lead encontrado.</div></td></tr>';
+    : '<tr><td colspan="9"><div class="empty-table">Nenhum lead encontrado.</div></td></tr>';
 }
 
 function mdAbrirLead(i) {
@@ -6467,6 +6495,7 @@ async function mdPrevia() {
   document.getElementById('md-pv-assunto').textContent = m.assunto;
   document.getElementById('md-pv-email').srcdoc = '<!doctype html><meta charset="utf-8"><body style="margin:0">' + m.html;
   document.getElementById('md-pv-zap').textContent = r.whats;
+  _md.ultimoZap = r.whats;
   mdTxErros(r.erros);
 }
 async function mdTxSalvar() {
@@ -6479,6 +6508,17 @@ async function mdTxSalvar() {
   _md.salvo = mdCopia(_md.rasc); _md.tx.datas = r.datas; mdTxErros([]); mdTxMostrar(_md.msg);
   document.getElementById('md-tx-estado').textContent = r.alterados ? 'Salvo. Os próximos envios já usam este texto.' : 'Nada mudou.';
 }
+function mdZapTeste() {
+  let f = document.getElementById('md-zap-teste-fone').value.replace(/\D/g, '');
+  if (f.length === 10 || f.length === 11) f = '55' + f;
+  if (!/^55[1-9]{2}9?\d{8}$/.test(f)) { mdMsg('md-zap-teste-msg', 'Informe seu WhatsApp com DDD, ex.: (21) 99999-9999.', 'e'); return; }
+  if (!_md.ultimoZap) { mdMsg('md-zap-teste-msg', 'Aguarde a prévia carregar e tente de novo.', 'e'); return; }
+  try { localStorage.setItem('md_zap_teste_fone', document.getElementById('md-zap-teste-fone').value); } catch (e) {}
+  const aviso = mdTxSujo() ? ' Atenção: é o texto em edição, ainda não salvo.' : '';
+  mdMsg('md-zap-teste-msg', 'WhatsApp aberto em outra aba com a mensagem pronta.' + aviso, 'ok');
+  window.open('https://wa.me/' + f + '?text=' + encodeURIComponent(_md.ultimoZap), '_blank', 'noopener');
+}
+try { const z = localStorage.getItem('md_zap_teste_fone'); if (z) document.getElementById('md-zap-teste-fone').value = z; } catch (e) {}
 function mdTxDescartar() { _md.rasc = mdCopia(_md.salvo); mdTxMostrar(_md.msg); }
 function mdTxPadrao() {
   const nomes = { e1: 'do 1º e-mail', e2: 'do lembrete', wa: 'do WhatsApp' };
