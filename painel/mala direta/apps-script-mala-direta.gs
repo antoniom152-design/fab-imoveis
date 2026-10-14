@@ -800,6 +800,7 @@ const ACOES_ADMIN = {
   md_leads:           function ()  { return { itens: listaLeads_() }; },
   md_status_manual:   function (d) { return statusManual_(String(d.id || ''), String(d.novo || ''), d.motivo); },
   md_para_whats:      function (d) { return paraWhats_(String(d.id || '')); },
+  md_registrar_resposta: function (d) { return registrarResposta_(d); },
   md_preparar:        function ()  { return { preparados: prepararLeads() }; },
   md_importar:        function (d) { return importar_(objeto_(d.linhas)); },
   md_corrigir_datas:  function (d) { return corrigirDatas_(objeto_(d.datas)); },
@@ -1021,6 +1022,53 @@ function statusManual_(id, novo, motivo) {
   if (erro) throw new Error(erro);
   emails.forEach(function (x) { try { brevoBloquear_(String(x).toLowerCase()); } catch (e) { /* segue */ } });
   return { ok: true };
+}
+
+/*
+ * 112.3 — resposta que chegou por fora do formulário (WhatsApp, telefone, e-mail) registrada pelo admin.
+ * Grava os mesmos campos do recadastro (situação, preferências, consultor), sem mexer nas autorizações:
+ * o lead não marcou nada, quem registrou foi a equipe. Devolve os dados para o admin criar o lead no CRM.
+ */
+const CANAIS_RESPOSTA = { WHATSAPP: 'WhatsApp', TELEFONE: 'telefone', EMAIL: 'e-mail' };
+function registrarResposta_(d) {
+  const id = String(d.id || ''), situacao = String(d.situacao || '');
+  if (!SITUACAO_STATUS[situacao]) throw new Error('Escolha a situação do lead.');
+  const canal = CANAIS_RESPOSTA[String(d.canal || '').toUpperCase()] ? String(d.canal).toUpperCase() : 'WHATSAPP';
+  const ativa = situacao === 'buscando' || situacao === 'adiou';
+  const consultor = ativa && (d.consultor === true || d.consultor === 'true' || d.consultor === 'sim');
+  const agora = new Date();
+  let emails = [], ref = null;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const L = lerLeads_(), c = L.cab;
+    const r = L.linhas.filter(function (x) { return String(x[c.ID]) === id; })[0];
+    if (!r) throw new Error('Lead ' + id + ' não encontrado.');
+    const antes = String(r[c.STATUS] || 'PENDENTE');
+    r[c.SITUACAO] = situacao;
+    r[c.CIDADE_INTERESSE] = ativa ? limpar_(d.cidade, 60) : '';
+    r[c.OBJETIVO] = ativa ? limpar_(d.objetivo, 60) : '';
+    r[c.PRAZO] = ativa ? limpar_(d.prazo, 40) : '';
+    r[c.VINCULO] = ativa ? limpar_(d.vinculo, 60) : r[c.VINCULO];
+    r[c.OBSERVACOES] = limpar_(d.observacoes, 600);
+    r[c.SOLICITA_ATENDIMENTO] = consultor ? 'SIM' : '';
+    if (consultor) r[c.DT_ATENDIDO] = '';
+    r[c.DT_RECADASTRO] = agora;
+    r[c.STATUS] = SITUACAO_STATUS[situacao];
+    if (!String(r[c.CAMPANHA]).trim()) r[c.CAMPANHA] = CFG.TAG;
+    r[c.OBS] = limpar_('Resposta registrada pelo admin (' + CANAIS_RESPOSTA[canal] + ') em ' + fmt_(agora, 'dd/MM/yyyy HH:mm') +
+      ' · antes: ' + antes, 200);
+    gravar_(L, ['SITUACAO', 'CIDADE_INTERESSE', 'OBJETIVO', 'PRAZO', 'VINCULO', 'OBSERVACOES', 'SOLICITA_ATENDIMENTO',
+      'DT_ATENDIDO', 'DT_RECADASTRO', 'STATUS', 'CAMPANHA', 'OBS']);
+    log_([[agora, id, canal, 'RESPOSTA_MANUAL', situacao + (consultor ? ' · pediu consultor' : '') + ' · registrada pelo admin']]);
+    if (situacao === 'nao_contatar') emails = [r[c.EMAIL], r[c.EMAIL_ATUAL]].filter(function (x) { return RE_EMAIL.test(String(x)); });
+    ref = { id: id, nome: String(r[c.NOME]), telefone: normalizarFone_(r[c.TELEFONE]), email: String(r[c.EMAIL_ATUAL] || r[c.EMAIL]),
+      canalLead: String(r[c.CANAL]), ativa: ativa, consultor: consultor };
+  } finally {
+    lock.releaseLock();
+  }
+  emails.forEach(function (x) { try { brevoBloquear_(String(x).toLowerCase()); } catch (e) { /* segue */ } });
+  return { ok: true, lead: ref };
 }
 
 /** E-mail inválido ou recusado: passa o lead para a fila do WhatsApp, se tiver telefone. */
