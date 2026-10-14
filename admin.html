@@ -652,6 +652,8 @@
   .md-status{background:#fff;border:1px solid var(--border);border-left:3px solid var(--green);padding:10px 14px;
     font-size:12.5px;line-height:1.75;color:var(--navy);margin-bottom:16px}
   .md-status:empty{display:none}
+  /* 112.1b — cabeçalho escuro das tabelas da Mala Direta: texto claro (antes cinza, quase invisível) */
+  #panel-maladireta .table-head-row span{color:#E8EDF5;font-size:11.5px}
   .md-sec{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.12em;
     text-transform:uppercase;color:var(--navy);margin:28px 0 10px;display:flex;align-items:center;gap:8px}
   .md-cont{background:#b03a2e;color:#fff;border-radius:999px;font-size:11px;padding:1px 9px;letter-spacing:0}
@@ -2074,7 +2076,7 @@ function onEdit(e) {
     <div class="md-sec">Fila do WhatsApp <span class="md-cont zero" id="md-n-whats">0</span></div>
     <div class="table-wrap">
       <div class="table-head-row"><span>Abra a conversa com a mensagem pronta, envie pelo WhatsApp e marque como enviado</span>
-        <button class="btn-conn-test" style="height:30px" onclick="mdCarregarWhats()">Carregar fila</button></div>
+        <button class="btn-conn" style="height:34px" onclick="mdCarregarWhats()">📱 Carregar fila</button></div>
       <div class="table-wrap-inner"><table class="md-table"><tbody id="md-t-whats"><tr><td><div class="empty-table" style="padding:24px">Clique em "Carregar fila".</div></td></tr></tbody></table></div>
     </div>
 
