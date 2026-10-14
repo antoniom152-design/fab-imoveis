@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>Atualize sua busca | WAL Imóveis</title>
+<meta property="og:title" content="Atualize sua busca | WAL Imóveis">
+<meta property="og:description" content="Veja o que mudou na WAL: mais opções de imóveis no RJ e em SP, mapa interativo e simulações em 4 instituições.">
+<meta property="og:image" content="https://www.walservidor.com.br/logo%20novo%20wal.jpeg">
+<meta property="og:type" content="website">
 <style>
   :root{--navy:#0b1f3a;--navy2:#13305a;--ouro:#c9a24b;--ouro2:#e3c57e;--fundo:#f3f1ec;--txt:#1c2733;--sub:#5d6875;--linha:#e2ded4;--ok:#1f7a4d}
   *{box-sizing:border-box}
@@ -227,10 +231,12 @@ async function registrarNoCRM_(d){
 }
 const REGIOES={GERAL:{rotulo:'Todas as regiões',cidades:[]},RJ:{rotulo:'Rio de Janeiro e Niterói',cidades:['rio de janeiro','niteroi']},SPA:{rotulo:'São Pedro da Aldeia',cidades:['sao pedro da aldeia']},SJC:{rotulo:'Vale do Paraíba',cidades:['sao jose dos campos','jacarei','cacapava']},SP:{rotulo:'São Paulo capital',cidades:['sao paulo']},LITORAL:{rotulo:'Caraguatatuba',cidades:['caraguatatuba']}};
 const params=new URLSearchParams(location.search);
-let token=params.get('t')||'';
-if(!/^[A-Za-z0-9_-]{20,200}$/.test(token))token='';
-if(token&&CONFIG.API_URL)fetch(CONFIG.API_URL+'?a=visita&t='+encodeURIComponent(token),{referrerPolicy:'no-referrer'}).catch(()=>{});
+// ?t= token inteiro (link do e-mail) · ?c= código curto (link do WhatsApp, walservidor.com.br/a/<código>) — 110.14
+let token=params.get('t')||params.get('c')||'';
+if(!/^[A-Za-z0-9_-]{10,200}$/.test(token))token='';
 let regiaoAtual=Object.hasOwn(REGIOES,params.get('regiao'))?params.get('regiao'):'GERAL';
+// a visita devolve só a região da campanha; o link curto não traz ?regiao=, então a página abre nela depois
+if(token&&CONFIG.API_URL)fetch(CONFIG.API_URL+'?a=visita&t='+encodeURIComponent(token),{referrerPolicy:'no-referrer'}).then(r=>r.json()).then(d=>{if(!params.get('regiao')&&d&&Object.hasOwn(REGIOES,d.regiao)&&d.regiao!==regiaoAtual){regiaoAtual=d.regiao;limite=CONFIG.PAGE_SIZE;chips();lista()}}).catch(()=>{});
 let imoveis=[],limite=CONFIG.PAGE_SIZE;
 const normal=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 function urlSegura(value){try{const u=new URL(value,location.href);return ['http:','https:'].includes(u.protocol)?u.href:null}catch{return null}}

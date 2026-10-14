@@ -7,5 +7,8 @@
     { "source": "/agente", "destination": "/feirao/agente/dashboard-agente.html" },
     { "source": "/diretoria", "destination": "/feirao/diretoria/dashboard-diretor-wal.html" },
     { "source": "/acompanhamento_pre_cadastro", "destination": "/feirao/acompanhamento_pre_cadastro/acompanhamento-pre-cadastro.html" }
+  ],
+  "redirects": [
+    { "source": "/a/:c", "destination": "/recadastro.html?c=:c", "permanent": false }
   ]
 }
