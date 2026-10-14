@@ -6327,9 +6327,29 @@ function mdImpLer(texto) {
       origem: achar([/origem|regiao|cidade/]), empreendimento: achar([/empreend|imovel/]), dt_cadastro: achar([/data|cadastro|^dt/]) };
     linhas.shift();
   }
-  return linhas.map(l => { const c = partir(l), o = {};
+  const itens = linhas.map(l => { const c = partir(l), o = {};
     Object.keys(mapa).forEach(k => { o[k] = mapa[k] >= 0 ? (c[mapa[k]] || '') : ''; });
     return o; });
+  mdImpDatas(itens);
+  return itens;
+}
+/* 110.11 — a mesma coluna pode vir em dia/mês (Brasil) ou mês/dia (Excel/Google Forms em inglês).
+   Decide pela coluna inteira: se algum "a/b/aaaa" tem b > 12, é mês/dia; se algum tem a > 12, é dia/mês.
+   Converte tudo para aaaa-mm-dd hh:mm:ss antes de enviar, assim o backend não precisa adivinhar. */
+function mdImpDatas(itens) {
+  const re = /^(\d{1,2})\/(\d{1,2})\/(\d{2,4})(?:[ T]+(\d{1,2}):(\d{2})(?::(\d{2}))?)?/;
+  let mesDia = false, diaMes = false;
+  itens.forEach(x => { const m = String(x.dt_cadastro).trim().match(re); if (!m) return;
+    if (+m[2] > 12) mesDia = true; if (+m[1] > 12) diaMes = true; });
+  _md.impFormatoData = mesDia && !diaMes ? 'mes/dia (americano)' : mesDia && diaMes ? 'misturado' : 'dia/mês';
+  const z = n => String(n).padStart(2, '0');
+  itens.forEach(x => {
+    const m = String(x.dt_cadastro).trim().match(re); if (!m) return;
+    const ano = m[3].length === 2 ? 2000 + +m[3] : +m[3];
+    const dia = mesDia && !diaMes ? +m[2] : +m[1], mes = mesDia && !diaMes ? +m[1] : +m[2];
+    if (mes < 1 || mes > 12 || dia < 1 || dia > 31) return;
+    x.dt_cadastro = `${ano}-${z(mes)}-${z(dia)} ${z(m[4] || 0)}:${z(m[5] || 0)}:${z(m[6] || 0)}`;
+  });
 }
 function mdImpConferir() {
   const itens = mdImpLer(document.getElementById('md-imp-texto').value);
@@ -6339,8 +6359,10 @@ function mdImpConferir() {
   itens.forEach(x => { if (reEmail.test(x.email.trim())) email++; else if (foneOk(x.telefone)) whats++; else sem++; });
   _md.imp = itens;
   document.getElementById('md-imp-btn').disabled = !(email + whats);
+  const fmtData = _md.impFormatoData === 'mes/dia (americano)' ? ' · datas lidas como <b>mês/dia</b> (formato americano) e convertidas'
+    : _md.impFormatoData === 'misturado' ? ' · <span style="color:#b03a2e">datas misturadas (dia/mês e mês/dia) — confira a coluna de data antes de importar</span>' : '';
   document.getElementById('md-imp-resumo').innerHTML = itens.length
-    ? `<b>${itens.length}</b> linha(s): <b>${email}</b> com e-mail (Brevo) · <b>${whats}</b> só com telefone (WhatsApp)` + (sem ? ` · <span style="color:#b03a2e">${sem} sem e-mail nem telefone válido (serão ignorados)</span>` : '')
+    ? `<b>${itens.length}</b> linha(s): <b>${email}</b> com e-mail (Brevo) · <b>${whats}</b> só com telefone (WhatsApp)` + (sem ? ` · <span style="color:#b03a2e">${sem} sem e-mail nem telefone válido (serão ignorados)</span>` : '') + fmtData
     : '';
   document.getElementById('md-imp-previa').innerHTML = itens.length ? `<table class="md-table"><thead><tr><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Origem</th><th>Empreendimento</th><th>Data</th></tr></thead><tbody>` +
     itens.slice(0, 8).map(x => `<tr><td class="td-nome">${mdEsc(x.nome)}</td><td>${mdEsc(x.telefone)}</td><td>${mdEsc(x.email)}</td><td>${mdEsc(x.origem)}</td><td>${mdEsc(x.empreendimento)}</td><td>${mdEsc(x.dt_cadastro)}</td></tr>`).join('') +

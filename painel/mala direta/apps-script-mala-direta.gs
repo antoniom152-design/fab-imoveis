@@ -775,6 +775,7 @@ const ACOES_ADMIN = {
   md_para_whats:      function (d) { return paraWhats_(String(d.id || '')); },
   md_preparar:        function ()  { return { preparados: prepararLeads() }; },
   md_importar:        function (d) { return importar_(objeto_(d.linhas)); },
+  md_corrigir_datas:  function (d) { return corrigirDatas_(objeto_(d.datas)); },
   md_textos:          function ()  { return textosPainel_(); },
   md_previa:          function (d) { return previa_(objeto_(d.rascunho), objeto_(d.ex)); },
   md_salvar_textos:   function (d) { return salvarTextos_(objeto_(d.textos)); }
@@ -1062,15 +1063,49 @@ function importar_(linhas) {
 /** dd/mm/aaaa, dd/mm/aa, aaaa-mm-dd (com ou sem hora). '' se não reconhecer. */
 function lerData_(v) {
   const s = String(v == null ? '' : v).trim();
-  let m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  const hora = (s.match(/(\d{1,2}):(\d{2})(?::(\d{2}))?/) || []).slice(1).map(function (x) { return Number(x) || 0; });
+  // Monta a data sem deixar o JavaScript "rolar" mês/dia inválido (mês 25 virava 2 anos depois — bug 110.11).
+  const montar = function (ano, mes, dia) {
+    const d = new Date(ano, mes - 1, dia, hora[0] || 0, hora[1] || 0, hora[2] || 0);
+    return d.getFullYear() === ano && d.getMonth() === mes - 1 && d.getDate() === dia ? d : null;
+  };
+  let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return montar(Number(m[1]), Number(m[2]), Number(m[3])) || '';
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
   if (m) {
     const ano = m[3].length === 2 ? 2000 + Number(m[3]) : Number(m[3]);
-    const d = new Date(ano, Number(m[2]) - 1, Number(m[1]));
-    return isNaN(d) ? '' : d;
+    // dd/mm/aaaa; se não for uma data válida assim, tenta mm/dd/aaaa (planilha em formato americano)
+    return montar(ano, Number(m[2]), Number(m[1])) || montar(ano, Number(m[1]), Number(m[2])) || '';
   }
-  m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
-  if (m) return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
   return '';
+}
+
+/*
+ * Regrava DT_CADASTRO de leads já importados: {datas: {ID: 'aaaa-mm-dd hh:mm:ss'}}.
+ * Criada para o bug 110.11 (datas importadas em formato americano viraram 2026/2027).
+ */
+function corrigirDatas_(datas) {
+  if (!datas || typeof datas !== 'object') throw new Error('Nenhuma data recebida.');
+  let corrigidos = 0, invalidos = 0, naoAchados = 0;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(30000);
+  try {
+    const L = lerLeads_(), c = L.cab, porId = {};
+    L.linhas.forEach(function (r) { porId[String(r[c.ID])] = r; });
+    Object.keys(datas).forEach(function (id) {
+      const r = porId[id];
+      if (!r) { naoAchados++; return; }
+      const d = lerData_(datas[id]);
+      if (!d) { invalidos++; return; }
+      r[c.DT_CADASTRO] = d;
+      corrigidos++;
+    });
+    if (corrigidos) gravar_(L, ['DT_CADASTRO']);
+  } finally {
+    lock.releaseLock();
+  }
+  log_([[new Date(), '', 'PAINEL', 'CORRIGIR_DATAS', corrigidos + ' corrigidas · ' + invalidos + ' inválidas · ' + naoAchados + ' IDs não achados']]);
+  return { corrigidos: corrigidos, invalidos: invalidos, naoAchados: naoAchados };
 }
 
 function mudarLinha_(id, fn, canal, evento) {
