@@ -134,7 +134,7 @@ function prepararLeads() {
       if (t) vistos[t] = vistos[t] || id;
     });
     const temEmail = function (r) { return RE_EMAIL.test(String(r[c.EMAIL]).trim().toLowerCase()); };
-    const novas = L.linhas.filter(function (r) { return String(r[c.NOME]).trim() && !r[c.TOKEN]; });
+    const novas = L.linhas.filter(function (r) { return (String(r[c.NOME]).trim() || String(r[c.EMAIL]).trim() || String(r[c.TELEFONE]).trim()) && !r[c.TOKEN]; });   // 112: sem nome também entra
     novas.filter(temEmail).concat(novas.filter(function (r) { return !temEmail(r); })).forEach(function (r) {
       const email = String(r[c.EMAIL]).trim().toLowerCase(), t = chaveFone(r[c.TELEFONE]);
       seq++; novos++;
@@ -210,7 +210,7 @@ function enviarLote(etapa, qtd) {
           payload: JSON.stringify({
             sender: { name: CFG.REMETENTE_NOME, email: CFG.REMETENTE_EMAIL },
             replyTo: { name: CFG.REMETENTE_NOME, email: CFG.REMETENTE_EMAIL },
-            to: [{ email: lead.email, name: lead.nome }],
+            to: [lead.nome ? { email: lead.email, name: lead.nome } : { email: lead.email }],
             subject: m.assunto,
             htmlContent: m.html,
             textContent: m.texto,
@@ -408,6 +408,13 @@ function aplicarModelo_(tpl, ctx, html) {
     return ctx.flags[b] ? conteudo : '';
   });
   if (html) s = esc_(s);
+  // 112 — lead sem nome: "Olá, {primeiro_nome}!" vira "Olá!" e "{primeiro_nome}, a WAL..." vira "A WAL..."
+  if (!ctx.vars.primeiro_nome) {
+    s = s.replace(/[ \t]*,?[ \t]*\{primeiro_nome\}[ \t]*,?[ \t]*(?=[!?.:;])/g, '')     // "Olá, {primeiro_nome}!" → "Olá!"
+      .replace(/(^|\n)[ \t]*\{primeiro_nome\}[ \t]*,?[ \t]*/g, '$1')                 // início de linha/assunto
+      .replace(/[ \t]*,?[ \t]*\{primeiro_nome\}/g, '')                                   // qualquer outro lugar
+      .replace(/(^|\n|[.!?][ \t]+)([a-zà-ú])/g, function (m, a, b) { return a + b.toUpperCase(); });
+  }
   return s.replace(/\{([a-z_]+)\}/g, function (m, v) {
     return v in ctx.vars ? (html ? esc_(ctx.vars[v]) : String(ctx.vars[v])) : m;
   });
@@ -617,6 +624,7 @@ function recadastrar_(d) {
       r[c.OBS] = via ? 'Chegou pelo link de ' + via + ' com outro telefone ou link vencido' : '';
     }
     r[c.TELEFONE] = "'" + fone;                        // telefone confirmado agora (corrige cadastros antigos sem o 9)
+    if (!String(r[c.NOME]).trim()) r[c.NOME] = nome;     // 112: lead importado sem nome
     r[c.SITUACAO] = situacao;
     if (email) r[c.EMAIL_ATUAL] = email;
     r[c.CIDADE_INTERESSE] = ativa ? limpar_(d.cidade, 60) : '';
@@ -634,7 +642,7 @@ function recadastrar_(d) {
     r[c.DT_RECADASTRO] = agora;
     r[c.STATUS] = SITUACAO_STATUS[situacao];
     if (nova) L.sh.appendRow(r);
-    else gravar_(L, ['TELEFONE', 'SITUACAO', 'EMAIL_ATUAL', 'CIDADE_INTERESSE', 'OBJETIVO', 'PRAZO', 'VINCULO', 'OBSERVACOES',
+    else gravar_(L, ['NOME', 'TELEFONE', 'SITUACAO', 'EMAIL_ATUAL', 'CIDADE_INTERESSE', 'OBJETIVO', 'PRAZO', 'VINCULO', 'OBSERVACOES',
       'SOLICITA_ATENDIMENTO', 'DT_ATENDIDO', 'CONSENT_EMAIL', 'CONSENT_WHATSAPP', 'VERSAO_TEXTO', 'CAMPANHA',
       'DT_RECADASTRO', 'STATUS']);
     log_([[agora, r[c.ID], r[c.CANAL], 'RECADASTRO', situacao + (atendimento ? ' · pediu consultor' : '')]]);
@@ -843,7 +851,7 @@ function resumo_() {
     if (r[c.SOLICITA_ATENDIMENTO] === 'SIM' && !r[c.DT_ATENDIDO]) consultor++;
     if (r[c.CANAL] === 'WHATSAPP' && s === 'PENDENTE') whats++;
   });
-  const semPreparar = L.linhas.filter(function (r) { return String(r[c.NOME]).trim() && !r[c.TOKEN]; }).length;
+  const semPreparar = L.linhas.filter(function (r) { return (String(r[c.NOME]).trim() || String(r[c.EMAIL]).trim() || String(r[c.TELEFONE]).trim()) && !r[c.TOKEN]; }).length;
   const lg = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(CFG.ABA_LOG);
   const ult = lg.getLastRow(), n = Math.min(30, ult - 1);
   const logs = n > 0 ? lg.getRange(ult - n + 1, 1, n, 5).getValues().reverse() : [];
@@ -1056,12 +1064,12 @@ function importar_(linhas) {
       const email = String(x.email || '').trim().toLowerCase().slice(0, 120);
       const fone = normalizarFone_(x.telefone), t = chaveFone(x.telefone);
       const emailOk = RE_EMAIL.test(email) && !/^[=+\-@]/.test(email);
-      if (nome.length < 2 || (!emailOk && !fone)) { invalidos++; return; }
+      if (!emailOk && !fone) { invalidos++; return; }                     // 112: sem nome entra; sem contato, não
       if ((emailOk && existe['e:' + email]) || (t && existe[t])) { pulados++; return; }
       if (emailOk) existe['e:' + email] = true;
       if (t) existe[t] = true;
       const r = L.vazia.slice();
-      r[c.NOME] = nome;
+      r[c.NOME] = nome.length >= 2 ? nome : '';
       r[c.TELEFONE] = fone ? "'" + fone : limpar_(x.telefone, 20);
       r[c.EMAIL] = emailOk ? email : '';
       r[c.ORIGEM] = limpar_(x.origem, 40);
@@ -1283,7 +1291,7 @@ function limpar_(v, max) {
 
 function primeiroNome_(nome) {
   const p = String(nome || '').trim().split(/\s+/)[0] || '';
-  return p ? p.charAt(0).toUpperCase() + p.slice(1).toLowerCase() : 'tudo bem';
+  return p ? p.charAt(0).toUpperCase() + p.slice(1).toLowerCase() : '';   // sem nome: aplicarModelo_ ajusta a frase
 }
 
 function esc_(s) {
