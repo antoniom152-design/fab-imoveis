@@ -711,6 +711,7 @@
   }
 </style>
 <script src="painel/shared/tarja-vendido.js"></script>
+<script src="painel/shared/crm-lead.js"></script>
 </head>
 <body>
 
@@ -6366,6 +6367,7 @@ function mdAbrirLead(i) {
     </dl>
     <div class="md-acao">
       ${/^55\d{10,11}$/.test(foneWa) ? `<p style="margin-bottom:12px"><a href="https://wa.me/${foneWa}" target="_blank" rel="noopener">💬 Abrir conversa no WhatsApp</a></p>` : ''}
+      ${mdBlocoResposta(l)}
       <div class="md-row">
         <select class="md-input" id="md-st-novo">${Object.keys(MD_STATUS_MANUAIS).map(s => `<option value="${s}">${mdEsc(MD_STATUS_MANUAIS[s])}</option>`).join('')}</select>
         <input class="md-input" id="md-st-motivo" placeholder="Motivo (opcional)" maxlength="120" style="flex:1;min-width:180px">
@@ -6377,8 +6379,98 @@ function mdAbrirLead(i) {
       <p class="md-msg" id="md-lead-msg"></p>
     </div>`;
   document.getElementById('md-modal').classList.add('show');
+  if (document.getElementById('md-r-sit')) mdRespSituacao();
 }
 function mdFecharLead() { document.getElementById('md-modal').classList.remove('show'); }
+
+/* 112.3 — resposta que chegou por fora do formulário (o lead respondeu no WhatsApp, por telefone ou e-mail).
+   Grava na planilha da Mala Direta os mesmos campos do recadastro e, se continua buscando ou adiou,
+   cria o lead no CRM (painel/shared/crm-lead.js), igual ao recadastro.html. */
+const MD_OPC = {
+  cidade: ['Rio de Janeiro', 'Niterói', 'São Pedro da Aldeia', 'São Paulo', 'São José dos Campos', 'Jacareí', 'Caçapava', 'Caraguatatuba', 'Ainda estou avaliando'],
+  objetivo: ['Morar', 'Investir', 'Segundo imóvel ou veraneio', 'Ainda estou avaliando'],
+  prazo: ['Até 3 meses', 'De 3 a 6 meses', 'De 6 a 12 meses', 'Mais de 12 meses', 'Sem prazo definido'],
+  vinculo: ['FAB', 'Marinha', 'Exército', 'Polícia Militar', 'Bombeiros', 'Servidor federal', 'Servidor estadual', 'Servidor municipal', 'Aposentado ou pensionista', 'Outro']
+};
+function mdSelOpc(id, lista, atual, primeiro) {
+  const temAtual = atual && !lista.includes(atual);
+  return `<select class="md-input" id="${id}" style="width:100%"><option value="">${primeiro}</option>` +
+    (temAtual ? `<option selected>${mdEsc(atual)}</option>` : '') +
+    lista.map(v => `<option${v === atual ? ' selected' : ''}>${mdEsc(v)}</option>`).join('') + '</select>';
+}
+function mdBlocoResposta(l) {
+  const sit = l.situacao || '';
+  return `<details class="md-comum" id="md-resp" ${sit ? '' : 'open'} style="margin-bottom:16px">
+    <summary>📝 Registrar resposta recebida ${sit ? '(já tem resposta: ' + mdEsc(MD_SITUACAO[sit] || sit) + ')' : '(o lead respondeu por WhatsApp, telefone ou e-mail)'}</summary>
+    <p class="md-nota" style="margin-bottom:10px">Use quando o lead respondeu fora do formulário. Grava como se ele tivesse preenchido o recadastro: sai das filas, entra em "O que responderam" e, se continua buscando ou adiou, é criado no CRM.</p>
+    <div class="md-grid2" style="gap:10px">
+      <div class="md-campo"><label for="md-r-sit">Situação *</label>
+        <select class="md-input" id="md-r-sit" onchange="mdRespSituacao()" style="width:100%"><option value="">Selecione</option>
+          ${Object.keys(MD_SITUACAO).map(k => `<option value="${k}"${k === sit ? ' selected' : ''}>${mdEsc(MD_SITUACAO[k])}</option>`).join('')}</select></div>
+      <div class="md-campo"><label for="md-r-canal">Respondeu por</label>
+        <select class="md-input" id="md-r-canal" style="width:100%"><option value="WHATSAPP">WhatsApp</option><option value="TELEFONE">Telefone</option><option value="EMAIL">E-mail</option></select></div>
+    </div>
+    <div id="md-r-pref">
+      <div class="md-grid2" style="gap:10px">
+        <div class="md-campo"><label for="md-r-cidade">Cidade de interesse</label>${mdSelOpc('md-r-cidade', MD_OPC.cidade, l.cidade, 'Selecione')}</div>
+        <div class="md-campo"><label for="md-r-prazo">Prazo</label>${mdSelOpc('md-r-prazo', MD_OPC.prazo, l.prazo, 'Não informou')}</div>
+        <div class="md-campo"><label for="md-r-objetivo">Objetivo</label>${mdSelOpc('md-r-objetivo', MD_OPC.objetivo, l.objetivo, 'Não informou')}</div>
+        <div class="md-campo"><label for="md-r-vinculo">Instituição / vínculo</label>${mdSelOpc('md-r-vinculo', MD_OPC.vinculo, l.vinculo, 'Não informou')}</div>
+      </div>
+      <label class="md-nota" style="display:flex;gap:8px;align-items:center;margin-bottom:10px"><input type="checkbox" id="md-r-consultor"${l.consultor === 'SIM' ? ' checked' : ''}> Quer conversar com um consultor</label>
+    </div>
+    <div class="md-campo"><label for="md-r-obs">O que o lead disse / observações</label>
+      <textarea class="md-input" id="md-r-obs" rows="3" maxlength="600" style="width:100%" placeholder="Ex.: procura 2 quartos em São José dos Campos, perto do DCTA.">${mdEsc(l.observacoes || '')}</textarea></div>
+    <div class="md-row"><button class="btn-conn" id="md-r-salvar" onclick="mdRegistrarResposta()">💾 Salvar resposta</button>
+      <span class="md-nota">Não altera as autorizações de e-mail/WhatsApp (só o próprio lead autoriza).</span></div>
+  </details>`;
+}
+function mdRespSituacao() {
+  const v = document.getElementById('md-r-sit').value;
+  document.getElementById('md-r-pref').style.display = (!v || v === 'buscando' || v === 'adiou') ? '' : 'none';
+}
+async function mdRegistrarResposta() {
+  const l = _md.leadAberto, g = id => document.getElementById(id).value.trim();
+  const d = { id: l.id, situacao: g('md-r-sit'), canal: g('md-r-canal'), cidade: g('md-r-cidade'), prazo: g('md-r-prazo'),
+    objetivo: g('md-r-objetivo'), vinculo: g('md-r-vinculo'), observacoes: g('md-r-obs'),
+    consultor: document.getElementById('md-r-consultor').checked };
+  if (!d.situacao) { mdMsg('md-lead-msg', 'Escolha a situação do lead.', 'e'); return; }
+  const ativa = d.situacao === 'buscando' || d.situacao === 'adiou';
+  if (!ativa) d.consultor = false;
+  if (!confirm(`Registrar a resposta de ${l.nome || l.id}: "${MD_SITUACAO[d.situacao]}"?` + (ativa ? '\n\nO lead também será criado no CRM.' : ''))) return;
+  const btn = document.getElementById('md-r-salvar');
+  btn.disabled = true; btn.textContent = '⏳ Salvando…';
+  const r = await mdPost('md_registrar_resposta', d);
+  if (!mdOk(r)) { btn.disabled = false; btn.textContent = '💾 Salvar resposta'; mdMsg('md-lead-msg', mdErro(r), 'e'); return; }
+  let crmMsg = '';
+  if (ativa) crmMsg = await mdRespostaNoCRM(r.lead, d) ? ' e criado no CRM' : ' (⚠️ não consegui confirmar a gravação no CRM — confira na aba CRM)';
+  mostrarToast('✅ Resposta registrada' + crmMsg + '.');
+  mdFecharLead();
+  mdCarregarLeads();
+}
+async function mdRespostaNoCRM(lead, d) {
+  if (!window.WalCRM || !lead) return false;
+  const f = String(lead.telefone || '').replace(/^55/, '');
+  const tel = f.length >= 10 ? '(' + f.slice(0, 2) + ') ' + f.slice(2, f.length - 4) + '-' + f.slice(-4) : '';
+  const rot = { buscando: 'Continuo buscando um imóvel', adiou: 'Adiei meus planos' }[d.situacao];
+  const canal = { WHATSAPP: 'WhatsApp', TELEFONE: 'telefone', EMAIL: 'e-mail' }[d.canal] || 'WhatsApp';
+  const nota = ['Resposta à Mala Direta (registrada pela equipe, recebida por ' + canal + '): ' + rot,
+    d.consultor ? 'QUER CONVERSAR COM UM CONSULTOR' : '', d.cidade ? 'Cidade de interesse: ' + d.cidade : '',
+    d.objetivo ? 'Objetivo: ' + d.objetivo : '', d.prazo ? 'Prazo: ' + d.prazo : '', d.vinculo ? 'Instituição/vínculo: ' + d.vinculo : '',
+    d.observacoes ? 'Observações: ' + d.observacoes : '', 'Lead da Mala Direta: ' + lead.id].filter(Boolean).join('\n');
+  const origem = lead.canalLead === 'WHATSAPP' ? 'Mala Direta Zap' : 'Mala Direta E-mail';
+  const dias = d.consultor ? 1 : d.situacao === 'adiou' ? 30 : 2;
+  const pd = new Date(Date.now() + dias * 864e5);
+  const proxdata = pd.getFullYear() + '-' + String(pd.getMonth() + 1).padStart(2, '0') + '-' + String(pd.getDate()).padStart(2, '0');
+  const crmLead = { status: 'novo', prioridade: d.consultor ? 'alta' : d.situacao === 'adiou' ? 'baixa' : 'media',
+    nome: lead.nome || 'Lead ' + lead.id, telefone: tel, email: lead.email || '', origem, consultor: '', solicitacao: nota,
+    area: d.cidade || '', proxacao: d.consultor ? 'Ligar: pediu consultor (resposta à Mala Direta)' : d.situacao === 'adiou' ? 'Retomar contato (adiou a compra)' : 'Retomar contato: respondeu à Mala Direta',
+    proxdata };
+  const id = await WalCRM.gravarLeadEHistorico(crmGetScriptUrl(), EQUIPE_API_URL,
+    { action: 'criarOuAtualizar', lead: crmLead, interacao: { tipo: 'Mala Direta', data: new Date().toLocaleString('sv-SE', { timeZone: 'America/Sao_Paulo' }).replace(' ', 'T'), nota } },
+    { action: 'crm_lead_evento_publico', telefone: tel, email: lead.email || '', tipo: '📬 Mala Direta — resposta registrada pela equipe', texto: nota, origem });
+  return !!id;
+}
 
 async function mdStatusManual() {
   const l = _md.leadAberto, novo = document.getElementById('md-st-novo').value;
