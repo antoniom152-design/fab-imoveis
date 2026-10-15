@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual do Mapa de Empreendimentos V3.1 | WAL Imóveis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#0A1628; --navy2:#16233a; --gold:#C9A84C; --gold-soft:#fff8e6;
+    --ink:#1a2332; --muted:#5d6977; --border:#e2e6ec; --bg:#f6f7f9; --card:#fff;
+    --ok:#065f46; --ok-bg:#e8f7ef; --warn:#92400e; --warn-bg:#fff4e0; --info:#0A4D8C; --info-bg:#e8f4fd;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;scroll-padding-top:84px}
+  body{font-family:'Barlow',Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;font-size:16px}
+  a{color:var(--info)}
+  code,kbd{font-family:Consolas,'Courier New',monospace;font-size:.88em}
+  code{background:#eef1f5;padding:1px 6px;border-radius:4px;color:#0A1628}
+  kbd{background:#fff;border:1px solid #cfd5dd;border-bottom-width:2px;border-radius:4px;padding:0 6px}
+
+  /* ── Topo ── */
+  .topbar{position:sticky;top:0;z-index:50;background:var(--navy);border-bottom:3px solid var(--gold);color:#fff}
+  .topbar-in{max-width:1280px;margin:0 auto;padding:10px 20px;display:flex;align-items:center;gap:14px}
+  .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#fff}
+  .brand img,.brand .mark{width:38px;height:38px;border-radius:6px;object-fit:contain;flex-shrink:0}
+  .brand .mark{display:none;background:var(--gold);color:var(--navy);font-weight:800;align-items:center;justify-content:center;font-size:1.2em}
+  .brand strong{display:block;font-size:1em;letter-spacing:.02em}
+  .brand span{display:block;font-size:.7em;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+  .topbar .spacer{flex:1}
+  .btn-top{background:var(--gold);color:var(--navy);text-decoration:none;font-weight:800;font-size:.85em;padding:8px 14px;border-radius:6px;white-space:nowrap;border:none;cursor:pointer;font-family:inherit}
+  .btn-top.ghost{background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,.55)}
+  #btn-menu{display:none}
+
+  /* ── Capa ── */
+  .hero{background:linear-gradient(135deg,var(--navy) 0%,#1a2d4a 100%);color:#fff;padding:54px 20px 60px;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;border:60px solid rgba(201,168,76,.07)}
+  .hero-in{max-width:1280px;margin:0 auto;position:relative;z-index:1}
+  .hero .kicker{color:var(--gold);font-weight:700;text-transform:uppercase;letter-spacing:.14em;font-size:.78em}
+  .hero h1{font-family:'Barlow Condensed',sans-serif;font-size:2.8em;line-height:1.1;margin:8px 0 12px}
+  .hero h1 em{font-style:normal;color:var(--gold)}
+  .hero p{max-width:760px;color:#c8d0dc;font-size:1.05em}
+  .hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+  .hero-meta span{background:rgba(255,255,255,.08);border:1px solid rgba(201,168,76,.3);padding:5px 12px;border-radius:30px;font-size:.82em;color:#e8ecf2}
+
+  /* ── Layout ── */
+  .wrap{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:280px 1fr;gap:32px;padding:32px 20px 60px}
+  nav.toc{position:sticky;top:84px;align-self:start;max-height:calc(100vh - 100px);overflow-y:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
+  .toc-search{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:.88em;margin-bottom:10px;background:var(--bg)}
+  .toc h4{font-size:.7em;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin:12px 6px 4px}
+  .toc a{display:block;text-decoration:none;color:var(--ink);font-size:.88em;padding:5px 8px;border-radius:5px;border-left:3px solid transparent}
+  .toc a:hover{background:var(--bg)}
+  .toc a.on{background:var(--gold-soft);border-left-color:var(--gold);font-weight:700;color:var(--navy)}
+  main{min-width:0}
+
+  section.doc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:30px 34px;margin-bottom:22px}
+  section.doc > .num{display:inline-block;font-family:'Barlow Condensed',sans-serif;font-weight:700;color:var(--gold);font-size:.95em;letter-spacing:.08em;text-transform:uppercase}
+  h2{font-family:'Barlow Condensed',sans-serif;font-size:1.9em;color:var(--navy);line-height:1.15;margin:2px 0 12px}
+  h3{font-size:1.1em;color:var(--navy);margin:22px 0 8px}
+  p{margin-bottom:10px;color:#34404d}
+  ul,ol{margin:0 0 12px 22px;color:#34404d}
+  li{margin-bottom:5px}
+  .lead-txt{font-size:1.05em;color:var(--muted)}
+
+  /* ── Componentes ── */
+  .ui{display:inline-flex;align-items:center;gap:4px;font-weight:700;font-size:.86em;padding:2px 9px;border-radius:5px;white-space:nowrap;vertical-align:1px}
+  .ui-navy{background:var(--navy);color:var(--gold)}
+  .ui-gold{background:var(--gold);color:var(--navy)}
+  .ui-light{background:#f0f2f5;color:#445;border:1px solid #d5dae2}
+  .ui-blue{background:var(--info-bg);color:var(--info);border:1px solid #a8d4f0}
+  .ui-purple{background:#f0e8ff;color:#5b21b6;border:1px solid #c4b5fd}
+  .ui-indigo{background:#4f46e5;color:#fff}
+  .ui-green{background:#25D366;color:#fff}
+  .ui-cyan{background:#06b6d4;color:#fff}
+  .ui-mapblue{background:#1a73e8;color:#fff}
+  .ui-grey{background:#5f6368;color:#fff}
+
+  .callout{border-radius:10px;padding:14px 16px;margin:14px 0;border-left:4px solid;font-size:.95em}
+  .callout strong:first-child{display:block;margin-bottom:3px}
+  .callout p:last-child{margin-bottom:0}
+  .c-tip{background:var(--gold-soft);border-color:var(--gold)}
+  .c-info{background:var(--info-bg);border-color:var(--info)}
+  .c-ok{background:var(--ok-bg);border-color:#10b981}
+  .c-warn{background:var(--warn-bg);border-color:#f59e0b}
+
+  .steps{counter-reset:s;list-style:none;margin:14px 0;display:grid;gap:10px}
+  .steps li{counter-increment:s;position:relative;padding:12px 14px 12px 56px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin:0}
+  .steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:28px;height:28px;border-radius:50%;background:var(--navy);color:var(--gold);font-weight:800;display:flex;align-items:center;justify-content:center;font-size:.9em}
+
+  .grid{display:grid;gap:14px;margin:14px 0}
+  .g2{grid-template-columns:repeat(2,1fr)}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{border:1px solid var(--border);border-radius:10px;padding:14px 16px;background:#fcfcfd}
+  .card h4{color:var(--navy);font-size:.98em;margin-bottom:4px}
+  .card p{font-size:.9em;margin:0}
+  .card .ico{font-size:1.4em;display:block;margin-bottom:4px}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0 16px;font-size:.9em}
+  th,td{border:1px solid var(--border);padding:9px 11px;text-align:left;vertical-align:top}
+  th{background:var(--navy);color:var(--gold);font-weight:700}
+  tr:nth-child(even) td{background:#fafbfc}
+  .tbl-wrap{overflow-x:auto}
+
+  .legend{display:flex;gap:18px;flex-wrap:wrap;margin:12px 0;padding:14px 16px;background:var(--navy);border-radius:10px}
+  .legend span{display:flex;align-items:center;gap:8px;color:#e8ecf2;font-size:.92em}
+  .dot{width:18px;height:18px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25);flex-shrink:0}
+
+  .fit{display:inline-flex;font-size:.78em;font-weight:800;padding:2px 9px;border-radius:12px}
+  .fit.alto{background:#065f46;color:#a7f3d0}
+  .fit.medio{background:#92400e;color:#fde68a}
+  .fit.baixo{background:#4b5563;color:#d1d5db}
+
+  /* Mock de interface */
+  .mock{border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0;font-size:.82em;box-shadow:0 6px 18px rgba(10,22,40,.08)}
+  .mock .m-bar{background:var(--navy);color:#b9c2d0;padding:6px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .mock .m-bar b{background:var(--gold);color:var(--navy);padding:2px 9px;border-radius:12px}
+  .mock .m-bar i{font-style:normal;border:1px solid rgba(201,168,76,.4);color:var(--gold);padding:2px 9px;border-radius:12px}
+  .mock .m-head{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;padding:10px 12px;border-bottom:3px solid var(--gold)}
+  .mock .m-head strong{color:var(--gold)}
+  .mock .m-tool{background:#fff;padding:8px 10px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)}
+  .mock .m-tool span{background:#f7f8fa;border:1px solid #d5dae2;border-radius:4px;padding:3px 8px;color:#556}
+  .mock .m-body{display:grid;grid-template-columns:1fr 150px;height:170px}
+  .mock .m-map{background:linear-gradient(135deg,#dfe8ea,#cfdcc9);position:relative}
+  .mock .m-map .p{position:absolute;width:16px;height:16px;border-radius:50%;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+  .mock .m-map .cl{position:absolute;width:30px;height:30px;border-radius:50%;background:var(--navy);border:2px solid var(--gold);color:var(--gold);font-weight:800;display:flex;align-items:center;justify-content:center}
+  .mock .m-side{background:#fff;border-left:1px solid var(--border);padding:6px}
+  .mock .m-side div{background:#fafbfc;border:1px solid #e8ecf2;border-radius:5px;height:34px;margin-bottom:5px}
+  .mock .m-lbl{position:absolute;background:var(--gold);color:var(--navy);font-weight:800;font-size:.85em;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+  .mock-cap{font-size:.84em;color:var(--muted);margin-top:-6px}
+
+  footer{background:var(--navy);color:#b9c2d0;text-align:center;padding:28px 20px;font-size:.85em;border-top:3px solid var(--gold)}
+  footer strong{color:var(--gold)}
+
+  #to-top{position:fixed;right:18px;bottom:18px;width:42px;height:42px;border-radius:50%;background:var(--navy);color:var(--gold);border:2px solid var(--gold);font-size:1.1em;cursor:pointer;display:none;z-index:60}
+  #to-top.show{display:block}
+
+  @media (max-width:980px){
+    .wrap{grid-template-columns:1fr}
+    nav.toc{position:fixed;top:64px;left:0;bottom:0;width:290px;max-height:none;border-radius:0;z-index:70;transform:translateX(-105%);transition:transform .25s;box-shadow:4px 0 18px rgba(0,0,0,.25)}
+    nav.toc.open{transform:none}
+    #btn-menu{display:inline-flex}
+    .g3{grid-template-columns:1fr 1fr}
+  }
+  @media (max-width:640px){
+    body{font-size:15px}
+    .hero h1{font-size:2.1em}
+    section.doc{padding:22px 18px}
+    .g2,.g3{grid-template-columns:1fr}
+    .topbar .btn-top:not(#btn-menu){display:none}
+    .mock .m-body{grid-template-columns:1fr}
+    .mock .m-side{display:none}
+  }
+  @media print{
+    .topbar,nav.toc,#to-top,.no-print{display:none!important}
+    .wrap{display:block;padding:0}
+    body{background:#fff}
+    section.doc{border:none;page-break-inside:avoid;padding:14px 0}
+    .hero{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-in">
+    <button class="btn-top ghost" id="btn-menu" type="button">☰ Índice</button>
+    <a class="brand" href="#inicio">
+      <img src="logo%20novo%20wal.jpeg" alt="WAL Imóveis" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <span class="mark">W</span>
+      <div><strong>WAL Imóveis</strong><span>Manual do Mapa</span></div>
+    </a>
+    <div class="spacer"></div>
+    <button class="btn-top ghost" type="button" onclick="window.print()">🖨️ Imprimir / PDF</button>
+    <a class="btn-top" href="mapa-empreendimentos.html" target="_blank" rel="noopener">🗺️ Abrir o mapa</a>
+  </div>
+</header>
+
+<div class="hero" id="inicio">
+  <div class="hero-in">
+    <div class="kicker">Manual do usuário · Versão 3.1</div>
+    <h1>Mapa de <em>Empreendimentos</em> Disponíveis</h1>
+    <p>Guia completo de todas as ferramentas do mapa interativo da WAL Imóveis — da busca ao atendimento personalizado. Feito para servidores públicos civis e militares, corretores, agentes parceiros e equipe WAL.</p>
+    <div class="hero-meta">
+      <span>🏛️ WAL Imóveis e Consultoria · CRECI 12261-J</span>
+      <span>📱 Celular, tablet e computador</span>
+      <span>🔓 Sem cadastro para navegar</span>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <nav class="toc" id="toc">
+    <input class="toc-search" id="toc-search" type="search" placeholder="🔎 Buscar no manual…">
+    <h4>Começando</h4>
+    <a href="#s-rapido">Uso rápido em 5 passos</a>
+    <a href="#s-tela">Conhecendo a tela</a>
+    <h4>Personalização</h4>
+    <a href="#s-perfil">✨ Meu imóvel ideal</a>
+    <a href="#s-atendimento">🔥 Quero atendimento</a>
+    <h4>Busca e navegação</h4>
+    <a href="#s-filtros">🔍 Filtros de busca</a>
+    <a href="#s-marcadores">Marcadores e legenda</a>
+    <a href="#s-distancia">📍 Distância até bases</a>
+    <a href="#s-tipomapa">🗺️ Tipos de mapa</a>
+    <a href="#s-lista">📋 Lista de resultados</a>
+    <h4>Empreendimento</h4>
+    <a href="#s-popup">Janela do empreendimento</a>
+    <a href="#s-entorno">🏫 No entorno</a>
+    <a href="#s-posicao">📍 Sua posição</a>
+    <h4>Organizar e compartilhar</h4>
+    <a href="#s-favoritos">⭐ Favoritos</a>
+    <a href="#s-comparar">➕ Comparar</a>
+    <a href="#s-compartilhar">📲 Compartilhar</a>
+    <h4>Aparência</h4>
+    <a href="#s-visual">Visual Clássico × Novo</a>
+    <a href="#s-tema">Tema claro/escuro e tela cheia</a>
+    <a href="#s-celular">📱 Uso no celular</a>
+    <h4>Referência</h4>
+    <a href="#s-privacidade">🔒 Privacidade e dados</a>
+    <a href="#s-agentes">🤝 Agentes e equipe</a>
+    <a href="#s-problemas">🛠️ Solução de problemas</a>
+    <a href="#s-atalhos">Resumo de botões</a>
+  </nav>
+
+  <main>
+
+    <!-- 1 -->
+    <section class="doc" id="s-rapido">
+      <span class="num">Capítulo 1</span>
+      <h2>Uso rápido em 5 passos</h2>
+      <p class="lead-txt">Se você só tem um minuto, este é o caminho mais curto até o imóvel certo.</p>
+      <ol class="steps">
+        <li><strong>Crie seu perfil</strong> em <span class="ui ui-gold">✨ Meu imóvel ideal</span> — 3 perguntas rápidas sobre você, seu momento de vida e orçamento.</li>
+        <li><strong>(Opcional) Informe onde você está</strong> com <span class="ui ui-blue">📍 GPS</span> ou <span class="ui ui-purple">📌 Marcar no mapa</span> para medir distâncias até você.</li>
+        <li><strong>Busque</strong> ajustando os filtros e clicando em <span class="ui ui-navy">🔍 Filtrar</span>.</li>
+        <li><strong>Explore</strong> a lista ordenada por compatibilidade, abra os empreendimentos e veja o que há no <span class="ui ui-indigo">🏫 entorno</span>.</li>
+        <li><strong>Avance</strong>: salve favoritos, compare até 3 opções, simule o financiamento ou peça <span class="ui ui-gold">🔥 Quero atendimento</span>.</li>
+      </ol>
+      <div class="callout c-tip"><strong>💡 Dica</strong><p>Nada é enviado à WAL enquanto você navega. Seus dados só chegam à equipe quando você mesmo preenche o formulário de atendimento.</p></div>
+    </section>
+
+    <!-- 2 -->
+    <section class="doc" id="s-tela">
+      <span class="num">Capítulo 2</span>
+      <h2>Conhecendo a tela</h2>
+      <p>O mapa é organizado em cinco faixas, de cima para baixo:</p>
+      <div class="mock" aria-hidden="true">
+        <div class="m-bar">Visual do mapa: <b>🗺️ Clássico</b><i>✨ Novo</i> · Tema: <b>🌙 Escuro</b><i>☀️ Claro</i> · 🤝 Indicação de <strong style="color:#C9A84C">Agente</strong></div>
+        <div class="m-head"><strong>WAL Imóveis</strong> — Mapa de Empreendimentos V3.1 &nbsp; <span class="ui ui-gold">✨ Meu imóvel ideal</span> <span class="ui ui-navy">⛶ Tela Cheia</span> <span class="ui ui-navy">❓ O que este mapa oferece</span><br><small style="color:#b9c2d0">Situação: 🔴 Lançamento 🟠 Em Construção 🟣 Novo 🟢 Usado · Distância até: Centro da Cidade ▾</small></div>
+        <div class="m-tool"><span>Buscar</span><span>UF</span><span>Cidade</span><span>Bairro</span><span>Tipo</span><span>Construtora</span><span>Preço</span><span style="background:#0A1628;color:#C9A84C">🔍 Filtrar</span><span>☆ Só Favoritos</span><span>📍 GPS</span><span>📌 Marcar</span><span>📲 Compartilhar</span></div>
+        <div class="m-body">
+          <div class="m-map">
+            <span class="p" style="background:#ff3b30;left:22%;top:30%"></span>
+            <span class="p" style="background:#ff9500;left:48%;top:58%"></span>
+            <span class="p" style="background:#34c759;left:70%;top:25%"></span>
+            <span class="cl" style="left:35%;top:52%">12</span>
+            <span class="m-lbl" style="left:6px;top:6px">4</span>
+          </div>
+          <div class="m-side" style="position:relative"><span class="m-lbl" style="left:6px;top:6px;position:absolute">5</span><div></div><div></div><div></div></div>
+        </div>
+      </div>
+      <p class="mock-cap">Representação simplificada da tela no visual Clássico.</p>
+      <div class="tbl-wrap"><table>
+        <tr><th style="width:34%">Faixa</th><th>O que contém</th></tr>
+        <tr><td><strong>1. Barra de visual</strong></td><td>Troca entre visual <em>Clássico</em> e <em>Novo</em>, tema <em>Escuro/Claro</em> e mostra o nome do agente parceiro que indicou você (quando houver).</td></tr>
+        <tr><td><strong>2. Cabeçalho</strong></td><td>Marca WAL, botões <span class="ui ui-gold">✨ Meu imóvel ideal</span>, <span class="ui ui-navy">⛶ Tela Cheia</span>, <span class="ui ui-navy">❓ O que este mapa oferece</span>, legenda de cores e o seletor <strong>Distância até</strong>.</td></tr>
+        <tr><td><strong>3. Faixa de perfil</strong></td><td>Aparece quando há perfil ativo: resumo do perfil e botões <span class="ui ui-gold">🔥 Quero atendimento</span>, Editar e Limpar.</td></tr>
+        <tr><td><strong>4. Barra de filtros</strong></td><td>Campos de busca, botões de ação, posição, compartilhamento e o contador de empreendimentos.</td></tr>
+        <tr><td><strong>5. Mapa + lista</strong></td><td>Mapa interativo à esquerda e lista de resultados à direita (recolhível pelo botão <span class="ui ui-navy">☰</span>).</td></tr>
+      </table></div>
+      <div class="callout c-info"><strong>❓ Ajuda dentro do mapa</strong><p>O botão <span class="ui ui-navy">❓ O que este mapa oferece</span> abre este manual em outra aba, sem perder os filtros e a posição do mapa.</p></div>
+    </section>
+
+    <!-- 3 -->
+    <section class="doc" id="s-perfil">
+      <span class="num">Capítulo 3</span>
+      <h2>✨ Meu imóvel ideal</h2>
+      <p class="lead-txt">Um assistente de 3 passos que transforma o mapa numa vitrine personalizada, com uma nota de compatibilidade para cada empreendimento.</p>
+      <h3>Os 3 passos</h3>
+      <div class="grid g3">
+        <div class="card"><span class="ico">1️⃣</span><h4>Quem é você</h4><p>Aeronáutica, Marinha, Exército, Polícia/Bombeiros ou Servidor civil (obrigatório) + momento de vida: início de carreira, família, estabilidade ou investimento.</p></div>
+        <div class="card"><span class="ico">2️⃣</span><h4>O que importa agora</h4><p>Até <strong>2 prioridades</strong> (a primeira pesa mais): proximidade da base/trabalho, custo-benefício, ideal para família, valorização, lançamento/obra nova.</p></div>
+        <div class="card"><span class="ico">3️⃣</span><h4>Orçamento e tipo</h4><p>Preço máximo em milhares de R$ e tipo preferido (Lançamento, Em Construção, Novo, Usado ou Qualquer).</p></div>
+      </div>
+      <p>Ao clicar em <span class="ui ui-gold">Ver imóveis para mim →</span> o mapa é filtrado e reordenado na hora.</p>
+
+      <h3>O score de compatibilidade (0–100%)</h3>
+      <p>Cada empreendimento recebe uma nota exibida na janela do imóvel e na lista:</p>
+      <div class="tbl-wrap"><table>
+        <tr><th>Selo</th><th>Faixa</th><th>Significado</th></tr>
+        <tr><td><span class="fit alto">✨ 82%</span></td><td>75% ou mais</td><td>Alta compatibilidade com seu perfil</td></tr>
+        <tr><td><span class="fit medio">✨ 63%</span></td><td>55% a 74%</td><td>Compatibilidade média</td></tr>
+        <tr><td><span class="fit baixo">✨ 41%</span></td><td>Abaixo de 55%</td><td>Baixa compatibilidade</td></tr>
+      </table></div>
+      <p>A nota considera:</p>
+      <ul>
+        <li><strong>Proximidade</strong> — até a sua posição marcada (se houver); senão, até a organização mais próxima da sua força; para servidor civil, até o centro da cidade. Quanto mais perto, maior a nota (a partir de ~25 km o efeito zera).</li>
+        <li><strong>Preço × orçamento</strong> — dentro do orçamento pontua bem; até 15% acima ainda pontua um pouco; muito acima não pontua.</li>
+        <li><strong>Tipo preferido</strong> — bônus quando coincide.</li>
+        <li><strong>Prioridades e momento de vida</strong> — ex.: quem prioriza valorização ou está em momento de investimento ganha pontos em Lançamentos e obras em construção.</li>
+      </ul>
+      <h3>O que muda automaticamente com o perfil ativo</h3>
+      <ul>
+        <li>O seletor <strong>Distância até</strong> passa a apontar para a sua força (ex.: Bases Aéreas).</li>
+        <li>O <strong>Preço máx.</strong> e o <strong>Tipo</strong> dos filtros são pré-preenchidos (se estiverem vazios).</li>
+        <li>A lista passa a ser ordenada por <strong>✨ Mais compatível</strong>.</li>
+        <li>Surge a faixa de perfil com o botão <span class="ui ui-gold">🔥 Quero atendimento</span>.</li>
+      </ul>
+      <div class="callout c-tip"><strong>💡 Melhore a precisão</strong><p>Marque sua posição (GPS ou clique no mapa) — a proximidade passa a ser calculada a partir de onde você mora ou trabalha.</p></div>
+      <p>Use <strong>Editar perfil</strong> para refazer as respostas ou <strong>Limpar perfil</strong> para voltar ao mapa neutro. O perfil fica salvo apenas neste navegador.</p>
+    </section>
+
+    <!-- 4 -->
+    <section class="doc" id="s-atendimento">
+      <span class="num">Capítulo 4</span>
+      <h2>🔥 Quero atendimento</h2>
+      <p class="lead-txt">Leva você direto para um consultor WAL que já conhece seu perfil — sem repetir a conversa do zero.</p>
+      <ol class="steps">
+        <li>Com o perfil ativo, clique em <span class="ui ui-gold">🔥 Quero atendimento</span> (no visual Novo: <span class="ui ui-gold">🎧 Quero atendimento</span>). Sem perfil, o mapa pede que você o complete primeiro.</li>
+        <li>Confira o resumo do seu perfil exibido no topo do formulário.</li>
+        <li>Informe <strong>nome completo*</strong>, <strong>WhatsApp/telefone com DDD*</strong>, e-mail (opcional) e uma observação livre (opcional).</li>
+        <li>Clique em <span class="ui ui-gold">Enviar para a equipe WAL →</span>. A confirmação aparece na tela.</li>
+      </ol>
+      <h3>O que a equipe WAL recebe</h3>
+      <ul>
+        <li>Seus dados de contato e sua observação.</li>
+        <li>O perfil completo (força, momento, prioridades, orçamento, tipo).</li>
+        <li>Favoritos, empreendimentos em comparação e filtros ativos.</li>
+        <li>O agente parceiro que indicou você (se houver) e sua posição marcada no mapa (se houver).</li>
+      </ul>
+      <div class="callout c-ok"><strong>📱 Prefere WhatsApp?</strong><p>No mesmo formulário, o link <strong>WhatsApp</strong> abre uma conversa com a WAL já contendo o resumo completo do seu perfil.</p></div>
+    </section>
+
+    <!-- 5 -->
+    <section class="doc" id="s-filtros">
+      <span class="num">Capítulo 5</span>
+      <h2>🔍 Filtros de busca</h2>
+      <div class="tbl-wrap"><table>
+        <tr><th style="width:26%">Filtro</th><th>Como funciona</th></tr>
+        <tr><td>Buscar</td><td>Texto livre: procura no nome do empreendimento, bairro e endereço.</td></tr>
+        <tr><td>UF → Cidade → Bairro</td><td>Em cascata: escolher a UF limita as cidades; escolher a cidade limita os bairros.</td></tr>
+        <tr><td>Tipo</td><td>Lançamento, Em Construção, Novo ou Usado.</td></tr>
+        <tr><td>Construtora</td><td>Lista das construtoras/incorporadoras com empreendimentos no mapa.</td></tr>
+        <tr><td>Preço mín / máx</td><td>Em milhares de reais (ex.: <code>300</code> = R$ 300 mil; <code>1500</code> = R$ 1,5 mi).</td></tr>
+        <tr><td>Status</td><td>Na versão pública, sempre <em>Somente Ativos</em>.</td></tr>
+        <tr><td>Tipo de Mapa</td><td>Mapa, Satélite, Híbrido ou Terreno (ver capítulo 8).</td></tr>
+      </table></div>
+      <p>Depois de ajustar, clique em <span class="ui ui-navy">🔍 Filtrar</span> — ou pressione <kbd>Enter</kbd> nos campos Buscar, Construtora e Preço. <span class="ui ui-light">✕ Limpar</span> volta tudo ao início.</p>
+      <p>O <strong>contador</strong> à direita informa quantos empreendimentos estão no mapa (ex.: “18 empreendimentos no mapa”).</p>
+      <div class="callout c-info"><strong>ℹ️ Mapa vazio na abertura?</strong><p>É proposital: o mapa aguarda você clicar em <strong>Filtrar</strong>. Deixando os campos em branco, todos os empreendimentos ativos são exibidos.</p></div>
+    </section>
+
+    <!-- 6 -->
+    <section class="doc" id="s-marcadores">
+      <span class="num">Capítulo 6</span>
+      <h2>Marcadores e legenda</h2>
+      <p>A cor de cada marcador indica a situação da obra:</p>
+      <div class="legend">
+        <span><i class="dot" style="background:#ff3b30"></i> Lançamento</span>
+        <span><i class="dot" style="background:#ff9500"></i> Em Construção</span>
+        <span><i class="dot" style="background:#af52de"></i> Novo</span>
+        <span><i class="dot" style="background:#34c759"></i> Usado</span>
+      </div>
+      <ul>
+        <li><strong>Agrupamentos (clusters)</strong> — círculos azul-marinho com borda dourada e um número reúnem empreendimentos próximos. Clique para aproximar e separá-los.</li>
+        <li><strong>Estrela dourada</strong> no canto do marcador indica um favorito seu.</li>
+        <li><strong>Marcador azul</strong> com halo representa a sua posição.</li>
+        <li><strong>Marcadores pequenos com ícone</strong> (🏫 🏥 🚇…) são pontos do entorno.</li>
+      </ul>
+    </section>
+
+    <!-- 7 -->
+    <section class="doc" id="s-distancia">
+      <span class="num">Capítulo 7</span>
+      <h2>📍 Distância até bases e organizações</h2>
+      <p>O seletor <strong>Distância até</strong>, no cabeçalho, define a referência usada para medir cada empreendimento. O resultado aparece na janela do imóvel (ex.: “A 3,2 km (linha reta) até Base Aérea do Galeão”) e na lista.</p>
+      <div class="grid g2">
+        <div class="card"><h4>🏙️ Centro da Cidade</h4><p>Centro do município do empreendimento (Rio de Janeiro, Niterói, São Pedro da Aldeia, Araruama, Búzios, Duque de Caxias, Nova Iguaçu, São Paulo, São José dos Campos).</p></div>
+        <div class="card"><h4>✈️ Bases Aéreas</h4><p>Galeão, Santa Cruz, Afonsos e ITA/CTA (São José dos Campos).</p></div>
+        <div class="card"><h4>⚓ Organizações Navais</h4><p>Base Naval do Rio de Janeiro, Escola Naval e Arsenal de Marinha do RJ.</p></div>
+        <div class="card"><h4>🎖️ Organizações do Exército</h4><p>Vila Militar (Deodoro), Comando Militar do Leste e Forte de Copacabana.</p></div>
+        <div class="card"><h4>🚓 Polícia e Bombeiros</h4><p>QG da PMERJ, Delegacia Geral (Polícia Civil), Superintendência da PF (RJ) e Quartel Central do Corpo de Bombeiros.</p></div>
+        <div class="card"><h4>📐 Como é medido</h4><p>Distância em linha reta até o ponto <strong>mais próximo</strong> da categoria. Para o trajeto real, use <strong>🚗 Como chegar</strong>.</p></div>
+      </div>
+    </section>
+
+    <!-- 8 -->
+    <section class="doc" id="s-tipomapa">
+      <span class="num">Capítulo 8</span>
+      <h2>🗺️ Tipos de mapa</h2>
+      <div class="grid g2">
+        <div class="card"><h4>Mapa</h4><p>Ruas e nomes (OpenStreetMap). Padrão — melhor para orientação geral.</p></div>
+        <div class="card"><h4>Satélite</h4><p>Imagem aérea real — útil para ver o terreno, vizinhança e áreas verdes.</p></div>
+        <div class="card"><h4>Híbrido</h4><p>Imagem de satélite com limites e nomes de lugares por cima.</p></div>
+        <div class="card"><h4>Terreno</h4><p>Relevo e curvas de nível — mostra morros, baixadas e encostas.</p></div>
+      </div>
+    </section>
+
+    <!-- 9 -->
+    <section class="doc" id="s-lista">
+      <span class="num">Capítulo 9</span>
+      <h2>📋 Lista de resultados</h2>
+      <p>Ao lado do mapa, cada empreendimento filtrado aparece como um cartão com situação, nome, localização, nota de compatibilidade, distâncias, preço e botões de favorito (☆) e comparar (➕).</p>
+      <ul>
+        <li><strong>Clique no cartão</strong> para centralizar o mapa e abrir a janela do empreendimento.</li>
+        <li><span class="ui ui-navy">☰</span> mostra ou oculta a lista, liberando espaço para o mapa.</li>
+      </ul>
+      <h3>Ordenação</h3>
+      <div class="tbl-wrap"><table>
+        <tr><th>Opção</th><th>Critério</th></tr>
+        <tr><td>✨ Mais compatível</td><td>Maior score primeiro (requer perfil ativo).</td></tr>
+        <tr><td>Nome A–Z</td><td>Ordem alfabética.</td></tr>
+        <tr><td>Preço ↑ / Preço ↓</td><td>Do mais barato ao mais caro, ou o inverso.</td></tr>
+        <tr><td>Distância à ref.</td><td>Mais perto da referência escolhida em “Distância até”.</td></tr>
+        <tr><td>Distância de mim</td><td>Mais perto da sua posição (requer GPS ou marcação no mapa).</td></tr>
+      </table></div>
+      <div class="callout c-info"><strong>📌 Empreendimento em destaque</strong><p>Quando você chega por um link que indica um empreendimento específico, ele aparece sempre em primeiro na lista, qualquer que seja a ordenação.</p></div>
+    </section>
+
+    <!-- 10 -->
+    <section class="doc" id="s-popup">
+      <span class="num">Capítulo 10</span>
+      <h2>Janela do empreendimento</h2>
+      <p>Clicar em um marcador (ou num cartão da lista) abre a janela com foto, selos de situação e projeto, nome, nota de compatibilidade, distâncias (até a referência e até você), bairro/cidade, endereço, descrição resumida e preço.</p>
+      <p>No canto superior: <strong>☆/★</strong> favorita e <strong>➕</strong> adiciona à comparação.</p>
+      <h3>Ações disponíveis</h3>
+      <div class="tbl-wrap"><table>
+        <tr><th style="width:28%">Botão</th><th>O que faz</th></tr>
+        <tr><td><span class="ui ui-navy">Ver detalhes</span></td><td>Abre a página completa do imóvel, com todas as informações e fotos.</td></tr>
+        <tr><td><span class="ui ui-cyan">Chat IA</span></td><td>Conversa com o consultor inteligente da WAL.</td></tr>
+        <tr><td><span class="ui ui-green">WhatsApp</span></td><td>Mensagem para a WAL já com nome e localização do empreendimento.</td></tr>
+        <tr><td><span class="ui ui-gold">Simular</span></td><td>Abre o simulador de financiamento com o valor do imóvel preenchido.</td></tr>
+        <tr><td><span class="ui ui-mapblue">🚗 Como chegar</span></td><td>Rota no Google Maps; se sua posição estiver marcada, ela é usada como origem.</td></tr>
+        <tr><td><span class="ui ui-grey">🛣 Street View</span></td><td>Panorama da rua do empreendimento no Google Maps.</td></tr>
+        <tr><td><span class="ui ui-indigo">🏫 Ver no entorno</span></td><td>Mostra serviços ao redor (próximo capítulo).</td></tr>
+      </table></div>
+      <p>Preços acima de R$ 1.000 mil aparecem em milhões (ex.: “R$ 1,2 mi”). Sem preço cadastrado, aparece “Consulte-nos”.</p>
+    </section>
+
+    <!-- 11 -->
+    <section class="doc" id="s-entorno">
+      <span class="num">Capítulo 11</span>
+      <h2>🏫 No entorno do empreendimento</h2>
+      <p class="lead-txt">Descubra o que existe perto do imóvel antes mesmo da visita.</p>
+      <ol class="steps">
+        <li>Na janela do empreendimento, escolha o raio: <strong>1 km</strong>, <strong>1,5 km</strong> (padrão), <strong>3 km</strong> ou <strong>5 km</strong>.</li>
+        <li>Clique em <span class="ui ui-indigo">🏫 Ver no entorno</span> e aguarde de 5 a 15 segundos.</li>
+        <li>A janela lista os pontos por categoria com distância, e o mapa mostra marcadores coloridos.</li>
+        <li>Para remover os pontos, use <span class="ui ui-indigo">✕ Limpar entorno</span> no canto superior esquerdo do mapa.</li>
+      </ol>
+      <div class="grid g3">
+        <div class="card"><h4>🏫 Escolas</h4><p>Escolas e creches</p></div>
+        <div class="card"><h4>🏥 Saúde</h4><p>Hospitais, clínicas, consultórios</p></div>
+        <div class="card"><h4>💊 Farmácias</h4><p>Drogarias</p></div>
+        <div class="card"><h4>🌳 Praças e parques</h4><p>Parques e playgrounds</p></div>
+        <div class="card"><h4>🏋️ Academias</h4><p>Centros de atividade física</p></div>
+        <div class="card"><h4>🚓 Delegacias</h4><p>Unidades policiais</p></div>
+        <div class="card"><h4>🚇 Metrô / Trem / BRT</h4><p>Estações e acessos</p></div>
+        <div class="card"><h4>🚌 Pontos de ônibus</h4><p>Paradas</p></div>
+        <div class="card"><h4>🛒 Supermercados</h4><p>Mercados e conveniências</p></div>
+      </div>
+      <p>São exibidos os pontos mais próximos de cada categoria (até 6, ou até 8 nos raios de 3 e 5 km). Uma consulta já feita fica guardada e reaparece instantaneamente.</p>
+      <div class="callout c-warn"><strong>⚠️ Sobre os dados do entorno</strong><p>As informações vêm do OpenStreetMap, base colaborativa e gratuita — podem estar incompletas em algumas regiões. Se a busca falhar, aguarde ~20 segundos e tente <strong>uma vez</strong>, de preferência com raio de 1 km; cliques repetidos podem bloquear temporariamente o serviço.</p></div>
+    </section>
+
+    <!-- 12 -->
+    <section class="doc" id="s-posicao">
+      <span class="num">Capítulo 12</span>
+      <h2>📍 Sua posição no mapa</h2>
+      <div class="grid g2">
+        <div class="card"><span class="ico">📍</span><h4>GPS</h4><p>Usa a localização do aparelho. Ideal no celular; no computador depende da permissão do navegador.</p></div>
+        <div class="card"><span class="ico">📌</span><h4>Marcar no mapa</h4><p>Clique no botão e depois em qualquer ponto do mapa (sua casa, seu quartel, seu trabalho). Funciona em qualquer aparelho, sem GPS.</p></div>
+      </div>
+      <ul>
+        <li>O marcador azul pode ser <strong>arrastado</strong> para ajuste fino.</li>
+        <li>Com a posição definida, janela e lista mostram “🚶 X km de você”, a ordenação <strong>Distância de mim</strong> é liberada e o score de proximidade passa a usá-la.</li>
+        <li><span class="ui ui-light">✕ Posição</span> remove a marcação; <kbd>Esc</kbd> cancela o modo “Marcar no mapa”.</li>
+      </ul>
+      <div class="callout c-tip"><strong>💡 Não precisa ser onde você está agora</strong><p>Marque o lugar que importa para a decisão — por exemplo, a organização militar onde você vai servir.</p></div>
+    </section>
+
+    <!-- 13 -->
+    <section class="doc" id="s-favoritos">
+      <span class="num">Capítulo 13</span>
+      <h2>⭐ Favoritos</h2>
+      <p>Clique na estrela <strong>☆</strong> na janela ou no cartão da lista para salvar; ela fica <strong>★</strong> dourada e o marcador ganha uma estrela.</p>
+      <p><span class="ui ui-light">☆ Só Favoritos</span> filtra o mapa para exibir apenas os que você marcou — mesmo depois de fechar e reabrir a página no mesmo navegador. Os favoritos também são enviados à equipe quando você pede atendimento.</p>
+    </section>
+
+    <!-- 14 -->
+    <section class="doc" id="s-comparar">
+      <span class="num">Capítulo 14</span>
+      <h2>➕ Comparar empreendimentos</h2>
+      <ol class="steps">
+        <li>Clique em <strong>➕</strong> em até <strong>3</strong> empreendimentos.</li>
+        <li>Uma bandeja aparece no rodapé com os escolhidos (✕ remove um item).</li>
+        <li>Com 2 ou 3 selecionados, clique em <span class="ui ui-gold">Comparar (n)</span>.</li>
+      </ol>
+      <p>A tabela mostra lado a lado: foto, tipo, projeto, localização, preço, construtora, descrição e link “Ver imóvel →”.</p>
+    </section>
+
+    <!-- 15 -->
+    <section class="doc" id="s-compartilhar">
+      <span class="num">Capítulo 15</span>
+      <h2>📲 Compartilhar o mapa filtrado</h2>
+      <p>O botão <span class="ui ui-light">📲 Compartilhar</span> gera um link com os filtros atuais — quem abrir vê exatamente o mesmo recorte.</p>
+      <div class="grid g2">
+        <div class="card"><h4>📱 WhatsApp</h4><p>Abre o WhatsApp com o link e o total de empreendimentos.</p></div>
+        <div class="card"><h4>✉️ E-mail</h4><p>Informe o e-mail do destinatário e a WAL envia a mensagem com o link.</p></div>
+        <div class="card"><h4>🔗 Copiar link</h4><p>Copia para colar onde quiser.</p></div>
+        <div class="card"><h4>🔒 Compartilhamento seguro</h4><p>Disponível quando o mapa foi aberto por link de agente parceiro: gera mensagem assinada pelo agente, sempre no domínio oficial da WAL.</p></div>
+      </div>
+      <p>O link preserva a indicação do agente e da campanha, para que o atendimento continue vinculado a quem indicou.</p>
+    </section>
+
+    <!-- 16 -->
+    <section class="doc" id="s-visual">
+      <span class="num">Capítulo 16</span>
+      <h2>Visual Clássico × Novo</h2>
+      <p>Na primeira barra, escolha <span class="ui ui-gold">🗺️ Clássico</span> ou <span class="ui ui-light">✨ Novo</span>. Os dados e funcionalidades são os mesmos; muda a apresentação. A escolha fica salva no navegador.</p>
+      <div class="tbl-wrap"><table>
+        <tr><th>Elemento</th><th>Clássico</th><th>Novo</th></tr>
+        <tr><td>Cabeçalho</td><td>Faixa escura com legenda e seletor de distância</td><td>Cartão arredondado com resumo do perfil clicável e 🎧 Quero atendimento sempre visível</td></tr>
+        <tr><td>Filtros</td><td>Todos visíveis na barra</td><td>Busca instantânea (sem clicar em Filtrar), UF, faixa de preço e referência; demais em <strong>☰ Filtros</strong> com contador de filtros ativos</td></tr>
+        <tr><td>Lista</td><td>À direita, cartões compactos</td><td>À esquerda, “Melhores para você”, cartões com compatibilidade por extenso (Alta/Média/Baixa)</td></tr>
+        <tr><td>Marcadores</td><td>Círculos pulsantes</td><td>Quadrados arredondados 🏢 com borda dourada</td></tr>
+        <tr><td>Posição</td><td>Botões na barra</td><td>“📍 Minha localização” e “📌 Marcar ponto” sobre o mapa</td></tr>
+        <tr><td>Contador</td><td>Na barra de filtros</td><td>No canto inferior esquerdo do mapa</td></tr>
+      </table></div>
+      <p>No visual Novo, o preço é escolhido em faixas prontas: até R$ 300 mil, 400 mil, 600 mil ou 1 milhão.</p>
+    </section>
+
+    <!-- 17 -->
+    <section class="doc" id="s-tema">
+      <span class="num">Capítulo 17</span>
+      <h2>Tema claro/escuro e tela cheia</h2>
+      <ul>
+        <li><strong>🌙 Escuro / ☀️ Claro</strong> — disponível no visual Clássico. O tema claro inverte cabeçalho, faixas e botões para fundo claro, mantendo a identidade dourada. O mapa em si não muda.</li>
+        <li><span class="ui ui-navy">⛶ Tela Cheia</span> — ocupa a tela inteira. Saia pelo botão <strong>✕ Sair da Tela Cheia</strong> ou <kbd>Esc</kbd>.</li>
+      </ul>
+    </section>
+
+    <!-- 18 -->
+    <section class="doc" id="s-celular">
+      <span class="num">Capítulo 18</span>
+      <h2>📱 Uso no celular</h2>
+      <p>O mapa se adapta a telas pequenas para priorizar a área do mapa:</p>
+      <ul>
+        <li>Os filtros abrem <strong>recolhidos</strong>. Toque em <span class="ui ui-navy">🔍 Filtros ▾</span> para expandir e em <strong>▴</strong> para recolher.</li>
+        <li>A lista vira um painel lateral sobre o mapa e se <strong>recolhe sozinha</strong> ao abrir um empreendimento. Reabra com <span class="ui ui-navy">☰</span>.</li>
+        <li>A janela do empreendimento se ajusta à altura disponível, com rolagem interna.</li>
+        <li>Se o topo for maior que a tela, a página rola para baixo até o mapa.</li>
+      </ul>
+      <div class="callout c-tip"><strong>💡 No celular, use o GPS</strong><p>É a forma mais rápida de ver “🚶 X km de você” em todos os empreendimentos.</p></div>
+    </section>
+
+    <!-- 19 -->
+    <section class="doc" id="s-privacidade">
+      <span class="num">Capítulo 19</span>
+      <h2>🔒 Privacidade e dados</h2>
+      <p>Você navega sem cadastro. As preferências abaixo ficam guardadas <strong>somente no seu navegador</strong> e não são enviadas à WAL:</p>
+      <div class="tbl-wrap"><table>
+        <tr><th>Informação</th><th>Duração</th></tr>
+        <tr><td>Favoritos</td><td>Até você remover ou limpar os dados do navegador</td></tr>
+        <tr><td>Perfil “Meu imóvel ideal”</td><td>Até você limpar o perfil</td></tr>
+        <tr><td>Visual (Clássico/Novo) e tema</td><td>Até você trocar</td></tr>
+        <tr><td>Agente parceiro que indicou você</td><td>90 dias</td></tr>
+        <tr><td>Rótulo da campanha de origem</td><td>90 dias</td></tr>
+      </table></div>
+      <div class="callout c-info"><strong>ℹ️ Quando algo é enviado</strong><p>Somente quando <strong>você</strong> preenche e envia o formulário “Quero atendimento” ou pede o envio do link por e-mail. A posição marcada no mapa acompanha o pedido de atendimento para ajudar o consultor. O mapa nunca pede CPF, documentos ou dados bancários.</p></div>
+      <p>Em computador compartilhado, use <strong>Limpar perfil</strong> e desmarque os favoritos ao terminar.</p>
+    </section>
+
+    <!-- 20 -->
+    <section class="doc" id="s-agentes">
+      <span class="num">Capítulo 20</span>
+      <h2>🤝 Guia para agentes parceiros e equipe WAL</h2>
+      <p>O mapa aceita parâmetros no endereço (URL) para personalizar o que o cliente vê e vincular o atendimento a quem indicou. Combine vários com <code>&amp;</code>.</p>
+      <div class="tbl-wrap"><table>
+        <tr><th style="width:24%">Parâmetro</th><th>Efeito</th><th style="width:30%">Exemplo</th></tr>
+        <tr><td><code>agente</code></td><td>Registra a indicação (validada no cadastro) e exibe “🤝 Indicação de …” no topo. Libera o compartilhamento seguro.</td><td><code>?agente=AG123</code></td></tr>
+        <tr><td><code>campanha</code></td><td>Rótulo livre da campanha/disparo de origem, guardado por 90 dias.</td><td><code>?campanha=fab-set26</code></td></tr>
+        <tr><td><code>destaque</code></td><td>Aproxima e abre a janela do empreendimento, colocando-o no topo da lista. Vindo de formulário, limpa o perfil anterior e exibe “✅ Cadastro recebido!”.</td><td><code>?destaque=EMP045</code></td></tr>
+        <tr><td><code>origem=imovel</code></td><td>Usado com <code>destaque</code> pelo botão “Ver no Mapa” da página do imóvel: destaca sem tratar como novo cadastro.</td><td><code>?destaque=EMP045&amp;origem=imovel</code></td></tr>
+        <tr><td><code>uf</code>, <code>cidade</code>, <code>bairro</code></td><td>Pré-filtra a localização (valores exatos da planilha).</td><td><code>?uf=RJ&amp;cidade=NITERÓI</code></td></tr>
+        <tr><td><code>tipo</code>, <code>construtora</code></td><td>Pré-filtra situação e construtora.</td><td><code>?tipo=Lançamento</code></td></tr>
+        <tr><td><code>busca</code></td><td>Texto de busca pré-preenchido.</td><td><code>?busca=Barra</code></td></tr>
+        <tr><td><code>preco_min</code>, <code>preco_max</code></td><td>Faixa de preço em milhares de R$.</td><td><code>?preco_max=600</code></td></tr>
+        <tr><td><code>admin=1</code> + <code>status</code></td><td>Uso interno: libera o filtro de Status (Todos / Somente Inativos).</td><td><code>?admin=1&amp;status=</code></td></tr>
+      </table></div>
+      <div class="callout c-tip"><strong>💡 Forma mais fácil de montar um link</strong><p>Abra o mapa pelo seu link de agente, aplique os filtros desejados e use <strong>📲 Compartilhar → Copiar link</strong>. Filtros, agente e campanha já vêm no link.</p></div>
+      <div class="callout c-warn"><strong>⚠️ Compartilhamento seguro indisponível?</strong><p>Aparece a mensagem de cadastro incompleto quando o agente não tem nome e WhatsApp preenchidos ou está desabilitado. Atualize o cadastro com a equipe WAL.</p></div>
+      <h3>Onde o lead chega</h3>
+      <p>Pedidos do “Quero atendimento” entram no CRM de Leads com status <strong>novo</strong>, prioridade <strong>alta</strong>, origem “Mapa V3.1 — Meu Imóvel Ideal”, próxima ação “Contatar lead aquecido do mapa” para o dia seguinte e o agente indicador como consultor. O contexto completo do mapa fica na Solicitação e no histórico de atendimento do lead.</p>
+    </section>
+
+    <!-- 21 -->
+    <section class="doc" id="s-problemas">
+      <span class="num">Capítulo 21</span>
+      <h2>🛠️ Solução de problemas</h2>
+      <div class="tbl-wrap"><table>
+        <tr><th style="width:36%">Situação</th><th>O que fazer</th></tr>
+        <tr><td>O mapa abriu sem marcadores</td><td>Clique em <strong>🔍 Filtrar</strong>. Se aparecer “Nenhum empreendimento encontrado”, afrouxe os filtros ou use <strong>✕ Limpar</strong>.</td></tr>
+        <tr><td>“Não foi possível carregar os dados agora”</td><td>Falha temporária de conexão. Recarregue a página em instantes.</td></tr>
+        <tr><td>O GPS não funciona</td><td>Permita a localização no navegador ou use <strong>📌 Marcar no mapa</strong>.</td></tr>
+        <tr><td>O entorno não carrega</td><td>Aguarde ~20 s e tente uma vez com raio de 1 km. Evite cliques repetidos.</td></tr>
+        <tr><td>“Distância de mim” não reordena</td><td>Defina sua posição primeiro (GPS ou marcação).</td></tr>
+        <tr><td>“Quero atendimento” pede o perfil</td><td>Complete o <strong>✨ Meu imóvel ideal</strong> — é ele que qualifica seu pedido.</td></tr>
+        <tr><td>Erro ao enviar o atendimento</td><td>Tente novamente ou use o link de WhatsApp no próprio formulário (o resumo vai junto).</td></tr>
+        <tr><td>Não consigo adicionar à comparação</td><td>O limite é 3. Remova um item na bandeja do rodapé.</td></tr>
+        <tr><td>Street View abre sem imagem</td><td>Nem toda rua tem panorama. Use o mapa Satélite como alternativa.</td></tr>
+        <tr><td>Favoritos/perfil sumiram</td><td>Ficam no navegador: outro aparelho, janela anônima ou limpeza de dados não os mantêm.</td></tr>
+      </table></div>
+    </section>
+
+    <!-- 22 -->
+    <section class="doc" id="s-atalhos">
+      <span class="num">Apêndice</span>
+      <h2>Resumo de botões</h2>
+      <div class="tbl-wrap"><table>
+        <tr><th style="width:36%">Botão</th><th>Função</th></tr>
+        <tr><td><span class="ui ui-gold">✨ Meu imóvel ideal</span></td><td>Cria/edita o perfil de compatibilidade</td></tr>
+        <tr><td><span class="ui ui-gold">🔥 Quero atendimento</span></td><td>Envia seu perfil para um consultor WAL</td></tr>
+        <tr><td><span class="ui ui-navy">🔍 Filtrar</span> / <span class="ui ui-light">✕ Limpar</span></td><td>Aplica / zera os filtros</td></tr>
+        <tr><td><span class="ui ui-light">☆ Só Favoritos</span></td><td>Mostra apenas favoritos</td></tr>
+        <tr><td><span class="ui ui-blue">📍 GPS</span> / <span class="ui ui-purple">📌 Marcar no mapa</span></td><td>Define sua posição</td></tr>
+        <tr><td><span class="ui ui-light">✕ Posição</span></td><td>Remove sua posição</td></tr>
+        <tr><td><span class="ui ui-light">📲 Compartilhar</span></td><td>WhatsApp, e-mail, link ou envio seguro</td></tr>
+        <tr><td><span class="ui ui-navy">☰</span></td><td>Mostra/oculta a lista</td></tr>
+        <tr><td><span class="ui ui-indigo">✕ Limpar entorno</span></td><td>Remove pontos do entorno</td></tr>
+        <tr><td><span class="ui ui-navy">⛶ Tela Cheia</span></td><td>Tela inteira</td></tr>
+        <tr><td><span class="ui ui-navy">❓ O que este mapa oferece</span></td><td>Abre este manual em outra aba</td></tr>
+        <tr><td><kbd>Enter</kbd></td><td>Filtra a partir dos campos de texto e preço</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>Cancela a marcação de posição / sai da tela cheia</td></tr>
+      </table></div>
+      <p class="no-print" style="margin-top:14px"><a class="btn-top" href="mapa-empreendimentos.html" target="_blank" rel="noopener" style="display:inline-block">🗺️ Abrir o Mapa de Empreendimentos</a></p>
+    </section>
+
+  </main>
+</div>
+
+<footer>
+  <strong>WAL Imóveis e Consultoria</strong> · CRECI 12261-J · Rio de Janeiro<br>
+  Manual do Mapa de Empreendimentos Disponíveis — Versão 3.1 · Setembro de 2026
+</footer>
+
+<button id="to-top" type="button" title="Voltar ao topo" onclick="scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+<script>
+(function(){
+  const toc = document.getElementById('toc');
+  const links = [...toc.querySelectorAll('a')];
+  const secoes = links.map(a => document.querySelector(a.getAttribute('href'))).filter(Boolean);
+
+  // Destaque da seção atual no índice
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
+      }
+    });
+  }, { rootMargin: '-90px 0px -65% 0px' });
+  secoes.forEach(s => obs.observe(s));
+
+  // Busca no índice (título + conteúdo da seção)
+  document.getElementById('toc-search').addEventListener('input', function(){
+    const q = this.value.trim().toLowerCase();
+    links.forEach(a => {
+      const sec = document.querySelector(a.getAttribute('href'));
+      const txt = (a.textContent + ' ' + (sec ? sec.textContent : '')).toLowerCase();
+      a.style.display = !q || txt.includes(q) ? '' : 'none';
+    });
+    toc.querySelectorAll('h4').forEach(h => {
+      let n = h.nextElementSibling, vis = false;
+      while (n && n.tagName === 'A') { if (n.style.display !== 'none') vis = true; n = n.nextElementSibling; }
+      h.style.display = vis ? '' : 'none';
+    });
+  });
+
+  // Índice lateral no celular
+  document.getElementById('btn-menu').addEventListener('click', () => toc.classList.toggle('open'));
+  links.forEach(a => a.addEventListener('click', () => toc.classList.remove('open')));
+
+  // Botão voltar ao topo
+  const topo = document.getElementById('to-top');
+  addEventListener('scroll', () => topo.classList.toggle('show', scrollY > 600), { passive: true });
+})();
+</script>
+</body>
+</html>
