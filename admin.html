@@ -2081,6 +2081,13 @@ function onEdit(e) {
       <div class="table-wrap-inner"><table class="md-table"><tbody id="md-t-whats"><tr><td><div class="empty-table" style="padding:24px">Clique em "Carregar fila".</div></td></tr></tbody></table></div>
     </div>
 
+    <div class="md-sec">Resultado por dia de envio</div>
+    <div class="table-wrap"><div class="table-wrap-inner">
+      <table class="md-table"><thead><tr><th>Dia</th><th>Canal</th><th class="md-n">Enviados</th><th class="md-n">Abriram</th><th class="md-n">Visitaram</th><th class="md-n">Responderam</th><th class="md-n">Inválidos / Sair</th><th>Lembrete</th></tr></thead>
+      <tbody id="md-t-lotes"><tr><td colspan="8"><div class="empty-table" style="padding:20px">Carregando…</div></td></tr></tbody></table>
+    </div></div>
+    <p class="md-nota" style="margin-top:6px">Clique numa linha para ver esses leads em 👥 Leads. Percentuais sobre os enviados do dia. No WhatsApp não existe "abertura": conta a visita à página.</p>
+
     <div class="md-sec">Por região de origem</div>
     <div class="table-wrap"><div class="table-wrap-inner">
       <table class="md-table"><thead><tr><th>Origem</th><th class="md-n">Leads</th><th class="md-n">Enviados</th><th class="md-n">Visitaram</th><th class="md-n">Responderam</th><th class="md-n">Conversão</th></tr></thead>
@@ -2110,16 +2117,18 @@ function onEdit(e) {
         <select class="md-input" id="md-f-status" onchange="mdRenderLeads(true)"><option value="">Todos os status</option></select>
         <select class="md-input" id="md-f-canal" onchange="mdRenderLeads(true)"><option value="">Todos os canais</option><option value="EMAIL">E-mail</option><option value="WHATSAPP">WhatsApp</option><option value="SITE">Site (sem link)</option></select>
         <select class="md-input" id="md-f-origem" onchange="mdRenderLeads(true)"><option value="">Todas as origens</option></select>
+        <select class="md-input" id="md-f-envio" onchange="mdRenderLeads(true)" aria-label="Enviado em"><option value="">Enviado em: todos</option></select>
         <select class="md-input" id="md-f-ordem" onchange="mdRenderLeads(true)" aria-label="Ordenar">
           <option value="id">Ordem da planilha (ID)</option><option value="cad_desc">Cadastro mais recente primeiro</option>
-          <option value="cad_asc">Cadastro mais antigo primeiro</option><option value="nome">Nome (A-Z)</option></select>
+          <option value="cad_asc">Cadastro mais antigo primeiro</option><option value="env_desc">Envio mais recente primeiro</option><option value="nome">Nome (A-Z)</option></select>
         <button class="btn-conn-test" onclick="mdRecarregarLeads(this)">🔄 Recarregar</button>
       </div>
+      <div class="md-status" id="md-leads-lote" style="margin:12px 0 0"></div>
       <p class="md-nota" id="md-leads-count" style="margin-top:10px"></p>
     </div>
     <div class="table-wrap"><div class="table-wrap-inner">
-      <table><thead><tr><th>ID</th><th>Nome</th><th>Contato</th><th>Origem</th><th>Cadastro</th><th>Canal</th><th>Status</th><th>Último movimento</th><th>Resposta</th></tr></thead>
-      <tbody id="md-t-leads"><tr><td colspan="9"><div class="empty-table">Carregando…</div></td></tr></tbody></table>
+      <table><thead><tr><th>ID</th><th>Nome</th><th>Contato</th><th>Origem</th><th>Cadastro</th><th>Enviado em</th><th>Canal</th><th>Status</th><th>Último movimento</th><th>Resposta</th></tr></thead>
+      <tbody id="md-t-leads"><tr><td colspan="10"><div class="empty-table">Carregando…</div></td></tr></tbody></table>
     </div></div>
     <div class="md-row" id="md-leads-mais" style="justify-content:center;margin-top:14px;display:none">
       <button class="btn-conn-test" onclick="_md.leadsLim += 200; mdRenderLeads()">Mostrar mais 200</button>
@@ -6180,6 +6189,7 @@ async function mdCarregarResumo(soContadores) {
   document.getElementById('md-sem-preparar').textContent = d.semPreparar ? d.semPreparar + ' aguardando preparação' : 'nenhum aguardando';
   if (soContadores) return true;
   mdPintarStatus(d, anterior);
+  mdCarregarLeads();   // 112.4 — alimenta o quadro "Resultado por dia de envio" (e já deixa a lista de Leads em dia)
 
   const total = Object.values(d.porStatus).reduce((a, b) => a + b, 0);
   const kpis = MD_ORDEM.filter(s => d.porStatus[s]).map(s =>
@@ -6291,9 +6301,9 @@ async function mdRecarregarLeads(btn) {
   mostrarToast(`✅ Lista recarregada às ${mdHora()}: ${_md.leads.length} leads` + (antes && dif > 0 ? ` (+${dif} novos).` : '.'));
 }
 async function mdCarregarLeads() {
-  document.getElementById('md-t-leads').innerHTML = '<tr><td colspan="9"><div class="empty-table">Carregando…</div></td></tr>';
+  document.getElementById('md-t-leads').innerHTML = '<tr><td colspan="10"><div class="empty-table">Carregando…</div></td></tr>';
   const r = await mdGet('md_leads', {}, 40000);
-  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="9"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return false; }
+  if (!mdOk(r)) { document.getElementById('md-t-leads').innerHTML = `<tr><td colspan="10"><div class="empty-table">${mdEsc(mdErro(r))}</div></td></tr>`; return false; }
   _md.leadsHora = mdHora();
   _md.leads = r.itens;
   _md.leadsCarregados = true;
@@ -6305,7 +6315,10 @@ async function mdCarregarLeads() {
   const sts = [...new Set(_md.leads.map(l => l.status))].sort((a, b) => MD_ORDEM.indexOf(a) - MD_ORDEM.indexOf(b));
   fill('md-f-status', sts, s => MD_ROTULO[s] || s, 'Todos os status');
   fill('md-f-origem', [...new Set(_md.leads.map(l => l.origem).filter(Boolean))].sort(), o => MD_NOME_ORIGEM[o] || o, 'Todas as origens');
+  mdPreencherFiltroEnvio();
   mdRenderLeads(true);
+  mdRenderLotes();
+  mdAplicarLoteAlvo();
   return true;
 }
 function mdUltimoMov(l) {
@@ -6316,17 +6329,92 @@ function mdUltimoMov(l) {
   if (l.dtEnvio1) return 'Enviado ' + l.dtEnvio1;
   return l.dtCadastro ? 'Cadastro ' + l.dtCadastro : '';
 }
+/* 112.4 — dia de envio do lead (1º envio, e-mail ou WhatsApp). Só conta quem foi enviado de fato (envios > 0):
+   quem passou do e-mail para a fila do WhatsApp volta a "não enviado" até sair pelo WhatsApp. */
+function mdDiaEnvio(l) { return l.envios > 0 && l.dtEnvio1 ? l.dtEnvio1.slice(0, 10) : ''; }
+function mdFunil(lista) {
+  return { enviados: lista.length, abriram: lista.filter(l => l.dtAbertura).length, visitaram: lista.filter(l => l.dtClique).length,
+    responderam: lista.filter(l => l.dtRecadastro).length, invalidos: lista.filter(l => ['INVALIDO', 'SPAM', 'ERRO_ENVIO'].includes(l.status)).length,
+    sair: lista.filter(l => l.status === 'SAIR').length, lembrete: lista.filter(l => l.dtEnvio2).length };
+}
+function mdPct(n, t) { return t ? ` (${Math.round(100 * n / t)}%)` : ''; }
+function mdLotes() {
+  const g = new Map();
+  _md.leads.forEach(l => { const d = mdDiaEnvio(l); if (!d) return; const k = d + '|' + l.canal;
+    if (!g.has(k)) g.set(k, { dia: d, canal: l.canal, itens: [] }); g.get(k).itens.push(l); });
+  return [...g.values()].sort((a, b) => mdChaveData(b.dia).localeCompare(mdChaveData(a.dia)) || a.canal.localeCompare(b.canal));
+}
+function mdRenderLotes() {
+  const t = document.getElementById('md-t-lotes');
+  if (!t) return;
+  const lotes = mdLotes();
+  if (!lotes.length) { t.innerHTML = '<tr><td colspan="8"><div class="empty-table" style="padding:20px">Nenhum envio ainda.</div></td></tr>'; return; }
+  const dias = (_md.resumo && _md.resumo.diasLembrete) || 5, hoje = new Date(); hoje.setHours(0, 0, 0, 0);
+  t.innerHTML = lotes.map(x => {
+    const f = mdFunil(x.itens), email = x.canal === 'EMAIL';
+    let lemb = '—';
+    if (email) {
+      const [dd, mm, aa] = x.dia.split('/').map(Number), lib = new Date(aa, mm - 1, dd + dias);
+      lemb = f.lembrete ? `enviado a ${f.lembrete}` : lib <= hoje ? '<b style="color:#1f7a52">pronto para enviar</b>' : `libera em ${String(lib.getDate()).padStart(2, '0')}/${String(lib.getMonth() + 1).padStart(2, '0')}`;
+    }
+    return `<tr style="cursor:pointer" title="Ver estes leads em 👥 Leads" onclick="mdVerLote('${x.dia}','${x.canal}')">
+      <td class="td-nome">${x.dia}</td><td>${email ? '📧 E-mail' : x.canal === 'WHATSAPP' ? '📱 WhatsApp' : mdEsc(x.canal)}</td>
+      <td class="md-n">${f.enviados}</td><td class="md-n">${email ? f.abriram + mdPct(f.abriram, f.enviados) : '—'}</td>
+      <td class="md-n">${f.visitaram + mdPct(f.visitaram, f.enviados)}</td><td class="md-n">${f.responderam + mdPct(f.responderam, f.enviados)}</td>
+      <td class="md-n">${f.invalidos} / ${f.sair}</td><td>${lemb}</td></tr>`;
+  }).join('');
+}
+function mdVerLote(dia, canal) {
+  _md.loteAlvo = { dia, canal };
+  mdView('leads');
+  if (_md.leadsCarregados) mdAplicarLoteAlvo();
+}
+function mdAplicarLoteAlvo() {
+  if (!_md.loteAlvo) return;
+  document.getElementById('md-f-envio').value = _md.loteAlvo.dia;
+  document.getElementById('md-f-canal').value = _md.loteAlvo.canal;
+  _md.loteAlvo = null;
+  mdRenderLeads(true);
+}
+function mdPreencherFiltroEnvio() {
+  const el = document.getElementById('md-f-envio'), atual = el.value, cont = new Map();
+  let nao = 0;
+  _md.leads.forEach(l => { const d = mdDiaEnvio(l); if (d) cont.set(d, (cont.get(d) || 0) + 1); else nao++; });
+  const dias = [...cont.keys()].sort((a, b) => mdChaveData(b).localeCompare(mdChaveData(a)));
+  el.innerHTML = '<option value="">Enviado em: todos</option>' + dias.map(d => `<option value="${d}">${d} (${cont.get(d)} enviados)</option>`).join('') +
+    `<option value="__nao">Ainda não enviados (${nao})</option>`;
+  el.value = [...dias, '__nao'].includes(atual) ? atual : '';
+}
+function mdResumoLote(dia) {
+  const box = document.getElementById('md-leads-lote');
+  if (!dia || dia === '__nao') { box.innerHTML = ''; return; }
+  const doDia = _md.leads.filter(l => mdDiaEnvio(l) === dia);
+  box.innerHTML = ['EMAIL', 'WHATSAPP'].map(c => {
+    const f = mdFunil(doDia.filter(l => l.canal === c));
+    if (!f.enviados) return '';
+    return `<b>${dia} · ${c === 'EMAIL' ? '📧 E-mail' : '📱 WhatsApp'}:</b> ${f.enviados} enviados` + (c === 'EMAIL' ? ` · ${f.abriram} abriram${mdPct(f.abriram, f.enviados)}` : '') +
+      ` · ${f.visitaram} visitaram${mdPct(f.visitaram, f.enviados)} · ${f.responderam} responderam · ${f.invalidos} inválidos · ${f.sair} pediram para sair`;
+  }).filter(Boolean).join('<br>');
+}
+
 /* dd/mm/aaaa → aaaammdd, para ordenar por data de cadastro (sem data vai para o fim) */
 function mdChaveData(s) { const m = String(s || '').match(/^(\d{2})\/(\d{2})\/(\d{4})/); return m ? m[3] + m[2] + m[1] : ''; }
 function mdRenderLeads(reiniciar) {
   if (reiniciar || !_md.leadsLim) _md.leadsLim = 200;   // 110.12 — antes cortava em 300 e escondia o resto
   const q = document.getElementById('md-f-busca').value.trim().toLowerCase();
   const fs = document.getElementById('md-f-status').value, fc = document.getElementById('md-f-canal').value, fo = document.getElementById('md-f-origem').value;
+  const fe = document.getElementById('md-f-envio').value;
+  mdResumoLote(fe);
   const qDig = q.replace(/\D/g, '');
   const lista = _md.leads.filter(l => (!fs || l.status === fs) && (!fc || l.canal === fc) && (!fo || l.origem === fo) &&
+    (!fe || (fe === '__nao' ? !mdDiaEnvio(l) : mdDiaEnvio(l) === fe)) &&
     (!q || (l.nome + ' ' + l.email + ' ' + l.emailAtual + ' ' + l.id).toLowerCase().includes(q) || (qDig.length >= 4 && l.telefone.replace(/\D/g, '').includes(qDig))));
   const ordem = document.getElementById('md-f-ordem').value;
   if (ordem === 'nome') lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  else if (ordem === 'env_desc') {
+    const chave = l => { const m = String(l.dtEnvio1 || '').match(/^(\d{2})\/(\d{2})\/(\d{4}) ?(\d{2}:\d{2})?/); return mdDiaEnvio(l) && m ? m[3] + m[2] + m[1] + (m[4] || '') : ''; };
+    lista.sort((a, b) => { const x = chave(a), y = chave(b); if (!x || !y) return x ? -1 : y ? 1 : 0; return y.localeCompare(x); });
+  }
   else if (ordem === 'cad_desc' || ordem === 'cad_asc') {
     const sinal = ordem === 'cad_desc' ? -1 : 1;
     lista.sort((a, b) => { const x = mdChaveData(a.dtCadastro), y = mdChaveData(b.dtCadastro);
@@ -6340,9 +6428,9 @@ function mdRenderLeads(reiniciar) {
   document.getElementById('md-t-leads').innerHTML = lista.length ? lista.slice(0, lim).map(l => `<tr onclick="mdAbrirLead(${idx.get(l)})">
     <td>${mdEsc(l.id)}</td><td class="td-nome">${mdEsc(l.nome || '(sem nome)')}</td>
     <td>${mdEsc(l.email || '')}${l.email && l.telefone ? '<br>' : ''}${mdEsc(l.telefone || '')}</td>
-    <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td style="white-space:nowrap">${mdEsc(l.dtCadastro)}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
+    <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td style="white-space:nowrap">${mdEsc(l.dtCadastro)}</td><td style="white-space:nowrap">${mdEsc(mdDiaEnvio(l) ? l.dtEnvio1 : '—')}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
     <td>${mdEsc(mdUltimoMov(l))}</td><td>${mdEsc(MD_SITUACAO[l.situacao] || '')}${l.consultor === 'SIM' && !l.dtAtendido ? ' 🆘' : ''}</td></tr>`).join('')
-    : '<tr><td colspan="9"><div class="empty-table">Nenhum lead encontrado.</div></td></tr>';
+    : '<tr><td colspan="10"><div class="empty-table">Nenhum lead encontrado.</div></td></tr>';
 }
 
 function mdAbrirLead(i) {
