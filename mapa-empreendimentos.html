@@ -1989,7 +1989,8 @@ function abrirComparacao() {
 
 function abrirModal(id) { document.getElementById(id).classList.add('show'); }
 function fecharModal(id) { document.getElementById(id).classList.remove('show'); }
-document.getElementById('btn-como-usar').addEventListener('click', () => abrirModal('modal-como-usar'));
+// 113 — abre o manual completo em outra aba (o cliente não perde filtros nem a posição do mapa)
+document.getElementById('btn-como-usar').addEventListener('click', () => window.open('manual-mapa-empreendimentos.html', '_blank', 'noopener'));
 document.getElementById('btn-compartilhar-mapa').addEventListener('click', abrirCompartilharMapa);
 
 const btnTelaCheia = document.getElementById('btn-tela-cheia');
