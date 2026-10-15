@@ -51,7 +51,10 @@ const CFG = {
   URL_IMOVEL: 'https://walservidor.com.br/imovel.html',
   PLANILHA_SITE: '1Gl7YzDSVoXr_EIwv78L50I8uErhmVRhvwwaJ-2xYwnk',
   ABA_SITE: 'IMOVEISDISPONIVEIS',
-  REMETENTE_NOME: 'Antonio | WAL Imóveis',
+  REMETENTE_NOME: 'Antônio Araújo',              // 114: nome de pessoa (antes 'Antonio | WAL Imóveis')
+  // 114 — 'pessoal': parece e-mail escrito à mão (sem faixa, logo nem botão grande), ajuda a fugir da aba Promoções.
+  //       'campanha': o modelo anterior, com faixa azul e botão dourado.
+  ESTILO_EMAIL: 'pessoal',
   REMETENTE_EMAIL: 'comercial@walservidor.com.br',   // domínio autenticado na Brevo (DKIM/DMARC)
   RODAPE: 'WAL Imóveis e Consultoria · CRECI 12261-J · (21) 99726-3950 · comercial@walservidor.com.br',
   EMAIL_AVISO: '',            // recebe aviso de pedido de consultor ('' = não avisa)
@@ -446,7 +449,7 @@ function montarEmail_(lead, etapa, urlApi, textos) {
   const assH = negritoHtml_(aplicarModelo_(textos.EMAIL_ASSINATURA, ctx, true).trim());
   const assT = semNegrito_(aplicarModelo_(textos.EMAIL_ASSINATURA, ctx, false).trim());
 
-  const html =
+  const html = CFG.ESTILO_EMAIL === 'pessoal' ? emailPessoalHtml_(corpoH, notaH, assH, botao, link, sair) :
     '<div style="background:#f5f7fa;padding:24px 12px;font-family:Arial,Helvetica,sans-serif">' +
     '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:#ffffff;border-radius:10px;overflow:hidden">' +
     '<tr><td style="background:#0b1f3a;padding:18px 24px;color:#d9b76a;font-size:17px;font-weight:bold;letter-spacing:1px">WAL IMÓVEIS</td></tr>' +
@@ -465,6 +468,19 @@ function montarEmail_(lead, etapa, urlApi, textos) {
     (notaT.length ? notaT.join('\n\n') + '\n\n' : '') + assT + '\n\n' + CFG.RODAPE + '\nNão quer mais receber? ' + sair;
 
   return { assunto: assunto, html: html, texto: texto };
+}
+
+/** 114 — e-mail com cara de mensagem pessoal: texto corrido, link sublinhado no lugar do botão, rodapé discreto. */
+function emailPessoalHtml_(corpoH, notaH, assH, botao, link, sair) {
+  const p = function (b, estilo) { return '<p style="margin:0 0 14px' + (estilo || '') + '">' + b + '</p>'; };
+  return '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.6;color:#222222;max-width:600px">' +
+    corpoH.map(function (b) { return p(b); }).join('') +
+    p('<a href="' + link + '" style="color:#1a56a8;font-weight:bold;text-decoration:underline">' + esc_(botao) + ' →</a>', ';margin:20px 0') +
+    notaH.map(function (b) { return p(b, ';color:#555555;font-size:14px'); }).join('') +
+    p(assH, ';margin-top:22px') +
+    '<p style="margin:26px 0 0;padding-top:10px;border-top:1px solid #e5e5e5;color:#888888;font-size:11.5px;line-height:1.5">' +
+    esc_(CFG.RODAPE) + '<br>Você recebe esta mensagem porque entrou em contato com a WAL sobre imóveis. ' +
+    '<a href="' + sair + '" style="color:#888888">Não quero mais receber</a>.</p></div>';
 }
 
 function montarWhats_(lead, textos) {
@@ -713,9 +729,17 @@ function webhookBrevo_(ev) {
     if (tipo === 'unique_opened' || tipo === 'opened') {
       if (!r[c.DT_ABERTURA]) r[c.DT_ABERTURA] = new Date();
       r[c.STATUS] = subir_(r[c.STATUS], 'ABRIU');
-    } else if (tipo === 'hard_bounce' || tipo === 'invalid_email' || tipo === 'blocked') {
+    } else if (tipo === 'hard_bounce' || tipo === 'invalid_email' || tipo === 'blocked' ||
+               (tipo === 'soft_bounce' && enderecoInexistente_(ev.reason))) {
+      // 114: alguns servidores (ex.: Barracuda da FAB) devolvem "destinatário não existe" e a Brevo chama de
+      // soft bounce. Endereço inexistente não melhora com nova tentativa: vira INVALIDO como o hard bounce.
       r[c.STATUS] = subir_(r[c.STATUS], 'INVALIDO');
       r[c.OBS] = tipo + (ev.reason ? ': ' + String(ev.reason).slice(0, 100) : '');
+      // E-mail que não existe (não "blocked", que pode ser descadastro) → tenta pelo WhatsApp, se houver telefone.
+      if (tipo !== 'blocked' && r[c.STATUS] === 'INVALIDO' && r[c.CANAL] === 'EMAIL' && normalizarFone_(r[c.TELEFONE])) {
+        r[c.CANAL] = 'WHATSAPP'; r[c.STATUS] = 'PENDENTE'; r[c.ENVIOS] = 0;
+        r[c.OBS] = limpar_('E-mail inexistente (' + tipo + '); passou para a fila do WhatsApp em ' + fmt_(new Date(), 'dd/MM/yyyy'), 200);
+      }
     } else if (tipo === 'spam') {
       r[c.STATUS] = subir_(r[c.STATUS], 'SPAM');
     } else if (tipo === 'unsubscribed') {
@@ -727,8 +751,8 @@ function webhookBrevo_(ev) {
       log_([[new Date(), r[c.ID], 'EMAIL', 'EVENTO_IGNORADO', String(ev.event).slice(0, 60)]]);
       return;
     }
-    gravar_(L, ['DT_ABERTURA', 'STATUS', 'OBS']);
-    if (antes !== r[c.STATUS] || tipo === 'soft_bounce') log_([[new Date(), r[c.ID], 'EMAIL', tipo.toUpperCase(), '']]);
+    gravar_(L, ['DT_ABERTURA', 'STATUS', 'OBS', 'CANAL', 'ENVIOS']);
+    if (antes !== r[c.STATUS] || tipo === 'soft_bounce') log_([[new Date(), r[c.ID], 'EMAIL', tipo.toUpperCase(), r[c.CANAL] === 'WHATSAPP' ? 'passou para o WhatsApp' : '']]);
   } finally {
     lock.releaseLock();
   }
@@ -744,6 +768,12 @@ function tipoEvento_(nome) {
     open: 'opened', invalid: 'invalid_email', complaint: 'spam', hardbounce: 'hard_bounce', softbounce: 'soft_bounce',
     unsubscribe: 'unsubscribed' };
   return ALIAS[t] || t;
+}
+
+/** Motivos de bounce que significam "este endereço não existe" (vale mesmo quando a Brevo chama de soft bounce). */
+function enderecoInexistente_(motivo) {
+  return /\b5\.1\.[01]\b|user unknown|unknown user|no such user|does not exist|doesn'?t exist|recipient address rejected|recipient not found|invalid recipient|mailbox not found|address rejected/i
+    .test(String(motivo || ''));
 }
 
 /** Descadastro em dois passos: leitores de e-mail abrem links sozinhos, então o GET só mostra o botão. */
