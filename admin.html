@@ -2122,6 +2122,7 @@ function onEdit(e) {
           <option value="id">Ordem da planilha (ID)</option><option value="cad_desc">Cadastro mais recente primeiro</option>
           <option value="cad_asc">Cadastro mais antigo primeiro</option><option value="env_desc">Envio mais recente primeiro</option><option value="nome">Nome (A-Z)</option></select>
         <button class="btn-conn-test" onclick="mdRecarregarLeads(this)">🔄 Recarregar</button>
+        <button class="btn-conn-test" onclick="mdImprimirLeads()" title="Imprime ou salva em PDF todos os leads do filtro atual">🖨 Imprimir / PDF</button>
       </div>
       <div class="md-status" id="md-leads-lote" style="margin:12px 0 0"></div>
       <p class="md-nota" id="md-leads-count" style="margin-top:10px"></p>
@@ -6420,6 +6421,7 @@ function mdRenderLeads(reiniciar) {
     lista.sort((a, b) => { const x = mdChaveData(a.dtCadastro), y = mdChaveData(b.dtCadastro);
       if (!x || !y) return x ? -1 : y ? 1 : 0; return x < y ? -sinal : x > y ? sinal : 0; });
   }
+  _md.leadsFiltrados = lista;
   const lim = Math.min(_md.leadsLim, lista.length);
   document.getElementById('md-leads-count').textContent = `${lista.length} de ${_md.leads.length} leads` +
     (lista.length > lim ? ` — mostrando ${lim}; use "Mostrar mais" no fim da lista.` : '') + (_md.leadsHora ? ` · Atualizada às ${_md.leadsHora}` : '') + ' · Clique numa linha para ver tudo e mudar o status.';
@@ -6431,6 +6433,29 @@ function mdRenderLeads(reiniciar) {
     <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td style="white-space:nowrap">${mdEsc(l.dtCadastro)}</td><td style="white-space:nowrap">${mdEsc(mdDiaEnvio(l) ? l.dtEnvio1 : '—')}</td><td>${mdEsc(l.canal)}</td><td>${mdBadge(l.status)}</td>
     <td>${mdEsc(mdUltimoMov(l))}</td><td>${mdEsc(MD_SITUACAO[l.situacao] || '')}${l.consultor === 'SIM' && !l.dtAtendido ? ' 🆘' : ''}</td></tr>`).join('')
     : '<tr><td colspan="10"><div class="empty-table">Nenhum lead encontrado.</div></td></tr>';
+}
+
+/* 116 — imprime/salva em PDF TODOS os leads do filtro atual (não só os 200 visíveis), com os filtros
+   usados e o resumo do envio no topo. Usa o imprimirTabela() comum do admin (A4 deitado). */
+function mdImprimirLeads() {
+  const lista = _md.leadsFiltrados || [];
+  if (!lista.length) { mostrarToast('Nenhum lead para imprimir com esses filtros.'); return; }
+  const sel = id => { const el = document.getElementById(id); return el.value ? el.options[el.selectedIndex].text : ''; };
+  const busca = document.getElementById('md-f-busca').value.trim();
+  const filtros = [busca ? 'Busca: "' + busca + '"' : '', sel('md-f-status'), sel('md-f-canal'), sel('md-f-origem'),
+    document.getElementById('md-f-envio').value ? sel('md-f-envio') : '', 'Ordem: ' + sel('md-f-ordem')].filter(Boolean);
+  const lote = document.getElementById('md-leads-lote').innerHTML;
+  const contagem = `<b>${lista.length}</b> de ${_md.leads.length} leads · Filtros: ${mdEsc(filtros.join(' · ') || 'nenhum')}` +
+    (lote ? `<div style="margin-top:6px;padding:6px 8px;background:#f8f6f2;border-left:3px solid #C9A84C">${lote}</div>` : '');
+  let wrap = document.getElementById('md-print-wrap');
+  if (!wrap) { wrap = document.createElement('div'); wrap.id = 'md-print-wrap'; wrap.style.display = 'none'; document.body.appendChild(wrap); }
+  wrap.innerHTML = '<table><thead><tr><th>ID</th><th>Nome</th><th>Telefone</th><th>E-mail</th><th>Origem</th><th>Cadastro</th><th>Enviado em</th><th>Canal</th><th>Status</th><th>Último movimento</th><th>Resposta</th></tr></thead><tbody>' +
+    lista.map(l => `<tr><td>${mdEsc(l.id)}</td><td>${mdEsc(l.nome || '(sem nome)')}</td><td>${mdEsc(l.telefone || '')}</td><td>${mdEsc(l.email || '')}</td>
+      <td>${mdEsc(MD_NOME_ORIGEM[l.origem] || l.origem)}</td><td>${mdEsc(l.dtCadastro)}</td><td>${mdEsc(mdDiaEnvio(l) ? l.dtEnvio1 : '—')}</td>
+      <td>${mdEsc(l.canal)}</td><td>${mdEsc(MD_ROTULO[l.status] || l.status)}</td><td>${mdEsc(mdUltimoMov(l))}</td>
+      <td>${mdEsc(MD_SITUACAO[l.situacao] || '')}${l.consultor === 'SIM' && !l.dtAtendido ? ' (pediu consultor)' : ''}</td></tr>`).join('') +
+    '</tbody></table>';
+  imprimirTabela('Mala Direta · Leads', 'md-print-wrap', contagem);
 }
 
 function mdAbrirLead(i) {
