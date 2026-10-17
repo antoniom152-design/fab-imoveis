@@ -558,6 +558,9 @@ $('mapLinks').innerHTML=cities.map(c=>`<a class="citybtn" style="text-decoration
 const CRM_URL='https://script.google.com/macros/s/AKfycbysCi84QtlgGXxHNy8VnuCOisIZy8VE-LSxU4H1aQtVDYX7HFAQlEIstFT5d0AGE8E3/exec';
 const CADASTRO_API_URL='https://script.google.com/macros/s/AKfycbzyurEXQpt-t1t07JDEHJ1PtRUr-dtxTKpZezMjFxlxf_SPzbSQUqatgEWwSjwWn8A/exec';
 const ORIGEM_WAL='WAL Intelligence — Região dos Lagos';
+// 117 — também grava na aba "Leads" antiga, igual ao praca_onze_dashboard.html (mesmo endereço do index)
+const WAL_SCRIPT_URL_LEADS='https://script.google.com/macros/s/AKfycbwSNAwJ5rKYakSuK_nIw200NClBh3oP-KccjqnYHuesg0bQHC8Xf8vIt58CfyG8aluS/exec';
+function fetchSeguroWAL_(url,payload,ms){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms||8000);return fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(payload),signal:c.signal}).catch(()=>{}).finally(()=>clearTimeout(t))}
 function abrirFormularioWAL(interesse){const m=$('walModal');m.classList.add('open');document.body.style.overflow='hidden';if(typeof interesse==='string'){const s=$('leadInteresse');if([...s.options].some(o=>o.text===interesse))s.value=interesse}setTimeout(()=>$('leadNome').focus(),60)}
 function fecharFormularioWAL(){$('walModal').classList.remove('open');document.body.style.overflow=''}
 function fecharModalFundo(e){if(e.target.id==='walModal')fecharFormularioWAL()}
@@ -568,14 +571,15 @@ function validarEmailWAL(email){const e=(email||'').trim();return /^[^\s@]+@[^\s
 function validarWhatsWAL(tel){const d=(tel||'').replace(/\D/g,'');if(d.length<10||d.length>11)return false;const ddd=parseInt(d.slice(0,2),10);if(ddd<11||ddd>99)return false;if(/^(\d)\1+$/.test(d.slice(2)))return false;if(d.length===11&&d[2]!=='9')return false;return true}
 function lerReferenciaAgente_(){try{const ref=JSON.parse(localStorage.getItem('wal_ref_agente')||'null');if(!ref)return null;if((Date.now()-ref.capturadoEm)/86400000>90)return null;return ref}catch(e){return null}}
 async function registrarNoCRM_(d){
-  if(typeof WalCRM==='undefined'||!WalCRM.gravarLeadEHistorico)return;
   const ref=lerReferenciaAgente_();
   const nota=['Posto/Cargo: '+d.cargo,'Interesse: '+d.interesse,'Página: '+location.href].join('\n');
   const amanha=new Date(Date.now()+864e5);
   const proxdata=amanha.getFullYear()+'-'+String(amanha.getMonth()+1).padStart(2,'0')+'-'+String(amanha.getDate()).padStart(2,'0');
+  const leadsAntiga=fetchSeguroWAL_(WAL_SCRIPT_URL_LEADS,{tipo:'lead',timestamp:new Date().toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'}),nome:d.nome,email:d.email,whatsapp:d.whatsapp,posto:d.cargo,mensagem:'Interesse: '+d.interesse,origem:ORIGEM_WAL});
   try{await WalCRM.gravarLeadEHistorico(CRM_URL,CADASTRO_API_URL,
     {action:'criarOuAtualizar',lead:{status:'novo',prioridade:'alta',nome:d.nome,telefone:d.whatsapp,email:d.email,origem:ORIGEM_WAL,consultor:(ref&&ref.nome)||'',solicitacao:nota,area:'Região dos Lagos/RJ',proxacao:'Contatar lead interessado na Região dos Lagos',proxdata},interacao:{tipo:'WAL Intelligence',data:new Date().toLocaleString('sv-SE',{timeZone:'America/Sao_Paulo'}).replace(' ','T'),nota}},
     {action:'crm_lead_evento_publico',telefone:d.whatsapp,email:d.email,tipo:'🏖️ WAL Intelligence',texto:nota,origem:ORIGEM_WAL});}catch(e){}
+  await leadsAntiga;
 }
 async function enviarFormularioWAL(e){
   e.preventDefault();
